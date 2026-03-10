@@ -183,7 +183,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				</div>
 				<div className="flashcard-study-center">
 					<span className="flashcard-practice-badge">
-						🎯 刷题模式
+						🎯 装杯模式
 					</span>
 				</div>
 				<div className="flashcard-study-meta">

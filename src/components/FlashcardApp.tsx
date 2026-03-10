@@ -13,6 +13,7 @@ import { CardView } from "./CardView";
 import { PracticeSetup } from "./PracticeSetup";
 import { PracticeView } from "./PracticeView";
 import { PracticeSummary } from "./PracticeSummary";
+import { WordListView } from "./WordListView";
 
 interface FlashcardAppProps {
 	app: App;
@@ -73,6 +74,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handleSessionUpdate = (session: StudySession) => {
 		setStudySession(session);
+	};
+
+	const handleOpenWordList = (deckId: string) => {
+		setViewState({ type: "word-list", deckId });
 	};
 
 	// Practice mode handlers
@@ -249,12 +254,27 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			);
 		}
 
+		case "word-list": {
+			const deck = dataStore.getDeck(viewState.deckId);
+			if (!deck) {
+				setViewState({ type: "home" });
+				return null;
+			}
+			return (
+				<WordListView
+					deck={deck}
+					onBack={() => setViewState({ type: "home" })}
+				/>
+			);
+		}
+
 		case "home":
 		default:
 			return (
 				<DeckList
 					dataStore={dataStore}
 					onSelectDeck={handleSelectDeck}
+					onOpenWordList={handleOpenWordList}
 					onStartPractice={handleStartPracticeSetup}
 					onRefresh={onRefresh}
 				/>

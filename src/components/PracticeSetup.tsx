@@ -89,7 +89,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						{[20, 50, 100, 150, 200].map((count) => (
 							<button
 								key={count}
-								className={`flashcard-btn flashcard-practice-quick-btn ${
+								className={`flashcard-btn flashcard-practice-quick-btn flashcard-btn-reset ${
 									questionCount ===
 									Math.min(count, maxQuestions)
 										? "active"

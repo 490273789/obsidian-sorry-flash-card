@@ -154,6 +154,7 @@ export interface RatingButton {
 export type ViewState =
 	| { type: "home" }
 	| { type: "study"; deckId: string }
+	| { type: "word-list"; deckId: string }
 	| { type: "practice-setup"; deckId: string }
 	| { type: "practice"; deckId: string }
 	| { type: "practice-summary"; deckId: string };

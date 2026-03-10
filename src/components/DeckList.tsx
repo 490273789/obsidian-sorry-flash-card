@@ -5,6 +5,7 @@ import { DataStore } from "../dataStore";
 interface DeckListProps {
 	dataStore: DataStore;
 	onSelectDeck: (deckId: string) => void;
+	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
 	onRefresh: () => Promise<void>;
 }
@@ -12,6 +13,7 @@ interface DeckListProps {
 export const DeckList: React.FC<DeckListProps> = ({
 	dataStore,
 	onSelectDeck,
+	onOpenWordList,
 	onStartPractice,
 	onRefresh,
 }) => {
@@ -121,6 +123,19 @@ export const DeckList: React.FC<DeckListProps> = ({
 											</span>
 										</div>
 									</div>
+								</div>
+
+								<div className="flashcard-deck-actions">
+									<button
+										className="flashcard-btn flashcard-btn-word-list"
+										onClick={(e) => {
+											e.stopPropagation();
+											onOpenWordList(deck.id);
+										}}
+										title="单词列表"
+									>
+										📜 列表
+									</button>
 								</div>
 
 								<div className="flashcard-deck-actions">
