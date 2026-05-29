@@ -6,6 +6,7 @@ import {
 	DeckStats,
 	StudySession,
 	FlashcardSettings,
+	StudySettings,
 	DEFAULT_SETTINGS,
 } from "./types";
 import { FSRSScheduler } from "./scheduler";
@@ -334,6 +335,27 @@ export class DataStore {
 	}
 
 	/**
+	 * Get effective study settings for a deck (merges global defaults with per-deck overrides)
+	 */
+	getEffectiveStudySettings(deckId: string): StudySettings {
+		const global: StudySettings = {
+			dailyNewCards: this.settings.dailyNewCards,
+			dailyReviewCards: this.settings.dailyReviewCards,
+			studyOrder: this.settings.studyOrder,
+			fsrsParameters: this.settings.fsrsParameters,
+		};
+		const overrides = this.settings.deckStudySettings?.[deckId] ?? {};
+		return {
+			...global,
+			...overrides,
+			fsrsParameters: {
+				...global.fsrsParameters,
+				...(overrides.fsrsParameters ?? {}),
+			},
+		};
+	}
+
+	/**
 	 * Create a study session for a deck
 	 */
 	createStudySession(deckId: string): StudySession | null {
@@ -341,7 +363,8 @@ export class DataStore {
 		if (!deck) return null;
 
 		const now = new Date();
-		const { dailyNewCards, dailyReviewCards, studyOrder } = this.settings;
+		const { dailyNewCards, dailyReviewCards, studyOrder } =
+			this.getEffectiveStudySettings(deckId);
 
 		// Separate new cards and due cards
 		const newCards: FlashCard[] = [];

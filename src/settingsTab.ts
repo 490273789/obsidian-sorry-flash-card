@@ -276,7 +276,10 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		renderErrorMessages();
 
 		// Study settings heading
-		new Setting(containerEl).setName("学习设置").setHeading();
+		new Setting(containerEl).setName("默认学习设置（全局兜底）").setHeading();
+
+		new Setting(containerEl)
+			.setDesc("以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。");
 
 		// Daily new cards
 		new Setting(containerEl)

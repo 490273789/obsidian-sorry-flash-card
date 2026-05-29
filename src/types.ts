@@ -1,11 +1,9 @@
 import type { Card } from "ts-fsrs";
 
 /**
- * Plugin settings interface
+ * Per-deck or global study settings
  */
-export interface FlashcardSettings {
-	/** Tags to scan for flashcards (each tag represents a deck) */
-	flashcardTags: string[];
+export interface StudySettings {
 	/** Daily new cards limit */
 	dailyNewCards: number;
 	/** Daily review cards limit */
@@ -17,6 +15,14 @@ export interface FlashcardSettings {
 		requestRetention: number;
 		maximumInterval: number;
 	};
+}
+
+/**
+ * Plugin settings interface
+ */
+export interface FlashcardSettings extends StudySettings {
+	/** Tags to scan for flashcards (each tag represents a deck) */
+	flashcardTags: string[];
 	/** Welcome message shown on plugin open */
 	welcomeMessage: string;
 	/** Whether to show welcome message */
@@ -25,6 +31,8 @@ export interface FlashcardSettings {
 	practicePerfectMessages: string[];
 	/** Practice completion messages when there are errors */
 	practiceErrorMessages: string[];
+	/** Per-deck study setting overrides, keyed by deck ID */
+	deckStudySettings: Record<string, Partial<StudySettings>>;
 }
 
 /**
@@ -39,6 +47,7 @@ export const DEFAULT_SETTINGS: FlashcardSettings = {
 		requestRetention: 0.9,
 		maximumInterval: 365,
 	},
+	deckStudySettings: {},
 	welcomeMessage: "欢迎帅哥来到修仙联盟！🎉",
 	showWelcomeMessage: true,
 	practicePerfectMessages: [

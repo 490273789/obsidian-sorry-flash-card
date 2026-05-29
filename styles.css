@@ -2091,3 +2091,171 @@ button.flashcard-btn-reset {
 		width: 100%;
 	}
 }
+
+/* =============================================
+   Per-Deck Settings Modal
+   ============================================= */
+
+.flashcard-btn-settings {
+	padding: 6px 10px;
+	background: var(--background-modifier-hover);
+	color: var(--text-muted);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	font-size: 1em;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.flashcard-btn-settings:hover {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-color: var(--interactive-accent);
+}
+
+/* Backdrop */
+.flashcard-modal-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100;
+	animation: fadeIn 0.15s ease-out;
+}
+
+/* Modal card */
+.flashcard-modal {
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 12px;
+	width: min(420px, 90%);
+	max-height: 80%;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+	animation: slideUp 0.18s ease-out;
+}
+
+@keyframes slideUp {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.flashcard-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 18px 12px;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.flashcard-modal-title {
+	font-weight: 600;
+	font-size: 1em;
+	color: var(--text-normal);
+}
+
+.flashcard-modal-close {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--text-muted);
+	font-size: 1em;
+	padding: 2px 6px;
+	border-radius: 4px;
+	line-height: 1;
+	transition: color 0.15s, background 0.15s;
+}
+
+.flashcard-modal-close:hover {
+	color: var(--text-normal);
+	background: var(--background-modifier-hover);
+}
+
+.flashcard-modal-body {
+	padding: 16px 18px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.flashcard-modal-footer {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	padding: 12px 18px 16px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+/* Settings fields (shared between modal and settings tab) */
+.flashcard-deck-settings-toggle {
+	margin-bottom: 14px;
+}
+
+.flashcard-deck-settings-toggle-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.flashcard-deck-settings-hint {
+	font-size: 0.88em;
+	color: var(--text-muted);
+	padding: 10px 12px;
+	background: var(--background-secondary);
+	border-radius: 6px;
+}
+
+.flashcard-deck-settings-fields {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.flashcard-deck-settings-field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.flashcard-deck-settings-field label {
+	font-size: 0.88em;
+	color: var(--text-muted);
+}
+
+.flashcard-deck-settings-field input[type="range"] {
+	width: 100%;
+	cursor: pointer;
+	accent-color: var(--interactive-accent);
+}
+
+.flashcard-deck-settings-field-row {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.flashcard-deck-settings-field-row label {
+	flex-shrink: 0;
+}
+
+.flashcard-deck-settings-field-row select,
+.flashcard-deck-settings-field-row input[type="number"] {
+	padding: 4px 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	background: var(--background-secondary);
+	color: var(--text-normal);
+	font-size: 0.9em;
+	min-width: 110px;
+}

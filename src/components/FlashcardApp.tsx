@@ -3,6 +3,7 @@ import { App, Component, MarkdownRenderer, Notice } from "obsidian";
 import {
 	ViewState,
 	FlashcardSettings,
+	StudySettings,
 	StudySession,
 	PracticeSession,
 	PracticeResult,
@@ -168,6 +169,24 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setViewState({ type: "home" });
 	};
 
+	const handleUpdateDeckStudySettings = async (
+		deckId: string,
+		overrides: Partial<StudySettings> | null,
+	) => {
+		const newDeckStudySettings = {
+			...(settings.deckStudySettings ?? {}),
+		};
+		if (overrides === null) {
+			delete newDeckStudySettings[deckId];
+		} else {
+			newDeckStudySettings[deckId] = overrides;
+		}
+		await onSaveSettings({
+			...settings,
+			deckStudySettings: newDeckStudySettings,
+		});
+	};
+
 	// Render based on view state
 	switch (viewState.type) {
 		case "study": {
@@ -273,10 +292,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			return (
 				<DeckList
 					dataStore={dataStore}
+					settings={settings}
 					onSelectDeck={handleSelectDeck}
 					onOpenWordList={handleOpenWordList}
 					onStartPractice={handleStartPracticeSetup}
 					onRefresh={onRefresh}
+					onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
 				/>
 			);
 	}
