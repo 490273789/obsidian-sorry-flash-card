@@ -164,7 +164,7 @@
 }
 
 .flashcard-btn.flashcard-btn-word-list {
-	padding: 8px 16px;
+	padding: 8px 12px;
 	background: linear-gradient(135deg, #2478cc, #00b0bc);
 	color: white;
 	border: none;
@@ -179,6 +179,25 @@
 	transform: translateY(-2px);
 	box-shadow: 0 4px 12px rgba(91, 134, 229, 0.35);
 	background: linear-gradient(135deg, #2cc1cc, #4a75d4);
+	color: white;
+}
+
+.flashcard-btn.flashcard-btn-source {
+	padding: 8px 12px;
+	background: linear-gradient(135deg, #5a7a5a, #3d8b6e);
+	color: white;
+	border: none;
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 0.9em;
+	transition: all 0.2s ease;
+	letter-spacing: 0.2px;
+}
+
+.flashcard-btn.flashcard-btn-source:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(61, 139, 110, 0.35);
+	background: linear-gradient(135deg, #4da882, #6a9a6a);
 	color: white;
 }
 
@@ -2004,7 +2023,7 @@ button.flashcard-btn-reset {
 }
 
 .flashcard-btn-practice {
-	padding: 8px 16px;
+	padding: 8px 12px;
 	background: linear-gradient(135deg, #ff6b6b, #ffa502);
 	color: white;
 	border: none;

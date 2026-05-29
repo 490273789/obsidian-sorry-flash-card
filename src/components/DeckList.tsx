@@ -289,6 +289,7 @@ interface DeckListProps {
 		deckId: string,
 		overrides: Partial<StudySettings> | null,
 	) => Promise<void>;
+	onOpenSourceFile: (filePath: string) => void;
 }
 
 export const DeckList: React.FC<DeckListProps> = ({
@@ -299,6 +300,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onStartPractice,
 	onRefresh,
 	onUpdateDeckStudySettings,
+	onOpenSourceFile,
 }) => {
 	const [decks, setDecks] = useState<Deck[]>([]);
 	const [stats, setStats] = useState<Map<string, DeckStats>>(new Map());
@@ -446,6 +448,19 @@ export const DeckList: React.FC<DeckListProps> = ({
 										⚔️ 装杯
 									</button>
 								</div>
+								<div className="flashcard-deck-actions">
+									<button
+										className="flashcard-btn flashcard-btn-source"
+										onClick={(e) => {
+											e.stopPropagation();
+											onOpenSourceFile(deck.filePath);
+										}}
+										title="打开源文件"
+									>
+										源
+									</button>
+								</div>
+
 								<div className="flashcard-deck-actions">
 									<button
 										className="flashcard-btn flashcard-btn-settings"

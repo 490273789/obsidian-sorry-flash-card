@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { App, Component, MarkdownRenderer, Notice } from "obsidian";
+import { App, Component, MarkdownRenderer, Notice, TFile } from "obsidian";
 import {
 	ViewState,
 	FlashcardSettings,
@@ -198,6 +198,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setViewState({ type: "home" });
 	};
 
+	const handleOpenSourceFile = (filePath: string) => {
+		const file = app.vault.getAbstractFileByPath(filePath);
+		if (file instanceof TFile) {
+			void app.workspace.getLeaf(false).openFile(file);
+		} else {
+			new Notice(`找不到源文件：${filePath}`);
+		}
+	};
+
 	const handleUpdateDeckStudySettings = async (
 		deckId: string,
 		overrides: Partial<StudySettings> | null,
@@ -358,6 +367,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					onStartPractice={handleStartPracticeSetup}
 					onRefresh={onRefresh}
 					onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
+					onOpenSourceFile={handleOpenSourceFile}
 				/>
 			);
 	}
