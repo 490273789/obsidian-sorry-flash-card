@@ -8,13 +8,11 @@ interface WordListViewProps {
 
 interface WordItem {
 	id: string;
-	word: string;
-	phonetic: string;
-	meaning: string;
+	front: string;
+	back: string;
 	index: number;
 }
 
-const META_PREFIXES = ["prefix", "root", "suffix", "考察形式", "词根", "词缀"];
 const ESTIMATED_ROW_HEIGHT = 76;
 const OVERSCAN = 8;
 
@@ -41,127 +39,15 @@ function findStartIndex(offsets: number[], scrollTop: number): number {
 	return Math.max(0, Math.min(low, offsets.length - 2));
 }
 
-function isMetaLine(line: string): boolean {
-	const normalized = line.trim().toLowerCase();
-	return META_PREFIXES.some((prefix) =>
-		normalized.startsWith(prefix.toLowerCase()),
-	);
-}
-
-function formatMeaningWithPos(rawMeaning: string): string {
-	const normalized = rawMeaning
-		.replace(/；/g, ";")
-		.replace(/\s+/g, " ")
-		.trim();
-	const segments = normalized
-		.split(";")
-		.map((s) => s.trim())
-		.filter(Boolean);
-
-	const posStartRegex = /^(n|v|adj|adv|prep|conj|pron|int|vt|vi|aux|art)\./i;
-	const posSegments = segments.filter((segment) =>
-		posStartRegex.test(segment),
-	);
-
-	if (posSegments.length > 0) {
-		return posSegments.join("\n");
-	}
-
-	return rawMeaning.trim();
-}
-
-function stripMarkdown(text: string): string {
-	return text
-		.replace(/^#{1,6}\s*/gm, "")
-		.replace(/\*|_|~|`|>|\[|\]|\(|\)/g, "")
-		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-		.replace(/\[[^\]]+\]\([^)]*\)/g, "$1")
-		.trim();
-}
-
-function extractWord(question: string): string {
-	const lines = question
-		.split("\n")
-		.map((line) => line.trim())
-		.filter(Boolean);
-
-	for (const line of lines) {
-		const wordMarker = line.match(/^(?:word|单词)\s*[:：]\s*(.+)$/i);
-		if (wordMarker?.[1]) {
-			return stripMarkdown(wordMarker[1]);
-		}
-	}
-
-	return lines.length > 0 ? stripMarkdown(lines[0] ?? "") : "";
-}
-
-function extractPhonetic(answer: string): string {
-	const lines = answer
-		.split("\n")
-		.map((line) => line.trim())
-		.filter(Boolean);
-
-	for (const line of lines) {
-		const marker = line.match(/^(?:phonetic|音标)\s*[:：]\s*(.+)$/i);
-		if (marker?.[1]) {
-			return marker[1].trim();
-		}
-	}
-
-	const match = answer.match(/\/(?:[^/\n]|\\\/)+\//);
-	return match?.[0]?.trim() ?? "";
-}
-
-function extractMeaning(answer: string): string {
-	const lines = answer
-		.split("\n")
-		.map((line) => line.trim())
-		.filter(Boolean);
-
-	for (const line of lines) {
-		const marker = line.match(/^(?:meaning|中文|释义)\s*[:：]\s*(.+)$/i);
-		if (marker?.[1]) {
-			return formatMeaningWithPos(marker[1]);
-		}
-	}
-
-	const firstMeaningIndex = lines.findIndex(
-		(line) => /[\u4e00-\u9fff]/.test(line) && !isMetaLine(line),
-	);
-	if (firstMeaningIndex === -1) {
-		return "";
-	}
-
-	const meaningLines: string[] = [];
-	for (let i = firstMeaningIndex; i < lines.length; i++) {
-		const line = lines[i] ?? "";
-		if (isMetaLine(line)) {
-			break;
-		}
-		if (!/[\u4e00-\u9fff]/.test(line)) {
-			break;
-		}
-		meaningLines.push(line);
-	}
-
-	const merged = meaningLines.join("\n").trim();
-	if (!merged) {
-		return "";
-	}
-
-	return formatMeaningWithPos(merged);
+function stripHashSymbols(text: string): string {
+	return text.replace(/#/g, "").trim();
 }
 
 function toWordItem(card: FlashCard): WordItem {
-	const word = extractWord(card.question);
-	const phonetic = extractPhonetic(card.answer);
-	const meaning = extractMeaning(card.answer);
-
 	return {
 		id: card.id,
-		word: word || "(未识别单词)",
-		phonetic,
-		meaning: meaning || "(未识别中文释义)",
+		front: stripHashSymbols(card.question),
+		back: card.answer.trim(),
 		index: card.indexInFile,
 	};
 }
@@ -428,8 +314,8 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 			</div>
 
 			<div className="flashcard-word-list-head-row">
-				<div className="flashcard-word-col-left">英文 / 音标</div>
-				<div className="flashcard-word-col-right">中文释义</div>
+				<div className="flashcard-word-col-left">正面</div>
+				<div className="flashcard-word-col-right">背面</div>
 			</div>
 
 			<div
@@ -487,14 +373,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 										}
 									>
 										{showEnglish ? (
-											<>
-												<span className="flashcard-word-word">
-													{item.word}
-												</span>
-												<span className="flashcard-word-phonetic">
-													{item.phonetic || "-"}
-												</span>
-											</>
+											<span className="flashcard-word-front">
+												{item.front}
+											</span>
 										) : (
 											<span className="flashcard-word-mask-text">
 												点击显示
@@ -522,8 +403,8 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 										}
 									>
 										{showChinese ? (
-											<span className="flashcard-word-meaning">
-												{item.meaning}
+											<span className="flashcard-word-back">
+												{item.back}
 											</span>
 										) : (
 											<span className="flashcard-word-mask-text">
