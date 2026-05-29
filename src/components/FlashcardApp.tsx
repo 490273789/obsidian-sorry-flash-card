@@ -15,6 +15,7 @@ import { PracticeSetup } from "./PracticeSetup";
 import { PracticeView } from "./PracticeView";
 import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
+import { StudySetup } from "./StudySetup";
 
 interface FlashcardAppProps {
 	app: App;
@@ -51,21 +52,49 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	);
 
 	const handleSelectDeck = (deckId: string) => {
-		const session = dataStore.createStudySession(deckId);
+		const deck = dataStore.getDeck(deckId);
+		if (deck && deck.cards.length > 0) {
+			setViewState({ type: "study-setup", deckId });
+		} else {
+			new Notice(deck ? "该题库没有卡片，请先添加内容" : "题库不存在");
+		}
+	};
+
+	const handleStartStudyFromSetup = (
+		deckId: string,
+		studyOrder: "sequential" | "random",
+	) => {
+		const session = dataStore.createStudySession(deckId, studyOrder);
 		if (session && session.cardQueue.length > 0) {
 			setStudySession(session);
 			setViewState({ type: "study", deckId });
 		} else {
-			// No cards to study
-			const deck = dataStore.getDeck(deckId);
-			if (deck && deck.cards.length === 0) {
-				// Empty deck
-				new Notice("该题库没有卡片，请先添加内容");
-			} else {
-				// All cards reviewed
-				new Notice("今日学习任务已完成! 🎉");
-			}
+			new Notice("今日学习任务已完成! 🎉");
 		}
+	};
+
+	const handleStudyDay = (
+		deckId: string,
+		dayIndex: number,
+		studyOrder: "sequential" | "random",
+	) => {
+		const cards = dataStore.getCardsForDay(deckId, dayIndex);
+		if (cards.length === 0) return;
+		let cardIds = cards.map((c) => c.id);
+		if (studyOrder === "random") {
+			cardIds = [...cardIds].sort(() => Math.random() - 0.5);
+		}
+		const session: PracticeSession = {
+			deckId,
+			cardQueue: cardIds,
+			currentIndex: 0,
+			startTime: Date.now(),
+			totalQuestions: cardIds.length,
+			answers: {},
+		};
+		setPracticeSession(session);
+		setPracticeResult(null);
+		setViewState({ type: "practice", deckId });
 	};
 
 	const handleCloseStudy = () => {
@@ -189,6 +218,37 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	// Render based on view state
 	switch (viewState.type) {
+		case "study-setup": {
+			const deck = dataStore.getDeck(viewState.deckId);
+			if (!deck) {
+				setViewState({ type: "home" });
+				return null;
+			}
+			const dayList = dataStore.getDayList(viewState.deckId);
+			const { newCount, reviewCount } = dataStore.getTodayStudyCounts(
+				viewState.deckId,
+			);
+			const effectiveSettings = dataStore.getEffectiveStudySettings(
+				viewState.deckId,
+			);
+			return (
+				<StudySetup
+					deck={deck}
+					dayList={dayList}
+					todayNewCount={newCount}
+					todayReviewCount={reviewCount}
+					defaultStudyOrder={effectiveSettings.studyOrder}
+					onStart={(order) =>
+						handleStartStudyFromSetup(viewState.deckId, order)
+					}
+					onStartDay={(dayIndex, order) =>
+						handleStudyDay(viewState.deckId, dayIndex, order)
+					}
+					onBack={() => setViewState({ type: "home" })}
+				/>
+			);
+		}
+
 		case "study": {
 			if (!studySession) {
 				return null;

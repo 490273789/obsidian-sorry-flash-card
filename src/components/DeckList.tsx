@@ -8,6 +8,7 @@ import { DataStore } from "../dataStore";
 interface DeckSettingsModalProps {
 	deckName: string;
 	deckId: string;
+	totalCards: number;
 	globalSettings: FlashcardSettings;
 	deckOverrides: Partial<StudySettings> | undefined;
 	onSave: (overrides: Partial<StudySettings> | null) => Promise<void>;
@@ -17,6 +18,7 @@ interface DeckSettingsModalProps {
 const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 	deckName,
 	deckId: _deckId,
+	totalCards,
 	globalSettings,
 	deckOverrides,
 	onSave,
@@ -52,6 +54,28 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 		String(effective.maximumInterval),
 	);
 
+	// Days-to-complete: bidirectionally linked with dailyNewCards
+	const calcDays = (perDay: number) =>
+		totalCards > 0 ? Math.ceil(totalCards / perDay) : 0;
+	const [daysToComplete, setDaysToComplete] = useState(
+		String(calcDays(effective.dailyNewCards)),
+	);
+
+	const handleDailyNewCardsChange = (val: number) => {
+		setDailyNewCards(val);
+		setDaysToComplete(String(calcDays(val)));
+	};
+
+	const handleDaysToCompleteChange = (raw: string) => {
+		setDaysToComplete(raw);
+		const days = parseInt(raw, 10);
+		if (!isNaN(days) && days >= 1 && totalCards > 0) {
+			const newPerDay = Math.ceil(totalCards / days);
+			const clamped = Math.max(1, Math.min(100, newPerDay));
+			setDailyNewCards(clamped);
+		}
+	};
+
 	const handleSave = async () => {
 		if (!useCustom) {
 			await onSave(null);
@@ -78,10 +102,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 	};
 
 	const modal = (
-		<div
-			className="flashcard-modal-backdrop"
-			onClick={handleBackdropClick}
-		>
+		<div className="flashcard-modal-backdrop" onClick={handleBackdropClick}>
 			<div className="flashcard-modal">
 				<div className="flashcard-modal-header">
 					<span className="flashcard-modal-title">
@@ -102,9 +123,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 							<input
 								type="checkbox"
 								checked={useCustom}
-								onChange={(e) =>
-									setUseCustom(e.target.checked)
-								}
+								onChange={(e) => setUseCustom(e.target.checked)}
 							/>
 							<span>使用自定义学习设置</span>
 						</label>
@@ -120,7 +139,16 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 							{globalSettings.studyOrder === "random"
 								? "乱序"
 								: "顺序"}
-							学习
+							学习。
+							{totalCards > 0 && (
+								<span>
+									&nbsp;全部学完预计需&nbsp;
+									<strong>
+										{calcDays(globalSettings.dailyNewCards)}
+									</strong>
+									&nbsp;天。
+								</span>
+							)}
 						</div>
 					) : (
 						<div className="flashcard-deck-settings-fields">
@@ -132,16 +160,38 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 									max={100}
 									value={dailyNewCards}
 									onChange={(e) =>
-										setDailyNewCards(
+										handleDailyNewCardsChange(
 											parseInt(e.target.value),
 										)
 									}
 								/>
 							</div>
+							{totalCards > 0 && (
+								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row flashcard-deck-settings-days">
+									<label>预计完成天数</label>
+									<div className="flashcard-deck-settings-days-inputs">
+										<input
+											type="number"
+											min={1}
+											max={totalCards}
+											value={daysToComplete}
+											onChange={(e) =>
+												handleDaysToCompleteChange(
+													e.target.value,
+												)
+											}
+										/>
+										<span className="flashcard-deck-settings-days-unit">
+											天
+										</span>
+										<span className="flashcard-deck-settings-days-hint">
+											(共 {totalCards} 张卡片)
+										</span>
+									</div>
+								</div>
+							)}
 							<div className="flashcard-deck-settings-field">
-								<label>
-									每日复习数量：{dailyReviewCards}
-								</label>
+								<label>每日复习数量：{dailyReviewCards}</label>
 								<input
 									type="range"
 									min={1}
@@ -422,6 +472,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 						<DeckSettingsModal
 							deckName={modalDeck.name}
 							deckId={modalDeckId}
+							totalCards={modalDeck.cards.length}
 							globalSettings={settings}
 							deckOverrides={
 								settings.deckStudySettings?.[modalDeckId]

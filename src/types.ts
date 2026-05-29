@@ -162,11 +162,34 @@ export interface RatingButton {
  */
 export type ViewState =
 	| { type: "home" }
+	| { type: "study-setup"; deckId: string }
 	| { type: "study"; deckId: string }
 	| { type: "word-list"; deckId: string }
 	| { type: "practice-setup"; deckId: string }
 	| { type: "practice"; deckId: string }
 	| { type: "practice-summary"; deckId: string };
+
+/**
+ * Info about a single learning day for the day list in StudySetup
+ */
+export interface StudyDayInfo {
+	/** 0-based day index */
+	dayIndex: number;
+	/** Inclusive start index in sorted cards array */
+	startCardIndex: number;
+	/** Exclusive end index in sorted cards array */
+	endCardIndex: number;
+	/** Total cards in this day */
+	totalCards: number;
+	/** Number of cards already studied (not State.New) */
+	studiedCards: number;
+	/** All cards in this day have been studied */
+	isCompleted: boolean;
+	/** This is the first incomplete day */
+	isCurrent: boolean;
+	/** Day is after the current day — not yet unlocked */
+	isLocked: boolean;
+}
 
 /**
  * Practice session state (for practice mode without FSRS)

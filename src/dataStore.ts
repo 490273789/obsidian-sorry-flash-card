@@ -5,6 +5,7 @@ import {
 	FlashCard,
 	DeckStats,
 	StudySession,
+	StudyDayInfo,
 	FlashcardSettings,
 	StudySettings,
 	DEFAULT_SETTINGS,
@@ -356,15 +357,112 @@ export class DataStore {
 	}
 
 	/**
+	 * Get the list of learning days for a deck with completion status
+	 */
+	getDayList(deckId: string): StudyDayInfo[] {
+		const deck = this.decks.get(deckId);
+		if (!deck) return [];
+
+		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
+		const sortedCards = [...deck.cards].sort(
+			(a, b) => a.indexInFile - b.indexInFile,
+		);
+		const totalCards = sortedCards.length;
+		if (totalCards === 0) return [];
+
+		const numDays = Math.ceil(totalCards / dailyNewCards);
+		const days: StudyDayInfo[] = [];
+		let foundCurrent = false;
+
+		for (let i = 0; i < numDays; i++) {
+			const start = i * dailyNewCards;
+			const end = Math.min(start + dailyNewCards, totalCards);
+			const dayCards = sortedCards.slice(start, end);
+			const studiedCards = dayCards.filter(
+				(c) => c.fsrsCard.state !== State.New,
+			).length;
+			const isCompleted = studiedCards === dayCards.length;
+			const isCurrent = !isCompleted && !foundCurrent;
+			if (isCurrent) foundCurrent = true;
+
+			days.push({
+				dayIndex: i,
+				startCardIndex: start,
+				endCardIndex: end,
+				totalCards: dayCards.length,
+				studiedCards,
+				isCompleted,
+				isCurrent,
+				isLocked: !isCompleted && !isCurrent,
+			});
+		}
+
+		return days;
+	}
+
+	/**
+	 * Get the count of new and due cards for today's session
+	 */
+	getTodayStudyCounts(deckId: string): {
+		newCount: number;
+		reviewCount: number;
+	} {
+		const deck = this.decks.get(deckId);
+		if (!deck) return { newCount: 0, reviewCount: 0 };
+
+		const { dailyNewCards, dailyReviewCards } =
+			this.getEffectiveStudySettings(deckId);
+		const now = new Date();
+		let newCards = 0;
+		let dueCards = 0;
+
+		for (const card of deck.cards) {
+			if (card.fsrsCard.state === State.New) {
+				newCards++;
+			} else if (card.fsrsCard.due <= now) {
+				dueCards++;
+			}
+		}
+
+		return {
+			newCount: Math.min(dailyNewCards, newCards),
+			reviewCount: Math.min(dailyReviewCards, dueCards),
+		};
+	}
+
+	/**
+	 * Get all cards for a specific day index (for review practice)
+	 */
+	getCardsForDay(deckId: string, dayIndex: number): FlashCard[] {
+		const deck = this.decks.get(deckId);
+		if (!deck) return [];
+
+		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
+		const sortedCards = [...deck.cards].sort(
+			(a, b) => a.indexInFile - b.indexInFile,
+		);
+		const start = dayIndex * dailyNewCards;
+		const end = Math.min(start + dailyNewCards, sortedCards.length);
+		return sortedCards.slice(start, end);
+	}
+
+	/**
 	 * Create a study session for a deck
 	 */
-	createStudySession(deckId: string): StudySession | null {
+	createStudySession(
+		deckId: string,
+		studyOrderOverride?: "sequential" | "random",
+	): StudySession | null {
 		const deck = this.decks.get(deckId);
 		if (!deck) return null;
 
 		const now = new Date();
-		const { dailyNewCards, dailyReviewCards, studyOrder } =
-			this.getEffectiveStudySettings(deckId);
+		const {
+			dailyNewCards,
+			dailyReviewCards,
+			studyOrder: defaultOrder,
+		} = this.getEffectiveStudySettings(deckId);
+		const studyOrder = studyOrderOverride ?? defaultOrder;
 
 		// Separate new cards and due cards
 		const newCards: FlashCard[] = [];
