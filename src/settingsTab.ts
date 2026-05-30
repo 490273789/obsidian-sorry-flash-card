@@ -2,9 +2,19 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import type FlashcardPlugin from "./main";
 import { findAllFlashcardTags } from "./parser";
 
+// @ts-ignore VS Code may keep older Obsidian tab typings cached until reload.
+type SettingDefinitions = ReturnType<PluginSettingTab["getSettingDefinitions"]>;
+type GroupDefinition = Extract<
+	SettingDefinitions[number],
+	{ type: "group" | "list" }
+>;
+type GroupItem = NonNullable<GroupDefinition["items"]>[number];
+
 export class FlashcardSettingTab extends PluginSettingTab {
 	plugin: FlashcardPlugin;
 	private availableTags: string[] = [];
+	private isLoadingTags = false;
+	private hasLoadedTags = false;
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
@@ -12,381 +22,417 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		// Load tags asynchronously
-		void this.loadTagsAndRender();
+		// Obsidian 1.13+ renders this tab from getSettingDefinitions().
 	}
 
-	private async loadTagsAndRender(): Promise<void> {
-		this.availableTags = await findAllFlashcardTags(this.app.vault);
-		this.renderSettings();
-	}
+	getSettingDefinitions(): SettingDefinitions {
+		this.ensureAvailableTagsLoaded();
 
-	private renderSettings(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		// Header
-		new Setting(containerEl).setName("闪卡设置").setHeading();
-
-		// Flashcard tags section
-		new Setting(containerEl)
-			.setName("闪卡标签")
-			.setDesc("每个标签代表一个题库，插件会扫描所有带有这些标签的文件");
-
-		// Create tags list container
-		const tagsListContainer = containerEl.createDiv({
-			cls: "flashcard-tags-list-settings",
-		});
-
-		const renderTagsList = () => {
-			tagsListContainer.empty();
-
-			const tags = this.plugin.settings.flashcardTags;
-			tags.forEach((tag: string, index: number) => {
-				const tagItem = tagsListContainer.createDiv({
-					cls: "flashcard-tag-item-settings",
-				});
-
-				const input = tagItem.createEl("input", {
-					type: "text",
-					value: tag,
-					placeholder: "#标签名",
-					cls: "flashcard-tag-input",
-				});
-
-				input.addEventListener("change", () => {
-					this.plugin.settings.flashcardTags[index] = input.value;
-					void this.plugin.saveSettings();
-				});
-
-				if (tags.length > 1) {
-					const removeBtn = tagItem.createEl("button", {
-						text: "✕",
-						cls: "flashcard-tag-remove-btn",
+		const flashcardItems: GroupItem[] = [
+			{
+				name: "闪卡标签",
+				desc: "每个标签代表一个题库，插件会扫描所有带有这些标签的文件",
+				render: (setting: Setting) => {
+					this.renderEditableTextList(setting.descEl, {
+						values: this.plugin.settings.flashcardTags,
+						listClass: "flashcard-tags-list-settings",
+						itemClass: "flashcard-tag-item-settings",
+						inputClass: "flashcard-tag-input",
+						removeButtonClass: "flashcard-tag-remove-btn",
+						addButtonClass: "flashcard-tag-add-btn",
+						placeholder: "#标签名",
+						addLabel: "+ 添加标签",
+						onChange: (index, value) => {
+							this.plugin.settings.flashcardTags[index] = value;
+							void this.saveSettings(true);
+						},
+						onAdd: () => {
+							this.plugin.settings.flashcardTags.push("");
+							void this.saveSettings(true);
+						},
+						onRemove: (index) => {
+							this.plugin.settings.flashcardTags.splice(index, 1);
+							void this.saveSettings(true);
+						},
 					});
-					removeBtn.addEventListener("click", () => {
-						this.plugin.settings.flashcardTags.splice(index, 1);
-						void this.plugin.saveSettings().then(() => {
-							renderTagsList();
+				},
+			},
+		];
+
+		const unusedTags = this.getUnusedTags();
+		if (unusedTags.length > 0) {
+			flashcardItems.push({
+				name: "已发现的标签",
+				desc: "点击标签可快速添加",
+				render: (setting: Setting) => {
+					const tagsContainer = setting.descEl.createDiv({
+						cls: "flashcard-tags-container",
+					});
+					for (const tag of unusedTags) {
+						const tagBtn = tagsContainer.createEl("button", {
+							text: tag,
+							cls: "flashcard-tag-button",
 						});
-					});
-				}
-			});
-
-			// Add tag button
-			const addBtn = tagsListContainer.createEl("button", {
-				text: "+ 添加标签",
-				cls: "flashcard-tag-add-btn",
-			});
-			addBtn.addEventListener("click", () => {
-				this.plugin.settings.flashcardTags.push("");
-				void this.plugin.saveSettings().then(() => {
-					renderTagsList();
-				});
-			});
-		};
-
-		renderTagsList();
-
-		// Show available tags
-		if (this.availableTags.length > 0) {
-			const configuredTags = this.plugin.settings.flashcardTags;
-			const unusedTags = this.availableTags.filter(
-				(tag: string) => !configuredTags.includes(tag),
-			);
-
-			if (unusedTags.length > 0) {
-				const tagSetting = new Setting(containerEl)
-					.setName("已发现的标签")
-					.setDesc("点击标签可快速添加");
-
-				const tagsContainer = tagSetting.controlEl.createDiv({
-					cls: "flashcard-tags-container",
-				});
-				for (const tag of unusedTags) {
-					const tagBtn = tagsContainer.createEl("button", {
-						text: tag,
-						cls: "flashcard-tag-button",
-					});
-					tagBtn.addEventListener("click", () => {
-						this.plugin.settings.flashcardTags.push(tag);
-						void this.plugin.saveSettings().then(() => {
-							this.renderSettings();
+						tagBtn.addEventListener("click", () => {
+							this.plugin.settings.flashcardTags.push(tag);
+							void this.saveSettings(true);
 						});
-					});
-				}
-			}
+					}
+				},
+			});
 		}
 
-		// UI settings heading
-		new Setting(containerEl).setName("界面设置").setHeading();
+		return [
+			{
+				type: "group",
+				heading: "闪卡设置",
+				items: flashcardItems,
+			},
+			{
+				type: "group",
+				heading: "界面设置",
+				items: [
+					{
+						name: "显示欢迎弹窗",
+						desc: "每次打开插件时显示欢迎消息（持续3秒）",
+						render: (setting: Setting) => {
+							setting.addToggle((toggle) =>
+								toggle
+									.setValue(
+										this.plugin.settings.showWelcomeMessage,
+									)
+									.onChange(async (value) => {
+										this.plugin.settings.showWelcomeMessage =
+											value;
+										await this.saveSettings();
+									}),
+							);
+						},
+					},
+					{
+						name: "欢迎消息",
+						desc: "自定义欢迎弹窗显示的文案",
+						render: (setting: Setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder("输入欢迎消息")
+									.setValue(
+										this.plugin.settings.welcomeMessage,
+									)
+									.onChange(async (value) => {
+										this.plugin.settings.welcomeMessage =
+											value;
+										await this.saveSettings();
+									}),
+							);
+						},
+					},
+					{
+						name: "刷题全对文案",
+						desc: "刷题全部答对时随机显示的文案，一行一个",
+						render: (setting: Setting) => {
+							this.renderEditableTextList(setting.descEl, {
+								values: this.plugin.settings
+									.practicePerfectMessages,
+								listClass: "flashcard-messages-list-settings",
+								itemClass: "flashcard-message-item-settings",
+								inputClass: "flashcard-message-input",
+								removeButtonClass:
+									"flashcard-message-remove-btn",
+								addButtonClass: "flashcard-message-add-btn",
+								placeholder: "输入全对时的文案",
+								addLabel: "+ 添加文案",
+								onChange: (index, value) => {
+									this.plugin.settings.practicePerfectMessages[
+										index
+									] = value;
+									void this.saveSettings();
+								},
+								onAdd: () => {
+									this.plugin.settings.practicePerfectMessages.push(
+										"",
+									);
+									void this.saveSettings(true);
+								},
+								onRemove: (index) => {
+									this.plugin.settings.practicePerfectMessages.splice(
+										index,
+										1,
+									);
+									void this.saveSettings(true);
+								},
+							});
+						},
+					},
+					{
+						name: "刷题有错文案",
+						desc: "刷题有错题时随机显示的文案，一行一个",
+						render: (setting: Setting) => {
+							this.renderEditableTextList(setting.descEl, {
+								values: this.plugin.settings
+									.practiceErrorMessages,
+								listClass: "flashcard-messages-list-settings",
+								itemClass: "flashcard-message-item-settings",
+								inputClass: "flashcard-message-input",
+								removeButtonClass:
+									"flashcard-message-remove-btn",
+								addButtonClass: "flashcard-message-add-btn",
+								placeholder: "输入有错题时的文案",
+								addLabel: "+ 添加文案",
+								onChange: (index, value) => {
+									this.plugin.settings.practiceErrorMessages[
+										index
+									] = value;
+									void this.saveSettings();
+								},
+								onAdd: () => {
+									this.plugin.settings.practiceErrorMessages.push(
+										"",
+									);
+									void this.saveSettings(true);
+								},
+								onRemove: (index) => {
+									this.plugin.settings.practiceErrorMessages.splice(
+										index,
+										1,
+									);
+									void this.saveSettings(true);
+								},
+							});
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "默认学习设置（全局兜底）",
+				items: [
+					{
+						name: "作用范围",
+						desc: "以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。",
+					},
+					{
+						name: "每日新卡数量",
+						desc: "每天学习的新卡片最大数量",
+						render: (setting: Setting) => {
+							setting.addSlider((slider) =>
+								slider
+									.setLimits(1, 100, 1)
+									.setValue(
+										this.plugin.settings.dailyNewCards,
+									)
+									.setDynamicTooltip()
+									.onChange(async (value) => {
+										this.plugin.settings.dailyNewCards =
+											value;
+										await this.saveSettings();
+									}),
+							);
+						},
+					},
+					{
+						name: "每日复习数量",
+						desc: "每天复习的卡片最大数量",
+						render: (setting: Setting) => {
+							setting.addSlider((slider) =>
+								slider
+									.setLimits(1, 500, 10)
+									.setValue(
+										this.plugin.settings.dailyReviewCards,
+									)
+									.setDynamicTooltip()
+									.onChange(async (value) => {
+										this.plugin.settings.dailyReviewCards =
+											value;
+										await this.saveSettings();
+									}),
+							);
+						},
+					},
+					{
+						name: "学习顺序",
+						desc: "选择卡片的出现顺序",
+						render: (setting: Setting) => {
+							setting.addDropdown((dropdown) =>
+								dropdown
+									.addOption("sequential", "顺序学习")
+									.addOption("random", "乱序学习")
+									.setValue(this.plugin.settings.studyOrder)
+									.onChange(async (value) => {
+										this.plugin.settings.studyOrder =
+											value as "sequential" | "random";
+										await this.saveSettings();
+									}),
+							);
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "Fsrs 算法参数",
+				items: [
+					{
+						name: "目标记忆保持率",
+						desc: "期望的长期记忆保持率 (0.7-0.99)",
+						render: (setting: Setting) => {
+							setting.addSlider((slider) =>
+								slider
+									.setLimits(0.7, 0.99, 0.01)
+									.setValue(
+										this.plugin.settings.fsrsParameters
+											.requestRetention,
+									)
+									.setDynamicTooltip()
+									.onChange(async (value) => {
+										this.plugin.settings.fsrsParameters.requestRetention =
+											value;
+										await this.saveSettings();
+									}),
+							);
+						},
+					},
+					{
+						name: "最大复习间隔 (天)",
+						desc: "卡片复习间隔的最大天数",
+						render: (setting: Setting) => {
+							setting.addText((text) =>
+								text
+									.setPlaceholder("365")
+									.setValue(
+										String(
+											this.plugin.settings.fsrsParameters
+												.maximumInterval,
+										),
+									)
+									.onChange(async (value) => {
+										const num = parseInt(value);
+										if (
+											!isNaN(num) &&
+											num >= 30 &&
+											num <= 3650
+										) {
+											this.plugin.settings.fsrsParameters.maximumInterval =
+												num;
+											await this.saveSettings();
+										}
+									}),
+							);
+						},
+					},
+				],
+			},
+			{
+				type: "group",
+				heading: "使用说明",
+				items: [
+					{
+						name: "卡片格式和快捷键",
+						desc: this.createHelpDescription(),
+					},
+				],
+			},
+		];
+	}
 
-		// Show welcome message toggle
-		new Setting(containerEl)
-			.setName("显示欢迎弹窗")
-			.setDesc("每次打开插件时显示欢迎消息（持续3秒）")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.showWelcomeMessage)
-					.onChange(async (value) => {
-						this.plugin.settings.showWelcomeMessage = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+	private ensureAvailableTagsLoaded(): void {
+		if (this.hasLoadedTags || this.isLoadingTags) {
+			return;
+		}
 
-		// Welcome message
-		new Setting(containerEl)
-			.setName("欢迎消息")
-			.setDesc("自定义欢迎弹窗显示的文案")
-			.addText((text) =>
-				text
-					.setPlaceholder("输入欢迎消息")
-					.setValue(this.plugin.settings.welcomeMessage)
-					.onChange(async (value) => {
-						this.plugin.settings.welcomeMessage = value;
-						await this.plugin.saveSettings();
-					}),
-			);
+		this.isLoadingTags = true;
+		void findAllFlashcardTags(this.app.vault)
+			.then((tags) => {
+				this.availableTags = tags;
+				this.hasLoadedTags = true;
+				this.refreshDefinitions();
+			})
+			.finally(() => {
+				this.isLoadingTags = false;
+			});
+	}
 
-		// Practice completion messages - Perfect
-		new Setting(containerEl)
-			.setName("刷题全对文案")
-			.setDesc("刷题全部答对时随机显示的文案，一行一个");
+	private getUnusedTags(): string[] {
+		const configuredTags = this.plugin.settings.flashcardTags;
+		return this.availableTags.filter(
+			(tag) => !configuredTags.includes(tag),
+		);
+	}
 
-		const perfectMessagesContainer = containerEl.createDiv({
-			cls: "flashcard-messages-list-settings",
+	private async saveSettings(refreshDefinitions = false): Promise<void> {
+		await this.plugin.saveSettings();
+		if (refreshDefinitions) {
+			this.refreshDefinitions();
+		}
+	}
+
+	private refreshDefinitions(): void {
+		(this as PluginSettingTab & { update?: () => void }).update?.();
+	}
+
+	private renderEditableTextList(
+		parentEl: HTMLElement,
+		options: {
+			values: string[];
+			listClass: string;
+			itemClass: string;
+			inputClass: string;
+			removeButtonClass: string;
+			addButtonClass: string;
+			placeholder: string;
+			addLabel: string;
+			onChange: (index: number, value: string) => void;
+			onAdd: () => void;
+			onRemove: (index: number) => void;
+		},
+	): void {
+		const listContainer = parentEl.createDiv({ cls: options.listClass });
+
+		options.values.forEach((value, index) => {
+			const item = listContainer.createDiv({ cls: options.itemClass });
+
+			const input = item.createEl("input", {
+				type: "text",
+				value,
+				placeholder: options.placeholder,
+				cls: options.inputClass,
+			});
+
+			input.addEventListener("change", () => {
+				options.onChange(index, input.value);
+			});
+
+			if (options.values.length > 1) {
+				const removeBtn = item.createEl("button", {
+					text: "✕",
+					cls: options.removeButtonClass,
+				});
+				removeBtn.addEventListener("click", () => {
+					options.onRemove(index);
+				});
+			}
 		});
 
-		const renderPerfectMessages = () => {
-			perfectMessagesContainer.empty();
-
-			const messages = this.plugin.settings.practicePerfectMessages;
-			messages.forEach((msg: string, index: number) => {
-				const msgItem = perfectMessagesContainer.createDiv({
-					cls: "flashcard-message-item-settings",
-				});
-
-				const input = msgItem.createEl("input", {
-					type: "text",
-					value: msg,
-					placeholder: "输入全对时的文案",
-					cls: "flashcard-message-input",
-				});
-
-				input.addEventListener("change", () => {
-					this.plugin.settings.practicePerfectMessages[index] =
-						input.value;
-					void this.plugin.saveSettings();
-				});
-
-				if (messages.length > 1) {
-					const removeBtn = msgItem.createEl("button", {
-						text: "✕",
-						cls: "flashcard-message-remove-btn",
-					});
-					removeBtn.addEventListener("click", () => {
-						this.plugin.settings.practicePerfectMessages.splice(
-							index,
-							1,
-						);
-						void this.plugin.saveSettings().then(() => {
-							renderPerfectMessages();
-						});
-					});
-				}
-			});
-
-			const addBtn = perfectMessagesContainer.createEl("button", {
-				text: "+ 添加文案",
-				cls: "flashcard-message-add-btn",
-			});
-			addBtn.addEventListener("click", () => {
-				this.plugin.settings.practicePerfectMessages.push("");
-				void this.plugin.saveSettings().then(() => {
-					renderPerfectMessages();
-				});
-			});
-		};
-
-		renderPerfectMessages();
-
-		// Practice completion messages - Error
-		new Setting(containerEl)
-			.setName("刷题有错文案")
-			.setDesc("刷题有错题时随机显示的文案，一行一个");
-
-		const errorMessagesContainer = containerEl.createDiv({
-			cls: "flashcard-messages-list-settings",
+		const addBtn = listContainer.createEl("button", {
+			text: options.addLabel,
+			cls: options.addButtonClass,
 		});
-
-		const renderErrorMessages = () => {
-			errorMessagesContainer.empty();
-
-			const messages = this.plugin.settings.practiceErrorMessages;
-			messages.forEach((msg: string, index: number) => {
-				const msgItem = errorMessagesContainer.createDiv({
-					cls: "flashcard-message-item-settings",
-				});
-
-				const input = msgItem.createEl("input", {
-					type: "text",
-					value: msg,
-					placeholder: "输入有错题时的文案",
-					cls: "flashcard-message-input",
-				});
-
-				input.addEventListener("change", () => {
-					this.plugin.settings.practiceErrorMessages[index] =
-						input.value;
-					void this.plugin.saveSettings();
-				});
-
-				if (messages.length > 1) {
-					const removeBtn = msgItem.createEl("button", {
-						text: "✕",
-						cls: "flashcard-message-remove-btn",
-					});
-					removeBtn.addEventListener("click", () => {
-						this.plugin.settings.practiceErrorMessages.splice(
-							index,
-							1,
-						);
-						void this.plugin.saveSettings().then(() => {
-							renderErrorMessages();
-						});
-					});
-				}
-			});
-
-			const addBtn = errorMessagesContainer.createEl("button", {
-				text: "+ 添加文案",
-				cls: "flashcard-message-add-btn",
-			});
-			addBtn.addEventListener("click", () => {
-				this.plugin.settings.practiceErrorMessages.push("");
-				void this.plugin.saveSettings().then(() => {
-					renderErrorMessages();
-				});
-			});
-		};
-
-		renderErrorMessages();
-
-		// Study settings heading
-		new Setting(containerEl).setName("默认学习设置（全局兜底）").setHeading();
-
-		new Setting(containerEl)
-			.setDesc("以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。");
-
-		// Daily new cards
-		new Setting(containerEl)
-			.setName("每日新卡数量")
-			.setDesc("每天学习的新卡片最大数量")
-			.addSlider((slider) =>
-				slider
-					.setLimits(1, 100, 1)
-					.setValue(this.plugin.settings.dailyNewCards)
-					.setDynamicTooltip()
-					.onChange(async (value) => {
-						this.plugin.settings.dailyNewCards = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		// Daily review cards
-		new Setting(containerEl)
-			.setName("每日复习数量")
-			.setDesc("每天复习的卡片最大数量")
-			.addSlider((slider) =>
-				slider
-					.setLimits(1, 500, 10)
-					.setValue(this.plugin.settings.dailyReviewCards)
-					.setDynamicTooltip()
-					.onChange(async (value) => {
-						this.plugin.settings.dailyReviewCards = value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		// Study order
-		new Setting(containerEl)
-			.setName("学习顺序")
-			.setDesc("选择卡片的出现顺序")
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOption("sequential", "顺序学习")
-					.addOption("random", "乱序学习")
-					.setValue(this.plugin.settings.studyOrder)
-					.onChange(async (value) => {
-						this.plugin.settings.studyOrder = value as
-							| "sequential"
-							| "random";
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		// FSRS settings heading
-		new Setting(containerEl).setName("Fsrs 算法参数").setHeading();
-
-		// Request retention
-		new Setting(containerEl)
-			.setName("目标记忆保持率")
-			.setDesc("期望的长期记忆保持率 (0.7-0.99)")
-			.addSlider((slider) =>
-				slider
-					.setLimits(0.7, 0.99, 0.01)
-					.setValue(
-						this.plugin.settings.fsrsParameters.requestRetention,
-					)
-					.setDynamicTooltip()
-					.onChange(async (value) => {
-						this.plugin.settings.fsrsParameters.requestRetention =
-							value;
-						await this.plugin.saveSettings();
-					}),
-			);
-
-		// Maximum interval
-		new Setting(containerEl)
-			.setName("最大复习间隔 (天)")
-			.setDesc("卡片复习间隔的最大天数")
-			.addText((text) =>
-				text
-					.setPlaceholder("365")
-					.setValue(
-						String(
-							this.plugin.settings.fsrsParameters.maximumInterval,
-						),
-					)
-					.onChange(async (value) => {
-						const num = parseInt(value);
-						if (!isNaN(num) && num >= 30 && num <= 3650) {
-							this.plugin.settings.fsrsParameters.maximumInterval =
-								num;
-							await this.plugin.saveSettings();
-						}
-					}),
-			);
-
-		// Help section heading
-		new Setting(containerEl).setName("使用说明").setHeading();
-
-		const helpDiv = containerEl.createDiv({ cls: "flashcard-help" });
-		helpDiv.createEl("p", {
-			text: "卡片格式说明:",
+		addBtn.addEventListener("click", () => {
+			options.onAdd();
 		});
+	}
+
+	private createHelpDescription(): DocumentFragment {
+		const fragment = activeDocument.createDocumentFragment();
+		const helpDiv = fragment.createDiv({ cls: "flashcard-help" });
+
+		helpDiv.createEl("p", { text: "卡片格式说明:" });
 
 		const codeBlock = helpDiv.createEl("pre");
-		const codeContent =
-			"#wordTag\n\n问题写在这个地方\n---div---\n答案写在这个地方\n<->\n\n问题写在这个地方\n---div---\n答案写在这个地方\n<->";
-		codeBlock.createEl("code").textContent = codeContent;
+		codeBlock.createEl("code").textContent =
+			"#示例标签\n\n问题写在这个地方\n---div---\n答案写在这个地方\n<->\n\n问题写在这个地方\n---div---\n答案写在这个地方\n<->";
 
-		helpDiv.createEl("p", {
-			text: "快捷键说明:",
-		});
+		helpDiv.createEl("p", { text: "快捷键说明:" });
 
 		const shortcutsList = helpDiv.createEl("ul");
 		const shortcuts = [
@@ -402,5 +448,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		for (const shortcut of shortcuts) {
 			shortcutsList.createEl("li", { text: shortcut });
 		}
+
+		return fragment;
 	}
 }

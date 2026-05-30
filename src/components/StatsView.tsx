@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { ArrowLeft, ChartBar, Sprout } from "lucide-react";
 import { DataStore } from "../dataStore";
 import { StudyHistoryEntry } from "../types";
 
@@ -91,9 +92,11 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 					onClick={onBack}
 					title="返回"
 				>
-					←
+					<ArrowLeft size={18} />
 				</button>
-				<h2 className="flashcard-stats-title">📊 学习统计</h2>
+				<h2 className="flashcard-stats-title">
+					<ChartBar size={18} /> 学习统计
+				</h2>
 				<div className="flashcard-stats-header-right">
 					<span className="flashcard-stats-range">近 20 天</span>
 				</div>
@@ -131,7 +134,9 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 			<div className="flashcard-stats-body">
 				{grouped.length === 0 ? (
 					<div className="flashcard-empty">
-						<div className="flashcard-empty-icon">🌱</div>
+						<div className="flashcard-empty-icon">
+							<Sprout size={48} />
+						</div>
 						<p>暂无学习记录</p>
 						<p className="flashcard-empty-hint">
 							完成一次学习后，数据将在这里展示

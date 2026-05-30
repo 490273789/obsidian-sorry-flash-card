@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { CircleCheck, Target, Lock } from "lucide-react";
 import { Deck, StudyDayInfo } from "../types";
 
 interface StudySetupProps {
@@ -174,11 +175,13 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 								>
 									<div className="flashcard-study-day-info">
 										<span className="flashcard-study-day-badge">
-											{day.isCompleted
-												? "✅"
-												: day.isCurrent
-													? "🎯"
-													: "🔒"}
+											{day.isCompleted ? (
+												<CircleCheck size={16} />
+											) : day.isCurrent ? (
+												<Target size={16} />
+											) : (
+												<Lock size={16} />
+											)}
 										</span>
 										<span className="flashcard-study-day-name">
 											第 {day.dayIndex + 1} 天

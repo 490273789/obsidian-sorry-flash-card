@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Target, X, Check } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 
@@ -57,10 +58,10 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 
 	// Timer
 	useEffect(() => {
-		const interval = setInterval(() => {
+		const interval = window.setInterval(() => {
 			setElapsedTime(Math.floor((Date.now() - session.startTime) / 1000));
 		}, 1000);
-		return () => clearInterval(interval);
+		return () => window.clearInterval(interval);
 	}, [session.startTime]);
 
 	// Keyboard shortcuts
@@ -126,7 +127,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		// Move to next card
 		if (newSession.currentIndex < newSession.cardQueue.length - 1) {
 			newSession.currentIndex++;
-			setTimeout(() => {
+			window.setTimeout(() => {
 				onSessionUpdate(newSession);
 				setIsAnimating(false);
 			}, 200);
@@ -154,7 +155,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				timeSpent: Math.floor((Date.now() - session.startTime) / 1000),
 			};
 
-			setTimeout(() => {
+			window.setTimeout(() => {
 				onComplete(result);
 			}, 300);
 		}
@@ -183,7 +184,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				</div>
 				<div className="flashcard-study-center">
 					<span className="flashcard-practice-badge">
-						🎯 装杯模式
+						<Target size={14} /> 装杯模式
 					</span>
 				</div>
 				<div className="flashcard-study-meta">
@@ -195,7 +196,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						onClick={onClose}
 						title="退出刷题"
 					>
-						✕
+						<X size={16} />
 					</button>
 				</div>
 			</div>
@@ -252,7 +253,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 							onClick={() => handleAnswer(false)}
 						>
 							<span className="flashcard-practice-btn-icon">
-								✗
+								<X size={18} />
 							</span>
 							<span className="flashcard-practice-btn-label">
 								拉垮
@@ -264,7 +265,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 							onClick={() => handleAnswer(true)}
 						>
 							<span className="flashcard-practice-btn-icon">
-								✓
+								<Check size={18} />
 							</span>
 							<span className="flashcard-practice-btn-label">
 								夯

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { PartyPopper, RotateCcw, X } from "lucide-react";
 import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
@@ -58,10 +59,10 @@ export const CardView: React.FC<CardViewProps> = ({
 
 	// Timer
 	useEffect(() => {
-		const interval = setInterval(() => {
+		const interval = window.setInterval(() => {
 			setElapsedTime(Math.floor((Date.now() - session.startTime) / 1000));
 		}, 1000);
-		return () => clearInterval(interval);
+		return () => window.clearInterval(interval);
 	}, [session.startTime]);
 
 	// Keyboard shortcuts
@@ -180,13 +181,13 @@ export const CardView: React.FC<CardViewProps> = ({
 		} else {
 			// Session complete
 			await dataStore.incrementStudyCount(deck.id);
-			setTimeout(() => {
+			window.setTimeout(() => {
 				onClose();
 			}, 300);
 			return;
 		}
 
-		setTimeout(() => {
+		window.setTimeout(() => {
 			onSessionUpdate(newSession);
 			setIsAnimating(false);
 		}, 200);
@@ -209,7 +210,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			];
 		}
 
-		setTimeout(() => {
+		window.setTimeout(() => {
 			onSessionUpdate(newSession);
 			setIsAnimating(false);
 		}, 200);
@@ -219,7 +220,9 @@ export const CardView: React.FC<CardViewProps> = ({
 	if (!currentCard) {
 		return (
 			<div className="flashcard-complete">
-				<div className="flashcard-complete-icon">🎉</div>
+				<div className="flashcard-complete-icon">
+					<PartyPopper size={48} />
+				</div>
 				<h2>学习完成!</h2>
 				<p>本次学习时长: {formatTime(elapsedTime)}</p>
 				<button
@@ -252,7 +255,7 @@ export const CardView: React.FC<CardViewProps> = ({
 						onClick={onClose}
 						title="关闭"
 					>
-						✕
+						<X size={16} />
 					</button>
 				</div>
 			</div>
@@ -302,20 +305,7 @@ export const CardView: React.FC<CardViewProps> = ({
 							disabled={session.history.length === 0}
 							title="撤销 (6)"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-							>
-								<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-								<path d="M3 3v5h5" />
-							</svg>
+							<RotateCcw size={24} />
 						</button>
 						<div className="flashcard-rating-grid">
 							{ratingButtons.map((btn) => (

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
+import { BookOpen, ChartBar, RefreshCw, Inbox } from "lucide-react";
 import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../types";
 import { DataStore } from "../dataStore";
 
@@ -272,7 +273,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 
 	// Render into the plugin's root container so it stays within the view
 	const container =
-		document.querySelector(".flashcard-root") ?? document.body;
+		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
 	return ReactDOM.createPortal(modal, container);
 };
 
@@ -337,14 +338,16 @@ export const DeckList: React.FC<DeckListProps> = ({
 	return (
 		<div className="flashcard-home">
 			<div className="flashcard-header">
-				<h2 className="flashcard-title">📚 靓仔养成计划</h2>
+				<h2 className="flashcard-title">
+					<BookOpen size={18} /> 靓仔养成计划
+				</h2>
 				<div className="flashcard-header-actions">
 					<button
 						className="flashcard-btn flashcard-btn-icon"
 						onClick={onOpenStats}
 						title="学习统计"
 					>
-						<span className="flashcard-icon">📊</span>
+						<ChartBar size={18} />
 					</button>
 					<button
 						className="flashcard-btn flashcard-btn-icon"
@@ -352,18 +355,19 @@ export const DeckList: React.FC<DeckListProps> = ({
 						disabled={isLoading}
 						title="刷新题库"
 					>
-						<span
-							className={`flashcard-icon ${isLoading ? "spinning" : ""}`}
-						>
-							↻
-						</span>
+						<RefreshCw
+							size={18}
+							className={isLoading ? "spinning" : ""}
+						/>
 					</button>
 				</div>
 			</div>
 
 			{decks.length === 0 ? (
 				<div className="flashcard-empty">
-					<div className="flashcard-empty-icon">📭</div>
+					<div className="flashcard-empty-icon">
+						<Inbox size={48} />
+					</div>
 					<p>暂无题库</p>
 					<p className="flashcard-empty-hint">
 						点击刷新按钮扫描带有 <code>#wordTag</code> 标签的文件

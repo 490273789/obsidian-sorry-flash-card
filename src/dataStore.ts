@@ -209,21 +209,16 @@ export class DataStore {
 	 * Serialize FSRS card
 	 */
 	private serializeFSRSCard(card: Card): SerializedFSRSCard {
+		const { due, last_review, ...serializedCard } = card;
+
 		return {
-			due: card.due instanceof Date ? card.due.toISOString() : card.due,
-			stability: card.stability,
-			difficulty: card.difficulty,
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			elapsed_days: card.elapsed_days,
-			scheduled_days: card.scheduled_days,
-			reps: card.reps,
-			lapses: card.lapses,
-			state: card.state,
+			...serializedCard,
+			due: due instanceof Date ? due.toISOString() : due,
 			last_review:
-				card.last_review instanceof Date
-					? card.last_review.toISOString()
-					: (card.last_review ?? null),
-			learning_steps: card.learning_steps ?? 0,
+				last_review instanceof Date
+					? last_review.toISOString()
+					: (last_review ?? null),
+			learning_steps: serializedCard.learning_steps ?? 0,
 		};
 	}
 

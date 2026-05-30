@@ -1,4 +1,13 @@
 import React, { useEffect, useRef } from "react";
+import {
+	FileText,
+	Check,
+	X,
+	Timer,
+	CircleX,
+	RotateCw,
+	House,
+} from "lucide-react";
 import { Deck, FlashCard, PracticeResult, FlashcardSettings } from "../types";
 import { DataStore } from "../dataStore";
 
@@ -80,25 +89,33 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 
 				<div className="flashcard-practice-stat-row">
 					<div className="flashcard-practice-stat-item">
-						<span className="flashcard-practice-stat-icon">📝</span>
+						<span className="flashcard-practice-stat-icon">
+							<FileText size={14} />
+						</span>
 						<span className="flashcard-practice-stat-text">
 							总题数: <strong>{result.totalQuestions}</strong>
 						</span>
 					</div>
 					<div className="flashcard-practice-stat-item flashcard-practice-stat-correct">
-						<span className="flashcard-practice-stat-icon">✓</span>
+						<span className="flashcard-practice-stat-icon">
+							<Check size={14} />
+						</span>
 						<span className="flashcard-practice-stat-text">
 							正确: <strong>{result.correctCount}</strong>
 						</span>
 					</div>
 					<div className="flashcard-practice-stat-item flashcard-practice-stat-wrong">
-						<span className="flashcard-practice-stat-icon">✗</span>
+						<span className="flashcard-practice-stat-icon">
+							<X size={14} />
+						</span>
 						<span className="flashcard-practice-stat-text">
 							错误: <strong>{result.incorrectCount}</strong>
 						</span>
 					</div>
 					<div className="flashcard-practice-stat-item">
-						<span className="flashcard-practice-stat-icon">⏱️</span>
+						<span className="flashcard-practice-stat-icon">
+							<Timer size={14} />
+						</span>
 						<span className="flashcard-practice-stat-text">
 							用时:{" "}
 							<strong>{formatTime(result.timeSpent)}</strong>
@@ -110,7 +127,8 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 			{incorrectCards.length > 0 && (
 				<div className="flashcard-practice-incorrect-section">
 					<h3 className="flashcard-practice-incorrect-title">
-						❌ 错题列表 ({incorrectCards.length}题)
+						<CircleX size={16} /> 错题列表 ({incorrectCards.length}
+						题)
 					</h3>
 					<div className="flashcard-practice-incorrect-list">
 						{incorrectCards.map((card, index) => (
@@ -130,21 +148,21 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					className="flashcard-btn flashcard-btn-primary flashcard-practice-action-btn"
 					onClick={onRestart}
 				>
-					🔄 再装一次
+					<RotateCw size={14} /> 再装一次
 				</button>
 				{result.incorrectCount > 0 && (
 					<button
 						className="flashcard-btn flashcard-btn-danger flashcard-practice-action-btn"
 						onClick={onPracticeIncorrect}
 					>
-						❌ 装杯失败 ({result.incorrectCount})
+						<CircleX size={14} /> 装杯失败 ({result.incorrectCount})
 					</button>
 				)}
 				<button
 					className="flashcard-btn flashcard-btn-secondary flashcard-practice-action-btn"
 					onClick={onHome}
 				>
-					🏠 返回首页
+					<House size={14} /> 返回首页
 				</button>
 			</div>
 		</div>

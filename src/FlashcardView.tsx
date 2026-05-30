@@ -109,9 +109,9 @@ export class FlashcardView extends ItemView {
 		popup.setText(this.settings.welcomeMessage);
 
 		// Auto-hide after 3 seconds
-		setTimeout(() => {
+		window.setTimeout(() => {
 			popup.addClass("flashcard-welcome-popup-hide");
-			setTimeout(() => {
+			window.setTimeout(() => {
 				popup.remove();
 			}, 300); // Wait for fade-out animation
 		}, 3000);

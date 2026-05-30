@@ -70,12 +70,11 @@ export default class FlashcardPlugin extends Plugin {
 		// Check if data is in new StoredData format
 		if (data && "decks" in data && "settings" in data) {
 			// New format: load settings from StoredData
-			const storedData = data as StoredData;
-			if (storedData.settings) {
+			if (data.settings) {
 				this.settings = Object.assign(
 					{},
 					DEFAULT_SETTINGS,
-					storedData.settings,
+					data.settings,
 				);
 			}
 		} else {
@@ -123,7 +122,7 @@ export default class FlashcardPlugin extends Plugin {
 	async activateView() {
 		const { workspace } = this.app;
 
-		let leaf: WorkspaceLeaf | null = null;
+		let leaf: WorkspaceLeaf;
 		const leaves = workspace.getLeavesOfType(VIEW_TYPE_FLASHCARD);
 
 		if (leaves.length > 0) {

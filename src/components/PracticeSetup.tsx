@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Target, Shuffle, ChartBar, CircleX } from "lucide-react";
 import { Deck } from "../types";
 
 interface PracticeSetupProps {
@@ -64,7 +65,9 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 				>
 					← 返回
 				</button>
-				<h2 className="flashcard-practice-setup-title">🎯 装杯模式</h2>
+				<h2 className="flashcard-practice-setup-title">
+					<Target size={18} /> 装杯模式
+				</h2>
 			</div>
 
 			<div className="flashcard-practice-setup-content">
@@ -135,15 +138,21 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 				<div className="flashcard-practice-info">
 					<div className="flashcard-practice-info-item">
-						<span className="flashcard-practice-info-icon">🔀</span>
+						<span className="flashcard-practice-info-icon">
+							<Shuffle size={16} />
+						</span>
 						<span>装杯顺序随机</span>
 					</div>
 					<div className="flashcard-practice-info-item">
-						<span className="flashcard-practice-info-icon">📊</span>
+						<span className="flashcard-practice-info-icon">
+							<ChartBar size={16} />
+						</span>
 						<span>完成后查看成功装杯率统计</span>
 					</div>
 					<div className="flashcard-practice-info-item">
-						<span className="flashcard-practice-info-icon">❌</span>
+						<span className="flashcard-practice-info-icon">
+							<CircleX size={16} />
+						</span>
 						<span>查看装杯失败列表</span>
 					</div>
 				</div>
