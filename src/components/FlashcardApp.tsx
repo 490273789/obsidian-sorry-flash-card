@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { App, Component, MarkdownRenderer, Notice, TFile } from "obsidian";
 import {
 	ViewState,
@@ -16,6 +16,7 @@ import { PracticeView } from "./PracticeView";
 import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
 import { StudySetup } from "./StudySetup";
+import { StatsView } from "./StatsView";
 
 interface FlashcardAppProps {
 	app: App;
@@ -41,6 +42,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const [practiceResult, setPracticeResult] = useState<PracticeResult | null>(
 		null,
 	);
+	// Track when word-list view was opened for duration recording
+	const wordListStartTime = useRef<number | null>(null);
 
 	// Markdown renderer function
 	const renderMarkdown = useCallback(
@@ -98,6 +101,20 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	};
 
 	const handleCloseStudy = () => {
+		// Record 悟道 session before clearing state
+		if (studySession && studySession.currentIndex > 0) {
+			const deck = dataStore.getDeck(studySession.deckId);
+			const duration = Math.floor(
+				(Date.now() - studySession.startTime) / 1000,
+			);
+			void dataStore.recordStudySession(
+				studySession.deckId,
+				deck?.name ?? studySession.deckId,
+				"study",
+				studySession.currentIndex,
+				duration,
+			);
+		}
 		setStudySession(null);
 		setViewState({ type: "home" });
 	};
@@ -107,7 +124,28 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	};
 
 	const handleOpenWordList = (deckId: string) => {
+		wordListStartTime.current = Date.now();
 		setViewState({ type: "word-list", deckId });
+	};
+
+	const handleCloseWordList = (deckId: string) => {
+		if (wordListStartTime.current !== null) {
+			const duration = Math.floor(
+				(Date.now() - wordListStartTime.current) / 1000,
+			);
+			if (duration >= 5) {
+				const deck = dataStore.getDeck(deckId);
+				void dataStore.recordStudySession(
+					deckId,
+					deck?.name ?? deckId,
+					"word-list",
+					0,
+					duration,
+				);
+			}
+			wordListStartTime.current = null;
+		}
+		setViewState({ type: "home" });
 	};
 
 	// Practice mode handlers
@@ -148,6 +186,17 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	};
 
 	const handlePracticeComplete = (result: PracticeResult) => {
+		// Record 装杯 session
+		if (practiceSession) {
+			const deck = dataStore.getDeck(practiceSession.deckId);
+			void dataStore.recordStudySession(
+				practiceSession.deckId,
+				deck?.name ?? practiceSession.deckId,
+				"practice",
+				result.totalQuestions,
+				result.timeSpent,
+			);
+		}
 		setPracticeResult(result);
 		if (practiceSession) {
 			setViewState({
@@ -351,10 +400,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			return (
 				<WordListView
 					deck={deck}
-					onBack={() => setViewState({ type: "home" })}
+					onBack={() => handleCloseWordList(viewState.deckId)}
 				/>
 			);
 		}
+
+		case "stats":
+			return (
+				<StatsView
+					dataStore={dataStore}
+					onBack={() => setViewState({ type: "home" })}
+				/>
+			);
 
 		case "home":
 		default:
@@ -368,6 +425,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					onRefresh={onRefresh}
 					onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
 					onOpenSourceFile={handleOpenSourceFile}
+					onOpenStats={() => setViewState({ type: "stats" })}
 				/>
 			);
 	}

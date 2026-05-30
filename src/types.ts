@@ -167,7 +167,28 @@ export type ViewState =
 	| { type: "word-list"; deckId: string }
 	| { type: "practice-setup"; deckId: string }
 	| { type: "practice"; deckId: string }
-	| { type: "practice-summary"; deckId: string };
+	| { type: "practice-summary"; deckId: string }
+	| { type: "stats" };
+
+/**
+ * A single study history entry (recorded when a session ends)
+ */
+export interface StudyHistoryEntry {
+	/** YYYY-MM-DD local date */
+	date: string;
+	/** Deck ID */
+	deckId: string;
+	/** Deck name at time of session */
+	deckName: string;
+	/** 'study' = 悟道 FSRS, 'practice' = 装杯, 'word-list' = 列表浏览 */
+	mode: "study" | "practice" | "word-list";
+	/** Cards reviewed (0 for word-list) */
+	cardCount: number;
+	/** Session duration in seconds */
+	duration: number;
+	/** Unix timestamp (ms) of session start */
+	timestamp: number;
+}
 
 /**
  * Info about a single learning day for the day list in StudySetup

@@ -8,6 +8,7 @@ import {
 	StudyDayInfo,
 	FlashcardSettings,
 	StudySettings,
+	StudyHistoryEntry,
 	DEFAULT_SETTINGS,
 } from "./types";
 import { FSRSScheduler } from "./scheduler";
@@ -20,6 +21,7 @@ export interface StoredData {
 	decks: Record<string, SerializedDeck>;
 	lastSync: string;
 	settings?: FlashcardSettings;
+	studyHistory?: StudyHistoryEntry[];
 }
 
 /**
@@ -71,6 +73,7 @@ export class DataStore {
 	private decks: Map<string, Deck> = new Map();
 	private scheduler: FSRSScheduler;
 	private settings: FlashcardSettings;
+	private studyHistory: StudyHistoryEntry[] = [];
 
 	constructor(plugin: Plugin, settings?: FlashcardSettings) {
 		this.plugin = plugin;
@@ -159,6 +162,9 @@ export class DataStore {
 				this.decks.set(id, this.deserializeDeck(serializedDeck));
 			}
 		}
+		if (data?.studyHistory) {
+			this.studyHistory = data.studyHistory;
+		}
 	}
 
 	/**
@@ -169,6 +175,7 @@ export class DataStore {
 			decks: {},
 			lastSync: new Date().toISOString(),
 			settings: this.settings,
+			studyHistory: this.studyHistory,
 		};
 
 		for (const [id, deck] of this.decks) {
@@ -550,6 +557,56 @@ export class DataStore {
 		deck.studyCount++;
 		deck.lastStudied = new Date().toISOString();
 		await this.save();
+	}
+
+	/**
+	 * Record a completed study session and persist it.
+	 * Keeps only the most recent 20 distinct days of history.
+	 */
+	async recordStudySession(
+		deckId: string,
+		deckName: string,
+		mode: StudyHistoryEntry["mode"],
+		cardCount: number,
+		duration: number,
+	): Promise<void> {
+		const now = new Date();
+		// Local YYYY-MM-DD
+		const date = [
+			now.getFullYear(),
+			String(now.getMonth() + 1).padStart(2, "0"),
+			String(now.getDate()).padStart(2, "0"),
+		].join("-");
+
+		this.studyHistory.push({
+			date,
+			deckId,
+			deckName,
+			mode,
+			cardCount,
+			duration,
+			timestamp: Date.now(),
+		});
+
+		// Prune to last 20 distinct days
+		const days = [...new Set(this.studyHistory.map((e) => e.date))]
+			.sort()
+			.reverse();
+		if (days.length > 20) {
+			const keep = new Set(days.slice(0, 20));
+			this.studyHistory = this.studyHistory.filter((e) =>
+				keep.has(e.date),
+			);
+		}
+
+		await this.save();
+	}
+
+	/**
+	 * Get all study history entries (copy)
+	 */
+	getStudyHistory(): StudyHistoryEntry[] {
+		return [...this.studyHistory];
 	}
 
 	/**

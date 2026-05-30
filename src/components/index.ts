@@ -6,3 +6,4 @@ export { PracticeView } from "./PracticeView";
 export { PracticeSummary } from "./PracticeSummary";
 export { WordListView } from "./WordListView";
 export { StudySetup } from "./StudySetup";
+export { StatsView } from "./StatsView";
