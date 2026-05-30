@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Deck, FlashCard } from "../types";
+import { shuffleArray } from "../utils";
 
 interface WordListViewProps {
 	deck: Deck;
@@ -50,20 +51,6 @@ function toWordItem(card: FlashCard): WordItem {
 		back: card.answer.trim(),
 		index: card.indexInFile,
 	};
-}
-
-function shuffleItems(items: WordItem[]): WordItem[] {
-	const shuffled = [...items];
-	for (let i = shuffled.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		const temp = shuffled[i];
-		if (!temp || !shuffled[j]) {
-			continue;
-		}
-		shuffled[i] = shuffled[j];
-		shuffled[j] = temp;
-	}
-	return shuffled;
 }
 
 export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
@@ -131,7 +118,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 			setItems(sourceItems);
 			setIsShuffled(false);
 		} else {
-			setItems(shuffleItems(sourceItems));
+			setItems(shuffleArray(sourceItems));
 			setIsShuffled(true);
 		}
 	};

@@ -12,7 +12,8 @@ import {
 	DEFAULT_SETTINGS,
 } from "./types";
 import { FSRSScheduler } from "./scheduler";
-import { scanFilesWithTag } from "./parser";
+import { extractFirstTag, parseFileIntoDeck } from "./parser";
+import { shuffleArray } from "./utils";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -74,6 +75,9 @@ export class DataStore {
 	private scheduler: FSRSScheduler;
 	private settings: FlashcardSettings;
 	private studyHistory: StudyHistoryEntry[] = [];
+	private availableTags: string[] = [];
+	/** Set to true after loadSettings() has already populated decks/history */
+	private dataLoaded = false;
 
 	constructor(plugin: Plugin, settings?: FlashcardSettings) {
 		this.plugin = plugin;
@@ -82,55 +86,54 @@ export class DataStore {
 	}
 
 	/**
-	 * Load settings from disk (call this first before load())
+	 * Load settings AND all deck data from disk in a single read.
+	 * After this call, load() becomes a no-op.
 	 */
 	async loadSettings(): Promise<FlashcardSettings> {
 		const data = (await this.plugin.loadData()) as
 			| (StoredData & { flashcardTag?: string })
 			| null;
 
-		// Handle legacy format and migration
+		// ── Settings with legacy migration ──────────────────────────────────
 		if (data?.settings) {
-			// Migrate from old single tag format if needed
-			if (
-				"flashcardTag" in data.settings &&
-				typeof (
-					data.settings as FlashcardSettings & {
-						flashcardTag?: string;
-					}
-				).flashcardTag === "string" &&
-				!data.settings.flashcardTags
-			) {
-				data.settings.flashcardTags = [
-					(
-						data.settings as FlashcardSettings & {
-							flashcardTag?: string;
-						}
-					).flashcardTag!,
-				];
-				delete (
-					data.settings as FlashcardSettings & {
-						flashcardTag?: string;
-					}
-				).flashcardTag;
+			const s = data.settings as FlashcardSettings & {
+				flashcardTag?: string;
+			};
+			if (s.flashcardTag && !s.flashcardTags?.length) {
+				s.flashcardTags = [s.flashcardTag];
+				delete s.flashcardTag;
 			}
-			this.settings = Object.assign({}, DEFAULT_SETTINGS, data.settings);
-		} else if (data && "flashcardTags" in data) {
-			// Legacy format: settings were stored at root level
-			const legacySettings =
-				data as unknown as Partial<FlashcardSettings> & {
-					flashcardTag?: string;
-				};
-			if (legacySettings.flashcardTag && !legacySettings.flashcardTags) {
-				legacySettings.flashcardTags = [legacySettings.flashcardTag];
-				delete legacySettings.flashcardTag;
+			this.settings = Object.assign({}, DEFAULT_SETTINGS, s);
+		} else if (
+			data &&
+			("flashcardTags" in data || "flashcardTag" in data)
+		) {
+			const legacy = data as unknown as Partial<FlashcardSettings> & {
+				flashcardTag?: string;
+			};
+			if (legacy.flashcardTag && !legacy.flashcardTags?.length) {
+				legacy.flashcardTags = [legacy.flashcardTag];
+				delete legacy.flashcardTag;
 			}
-			this.settings = Object.assign({}, DEFAULT_SETTINGS, legacySettings);
+			this.settings = Object.assign({}, DEFAULT_SETTINGS, legacy);
 		} else {
 			this.settings = DEFAULT_SETTINGS;
 		}
 
+		// ── Decks ────────────────────────────────────────────────────────────
+		if (data?.decks) {
+			for (const [id, serializedDeck] of Object.entries(data.decks)) {
+				this.decks.set(id, this.deserializeDeck(serializedDeck));
+			}
+		}
+
+		// ── Study history ─────────────────────────────────────────────────────
+		if (data?.studyHistory) {
+			this.studyHistory = data.studyHistory;
+		}
+
 		this.scheduler = new FSRSScheduler(this.settings);
+		this.dataLoaded = true;
 		return this.settings;
 	}
 
@@ -153,9 +156,11 @@ export class DataStore {
 	}
 
 	/**
-	 * Load data from disk
+	 * Load deck data from disk.
+	 * No-op if loadSettings() was already called (it loads everything in one read).
 	 */
 	async load(): Promise<void> {
+		if (this.dataLoaded) return;
 		const data = (await this.plugin.loadData()) as StoredData | null;
 		if (data?.decks) {
 			for (const [id, serializedDeck] of Object.entries(data.decks)) {
@@ -165,6 +170,7 @@ export class DataStore {
 		if (data?.studyHistory) {
 			this.studyHistory = data.studyHistory;
 		}
+		this.dataLoaded = true;
 	}
 
 	/**
@@ -263,22 +269,48 @@ export class DataStore {
 	}
 
 	/**
-	 * Sync decks from vault files
+	 * Sync decks from vault files in a single pass.
+	 * Also caches all discovered flashcard tags (retrievable via getAvailableTags()).
 	 */
 	async syncFromVault(): Promise<void> {
 		const vault = this.plugin.app.vault;
 		const newDecksMap = new Map<string, Deck>();
+		const allFoundTags = new Set<string>();
+		const configuredTagsLower = new Set(
+			this.settings.flashcardTags.map((t) => t.toLowerCase()),
+		);
 
-		// Scan for all configured tags
-		for (const tag of this.settings.flashcardTags) {
-			const scannedDecks = await scanFilesWithTag(vault, tag, this.decks);
+		for (const file of vault.getMarkdownFiles()) {
+			try {
+				// Read each file only once
+				const content = await vault.cachedRead(file);
+				const tag = extractFirstTag(content);
+				if (!tag) continue;
 
-			for (const deck of scannedDecks) {
-				newDecksMap.set(deck.id, deck);
+				// Track every tag that has flashcard content
+				if (content.includes("---div---")) {
+					allFoundTags.add(tag);
+				}
+
+				// Build a deck only for configured tags
+				if (configuredTagsLower.has(tag.toLowerCase())) {
+					const existingDeck = this.decks.get(file.path);
+					// Pass pre-read content to avoid reading the file again
+					const deck = await parseFileIntoDeck(
+						file,
+						vault,
+						existingDeck,
+						content,
+					);
+					if (deck) newDecksMap.set(deck.id, deck);
+				}
+			} catch (error) {
+				console.error(`Error parsing file ${file.path}:`, error);
 			}
 		}
 
 		this.decks = newDecksMap;
+		this.availableTags = Array.from(allFoundTags);
 		await this.save();
 	}
 
@@ -287,6 +319,14 @@ export class DataStore {
 	 */
 	getAllDecks(): Deck[] {
 		return Array.from(this.decks.values());
+	}
+
+	/**
+	 * Get all flashcard tags discovered during the last syncFromVault() call.
+	 * Includes tags not yet added to settings (useful for the "add tag" UI).
+	 */
+	getAvailableTags(): string[] {
+		return [...this.availableTags];
 	}
 
 	/**
@@ -487,7 +527,7 @@ export class DataStore {
 
 		// Shuffle if random order
 		if (studyOrder === "random") {
-			cardQueue = this.shuffleArray(cardQueue);
+			cardQueue = shuffleArray(cardQueue);
 		}
 
 		return {
@@ -498,18 +538,6 @@ export class DataStore {
 			repeatQueue: [],
 			history: [],
 		};
-	}
-
-	/**
-	 * Shuffle array using Fisher-Yates algorithm
-	 */
-	private shuffleArray<T>(array: T[]): T[] {
-		const shuffled = [...array];
-		for (let i = shuffled.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1));
-			[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!];
-		}
-		return shuffled;
 	}
 
 	/**

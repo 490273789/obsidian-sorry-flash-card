@@ -4,7 +4,6 @@ import React from "react";
 import { FlashcardApp } from "./components/FlashcardApp";
 import { DataStore } from "./dataStore";
 import { FlashcardSettings } from "./types";
-import { findAllFlashcardTags } from "./parser";
 
 export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
@@ -46,11 +45,9 @@ export class FlashcardView extends ItemView {
 		container.empty();
 		container.addClass("flashcard-container");
 
-		// Load available tags
-		await this.loadAvailableTags();
-
-		// Auto refresh data on open
+		// Single vault scan: syncs decks and caches available tags
 		await this.dataStore.syncFromVault();
+		this.availableTags = this.dataStore.getAvailableTags();
 
 		// Create React root
 		const rootEl = container.createDiv({ cls: "flashcard-root" });
@@ -62,10 +59,6 @@ export class FlashcardView extends ItemView {
 		if (this.settings.showWelcomeMessage && this.settings.welcomeMessage) {
 			this.showWelcomePopup();
 		}
-	}
-
-	private async loadAvailableTags(): Promise<void> {
-		this.availableTags = await findAllFlashcardTags(this.app.vault);
 	}
 
 	private renderApp(): void {
@@ -96,7 +89,7 @@ export class FlashcardView extends ItemView {
 
 	private handleRefresh = async (): Promise<void> => {
 		await this.dataStore.syncFromVault();
-		await this.loadAvailableTags();
+		this.availableTags = this.dataStore.getAvailableTags();
 		this.renderApp();
 	};
 

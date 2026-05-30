@@ -9,6 +9,7 @@ import {
 	PracticeResult,
 } from "../types";
 import { DataStore } from "../dataStore";
+import { shuffleArray } from "../utils";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
 import { PracticeSetup } from "./PracticeSetup";
@@ -85,7 +86,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (cards.length === 0) return;
 		let cardIds = cards.map((c) => c.id);
 		if (studyOrder === "random") {
-			cardIds = [...cardIds].sort(() => Math.random() - 0.5);
+			cardIds = shuffleArray(cardIds);
 		}
 		const session: PracticeSession = {
 			deckId,
@@ -163,9 +164,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (!deck) return;
 
 		// Shuffle and select cards
-		const shuffledCards = [...deck.cards]
-			.sort(() => Math.random() - 0.5)
-			.slice(0, questionCount);
+		const shuffledCards = shuffleArray(deck.cards).slice(0, questionCount);
 
 		const session: PracticeSession = {
 			deckId,
@@ -222,8 +221,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			practiceResult.incorrectCardIds.length > 0
 		) {
 			// Shuffle incorrect cards
-			const shuffledIncorrect = [...practiceResult.incorrectCardIds].sort(
-				() => Math.random() - 0.5,
+			const shuffledIncorrect = shuffleArray(
+				practiceResult.incorrectCardIds,
 			);
 
 			const session: PracticeSession = {

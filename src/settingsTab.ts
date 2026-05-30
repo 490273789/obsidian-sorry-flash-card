@@ -340,6 +340,15 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			return;
 		}
 
+		// Use tags already cached from the last syncFromVault() call
+		const cached = this.plugin.dataStore.getAvailableTags();
+		if (cached.length > 0) {
+			this.availableTags = cached;
+			this.hasLoadedTags = true;
+			return;
+		}
+
+		// Fall back to a fresh vault scan (e.g. settings opened before view)
 		this.isLoadingTags = true;
 		void findAllFlashcardTags(this.app.vault)
 			.then((tags) => {

@@ -5,6 +5,9 @@ import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
 import { toFSRSRating, getRatingButtons } from "../scheduler";
 
+// Computed once — rating button config is static
+const RATING_BUTTONS = getRatingButtons();
+
 interface CardViewProps {
 	dataStore: DataStore;
 	deck: Deck;
@@ -24,11 +27,13 @@ export const CardView: React.FC<CardViewProps> = ({
 }) => {
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [currentCard, setCurrentCard] = useState<FlashCard | null>(null);
+	// isAnimatingRef is the source of truth used inside callbacks/closures
+	// to avoid stale captures; isAnimating state drives the CSS class.
+	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
 	const [elapsedTime, setElapsedTime] = useState(0);
 	const questionRef = useRef<HTMLDivElement>(null);
 	const answerRef = useRef<HTMLDivElement>(null);
-	const ratingButtons = getRatingButtons();
 
 	// Get current card
 	useEffect(() => {
@@ -135,8 +140,9 @@ export const CardView: React.FC<CardViewProps> = ({
 	};
 
 	const handleRating = async (rating: 1 | 2 | 3 | 4 | 5) => {
-		if (!currentCard || isAnimating) return;
+		if (!currentCard || isAnimatingRef.current) return;
 
+		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
 		const scheduler = dataStore.getScheduler();
@@ -189,13 +195,15 @@ export const CardView: React.FC<CardViewProps> = ({
 
 		window.setTimeout(() => {
 			onSessionUpdate(newSession);
+			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
 	};
 
 	const handlePrevious = () => {
-		if (session.history.length === 0 || isAnimating) return;
+		if (session.history.length === 0 || isAnimatingRef.current) return;
 
+		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
 		const newSession = { ...session };
@@ -212,6 +220,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
 		window.setTimeout(() => {
 			onSessionUpdate(newSession);
+			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
 	};
@@ -308,7 +317,7 @@ export const CardView: React.FC<CardViewProps> = ({
 							<RotateCcw size={24} />
 						</button>
 						<div className="flashcard-rating-grid">
-							{ratingButtons.map((btn) => (
+							{RATING_BUTTONS.map((btn) => (
 								<button
 									key={btn.rating}
 									className={`flashcard-btn flashcard-rating-btn flashcard-rating-${btn.rating}`}

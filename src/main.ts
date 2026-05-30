@@ -1,6 +1,6 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import { FlashcardSettings, DEFAULT_SETTINGS } from "./types";
-import { DataStore, StoredData } from "./dataStore";
+import { DataStore } from "./dataStore";
 import { FlashcardView, VIEW_TYPE_FLASHCARD } from "./FlashcardView";
 import { FlashcardSettingTab } from "./settingsTab";
 
@@ -9,10 +9,10 @@ export default class FlashcardPlugin extends Plugin {
 	dataStore!: DataStore;
 
 	async onload() {
-		await this.loadSettings();
-
-		// Initialize data store
-		this.dataStore = new DataStore(this, this.settings);
+		this.dataStore = new DataStore(this);
+		// loadSettings() performs a single disk read: settings + decks + history.
+		// load() is a no-op when called right after (data already in memory).
+		this.settings = await this.dataStore.loadSettings();
 		await this.dataStore.load();
 
 		// Register view
@@ -52,50 +52,10 @@ export default class FlashcardPlugin extends Plugin {
 
 		// Add settings tab
 		this.addSettingTab(new FlashcardSettingTab(this.app, this));
-
-		// Initial sync on load
-		await this.dataStore.syncFromVault();
 	}
 
 	onunload() {
 		// Plugin cleanup is handled automatically by Obsidian
-	}
-
-	async loadSettings() {
-		const data = (await this.loadData()) as
-			| StoredData
-			| (Partial<FlashcardSettings> & { flashcardTag?: string })
-			| null;
-
-		// Check if data is in new StoredData format
-		if (data && "decks" in data && "settings" in data) {
-			// New format: load settings from StoredData
-			if (data.settings) {
-				this.settings = Object.assign(
-					{},
-					DEFAULT_SETTINGS,
-					data.settings,
-				);
-			}
-		} else {
-			// Legacy format or old format with settings at root level
-			const legacyData = data as
-				| (Partial<FlashcardSettings> & { flashcardTag?: string })
-				| null;
-
-			// Migrate from old single tag format to new multi-tag format
-			if (
-				legacyData &&
-				"flashcardTag" in legacyData &&
-				typeof legacyData.flashcardTag === "string" &&
-				!legacyData.flashcardTags
-			) {
-				legacyData.flashcardTags = [legacyData.flashcardTag];
-				delete legacyData.flashcardTag;
-			}
-
-			this.settings = Object.assign({}, DEFAULT_SETTINGS, legacyData);
-		}
 	}
 
 	async saveSettings(newSettings?: FlashcardSettings) {

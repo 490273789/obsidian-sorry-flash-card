@@ -72,14 +72,17 @@ export function parseFlashcards(
 }
 
 /**
- * Parse a single file into a deck
+ * Parse a single file into a deck.
+ * Pass `preloadedContent` to avoid reading the file a second time when the
+ * caller has already read it (e.g. inside a vault-wide scan loop).
  */
 export async function parseFileIntoDeck(
 	file: TFile,
 	vault: Vault,
 	existingDeck?: Deck,
+	preloadedContent?: string,
 ): Promise<Deck | null> {
-	const content = await vault.cachedRead(file);
+	const content = preloadedContent ?? (await vault.cachedRead(file));
 	const tag = extractFirstTag(content);
 
 	if (!tag) return null;
