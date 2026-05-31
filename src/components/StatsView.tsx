@@ -85,53 +85,59 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 
 	return (
 		<div className="flashcard-stats-view">
-			{/* Header */}
-			<div className="flashcard-stats-header">
-				<button
-					className="flashcard-btn flashcard-btn-icon flashcard-stats-back"
-					onClick={onBack}
-					title="返回"
-				>
-					<ArrowLeft size={18} />
-				</button>
-				<div className="flashcard-stats-header-main">
-					<div className="flashcard-home-kicker">Study archive</div>
-					<h2 className="flashcard-stats-title">
-						<ChartBar size={18} /> 学习统计
-					</h2>
-					<div className="flashcard-stats-subtitle">
-						按天回看悟道、装杯和列表浏览的学习节奏。
+			<div className="flashcard-stats-top">
+				{/* Header */}
+				<div className="flashcard-stats-header">
+					<button
+						className="flashcard-btn flashcard-btn-icon flashcard-stats-back"
+						onClick={onBack}
+						title="返回"
+					>
+						<ArrowLeft size={18} />
+					</button>
+					<div className="flashcard-stats-header-main">
+						<div className="flashcard-home-kicker">
+							Study archive
+						</div>
+						<h2 className="flashcard-stats-title">
+							<ChartBar size={18} /> 学习统计
+						</h2>
+						<div className="flashcard-stats-subtitle">
+							按天回看悟道、装杯和列表浏览的学习节奏。
+						</div>
+					</div>
+					<div className="flashcard-stats-header-right">
+						<span className="flashcard-stats-range">近 20 天</span>
 					</div>
 				</div>
-				<div className="flashcard-stats-header-right">
-					<span className="flashcard-stats-range">近 20 天</span>
-				</div>
-			</div>
 
-			{/* Summary bar */}
-			<div className="flashcard-stats-summary">
-				<div className="flashcard-stats-summary-item">
-					<div className="flashcard-stats-summary-value">
-						{grouped.length}
+				{/* Summary bar */}
+				<div className="flashcard-stats-summary">
+					<div className="flashcard-stats-summary-item">
+						<div className="flashcard-stats-summary-value">
+							{grouped.length}
+						</div>
+						<div className="flashcard-stats-summary-label">
+							学习天数
+						</div>
 					</div>
-					<div className="flashcard-stats-summary-label">
-						学习天数
+					<div className="flashcard-stats-summary-divider" />
+					<div className="flashcard-stats-summary-item">
+						<div className="flashcard-stats-summary-value">
+							{formatDuration(totalDuration)}
+						</div>
+						<div className="flashcard-stats-summary-label">
+							总时长
+						</div>
 					</div>
-				</div>
-				<div className="flashcard-stats-summary-divider" />
-				<div className="flashcard-stats-summary-item">
-					<div className="flashcard-stats-summary-value">
-						{formatDuration(totalDuration)}
-					</div>
-					<div className="flashcard-stats-summary-label">总时长</div>
-				</div>
-				<div className="flashcard-stats-summary-divider" />
-				<div className="flashcard-stats-summary-item">
-					<div className="flashcard-stats-summary-value">
-						{totalCards}
-					</div>
-					<div className="flashcard-stats-summary-label">
-						总卡片数
+					<div className="flashcard-stats-summary-divider" />
+					<div className="flashcard-stats-summary-item">
+						<div className="flashcard-stats-summary-value">
+							{totalCards}
+						</div>
+						<div className="flashcard-stats-summary-label">
+							总卡片数
+						</div>
 					</div>
 				</div>
 			</div>

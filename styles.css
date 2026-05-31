@@ -368,32 +368,23 @@
 	padding-bottom: 10px;
 }
 
-
 .flashcard-study-setup-content > * {
 	flex-shrink: 0;
 	min-height: fit-content;
 }
 .flashcard-word-cell {
 	display: flex;
-	align-items: flex-start;
+	align-items: start;
 	justify-content: flex-start;
 	gap: 10px;
-	align-items: start;
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 10px;
 	min-height: 164px;
 	padding: 10px 12px;
 	background: var(--background-secondary);
-		radial-gradient(circle at top left, rgba(255, 195, 82, 0.18), transparent 34%),
-		linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
-	outline: 2px solid var(--interactive-accent);
-	outline-offset: 2px;
 }
 
-.flashcard-word-cell-left {
-	cursor: pointer;
-}
-
+.flashcard-word-cell-left,
 .flashcard-word-cell-right {
 	cursor: pointer;
 }
@@ -421,14 +412,7 @@
 	color: var(--text-muted);
 }
 
-.flashcard-word-front {
-	display: block;
-	font-size: 0.93em;
-	white-space: pre-wrap;
-	line-height: 1.4;
-	width: 100%;
-}
-
+.flashcard-word-front,
 .flashcard-word-back {
 	display: block;
 	font-size: 0.93em;
@@ -967,209 +951,6 @@ button.flashcard-btn-reset {
 	padding: 1px 6px;
 }
 
-.flashcard-icon.spinning {
-	animation: spin 1s linear infinite;
-}
-
-/* =============================================
-   Settings View
-   ============================================= */
-
-.flashcard-settings {
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	animation: fadeIn 0.3s ease-out;
-}
-
-.flashcard-settings-header {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	padding: 16px 24px;
-	border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.flashcard-settings-header h2 {
-	margin: 0;
-	font-size: 1.3em;
-}
-
-.flashcard-settings-content {
-	flex: 1;
-	overflow-y: auto;
-	padding: 10px;
-}
-
-.flashcard-setting-item {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	padding: 16px 0;
-	border-bottom: 1px solid var(--background-modifier-border);
-	gap: 24px;
-}
-
-.flashcard-setting-info {
-	flex: 1;
-}
-
-.flashcard-setting-label {
-	font-weight: 600;
-	color: var(--text-normal);
-	margin-bottom: 4px;
-	display: block;
-}
-
-.flashcard-setting-desc {
-	font-size: 0.9em;
-	color: var(--text-muted);
-	margin: 0;
-}
-
-.flashcard-setting-control {
-	min-width: 200px;
-}
-
-.flashcard-input {
-	width: 100%;
-	padding: 8px 12px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 6px;
-	background: var(--background-primary);
-	color: var(--text-normal);
-	font-size: 0.95em;
-}
-
-.flashcard-input:focus {
-	outline: none;
-	border-color: var(--interactive-accent);
-	box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
-}
-
-.flashcard-input-number {
-	max-width: 100px;
-}
-
-.flashcard-select {
-	width: 100%;
-	padding: 8px 12px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: 6px;
-	background: var(--background-primary);
-	color: var(--text-normal);
-	font-size: 0.95em;
-	cursor: pointer;
-}
-
-.flashcard-tag-suggestions {
-	margin-top: 8px;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	align-items: center;
-}
-
-.flashcard-tag-hint {
-	font-size: 0.85em;
-	color: var(--text-muted);
-}
-
-.flashcard-tag-btn {
-	padding: 4px 10px;
-	border: 1px solid var(--text-accent);
-	border-radius: 6px;
-	background: transparent;
-	color: var(--text-accent);
-	font-size: 0.85em;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.flashcard-tag-btn:hover {
-	background: var(--text-accent);
-	color: var(--text-on-accent);
-}
-
-/* Multi-tag settings */
-.flashcard-setting-control-tags {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.flashcard-tags-list {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.flashcard-tag-item {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-}
-
-.flashcard-tag-item .flashcard-input {
-	flex: 1;
-}
-
-.flashcard-btn-remove {
-	padding: 4px 8px;
-	border: 1px solid var(--text-error);
-	border-radius: 6px;
-	background: transparent;
-	color: var(--text-error);
-	font-size: 0.9em;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	line-height: 1;
-}
-
-.flashcard-btn-remove:hover {
-	background: var(--text-error);
-	color: var(--text-on-accent);
-}
-
-.flashcard-btn-add-tag {
-	align-self: flex-start;
-	padding: 6px 12px;
-	border: 1px dashed var(--background-modifier-border);
-	border-radius: 6px;
-	background: transparent;
-	color: var(--text-muted);
-	font-size: 0.9em;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.flashcard-btn-add-tag:hover {
-	border-color: var(--text-accent);
-	color: var(--text-accent);
-	background: var(--background-secondary);
-}
-
-.flashcard-setting-group {
-	margin-top: 24px;
-}
-
-.flashcard-setting-group-title {
-	font-size: 1.1em;
-	font-weight: 600;
-	color: var(--text-normal);
-	margin-bottom: 16px;
-	padding-bottom: 8px;
-	border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.flashcard-settings-actions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 12px;
-	padding: 16px 24px;
-	border-top: 1px solid var(--background-modifier-border);
-}
-
 /* =============================================
    Complete View
    ============================================= */
@@ -1368,8 +1149,16 @@ button.flashcard-btn-reset {
 	padding: var(--flashcard-shell-padding);
 	overflow: hidden;
 	background:
-		radial-gradient(circle at top right, rgba(217, 119, 6, 0.14), transparent 24%),
-		radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 30%),
+		radial-gradient(
+			circle at top right,
+			rgba(217, 119, 6, 0.14),
+			transparent 24%
+		),
+		radial-gradient(
+			circle at top left,
+			rgba(15, 118, 110, 0.16),
+			transparent 30%
+		),
 		linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 28%),
 		var(--background-primary);
 }
@@ -1462,8 +1251,16 @@ button.flashcard-btn-reset {
 	gap: 18px;
 	padding: 24px;
 	background:
-		radial-gradient(circle at top right, rgba(217, 119, 6, 0.18), transparent 28%),
-		radial-gradient(circle at left center, rgba(15, 118, 110, 0.16), transparent 36%),
+		radial-gradient(
+			circle at top right,
+			rgba(217, 119, 6, 0.18),
+			transparent 28%
+		),
+		radial-gradient(
+			circle at left center,
+			rgba(15, 118, 110, 0.16),
+			transparent 36%
+		),
 		var(--flashcard-surface);
 }
 
@@ -1505,7 +1302,8 @@ button.flashcard-btn-reset {
 	padding: 10px 14px;
 	border-radius: 999px;
 	background: color-mix(in srgb, var(--background-primary) 74%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
 	color: var(--text-normal);
 	font-size: 0.88rem;
 	font-weight: 600;
@@ -1524,11 +1322,16 @@ button.flashcard-btn-reset {
 	padding: 16px 18px;
 	border-radius: 20px;
 	background: color-mix(in srgb, var(--background-primary) 76%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
 }
 
 .flashcard-home-overview-accent {
-	background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), rgba(217, 119, 6, 0.12));
+	background: linear-gradient(
+		135deg,
+		rgba(15, 118, 110, 0.12),
+		rgba(217, 119, 6, 0.12)
+	);
 	border-color: rgba(15, 118, 110, 0.2);
 }
 
@@ -1592,9 +1395,13 @@ button.flashcard-btn-reset {
 	background:
 		linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 40%),
 		color-mix(in srgb, var(--background-primary) 76%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
 	box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
-	transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+	transition:
+		transform 0.22s ease,
+		box-shadow 0.22s ease,
+		border-color 0.22s ease;
 }
 
 .flashcard-deck-item:hover {
@@ -1681,8 +1488,13 @@ button.flashcard-btn-reset {
 	min-width: 0;
 	padding: 12px 10px;
 	border-radius: 16px;
-	background: color-mix(in srgb, var(--background-secondary) 64%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	background: color-mix(
+		in srgb,
+		var(--background-secondary) 64%,
+		transparent
+	);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
 	align-items: flex-start;
 }
 
@@ -1705,18 +1517,34 @@ button.flashcard-btn-reset {
 	border: 1px solid transparent;
 	font-weight: 700;
 	letter-spacing: 0.01em;
-	background: color-mix(in srgb, var(--background-secondary) 86%, transparent);
-	transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+	background: color-mix(
+		in srgb,
+		var(--background-secondary) 86%,
+		transparent
+	);
+	transition:
+		transform 0.22s ease,
+		box-shadow 0.22s ease,
+		border-color 0.22s ease,
+		background 0.22s ease;
 }
 
 .flashcard-btn:hover {
 	transform: translateY(-2px);
 	box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
-	background: color-mix(in srgb, var(--background-secondary-alt) 90%, transparent);
+	background: color-mix(
+		in srgb,
+		var(--background-secondary-alt) 90%,
+		transparent
+	);
 }
 
 .flashcard-btn-primary {
-	background: linear-gradient(135deg, var(--flashcard-accent), var(--flashcard-accent-strong));
+	background: linear-gradient(
+		135deg,
+		var(--flashcard-accent),
+		var(--flashcard-accent-strong)
+	);
 	color: white;
 	box-shadow: 0 14px 26px rgba(15, 118, 110, 0.24);
 }
@@ -1857,7 +1685,6 @@ button.flashcard-btn-reset {
 	margin-top: 18px;
 }
 
-.flashcard-practice-deck-info,
 .flashcard-study-hero,
 .flashcard-practice-question-selector,
 .flashcard-practice-info,
@@ -1876,7 +1703,6 @@ button.flashcard-btn-reset {
 	border-radius: 22px;
 }
 
-.flashcard-practice-deck-info,
 .flashcard-study-hero,
 .flashcard-practice-question-selector,
 .flashcard-practice-info,
@@ -1917,7 +1743,11 @@ button.flashcard-btn-reset {
 	justify-content: space-between;
 	gap: 16px;
 	background:
-		radial-gradient(circle at top right, rgba(217, 119, 6, 0.16), transparent 28%),
+		radial-gradient(
+			circle at top right,
+			rgba(217, 119, 6, 0.16),
+			transparent 28%
+		),
 		linear-gradient(135deg, rgba(15, 118, 110, 0.1), transparent 48%),
 		var(--flashcard-surface);
 }
@@ -1943,7 +1773,8 @@ button.flashcard-btn-reset {
 	font-size: 0.78rem;
 	font-weight: 700;
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
 }
 
 .flashcard-study-today-stats,
@@ -1986,7 +1817,8 @@ button.flashcard-btn-reset {
 	padding: 16px;
 	border-radius: 18px;
 	background: color-mix(in srgb, var(--background-primary) 76%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
 }
 
 .flashcard-study-stat-value,
@@ -2007,7 +1839,8 @@ button.flashcard-btn-reset {
 	padding: 14px 16px;
 	border-radius: 18px;
 	background: color-mix(in srgb, var(--background-primary) 74%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
 }
 
 .flashcard-practice-input,
@@ -2036,17 +1869,26 @@ button.flashcard-btn-reset {
 	padding: 14px 16px;
 	border-radius: 18px;
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
 }
 
 .flashcard-study-day-item.current {
 	border-color: rgba(15, 118, 110, 0.28);
-	background: linear-gradient(135deg, rgba(15, 118, 110, 0.12), transparent 56%);
+	background: linear-gradient(
+		135deg,
+		rgba(15, 118, 110, 0.12),
+		transparent 56%
+	);
 }
 
 .flashcard-study-day-item.completed {
 	border-color: rgba(34, 197, 94, 0.22);
-	background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), transparent 56%);
+	background: linear-gradient(
+		135deg,
+		rgba(34, 197, 94, 0.1),
+		transparent 56%
+	);
 }
 
 .flashcard-study-day-item.locked {
@@ -2089,7 +1931,8 @@ button.flashcard-btn-reset {
 	padding: 14px 16px;
 	border-radius: 16px;
 	background: color-mix(in srgb, var(--background-primary) 76%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
 }
 
 .flashcard-practice-incorrect-list {
@@ -2235,9 +2078,14 @@ button.flashcard-btn-reset {
 	min-height: 146px;
 	padding: 16px;
 	border-radius: 18px;
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
 	background:
-		radial-gradient(circle at top left, rgba(217, 119, 6, 0.14), transparent 28%),
+		radial-gradient(
+			circle at top left,
+			rgba(217, 119, 6, 0.14),
+			transparent 28%
+		),
 		color-mix(in srgb, var(--background-secondary) 88%, transparent);
 	box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
@@ -2247,7 +2095,11 @@ button.flashcard-btn-reset {
 	transform: translateY(-2px);
 	border-color: rgba(15, 118, 110, 0.26);
 	background:
-		radial-gradient(circle at top left, rgba(15, 118, 110, 0.14), transparent 28%),
+		radial-gradient(
+			circle at top left,
+			rgba(15, 118, 110, 0.14),
+			transparent 28%
+		),
 		color-mix(in srgb, var(--background-secondary-alt) 90%, transparent);
 }
 
@@ -2274,7 +2126,8 @@ button.flashcard-btn-reset {
 	padding: 8px 12px;
 	border-radius: 999px;
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
 }
 
 .flashcard-practice-progress-bar {
@@ -2321,7 +2174,11 @@ button.flashcard-btn-reset {
 	margin-bottom: 0;
 	padding: 22px;
 	background:
-		radial-gradient(circle at top right, rgba(15, 118, 110, 0.08), transparent 32%),
+		radial-gradient(
+			circle at top right,
+			rgba(15, 118, 110, 0.08),
+			transparent 32%
+		),
 		color-mix(in srgb, var(--background-primary) 84%, transparent);
 }
 
@@ -2342,15 +2199,16 @@ button.flashcard-btn-reset {
 	border-radius: 0 0 24px 24px;
 	border-top: 1px solid var(--flashcard-border);
 	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
+		var(--flashcard-surface);
+}
+
 .flashcard-word-list-scroll {
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow-y: auto;
 	overflow-x: hidden;
 	overscroll-behavior: contain;
-}
-		linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
-		var(--flashcard-surface);
 }
 
 .flashcard-btn-show {
@@ -2390,7 +2248,8 @@ button.flashcard-btn-reset {
 	min-height: 70px;
 	border-radius: 18px;
 	background: color-mix(in srgb, var(--background-primary) 82%, transparent);
-	border: 1px solid color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid
+		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
 	box-shadow: none;
 }
 
@@ -2435,8 +2294,16 @@ button.flashcard-btn-reset {
 	margin: auto;
 	padding: 40px 28px;
 	background:
-		radial-gradient(circle at top, rgba(217, 119, 6, 0.16), transparent 28%),
-		radial-gradient(circle at bottom left, rgba(15, 118, 110, 0.14), transparent 30%),
+		radial-gradient(
+			circle at top,
+			rgba(217, 119, 6, 0.16),
+			transparent 28%
+		),
+		radial-gradient(
+			circle at bottom left,
+			rgba(15, 118, 110, 0.14),
+			transparent 30%
+		),
 		var(--flashcard-surface);
 }
 
@@ -2465,7 +2332,6 @@ button.flashcard-btn-reset {
 .flashcard-study-stat-card,
 .flashcard-study-panel,
 .flashcard-study-action-bar,
-.flashcard-practice-deck-info,
 .flashcard-practice-question-selector,
 .flashcard-practice-info,
 .flashcard-practice-start-btn,
@@ -2665,7 +2531,6 @@ button.flashcard-btn-reset {
 	.flashcard-study-stat-card,
 	.flashcard-study-panel,
 	.flashcard-study-action-bar,
-	.flashcard-practice-deck-info,
 	.flashcard-practice-question-selector,
 	.flashcard-practice-info,
 	.flashcard-practice-start-btn,
@@ -2983,10 +2848,6 @@ button.flashcard-btn-reset {
 		justify-content: space-between;
 	}
 
-	.flashcard-rating-buttons {
-		gap: 6px;
-	}
-
 	.flashcard-rating-btn {
 		min-width: 60px;
 		padding: 10px 12px;
@@ -2998,15 +2859,6 @@ button.flashcard-btn-reset {
 
 	.flashcard-content {
 		padding: 20px;
-	}
-
-	.flashcard-setting-item {
-		flex-direction: column;
-		gap: 12px;
-	}
-
-	.flashcard-setting-control {
-		width: 100%;
 	}
 }
 
@@ -3118,14 +2970,6 @@ button.flashcard-btn-reset {
 	width: 100%;
 }
 
-.flashcard-practice-deck-info {
-	text-align: center;
-	padding: 10px;
-	background: var(--background-secondary);
-	border-radius: 8px;
-	margin-bottom: 32px;
-}
-
 .flashcard-practice-deck-name {
 	font-size: 1.3em;
 	font-weight: 600;
@@ -3150,14 +2994,6 @@ button.flashcard-btn-reset {
 
 .flashcard-practice-question-selector {
 	margin-bottom: 32px;
-}
-
-.flashcard-practice-label {
-	display: block;
-	font-weight: 600;
-	color: var(--text-normal);
-	margin-bottom: 16px;
-	font-size: 1.05em;
 }
 
 .flashcard-practice-quick-buttons {
@@ -3857,9 +3693,21 @@ button.flashcard-btn-reset {
 
 .flashcard-practice-hero {
 	background:
-		radial-gradient(circle at top left, rgba(251, 191, 36, 0.18), transparent 34%),
-		radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.12), transparent 28%),
-		linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+		radial-gradient(
+			circle at top left,
+			rgba(251, 191, 36, 0.18),
+			transparent 34%
+		),
+		radial-gradient(
+			circle at bottom right,
+			rgba(244, 114, 182, 0.12),
+			transparent 28%
+		),
+		linear-gradient(
+			145deg,
+			rgba(255, 255, 255, 0.05),
+			rgba(255, 255, 255, 0.02)
+		),
 		var(--background-secondary);
 }
 
@@ -3928,8 +3776,11 @@ button.flashcard-btn-reset {
 	border-radius: 14px;
 	background: rgba(255, 255, 255, 0.03);
 	font-weight: 700;
-	transition: transform 0.18s ease, border-color 0.18s ease,
-		background 0.18s ease, box-shadow 0.18s ease;
+	transition:
+		transform 0.18s ease,
+		border-color 0.18s ease,
+		background 0.18s ease,
+		box-shadow 0.18s ease;
 }
 
 .flashcard-practice-quick-btn:hover {
@@ -4034,8 +3885,16 @@ button.flashcard-btn-reset {
 	min-height: 164px;
 	border-radius: 22px;
 	background:
-		radial-gradient(circle at top left, rgba(255, 195, 82, 0.18), transparent 34%),
-		linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+		radial-gradient(
+			circle at top left,
+			rgba(255, 195, 82, 0.18),
+			transparent 34%
+		),
+		linear-gradient(
+			145deg,
+			rgba(255, 255, 255, 0.05),
+			rgba(255, 255, 255, 0.02)
+		),
 		var(--background-secondary);
 	border: 1px solid rgba(255, 255, 255, 0.08);
 	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
@@ -4525,6 +4384,15 @@ button.flashcard-btn-reset {
 	flex-direction: column;
 	animation: fadeIn 0.25s ease-out;
 	background: var(--background-primary);
+}
+
+.flashcard-stats-top {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: var(--background-primary);
+	flex-shrink: 0;
+	box-shadow: 0 10px 20px -20px rgba(0, 0, 0, 0.9);
 }
 
 .flashcard-stats-header {
@@ -5195,27 +5063,27 @@ button.flashcard-btn-reset {
 	background:
 		linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 46%),
 		color-mix(in srgb, var(--background-primary) 88%, transparent);
-	}
+}
 
 .flashcard-rating-content {
 	gap: 6px;
 	margin-bottom: 0;
 	padding-top: 6px;
-	}
+}
 
 .flashcard-rating-label {
 	font-size: 1rem;
 	font-weight: 700;
 	line-height: 1.15;
 	margin-bottom: 0;
-	}
+}
 
 .flashcard-rating-interval {
 	font-size: 0.82rem;
 	line-height: 1.2;
 	text-align: center;
 	opacity: 0.92;
-	}
+}
 
 .flashcard-rating-btn .flashcard-shortcut {
 	top: 8px;
@@ -5223,7 +5091,7 @@ button.flashcard-btn-reset {
 	padding: 3px 7px;
 	border-radius: 999px;
 	font-size: 0.68rem;
-	}
+}
 
 .flashcard-rating-1,
 .flashcard-rating-2,
@@ -5231,7 +5099,7 @@ button.flashcard-btn-reset {
 .flashcard-rating-4,
 .flashcard-rating-5 {
 	border-width: 1px;
-	}
+}
 
 @media (max-width: 900px) {
 	.flashcard-response-controls {
@@ -5293,8 +5161,7 @@ button.flashcard-btn-reset {
 	position: relative !important;
 	top: 0 !important;
 	flex-shrink: 0 !important;
-	margin: var(--flashcard-shell-padding) var(--flashcard-shell-padding) 0
-		!important;
+	margin: var(--flashcard-shell-padding) var(--flashcard-shell-padding) 0 !important;
 	padding-top: 0 !important;
 	background: var(--flashcard-surface) !important;
 	border: 1px solid var(--flashcard-border) !important;
