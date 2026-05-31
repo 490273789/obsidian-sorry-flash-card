@@ -82,7 +82,9 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 			<div className="flashcard-practice-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
 					<div className="flashcard-study-hero-copy flashcard-practice-hero-copy">
-						<div className="flashcard-home-kicker">Challenge setup</div>
+						<div className="flashcard-home-kicker">
+							Challenge setup
+						</div>
 						<div className="flashcard-study-hero-kicker flashcard-practice-hero-kicker">
 							<Sparkles size={14} /> 装杯前配置
 						</div>

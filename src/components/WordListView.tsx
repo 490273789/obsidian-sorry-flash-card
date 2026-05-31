@@ -101,53 +101,55 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 
 	return (
 		<div className="flashcard-word-list-view">
-			<div className="flashcard-word-list-header">
-				<button
-					className="flashcard-btn flashcard-btn-back"
-					onClick={onBack}
-				>
-					← 返回
-				</button>
-				<div className="flashcard-word-list-header-main">
-					<h2 className="flashcard-word-list-title">
-						📖 {deck.name} 单词列表
-					</h2>
-					<div className="flashcard-word-list-subtitle">
-						共 {items.length} 个单词 · 标签 {deck.tag}
+			<div className="flashcard-word-list-sticky-top">
+				<div className="flashcard-word-list-header">
+					<button
+						className="flashcard-btn flashcard-btn-back"
+						onClick={onBack}
+					>
+						← 返回
+					</button>
+					<div className="flashcard-word-list-header-main">
+						<h2 className="flashcard-word-list-title">
+							📖 {deck.name} 单词列表
+						</h2>
+						<div className="flashcard-word-list-subtitle">
+							共 {items.length} 个单词 · 标签 {deck.tag}
+						</div>
 					</div>
 				</div>
-			</div>
 
-			<div className="flashcard-word-list-toolbar">
-				<button
-					className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-mask-cn ${isMaskChinese ? "active" : ""}`}
-					onClick={() => {
-						setIsMaskChinese((v) => !v);
-						setRevealedChineseIds(new Set());
-					}}
-				>
-					{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
-				</button>
-				<button
-					className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-mask-en ${isMaskEnglish ? "active" : ""}`}
-					onClick={() => {
-						setIsMaskEnglish((v) => !v);
-						setRevealedEnglishIds(new Set());
-					}}
-				>
-					{isMaskEnglish ? "取消遮罩英文" : "遮罩英文"}
-				</button>
-				<button
-					className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-shuffle ${isShuffled ? "active" : ""}`}
-					onClick={handleShuffleToggle}
-				>
-					{isShuffled ? "恢复顺序" : "乱序"}
-				</button>
-			</div>
+				<div className="flashcard-word-list-toolbar">
+					<button
+						className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-mask-cn ${isMaskChinese ? "active" : ""}`}
+						onClick={() => {
+							setIsMaskChinese((v) => !v);
+							setRevealedChineseIds(new Set());
+						}}
+					>
+						{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
+					</button>
+					<button
+						className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-mask-en ${isMaskEnglish ? "active" : ""}`}
+						onClick={() => {
+							setIsMaskEnglish((v) => !v);
+							setRevealedEnglishIds(new Set());
+						}}
+					>
+						{isMaskEnglish ? "取消遮罩英文" : "遮罩英文"}
+					</button>
+					<button
+						className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-shuffle ${isShuffled ? "active" : ""}`}
+						onClick={handleShuffleToggle}
+					>
+						{isShuffled ? "恢复顺序" : "乱序"}
+					</button>
+				</div>
 
-			<div className="flashcard-word-list-head-row">
-				<div className="flashcard-word-col-left">正面</div>
-				<div className="flashcard-word-col-right">背面</div>
+				<div className="flashcard-word-list-head-row">
+					<div className="flashcard-word-col-left">正面</div>
+					<div className="flashcard-word-col-right">背面</div>
+				</div>
 			</div>
 
 			<div className="flashcard-word-list-scroll">

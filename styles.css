@@ -10,6 +10,7 @@
 .flashcard-container {
 	height: 100%;
 	overflow: hidden;
+	padding: 0 !important;
 }
 
 .flashcard-root {
@@ -209,7 +210,16 @@
 	height: 100%;
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
 	animation: fadeIn 0.22s ease-out;
+	background: var(--background-primary);
+}
+
+.flashcard-word-list-sticky-top {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	flex-shrink: 0;
 	background: var(--background-primary);
 }
 
@@ -217,7 +227,7 @@
 	display: flex;
 	align-items: center;
 	gap: 14px;
-	padding: 14px 20px;
+	padding: 12px 20px;
 	border-bottom: 1px solid var(--background-modifier-border);
 	background: var(--background-secondary);
 }
@@ -1417,10 +1427,16 @@ button.flashcard-btn-reset {
 .flashcard-practice-setup-content,
 .flashcard-practice-summary,
 .flashcard-stats-view,
-.flashcard-word-list-view,
 .flashcard-study {
 	border-radius: 26px;
 	overflow: hidden;
+}
+
+.flashcard-word-list-view {
+	border-radius: 0;
+	margin: calc(-1 * var(--flashcard-shell-padding));
+	width: calc(100% + 2 * var(--flashcard-shell-padding));
+	max-width: none;
 }
 
 .flashcard-header {
@@ -1787,7 +1803,7 @@ button.flashcard-btn-reset {
 .flashcard-stats-header,
 .flashcard-word-list-header,
 .flashcard-study-header {
-	padding: 18px 22px;
+	padding: 24px 26px;
 	border-bottom: 1px solid var(--flashcard-border);
 	background:
 		linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
@@ -2165,6 +2181,31 @@ button.flashcard-btn-reset {
 	margin-top: 18px;
 	justify-content: space-between;
 }
+.flashcard-word-list-sticky-top {
+	position: sticky;
+	top: calc(var(--flashcard-shell-padding) * -1);
+	z-index: 20;
+	margin: calc(var(--flashcard-shell-padding) * -1)
+		calc(var(--flashcard-shell-padding) * -1) 0;
+	padding-top: var(--flashcard-shell-padding);
+	background: var(--flashcard-surface);
+	border-bottom: 1px solid var(--flashcard-border);
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+	backdrop-filter: blur(18px);
+}
+.flashcard-word-list-sticky-top .flashcard-word-list-header,
+.flashcard-word-list-sticky-top .flashcard-word-list-toolbar,
+.flashcard-word-list-sticky-top .flashcard-word-list-head-row {
+	margin: 0 18px;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	backdrop-filter: none;
+	background: transparent;
+}
+.flashcard-word-list-sticky-top .flashcard-word-list-header {
+	margin-top: 0;
+}
 
 .flashcard-word-list-title {
 	font-size: 1.2rem;
@@ -2289,6 +2330,11 @@ button.flashcard-btn-reset {
 	line-height: 1.8;
 }
 
+.flashcard-word-list-view {
+	overflow: hidden;
+	overflow-y: hidden;
+	max-height: none;
+}
 .flashcard-footer {
 	position: sticky;
 	bottom: 0;
@@ -2296,6 +2342,13 @@ button.flashcard-btn-reset {
 	border-radius: 0 0 24px 24px;
 	border-top: 1px solid var(--flashcard-border);
 	background:
+.flashcard-word-list-scroll {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	overscroll-behavior: contain;
+}
 		linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
 		var(--flashcard-surface);
 }
@@ -2688,6 +2741,15 @@ button.flashcard-btn-reset {
 		margin-inline: 12px;
 		padding-inline: 14px;
 	}
+	.flashcard-word-list-sticky-top {
+		margin-inline: calc(var(--flashcard-shell-padding) * -1);
+	}
+	.flashcard-word-list-sticky-top .flashcard-word-list-header,
+	.flashcard-word-list-sticky-top .flashcard-word-list-toolbar,
+	.flashcard-word-list-sticky-top .flashcard-word-list-head-row {
+		margin-inline: 0;
+		padding-inline: 14px;
+	}
 }
 
 @media (max-width: 560px) {
@@ -2721,6 +2783,14 @@ button.flashcard-btn-reset {
 	.flashcard-word-list-toolbar,
 	.flashcard-word-list-head-row,
 	.flashcard-word-list-scroll {
+		padding-inline: 14px;
+	}
+	.flashcard-word-list-sticky-top {
+		margin-inline: calc(var(--flashcard-shell-padding) * -1);
+	}
+	.flashcard-word-list-sticky-top .flashcard-word-list-header,
+	.flashcard-word-list-sticky-top .flashcard-word-list-toolbar,
+	.flashcard-word-list-sticky-top .flashcard-word-list-head-row {
 		padding-inline: 14px;
 	}
 
@@ -4689,12 +4759,13 @@ button.flashcard-btn-reset {
 }
 
 .flashcard-home-hero {
-	grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
-	align-items: stretch;
+	grid-template-columns: 1fr;
+	align-items: start;
 	overflow: visible;
 }
 
 .flashcard-home-overview {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	align-content: start;
 }
 
@@ -4855,8 +4926,8 @@ button.flashcard-btn-reset {
 }
 
 @media (max-width: 960px) {
-	.flashcard-home-hero {
-		grid-template-columns: 1fr;
+	.flashcard-home-overview {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.flashcard-deck-item {
@@ -4876,6 +4947,10 @@ button.flashcard-btn-reset {
 @media (max-width: 720px) {
 	.flashcard-home {
 		padding-right: 0;
+	}
+
+	.flashcard-home-overview {
+		grid-template-columns: 1fr;
 	}
 
 	.flashcard-section-meta {
@@ -4973,6 +5048,16 @@ button.flashcard-btn-reset {
 
 .flashcard-word-list-scroll {
 	padding-top: 0;
+}
+
+.flashcard-word-list-virtual {
+	position: static;
+	left: auto;
+	right: auto;
+	will-change: auto;
+	padding-top: 14px;
+	padding-inline: 18px;
+	box-sizing: border-box;
 }
 
 .flashcard-practice-summary,
@@ -5183,5 +5268,107 @@ button.flashcard-btn-reset {
 
 	.flashcard-rating-interval {
 		font-size: 0.78rem;
+	}
+}
+
+/* =============================================
+   Final Word List Layout Lock
+   ============================================= */
+
+.flashcard-root {
+	box-sizing: border-box;
+}
+
+.flashcard-word-list-view {
+	display: flex !important;
+	flex: 1 1 auto !important;
+	flex-direction: column !important;
+	height: 100% !important;
+	min-height: 0 !important;
+	gap: 0 !important;
+	overflow: hidden !important;
+}
+
+.flashcard-word-list-sticky-top {
+	position: relative !important;
+	top: 0 !important;
+	flex-shrink: 0 !important;
+	margin: var(--flashcard-shell-padding) var(--flashcard-shell-padding) 0
+		!important;
+	padding-top: 0 !important;
+	background: var(--flashcard-surface) !important;
+	border: 1px solid var(--flashcard-border) !important;
+	border-radius: 24px !important;
+	overflow: hidden !important;
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12) !important;
+}
+
+.flashcard-word-list-sticky-top .flashcard-word-list-header,
+.flashcard-word-list-sticky-top .flashcard-word-list-toolbar,
+.flashcard-word-list-sticky-top .flashcard-word-list-head-row {
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	backdrop-filter: none !important;
+}
+
+.flashcard-word-list-sticky-top .flashcard-word-list-header {
+	padding: 26px 22px 18px !important;
+	padding-bottom: 18px !important;
+}
+
+.flashcard-word-list-sticky-top .flashcard-word-list-toolbar {
+	padding: 0 18px 12px !important;
+	padding-bottom: 12px !important;
+}
+
+.flashcard-word-list-sticky-top .flashcard-word-list-head-row {
+	padding: 0 18px 8px !important;
+	padding-bottom: 8px !important;
+}
+
+.flashcard-word-list-scroll {
+	flex: 1 1 auto !important;
+	min-height: 0 !important;
+	margin: 0 !important;
+	padding: 18px !important;
+	padding-top: 0 !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+	overscroll-behavior: contain;
+}
+
+.flashcard-word-list-virtual {
+	position: static !important;
+	left: auto !important;
+	right: auto !important;
+	padding-top: 14px !important;
+	padding-inline: 18px !important;
+	transform: none !important;
+	will-change: auto !important;
+	box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+	.flashcard-word-list-sticky-top .flashcard-word-list-header {
+		padding: 14px 14px 10px !important;
+	}
+
+	.flashcard-word-list-sticky-top .flashcard-word-list-toolbar {
+		padding: 0 14px 10px !important;
+	}
+
+	.flashcard-word-list-sticky-top .flashcard-word-list-head-row {
+		padding: 0 14px 8px !important;
+	}
+
+	.flashcard-word-list-scroll {
+		padding-inline: 14px !important;
+	}
+
+	.flashcard-word-list-virtual {
+		padding-inline: 14px !important;
 	}
 }
