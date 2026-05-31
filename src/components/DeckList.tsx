@@ -72,7 +72,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 		const days = parseInt(raw, 10);
 		if (!isNaN(days) && days >= 1 && totalCards > 0) {
 			const newPerDay = Math.ceil(totalCards / days);
-			const clamped = Math.max(1, Math.min(100, newPerDay));
+			const clamped = Math.max(1, Math.min(200, newPerDay));
 			setDailyNewCards(clamped);
 		}
 	};
@@ -158,7 +158,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 								<input
 									type="range"
 									min={1}
-									max={100}
+									max={200}
 									value={dailyNewCards}
 									onChange={(e) =>
 										handleDailyNewCardsChange(

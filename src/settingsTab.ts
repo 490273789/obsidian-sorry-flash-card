@@ -217,7 +217,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						render: (setting: Setting) => {
 							setting.addSlider((slider) =>
 								slider
-									.setLimits(1, 100, 1)
+									.setLimits(1, 200, 1)
 									.setValue(
 										this.plugin.settings.dailyNewCards,
 									)
