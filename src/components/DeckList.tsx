@@ -1,6 +1,19 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import ReactDOM from "react-dom";
-import { BookOpen, ChartBar, RefreshCw, Inbox } from "lucide-react";
+import {
+	BookOpen,
+	Brain,
+	ChartBar,
+	Clock3,
+	FileText,
+	Inbox,
+	Layers3,
+	List,
+	RefreshCw,
+	Settings,
+	Sparkles,
+	Target,
+} from "lucide-react";
 import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../types";
 import { DataStore } from "../dataStore";
 
@@ -325,6 +338,20 @@ export const DeckList: React.FC<DeckListProps> = ({
 		loadDecks();
 	}, [loadDecks]);
 
+	const totals = useMemo(() => {
+		return decks.reduce(
+			(accumulator, deck) => {
+				const deckStats = stats.get(deck.id);
+				accumulator.totalCards += deckStats?.totalCards ?? 0;
+				accumulator.newCards += deckStats?.newCards ?? 0;
+				accumulator.dueCards += deckStats?.dueCards ?? 0;
+				accumulator.studyCount += deck.studyCount;
+				return accumulator;
+			},
+			{ totalCards: 0, newCards: 0, dueCards: 0, studyCount: 0 },
+		);
+	}, [decks, stats]);
+
 	const handleRefresh = async () => {
 		setIsLoading(true);
 		try {
@@ -337,29 +364,82 @@ export const DeckList: React.FC<DeckListProps> = ({
 
 	return (
 		<div className="flashcard-home">
-			<div className="flashcard-header">
-				<h2 className="flashcard-title">
-					<BookOpen size={18} /> 靓仔养成计划
-				</h2>
-				<div className="flashcard-header-actions">
-					<button
-						className="flashcard-btn flashcard-btn-icon"
-						onClick={onOpenStats}
-						title="学习统计"
-					>
-						<ChartBar size={18} />
-					</button>
-					<button
-						className="flashcard-btn flashcard-btn-icon"
-						onClick={() => void handleRefresh()}
-						disabled={isLoading}
-						title="刷新题库"
-					>
-						<RefreshCw
-							size={18}
-							className={isLoading ? "spinning" : ""}
-						/>
-					</button>
+			<div className="flashcard-home-hero">
+				<div className="flashcard-home-hero-copy">
+					<div className="flashcard-home-kicker">
+						<Sparkles size={14} /> Flashcard cockpit
+					</div>
+					<div className="flashcard-header">
+						<div>
+							<h2 className="flashcard-title">
+								<BookOpen size={18} /> 靓仔养成计划
+							</h2>
+							<p className="flashcard-home-subtitle">
+								把题库、学习节奏和训练模式收拢到一个更清晰的面板里。
+							</p>
+						</div>
+						<div className="flashcard-header-actions">
+							<button
+								className="flashcard-btn flashcard-btn-icon"
+								onClick={onOpenStats}
+								title="学习统计"
+							>
+								<ChartBar size={18} />
+							</button>
+							<button
+								className="flashcard-btn flashcard-btn-icon"
+								onClick={() => void handleRefresh()}
+								disabled={isLoading}
+								title="刷新题库"
+							>
+								<RefreshCw
+									size={18}
+									className={isLoading ? "spinning" : ""}
+								/>
+							</button>
+						</div>
+					</div>
+					<div className="flashcard-home-pills">
+						<span className="flashcard-home-pill">
+							<Layers3 size={14} /> {decks.length} 个题库
+						</span>
+						<span className="flashcard-home-pill">
+							<Brain size={14} /> {totals.newCards} 张待吸收
+						</span>
+						<span className="flashcard-home-pill">
+							<Clock3 size={14} /> {totals.dueCards} 张待复习
+						</span>
+					</div>
+				</div>
+
+				<div className="flashcard-home-overview">
+					<div className="flashcard-home-overview-card">
+						<span className="flashcard-home-overview-label">
+							总卡片
+						</span>
+						<strong className="flashcard-home-overview-value">
+							{totals.totalCards}
+						</strong>
+					</div>
+					<div className="flashcard-home-overview-card">
+						<span className="flashcard-home-overview-label">
+							学习次数
+						</span>
+						<strong className="flashcard-home-overview-value">
+							{totals.studyCount}
+						</strong>
+					</div>
+					<div className="flashcard-home-overview-card flashcard-home-overview-accent">
+						<span className="flashcard-home-overview-label">
+							今日主线
+						</span>
+						<strong className="flashcard-home-overview-value">
+							{totals.newCards + totals.dueCards}
+						</strong>
+						<span className="flashcard-home-overview-note">
+							新卡 + 复习
+						</span>
+					</div>
 				</div>
 			</div>
 
@@ -374,121 +454,148 @@ export const DeckList: React.FC<DeckListProps> = ({
 					</p>
 				</div>
 			) : (
-				<div className="flashcard-deck-list">
-					{decks.map((deck) => {
-						const deckStats = stats.get(deck.id);
-						return (
-							<div key={deck.id} className="flashcard-deck-item">
-								<div className="flashcard-deck-main">
-									<div className="flashcard-deck-info">
-										<div className="flashcard-deck-name">
-											{deck.name}
-										</div>
-										<div className="flashcard-deck-tag">
-											{deck.tag}
-										</div>
-									</div>
-									<div className="flashcard-deck-stats">
-										<div className="flashcard-stat">
-											<span className="flashcard-stat-value">
-												{deckStats?.totalCards || 0}
-											</span>
-											<span className="flashcard-stat-label">
-												总数
-											</span>
-										</div>
-										<div className="flashcard-stat flashcard-stat-new">
-											<span className="flashcard-stat-value">
-												{deckStats?.newCards || 0}
-											</span>
-											<span className="flashcard-stat-label">
-												新卡
-											</span>
-										</div>
-										<div className="flashcard-stat flashcard-stat-due">
-											<span className="flashcard-stat-value">
-												{deckStats?.dueCards || 0}
-											</span>
-											<span className="flashcard-stat-label">
-												待复习
-											</span>
-										</div>
-										<div className="flashcard-stat">
-											<span className="flashcard-stat-value">
-												{deck.studyCount}
-											</span>
-											<span className="flashcard-stat-label">
-												学习次数
-											</span>
-										</div>
-									</div>
-								</div>
-
-								<div className="flashcard-deck-actions">
-									<button
-										className="flashcard-btn flashcard-btn-word-list"
-										onClick={(e) => {
-											e.stopPropagation();
-											onOpenWordList(deck.id);
-										}}
-										title="单词列表"
-									>
-										📜 列表
-									</button>
-								</div>
-
-								<div className="flashcard-deck-actions">
-									<button
-										className="flashcard-btn flashcard-btn-practice"
-										onClick={(e) => {
-											e.stopPropagation();
-											onSelectDeck(deck.id);
-										}}
-										title="学习模式"
-									>
-										⚡ 悟道
-									</button>
-								</div>
-								<div className="flashcard-deck-actions">
-									<button
-										className="flashcard-btn flashcard-btn-practice flashcard-btn-challenge"
-										onClick={(e) => {
-											e.stopPropagation();
-											onStartPractice(deck.id);
-										}}
-										title="刷题模式"
-									>
-										⚔️ 装杯
-									</button>
-								</div>
-								<div className="flashcard-deck-actions">
-									<button
-										className="flashcard-btn flashcard-btn-source"
-										onClick={(e) => {
-											e.stopPropagation();
-											onOpenSourceFile(deck.filePath);
-										}}
-										title="打开源文件"
-									>
-										源
-									</button>
-								</div>
-
-								<div className="flashcard-deck-actions">
-									<button
-										className="flashcard-btn flashcard-btn-settings"
-										onClick={(e) => {
-											e.stopPropagation();
-											setModalDeckId(deck.id);
-										}}
-										title="学习设置"
-									>
-										⚙️
-									</button>
-								</div>
+				<div className="flashcard-deck-list-shell">
+					<div className="flashcard-section-heading">
+						<div>
+							<div className="flashcard-section-kicker">
+								Deck matrix
 							</div>
-						);
-					})}
+							<h3 className="flashcard-section-title">
+								题库面板
+							</h3>
+						</div>
+						<div className="flashcard-section-meta">
+							优先处理新卡和待复习数量高的题库
+						</div>
+					</div>
+					<div className="flashcard-deck-list">
+						{decks.map((deck) => {
+							const deckStats = stats.get(deck.id);
+							return (
+								<article
+									key={deck.id}
+									className="flashcard-deck-item"
+								>
+									<div className="flashcard-deck-main">
+										<div className="flashcard-deck-topline">
+											<span className="flashcard-deck-badge">
+												#{deck.tag}
+											</span>
+											<span className="flashcard-deck-meta">
+												{deck.cards.length} 张卡片
+											</span>
+										</div>
+										<div className="flashcard-deck-info">
+											<div className="flashcard-deck-name">
+												{deck.name}
+											</div>
+											<div className="flashcard-deck-tag">
+												累计学习 {deck.studyCount} 次
+											</div>
+										</div>
+										<div className="flashcard-deck-stats">
+											<div className="flashcard-stat">
+												<span className="flashcard-stat-value">
+													{deckStats?.totalCards || 0}
+												</span>
+												<span className="flashcard-stat-label">
+													总数
+												</span>
+											</div>
+											<div className="flashcard-stat flashcard-stat-new">
+												<span className="flashcard-stat-value">
+													{deckStats?.newCards || 0}
+												</span>
+												<span className="flashcard-stat-label">
+													新卡
+												</span>
+											</div>
+											<div className="flashcard-stat flashcard-stat-due">
+												<span className="flashcard-stat-value">
+													{deckStats?.dueCards || 0}
+												</span>
+												<span className="flashcard-stat-label">
+													待复习
+												</span>
+											</div>
+											<div className="flashcard-stat">
+												<span className="flashcard-stat-value">
+													{deck.studyCount}
+												</span>
+												<span className="flashcard-stat-label">
+													学习次数
+												</span>
+											</div>
+										</div>
+									</div>
+
+									<div className="flashcard-deck-side">
+										<div className="flashcard-deck-actions flashcard-deck-actions-primary">
+											<button
+												className="flashcard-btn flashcard-btn-word-list"
+												onClick={(e) => {
+													e.stopPropagation();
+													onOpenWordList(deck.id);
+												}}
+												title="单词列表"
+											>
+												<List size={18} />
+												<span>列表</span>
+											</button>
+											<button
+												className="flashcard-btn flashcard-btn-practice"
+												onClick={(e) => {
+													e.stopPropagation();
+													onSelectDeck(deck.id);
+												}}
+												title="学习模式"
+											>
+												<Brain size={18} />
+												<span>悟道</span>
+											</button>
+											<button
+												className="flashcard-btn flashcard-btn-practice flashcard-btn-challenge"
+												onClick={(e) => {
+													e.stopPropagation();
+													onStartPractice(deck.id);
+												}}
+												title="刷题模式"
+											>
+												<Target size={18} />
+												<span>装杯</span>
+											</button>
+										</div>
+										<div className="flashcard-deck-actions flashcard-deck-actions-secondary">
+											<button
+												className="flashcard-btn flashcard-btn-source"
+												onClick={(e) => {
+													e.stopPropagation();
+													onOpenSourceFile(
+														deck.filePath,
+													);
+												}}
+												title="打开源文件"
+											>
+												<FileText size={18} />
+												<span>源文件</span>
+											</button>
+											<button
+												className="flashcard-btn flashcard-btn-settings"
+												onClick={(e) => {
+													e.stopPropagation();
+													setModalDeckId(deck.id);
+												}}
+												title="学习设置"
+											>
+												<Settings size={18} />
+												<span>设置</span>
+											</button>
+										</div>
+									</div>
+								</article>
+							);
+						})}
+					</div>
 				</div>
 			)}
 

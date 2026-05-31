@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { Deck, FlashCard } from "../types";
 import { shuffleArray } from "../utils";
 
@@ -12,32 +12,6 @@ interface WordItem {
 	front: string;
 	back: string;
 	index: number;
-}
-
-const ESTIMATED_ROW_HEIGHT = 76;
-const OVERSCAN = 8;
-
-function findStartIndex(offsets: number[], scrollTop: number): number {
-	let low = 0;
-	let high = Math.max(0, offsets.length - 2);
-
-	while (low <= high) {
-		const mid = Math.floor((low + high) / 2);
-		const start = offsets[mid] ?? 0;
-		const next = offsets[mid + 1] ?? Number.MAX_SAFE_INTEGER;
-
-		if (start <= scrollTop && next > scrollTop) {
-			return mid;
-		}
-
-		if (start < scrollTop) {
-			low = mid + 1;
-		} else {
-			high = mid - 1;
-		}
-	}
-
-	return Math.max(0, Math.min(low, offsets.length - 2));
 }
 
 function stripHashSymbols(text: string): string {
@@ -71,47 +45,13 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	const [revealedEnglishIds, setRevealedEnglishIds] = useState<Set<string>>(
 		new Set(),
 	);
-	const [containerHeight, setContainerHeight] = useState(0);
-	const [scrollTop, setScrollTop] = useState(0);
-	const [rowHeightsVersion, setRowHeightsVersion] = useState(0);
-	const [isScrolling, setIsScrolling] = useState(false);
-	const listRef = useRef<HTMLDivElement>(null);
-	const rowHeightsRef = useRef<Map<number, number>>(new Map());
-	const scrollStopTimerRef = useRef<number | null>(null);
 
 	useEffect(() => {
 		setItems(sourceItems);
 		setIsShuffled(false);
 		setRevealedChineseIds(new Set());
 		setRevealedEnglishIds(new Set());
-		rowHeightsRef.current.clear();
-		setRowHeightsVersion((v) => v + 1);
-		setScrollTop(0);
 	}, [sourceItems]);
-
-	useEffect(() => {
-		const updateContainerHeight = () => {
-			if (!listRef.current) {
-				return;
-			}
-			setContainerHeight(listRef.current.clientHeight);
-		};
-
-		updateContainerHeight();
-		window.addEventListener("resize", updateContainerHeight);
-
-		return () => {
-			window.removeEventListener("resize", updateContainerHeight);
-		};
-	}, []);
-
-	useEffect(() => {
-		return () => {
-			if (scrollStopTimerRef.current !== null) {
-				window.clearTimeout(scrollStopTimerRef.current);
-			}
-		};
-	}, []);
 
 	const handleShuffleToggle = () => {
 		if (isShuffled) {
@@ -157,101 +97,6 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 			e.preventDefault();
 			action();
 		}
-	};
-
-	const offsets = useMemo(() => {
-		const nextOffsets = new Array<number>(items.length + 1);
-		nextOffsets[0] = 0;
-
-		for (let i = 0; i < items.length; i++) {
-			const measured = rowHeightsRef.current.get(i);
-			const prev = nextOffsets[i] ?? 0;
-			nextOffsets[i + 1] = prev + (measured ?? ESTIMATED_ROW_HEIGHT);
-		}
-
-		return nextOffsets;
-	}, [items, rowHeightsVersion]);
-
-	const totalHeight = offsets[offsets.length - 1] ?? 0;
-	const viewportBottom = scrollTop + containerHeight;
-	const firstVisibleIndex = findStartIndex(offsets, Math.max(0, scrollTop));
-	const startIndex = Math.max(0, firstVisibleIndex - OVERSCAN);
-
-	let endIndex = firstVisibleIndex;
-	while (
-		endIndex < items.length &&
-		(offsets[endIndex] ?? 0) < viewportBottom
-	) {
-		endIndex++;
-	}
-	endIndex = Math.min(items.length, endIndex + OVERSCAN);
-
-	const visibleItems = items.slice(startIndex, endIndex);
-	const offsetY = offsets[startIndex] ?? 0;
-
-	const setMeasuredRowHeight = (index: number, height: number) => {
-		const prev = rowHeightsRef.current.get(index);
-		if (prev !== undefined && Math.abs(prev - height) < 1) {
-			return;
-		}
-		rowHeightsRef.current.set(index, height);
-		setRowHeightsVersion((v) => v + 1);
-	};
-
-	useEffect(() => {
-		if (isScrolling || !listRef.current) {
-			return;
-		}
-
-		const rows = listRef.current.querySelectorAll<HTMLDivElement>(
-			".flashcard-word-row[data-row-index]",
-		);
-		let hasChanges = false;
-
-		rows.forEach((row) => {
-			const indexAttr = row.dataset.rowIndex;
-			if (!indexAttr) {
-				return;
-			}
-
-			const index = Number(indexAttr);
-			if (!Number.isFinite(index)) {
-				return;
-			}
-
-			const height = row.getBoundingClientRect().height;
-			const prev = rowHeightsRef.current.get(index);
-			if (prev === undefined || Math.abs(prev - height) >= 1) {
-				rowHeightsRef.current.set(index, height);
-				hasChanges = true;
-			}
-		});
-
-		if (hasChanges) {
-			setRowHeightsVersion((v) => v + 1);
-		}
-	}, [
-		isScrolling,
-		startIndex,
-		endIndex,
-		isMaskChinese,
-		isMaskEnglish,
-		revealedChineseIds,
-		revealedEnglishIds,
-	]);
-
-	const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-		setScrollTop(e.currentTarget.scrollTop);
-		setIsScrolling(true);
-
-		if (scrollStopTimerRef.current !== null) {
-			window.clearTimeout(scrollStopTimerRef.current);
-		}
-
-		scrollStopTimerRef.current = window.setTimeout(() => {
-			setIsScrolling(false);
-			scrollStopTimerRef.current = null;
-		}, 120);
 	};
 
 	return (
@@ -305,104 +150,75 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 				<div className="flashcard-word-col-right">背面</div>
 			</div>
 
-			<div
-				className="flashcard-word-list-scroll"
-				ref={listRef}
-				onScroll={handleScroll}
-			>
-				<div
-					style={{ height: `${totalHeight}px`, position: "relative" }}
-				>
-					<div
-						className="flashcard-word-list-virtual"
-						style={{ transform: `translateY(${offsetY}px)` }}
-					>
-						{visibleItems.map((item, visibleIndex) => {
-							const itemIndex = startIndex + visibleIndex;
-							const showChinese =
-								!isMaskChinese ||
-								revealedChineseIds.has(item.id);
-							const showEnglish =
-								!isMaskEnglish ||
-								revealedEnglishIds.has(item.id);
+			<div className="flashcard-word-list-scroll">
+				<div className="flashcard-word-list-virtual flashcard-word-list-flow">
+					{items.map((item) => {
+						const showChinese =
+							!isMaskChinese || revealedChineseIds.has(item.id);
+						const showEnglish =
+							!isMaskEnglish || revealedEnglishIds.has(item.id);
 
-							return (
+						return (
+							<div key={item.id} className="flashcard-word-row">
 								<div
-									key={item.id}
-									className="flashcard-word-row"
-									data-row-index={itemIndex}
-									ref={(el) => {
-										if (!el || isScrolling) return;
-										setMeasuredRowHeight(
-											itemIndex,
-											el.getBoundingClientRect().height,
-										);
-									}}
+									role="button"
+									tabIndex={0}
+									className={`flashcard-word-cell flashcard-word-cell-left ${
+										!showEnglish ? "masked" : ""
+									}`}
+									onClick={() => handleRevealEnglish(item.id)}
+									onKeyDown={(e) =>
+										activateOnKey(e, () =>
+											handleRevealEnglish(item.id),
+										)
+									}
+									title={
+										isMaskEnglish
+											? "点击切换显示/隐藏英文"
+											: "英文列"
+									}
 								>
-									<div
-										role="button"
-										tabIndex={0}
-										className={`flashcard-word-cell flashcard-word-cell-left ${
-											!showEnglish ? "masked" : ""
-										}`}
-										onClick={() =>
-											handleRevealEnglish(item.id)
-										}
-										onKeyDown={(e) =>
-											activateOnKey(e, () =>
-												handleRevealEnglish(item.id),
-											)
-										}
-										title={
-											isMaskEnglish
-												? "点击切换显示/隐藏英文"
-												: "英文列"
-										}
-									>
-										{showEnglish ? (
-											<span className="flashcard-word-front">
-												{item.front}
-											</span>
-										) : (
-											<span className="flashcard-word-mask-text">
-												点击显示
-											</span>
-										)}
-									</div>
-									<div
-										role="button"
-										tabIndex={0}
-										className={`flashcard-word-cell flashcard-word-cell-right ${
-											!showChinese ? "masked" : ""
-										}`}
-										onClick={() =>
-											handleRevealChinese(item.id)
-										}
-										onKeyDown={(e) =>
-											activateOnKey(e, () =>
-												handleRevealChinese(item.id),
-											)
-										}
-										title={
-											isMaskChinese
-												? "点击切换显示/隐藏中文"
-												: "中文列"
-										}
-									>
-										{showChinese ? (
-											<span className="flashcard-word-back">
-												{item.back}
-											</span>
-										) : (
-											<span className="flashcard-word-mask-text">
-												点击显示
-											</span>
-										)}
-									</div>
+									{showEnglish ? (
+										<span className="flashcard-word-front">
+											{item.front}
+										</span>
+									) : (
+										<span className="flashcard-word-mask-text">
+											点击显示
+										</span>
+									)}
 								</div>
-							);
-						})}
-					</div>
+								<div
+									role="button"
+									tabIndex={0}
+									className={`flashcard-word-cell flashcard-word-cell-right ${
+										!showChinese ? "masked" : ""
+									}`}
+									onClick={() => handleRevealChinese(item.id)}
+									onKeyDown={(e) =>
+										activateOnKey(e, () =>
+											handleRevealChinese(item.id),
+										)
+									}
+									title={
+										isMaskChinese
+											? "点击切换显示/隐藏中文"
+											: "中文列"
+									}
+								>
+									{showChinese ? (
+										<span className="flashcard-word-back">
+											{item.back}
+										</span>
+									) : (
+										<span className="flashcard-word-mask-text">
+											点击显示
+										</span>
+									)}
+								</div>
+							</div>
+						);
+					})}
 				</div>
 			</div>
 		</div>

@@ -32,13 +32,14 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	const allCompleted =
 		dayList.length > 0 && dayList.every((d) => d.isCompleted);
 	const hasAnythingToStudy = todayNewCount > 0 || todayReviewCount > 0;
+	const todayTotal = todayNewCount + todayReviewCount;
 
 	const handleMainStart = () => {
 		onStart(studyOrder);
 	};
 
 	return (
-		<div className="flashcard-practice-setup">
+		<div className="flashcard-practice-setup flashcard-study-setup-screen">
 			<div className="flashcard-practice-setup-header">
 				<button
 					className="flashcard-btn flashcard-btn-back"
@@ -52,6 +53,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 			<div className="flashcard-study-setup-content">
 				<div className="flashcard-study-hero">
 					<div className="flashcard-study-hero-copy">
+						<div className="flashcard-home-kicker">Study route</div>
 						<div className="flashcard-study-hero-kicker">
 							今日学习面板
 						</div>
@@ -63,6 +65,9 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						</div>
 						<div className="flashcard-practice-deck-total">
 							共 <strong>{deck.cards.length}</strong> 张卡片
+						</div>
+						<div className="flashcard-study-hero-description">
+							按天推进新内容，并把当天需要复习的卡片一起收拢在这个视图里。
 						</div>
 					</div>
 					<div className="flashcard-study-hero-meta">
@@ -81,6 +86,12 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 									? "复习阶段"
 									: `第 ${(currentDay?.dayIndex ?? 0) + 1} 天`}
 							</strong>
+						</div>
+						<div className="flashcard-study-hero-pill">
+							<span className="flashcard-study-hero-pill-label">
+								今日任务
+							</span>
+							<strong>{todayTotal}</strong>
 						</div>
 					</div>
 				</div>
@@ -241,7 +252,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						{allCompleted
 							? "开始复习 🔄"
 							: hasAnythingToStudy
-								? `开始学习 (${todayNewCount + todayReviewCount} 张)`
+								? `开始学习 (${todayTotal} 张)`
 								: "今日任务已完成 🎉"}
 					</button>
 				</div>

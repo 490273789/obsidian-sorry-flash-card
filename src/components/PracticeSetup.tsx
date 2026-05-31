@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Target, Shuffle, ChartBar, CircleX } from "lucide-react";
+import {
+	Target,
+	Shuffle,
+	ChartBar,
+	CircleX,
+	Sparkles,
+	SlidersHorizontal,
+} from "lucide-react";
 import { Deck } from "../types";
 
 interface PracticeSetupProps {
@@ -17,6 +24,8 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	const [questionCount, setQuestionCount] = useState(
 		Math.min(50, maxQuestions),
 	);
+	const coverage =
+		maxQuestions > 0 ? Math.round((questionCount / maxQuestions) * 100) : 0;
 	const [inputValue, setInputValue] = useState(
 		Math.min(50, maxQuestions).toString(),
 	);
@@ -57,7 +66,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	};
 
 	return (
-		<div className="flashcard-practice-setup">
+		<div className="flashcard-practice-setup flashcard-practice-setup-screen">
 			<div className="flashcard-practice-setup-header">
 				<button
 					className="flashcard-btn flashcard-btn-back"
@@ -71,22 +80,92 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 			</div>
 
 			<div className="flashcard-practice-setup-content">
-				<div className="flashcard-practice-deck-info">
-					<div className="flashcard-practice-deck-name">
-						{deck.name}
+				<div className="flashcard-study-hero flashcard-practice-hero">
+					<div className="flashcard-study-hero-copy flashcard-practice-hero-copy">
+						<div className="flashcard-home-kicker">Challenge setup</div>
+						<div className="flashcard-study-hero-kicker flashcard-practice-hero-kicker">
+							<Sparkles size={14} /> 装杯前配置
+						</div>
+						<div className="flashcard-practice-deck-name">
+							{deck.name}
+						</div>
+						<div className="flashcard-practice-deck-tag">
+							{deck.tag}
+						</div>
+						<div className="flashcard-practice-deck-total">
+							共 <strong>{maxQuestions}</strong> 次装杯机会
+						</div>
+						<div className="flashcard-practice-setup-subtitle">
+							选择本轮题量后，系统会随机抽题，并在结束后汇总正确率与装杯失败列表。
+						</div>
 					</div>
-					<div className="flashcard-practice-deck-tag">
-						{deck.tag}
-					</div>
-					<div className="flashcard-practice-deck-total">
-						共 <strong>{maxQuestions}</strong> 次装杯机会
+					<div className="flashcard-study-hero-meta flashcard-practice-hero-meta">
+						<div className="flashcard-study-hero-pill flashcard-practice-hero-pill">
+							<span className="flashcard-study-hero-pill-label">
+								抽题方式
+							</span>
+							<strong>随机抽取</strong>
+						</div>
+						<div className="flashcard-study-hero-pill flashcard-practice-hero-pill">
+							<span className="flashcard-study-hero-pill-label">
+								当前题量
+							</span>
+							<strong>{questionCount} 题</strong>
+						</div>
+						<div className="flashcard-study-hero-pill flashcard-practice-hero-pill">
+							<span className="flashcard-study-hero-pill-label">
+								覆盖率
+							</span>
+							<strong>{coverage}%</strong>
+						</div>
 					</div>
 				</div>
 
-				<div className="flashcard-practice-question-selector">
-					<label className="flashcard-practice-label">
-						选择装杯次数
-					</label>
+				<div className="flashcard-study-today-stats flashcard-practice-setup-metrics">
+					<div className="flashcard-study-stat-card flashcard-practice-stat-card flashcard-practice-stat-pool">
+						<span className="flashcard-study-stat-caption">
+							题库规模
+						</span>
+						<span className="flashcard-study-stat-value">
+							{maxQuestions}
+						</span>
+						<span className="flashcard-study-stat-label">
+							可抽取题目
+						</span>
+					</div>
+					<div className="flashcard-study-stat-card flashcard-practice-stat-card flashcard-practice-stat-session">
+						<span className="flashcard-study-stat-caption">
+							本次题量
+						</span>
+						<span className="flashcard-study-stat-value">
+							{questionCount}
+						</span>
+						<span className="flashcard-study-stat-label">
+							当前选择
+						</span>
+					</div>
+					<div className="flashcard-study-stat-card flashcard-practice-stat-card flashcard-practice-stat-coverage">
+						<span className="flashcard-study-stat-caption">
+							覆盖率
+						</span>
+						<span className="flashcard-study-stat-value">
+							{coverage}%
+						</span>
+						<span className="flashcard-study-stat-label">
+							本轮扫描范围
+						</span>
+					</div>
+				</div>
+
+				<div className="flashcard-study-panel flashcard-practice-question-selector">
+					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
+						<div className="flashcard-practice-panel-title">
+							<SlidersHorizontal size={16} /> 选择装杯次数
+						</div>
+						<div className="flashcard-study-panel-note">
+							建议先从接近整轮题量开始，方便快速感知整体状态
+						</div>
+					</div>
 
 					<div className="flashcard-practice-quick-buttons">
 						{[20, 50, 100, 150, 200].map((count) => (
@@ -136,7 +215,15 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					</div>
 				</div>
 
-				<div className="flashcard-practice-info">
+				<div className="flashcard-study-panel flashcard-practice-info">
+					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
+						<div className="flashcard-practice-panel-title">
+							<Target size={16} /> 本轮规则
+						</div>
+						<div className="flashcard-study-panel-note">
+							开始后直接进入答题流，结果页统一收口本轮表现
+						</div>
+					</div>
 					<div className="flashcard-practice-info-item">
 						<span className="flashcard-practice-info-icon">
 							<Shuffle size={16} />
@@ -157,13 +244,23 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					</div>
 				</div>
 
-				<button
-					className="flashcard-btn flashcard-btn-primary flashcard-practice-start-btn"
-					onClick={handleStart}
-					disabled={maxQuestions === 0}
-				>
-					开始整活 ({questionCount} 次)
-				</button>
+				<div className="flashcard-study-action-bar flashcard-practice-action-bar">
+					<div className="flashcard-study-action-copy flashcard-practice-action-copy">
+						<div className="flashcard-study-action-title">
+							准备开始 {questionCount} 题装杯挑战
+						</div>
+						<div className="flashcard-study-action-subtitle">
+							系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。
+						</div>
+					</div>
+					<button
+						className="flashcard-btn flashcard-btn-primary flashcard-practice-start-btn"
+						onClick={handleStart}
+						disabled={maxQuestions === 0}
+					>
+						开始整活 · {questionCount} 题
+					</button>
+				</div>
 			</div>
 		</div>
 	);

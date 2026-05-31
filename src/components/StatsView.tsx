@@ -94,9 +94,15 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 				>
 					<ArrowLeft size={18} />
 				</button>
-				<h2 className="flashcard-stats-title">
-					<ChartBar size={18} /> 学习统计
-				</h2>
+				<div className="flashcard-stats-header-main">
+					<div className="flashcard-home-kicker">Study archive</div>
+					<h2 className="flashcard-stats-title">
+						<ChartBar size={18} /> 学习统计
+					</h2>
+					<div className="flashcard-stats-subtitle">
+						按天回看悟道、装杯和列表浏览的学习节奏。
+					</div>
+				</div>
 				<div className="flashcard-stats-header-right">
 					<span className="flashcard-stats-range">近 20 天</span>
 				</div>
@@ -157,6 +163,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 											{formatDate(date)}
 										</span>
 										<span className="flashcard-stats-day-meta">
+											{entries.length} 次记录 ·
 											{formatDuration(dayDur)}
 											{dayCards > 0 &&
 												` · ${dayCards} 张`}

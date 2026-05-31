@@ -68,11 +68,13 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	return (
 		<div className="flashcard-practice-summary">
 			<div className="flashcard-practice-summary-header">
+				<div className="flashcard-home-kicker">Session recap</div>
 				<h2 className="flashcard-practice-summary-title">
 					{getCompletionMessage()}
 				</h2>
 				<div className="flashcard-practice-summary-deck">
-					{deck.name}
+					{deck.name} · 共 {result.totalQuestions} 题 · 用时{" "}
+					{formatTime(result.timeSpent)}
 				</div>
 			</div>
 
