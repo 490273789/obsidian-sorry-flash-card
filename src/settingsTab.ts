@@ -93,41 +93,6 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				heading: "界面设置",
 				items: [
 					{
-						name: "显示欢迎弹窗",
-						desc: "每次打开插件时显示欢迎消息（持续3秒）",
-						render: (setting: Setting) => {
-							setting.addToggle((toggle) =>
-								toggle
-									.setValue(
-										this.plugin.settings.showWelcomeMessage,
-									)
-									.onChange(async (value) => {
-										this.plugin.settings.showWelcomeMessage =
-											value;
-										await this.saveSettings();
-									}),
-							);
-						},
-					},
-					{
-						name: "欢迎消息",
-						desc: "自定义欢迎弹窗显示的文案",
-						render: (setting: Setting) => {
-							setting.addText((text) =>
-								text
-									.setPlaceholder("输入欢迎消息")
-									.setValue(
-										this.plugin.settings.welcomeMessage,
-									)
-									.onChange(async (value) => {
-										this.plugin.settings.welcomeMessage =
-											value;
-										await this.saveSettings();
-									}),
-							);
-						},
-					},
-					{
 						name: "刷题全对文案",
 						desc: "刷题全部答对时随机显示的文案，一行一个",
 						render: (setting: Setting) => {

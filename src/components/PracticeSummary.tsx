@@ -128,7 +128,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 			{incorrectCards.length > 0 && (
 				<div className="flashcard-practice-incorrect-section">
 					<h3 className="flashcard-practice-incorrect-title">
-						<CircleX size={16} /> 错题列表 ({incorrectCards.length}
+						<CircleX size={16} /> 错题List ({incorrectCards.length}
 						题)
 					</h3>
 					<div className="flashcard-practice-incorrect-list">
@@ -156,7 +156,8 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 						className="flashcard-btn flashcard-btn-danger flashcard-practice-action-btn"
 						onClick={onPracticeIncorrect}
 					>
-						<CircleX size={14} /> 装杯失败 ({result.incorrectCount})
+						<CircleX size={14} /> Practice失败 (
+						{result.incorrectCount})
 					</button>
 				)}
 				<button

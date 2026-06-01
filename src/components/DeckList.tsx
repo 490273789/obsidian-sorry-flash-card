@@ -117,11 +117,22 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 
 	const modal = (
 		<div className="flashcard-modal-backdrop" onClick={handleBackdropClick}>
-			<div className="flashcard-modal">
+			<div className="flashcard-modal flashcard-deck-settings-modal">
 				<div className="flashcard-modal-header">
-					<span className="flashcard-modal-title">
-						⚙️ {deckName} · 学习设置
-					</span>
+					<div className="flashcard-modal-heading">
+						<div className="flashcard-modal-kicker">
+							<Sparkles size={14} /> 专属学习节奏
+						</div>
+						<span className="flashcard-modal-title">
+							{deckName} · 学习设置
+						</span>
+						<span className="flashcard-modal-subtitle">
+							{totalCards} 张卡片，
+							{useCustom
+								? "当前使用单独配置"
+								: "当前跟随全局默认"}
+						</span>
+					</div>
 					<button
 						className="flashcard-modal-close"
 						onClick={onClose}
@@ -132,7 +143,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 				</div>
 
 				<div className="flashcard-modal-body">
-					<div className="flashcard-deck-settings-toggle">
+					<div className="flashcard-deck-settings-toggle flashcard-deck-settings-card">
 						<label className="flashcard-deck-settings-toggle-label">
 							<input
 								type="checkbox"
@@ -141,10 +152,13 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 							/>
 							<span>使用自定义学习设置</span>
 						</label>
+						<p className="flashcard-deck-settings-toggle-copy">
+							为这个题库单独调整新卡节奏、复习容量和记忆目标。
+						</p>
 					</div>
 
 					{!useCustom ? (
-						<div className="flashcard-deck-settings-hint">
+						<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
 							当前使用全局默认设置：每日新卡&nbsp;
 							<strong>{globalSettings.dailyNewCards}</strong>
 							&nbsp;张，每日复习&nbsp;
@@ -166,8 +180,25 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 						</div>
 					) : (
 						<div className="flashcard-deck-settings-fields">
+							<div className="flashcard-deck-settings-summary flashcard-deck-settings-card">
+								<div>
+									<span className="flashcard-deck-settings-summary-label">
+										预计完成节奏
+									</span>
+									<strong className="flashcard-deck-settings-summary-value">
+										{daysToComplete} 天
+									</strong>
+								</div>
+								<span className="flashcard-deck-settings-summary-copy">
+									每日新卡 {dailyNewCards}，每日复习{" "}
+									{dailyReviewCards}
+								</span>
+							</div>
 							<div className="flashcard-deck-settings-field">
-								<label>每日新卡数量：{dailyNewCards}</label>
+								<label>
+									<span>每日新卡数量</span>
+									<strong>{dailyNewCards}</strong>
+								</label>
 								<input
 									type="range"
 									min={1}
@@ -205,7 +236,10 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 								</div>
 							)}
 							<div className="flashcard-deck-settings-field">
-								<label>每日复习数量：{dailyReviewCards}</label>
+								<label>
+									<span>每日复习数量</span>
+									<strong>{dailyReviewCards}</strong>
+								</label>
 								<input
 									type="range"
 									min={1}
@@ -237,8 +271,10 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 							</div>
 							<div className="flashcard-deck-settings-field">
 								<label>
-									目标记忆保持率：
-									{requestRetention.toFixed(2)}
+									<span>目标记忆保持率</span>
+									<strong>
+										{requestRetention.toFixed(2)}
+									</strong>
 								</label>
 								<input
 									type="range"
@@ -284,7 +320,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 		</div>
 	);
 
-	// Render into the plugin's root container so it stays within the view
+	// Keep the modal inside the plugin root so design tokens remain available.
 	const container =
 		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
 	return ReactDOM.createPortal(modal, container);
@@ -369,7 +405,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 					<div className="flashcard-header">
 						<div>
 							<h2 className="flashcard-title">
-								<BookOpen size={18} /> 靓仔养成计划
+								<BookOpen size={26} /> Ultimate Repetition
 							</h2>
 							<p className="flashcard-home-subtitle">
 								把题库、学习节奏和训练模式收拢到一个更清晰的面板里。
@@ -428,14 +464,11 @@ export const DeckList: React.FC<DeckListProps> = ({
 					</div>
 					<div className="flashcard-home-overview-card flashcard-home-overview-accent">
 						<span className="flashcard-home-overview-label">
-							今日主线
+							今日主线 新卡 + 复习
 						</span>
 						<strong className="flashcard-home-overview-value">
 							{totals.newCards + totals.dueCards}
 						</strong>
-						<span className="flashcard-home-overview-note">
-							新卡 + 复习
-						</span>
 					</div>
 				</div>
 			</div>
@@ -531,17 +564,6 @@ export const DeckList: React.FC<DeckListProps> = ({
 										</div>
 										<div className="flashcard-deck-actions flashcard-deck-actions-primary">
 											<button
-												className="flashcard-btn flashcard-btn-purple"
-												onClick={(e) => {
-													e.stopPropagation();
-													onOpenWordList(deck.id);
-												}}
-												title="单词列表"
-											>
-												<List size={18} />
-												<span>列表</span>
-											</button>
-											<button
 												className="flashcard-btn flashcard-btn-orange"
 												onClick={(e) => {
 													e.stopPropagation();
@@ -550,7 +572,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 												title="学习模式"
 											>
 												<Brain size={18} />
-												<span>悟道</span>
+												<span>Study</span>
 											</button>
 											<button
 												className="flashcard-btn flashcard-btn-blue"
@@ -561,12 +583,23 @@ export const DeckList: React.FC<DeckListProps> = ({
 												title="刷题模式"
 											>
 												<Target size={18} />
-												<span>装杯</span>
+												<span>Practice</span>
 											</button>
 										</div>
 										<div className="flashcard-deck-actions flashcard-deck-actions-secondary">
 											<button
-												className="flashcard-btn flashcard-btn-gray"
+												className="flashcard-btn flashcard-btn-purple"
+												onClick={(e) => {
+													e.stopPropagation();
+													onOpenWordList(deck.id);
+												}}
+												title="单词List"
+											>
+												<List size={18} />
+												<span>List</span>
+											</button>
+											<button
+												className="flashcard-btn flashcard-btn-green"
 												onClick={(e) => {
 													e.stopPropagation();
 													onOpenSourceFile(

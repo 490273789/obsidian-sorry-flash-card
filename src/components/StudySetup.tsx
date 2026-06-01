@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CircleCheck, Target, Lock } from "lucide-react";
+import { CircleCheck, Target, Lock, Brain } from "lucide-react";
 import { Deck, StudyDayInfo } from "../types";
 
 interface StudySetupProps {
@@ -39,7 +39,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	};
 
 	return (
-		<div className="flashcard-practice-setup flashcard-study-setup-screen">
+		<div className="flashcard-practice-setup flashcard-setup-screen">
 			<div className="flashcard-practice-setup-header">
 				<button
 					className="flashcard-btn flashcard-btn-back"
@@ -47,7 +47,9 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 				>
 					← 返回
 				</button>
-				<h2 className="flashcard-practice-setup-title">⚡ 悟道模式</h2>
+				<h2 className="flashcard-setup-title">
+					<Brain size={18} /> Study
+				</h2>
 			</div>
 
 			<div className="flashcard-study-setup-content">
@@ -93,39 +95,27 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 				</div>
 
 				{/* Today's session stats */}
-				<div className="flashcard-study-today-stats">
-					<div className="flashcard-study-stat-card flashcard-study-stat-new">
-						<span className="flashcard-study-stat-caption">
-							新内容
-						</span>
-						<span className="flashcard-study-stat-value">
+				<div className="flashcard-today-stats">
+					<div className="flashcard-stat-card flashcard-stat-new">
+						<span className="flashcard-stat-caption">新内容</span>
+						<span className="flashcard-stat-value">
 							{todayNewCount}
 						</span>
-						<span className="flashcard-study-stat-label">
-							今日新学
-						</span>
+						<span className="flashcard-stat-label">今日新学</span>
 					</div>
-					<div className="flashcard-study-stat-card flashcard-study-stat-review">
-						<span className="flashcard-study-stat-caption">
-							巩固
-						</span>
-						<span className="flashcard-study-stat-value">
+					<div className="flashcard-stat-card flashcard-stat-review">
+						<span className="flashcard-stat-caption">巩固</span>
+						<span className="flashcard-stat-value">
 							{todayReviewCount}
 						</span>
-						<span className="flashcard-study-stat-label">
-							待复习
-						</span>
+						<span className="flashcard-stat-label">待复习</span>
 					</div>
-					<div className="flashcard-study-stat-card flashcard-study-stat-progress">
-						<span className="flashcard-study-stat-caption">
-							进度
-						</span>
-						<span className="flashcard-study-stat-value">
+					<div className="flashcard-stat-card flashcard-stat-progress">
+						<span className="flashcard-stat-caption">进度</span>
+						<span className="flashcard-stat-value">
 							{completedDays}
 						</span>
-						<span className="flashcard-study-stat-label">
-							已完成天数
-						</span>
+						<span className="flashcard-stat-label">已完成天数</span>
 					</div>
 				</div>
 

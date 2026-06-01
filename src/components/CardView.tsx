@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { PartyPopper, RotateCcw, X } from "lucide-react";
+import { PartyPopper, RotateCcw, Target, X } from "lucide-react";
 import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
@@ -254,7 +254,11 @@ export const CardView: React.FC<CardViewProps> = ({
 					<span className="flashcard-deck-title">{deck.name}</span>
 					<span className="flashcard-progress">{progress}</span>
 				</div>
-				<div className="flashcard-study-center">悟道ing🔥</div>
+				<div className="flashcard-study-center">
+					<span className="flashcard-practice-badge">
+						<Target size={14} /> STUDYING
+					</span>
+				</div>
 				<div className="flashcard-study-meta">
 					<span className="flashcard-timer">
 						{formatTime(elapsedTime)}

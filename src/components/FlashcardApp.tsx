@@ -102,7 +102,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	};
 
 	const handleCloseStudy = () => {
-		// Record 悟道 session before clearing state
+		// Record Study session before clearing state
 		if (studySession && studySession.currentIndex > 0) {
 			const deck = dataStore.getDeck(studySession.deckId);
 			const duration = Math.floor(
@@ -185,7 +185,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	};
 
 	const handlePracticeComplete = (result: PracticeResult) => {
-		// Record 装杯 session
+		// Record Practice session
 		if (practiceSession) {
 			const deck = dataStore.getDeck(practiceSession.deckId);
 			void dataStore.recordStudySession(

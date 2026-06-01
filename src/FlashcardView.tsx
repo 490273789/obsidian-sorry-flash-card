@@ -54,11 +54,6 @@ export class FlashcardView extends ItemView {
 		this.root = createRoot(rootEl);
 
 		this.renderApp();
-
-		// Show welcome message if enabled
-		if (this.settings.showWelcomeMessage && this.settings.welcomeMessage) {
-			this.showWelcomePopup();
-		}
 	}
 
 	private renderApp(): void {
@@ -92,23 +87,6 @@ export class FlashcardView extends ItemView {
 		this.availableTags = this.dataStore.getAvailableTags();
 		this.renderApp();
 	};
-
-	private showWelcomePopup(): void {
-		const container = this.containerEl.children[1];
-		if (!container) return;
-
-		// Create popup element
-		const popup = container.createDiv({ cls: "flashcard-welcome-popup" });
-		popup.setText(this.settings.welcomeMessage);
-
-		// Auto-hide after 3 seconds
-		window.setTimeout(() => {
-			popup.addClass("flashcard-welcome-popup-hide");
-			window.setTimeout(() => {
-				popup.remove();
-			}, 300); // Wait for fade-out animation
-		}, 3000);
-	}
 
 	async onClose(): Promise<void> {
 		if (this.root) {

@@ -111,7 +111,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 					</button>
 					<div className="flashcard-word-list-header-main">
 						<h2 className="flashcard-word-list-title">
-							📖 {deck.name} 单词列表
+							📖 {deck.name} 单词List
 						</h2>
 						<div className="flashcard-word-list-subtitle">
 							共 {items.length} 个单词 · 标签 {deck.tag}
@@ -121,7 +121,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 
 				<div className="flashcard-word-list-toolbar">
 					<button
-						className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-mask-cn ${isMaskChinese ? "active" : ""}`}
+						className={`flashcard-btn chinese flashcard-btn-orange ${isMaskChinese ? "active" : ""}`}
 						onClick={() => {
 							setIsMaskChinese((v) => !v);
 							setRevealedChineseIds(new Set());
@@ -130,7 +130,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
 					</button>
 					<button
-						className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-mask-en ${isMaskEnglish ? "active" : ""}`}
+						className={`flashcard-btn english flashcard-btn-blue ${isMaskEnglish ? "active" : ""}`}
 						onClick={() => {
 							setIsMaskEnglish((v) => !v);
 							setRevealedEnglishIds(new Set());
@@ -139,7 +139,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						{isMaskEnglish ? "取消遮罩英文" : "遮罩英文"}
 					</button>
 					<button
-						className={`flashcard-btn flashcard-word-tool-btn flashcard-tool-shuffle ${isShuffled ? "active" : ""}`}
+						className={`flashcard-btn shuffle flashcard-btn-green ${isShuffled ? "active" : ""}`}
 						onClick={handleShuffleToggle}
 					>
 						{isShuffled ? "恢复顺序" : "乱序"}
@@ -147,8 +147,8 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 				</div>
 
 				<div className="flashcard-word-list-head-row">
-					<div className="flashcard-word-col-left">正面</div>
-					<div className="flashcard-word-col-right">背面</div>
+					<div>正面</div>
+					<div>背面</div>
 				</div>
 			</div>
 

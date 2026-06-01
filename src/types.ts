@@ -23,10 +23,6 @@ export interface StudySettings {
 export interface FlashcardSettings extends StudySettings {
 	/** Tags to scan for flashcards (each tag represents a deck) */
 	flashcardTags: string[];
-	/** Welcome message shown on plugin open */
-	welcomeMessage: string;
-	/** Whether to show welcome message */
-	showWelcomeMessage: boolean;
 	/** Practice completion messages when all correct */
 	practicePerfectMessages: string[];
 	/** Practice completion messages when there are errors */
@@ -48,15 +44,13 @@ export const DEFAULT_SETTINGS: FlashcardSettings = {
 		maximumInterval: 365,
 	},
 	deckStudySettings: {},
-	welcomeMessage: "欢迎帅哥来到修仙联盟！🎉",
-	showWelcomeMessage: true,
 	practicePerfectMessages: [
 		"这波装稳了🎉",
 		"沉浸式装 X🌟",
 		"帅是一种常态💪",
 		"优雅，实在是优雅💎",
-		"装杯小能手🏆",
-		"装杯界的扛把子🔥",
+		"Practice小能手🏆",
+		"Practice界的扛把子🔥",
 	],
 	practiceErrorMessages: [
 		"这波菜稳了💩",
@@ -180,7 +174,7 @@ export interface StudyHistoryEntry {
 	deckId: string;
 	/** Deck name at time of session */
 	deckName: string;
-	/** 'study' = 悟道 FSRS, 'practice' = 装杯, 'word-list' = 列表浏览 */
+	/** 'study' = Study FSRS, 'practice' = Practice, 'word-list' = List浏览 */
 	mode: "study" | "practice" | "word-list";
 	/** Cards reviewed (0 for word-list) */
 	cardCount: number;

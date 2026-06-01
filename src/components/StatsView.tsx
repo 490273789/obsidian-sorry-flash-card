@@ -48,9 +48,9 @@ const MODE_CONFIG: Record<
 	StudyHistoryEntry["mode"],
 	{ label: string; cls: string }
 > = {
-	study: { label: "⚡ 悟道", cls: "stats-mode-study" },
-	practice: { label: "⚔️ 装杯", cls: "stats-mode-practice" },
-	"word-list": { label: "📜 列表", cls: "stats-mode-list" },
+	study: { label: "⚡ Study", cls: "stats-mode-study" },
+	practice: { label: "⚔️ Practice", cls: "stats-mode-practice" },
+	"word-list": { label: "📜 List", cls: "stats-mode-list" },
 };
 
 interface DayGroup {
