@@ -271,7 +271,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 
 				<div className="flashcard-modal-footer">
 					<button
-						className="flashcard-btn flashcard-btn-primary"
+						className="flashcard-btn flashcard-btn-green"
 						onClick={() => void handleSave()}
 					>
 						保存
@@ -366,9 +366,6 @@ export const DeckList: React.FC<DeckListProps> = ({
 		<div className="flashcard-home">
 			<div className="flashcard-home-hero">
 				<div className="flashcard-home-hero-copy">
-					<div className="flashcard-home-kicker">
-						<Sparkles size={14} /> Flashcard cockpit
-					</div>
 					<div className="flashcard-header">
 						<div>
 							<h2 className="flashcard-title">
@@ -489,9 +486,6 @@ export const DeckList: React.FC<DeckListProps> = ({
 											<div className="flashcard-deck-name">
 												{deck.name}
 											</div>
-											<div className="flashcard-deck-tag">
-												累计学习 {deck.studyCount} 次
-											</div>
 										</div>
 										<div className="flashcard-deck-stats">
 											<div className="flashcard-stat">
@@ -530,9 +524,14 @@ export const DeckList: React.FC<DeckListProps> = ({
 									</div>
 
 									<div className="flashcard-deck-side">
+										<div className="flashcard-deck-info">
+											<div className="flashcard-deck-tag">
+												累计学习 {deck.studyCount} 次
+											</div>
+										</div>
 										<div className="flashcard-deck-actions flashcard-deck-actions-primary">
 											<button
-												className="flashcard-btn flashcard-btn-word-list"
+												className="flashcard-btn flashcard-btn-purple"
 												onClick={(e) => {
 													e.stopPropagation();
 													onOpenWordList(deck.id);
@@ -543,7 +542,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 												<span>列表</span>
 											</button>
 											<button
-												className="flashcard-btn flashcard-btn-practice"
+												className="flashcard-btn flashcard-btn-orange"
 												onClick={(e) => {
 													e.stopPropagation();
 													onSelectDeck(deck.id);
@@ -554,7 +553,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 												<span>悟道</span>
 											</button>
 											<button
-												className="flashcard-btn flashcard-btn-practice flashcard-btn-challenge"
+												className="flashcard-btn flashcard-btn-blue"
 												onClick={(e) => {
 													e.stopPropagation();
 													onStartPractice(deck.id);
@@ -567,7 +566,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 										</div>
 										<div className="flashcard-deck-actions flashcard-deck-actions-secondary">
 											<button
-												className="flashcard-btn flashcard-btn-source"
+												className="flashcard-btn flashcard-btn-gray"
 												onClick={(e) => {
 													e.stopPropagation();
 													onOpenSourceFile(
@@ -580,7 +579,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 												<span>源文件</span>
 											</button>
 											<button
-												className="flashcard-btn flashcard-btn-settings"
+												className="flashcard-btn flashcard-btn-gray"
 												onClick={(e) => {
 													e.stopPropagation();
 													setModalDeckId(deck.id);

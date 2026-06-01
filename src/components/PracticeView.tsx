@@ -240,7 +240,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			<div className="flashcard-footer">
 				{!showAnswer ? (
 					<button
-						className="flashcard-btn flashcard-btn-primary flashcard-btn-show"
+						className="flashcard-btn flashcard-btn-green flashcard-btn-show"
 						onClick={handleShowAnswer}
 					>
 						显示答案

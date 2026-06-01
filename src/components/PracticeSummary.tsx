@@ -68,7 +68,6 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	return (
 		<div className="flashcard-practice-summary">
 			<div className="flashcard-practice-summary-header">
-				<div className="flashcard-home-kicker">Session recap</div>
 				<h2 className="flashcard-practice-summary-title">
 					{getCompletionMessage()}
 				</h2>
@@ -147,7 +146,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 
 			<div className="flashcard-practice-summary-actions">
 				<button
-					className="flashcard-btn flashcard-btn-primary flashcard-practice-action-btn"
+					className="flashcard-btn flashcard-btn-green flashcard-practice-action-btn"
 					onClick={onRestart}
 				>
 					<RotateCw size={14} /> 再装一次

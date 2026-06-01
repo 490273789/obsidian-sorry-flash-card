@@ -82,12 +82,6 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 			<div className="flashcard-practice-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
 					<div className="flashcard-study-hero-copy flashcard-practice-hero-copy">
-						<div className="flashcard-home-kicker">
-							Challenge setup
-						</div>
-						<div className="flashcard-study-hero-kicker flashcard-practice-hero-kicker">
-							<Sparkles size={14} /> 装杯前配置
-						</div>
 						<div className="flashcard-practice-deck-name">
 							{deck.name}
 						</div>
@@ -102,19 +96,19 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						</div>
 					</div>
 					<div className="flashcard-study-hero-meta flashcard-practice-hero-meta">
-						<div className="flashcard-study-hero-pill flashcard-practice-hero-pill">
+						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
 								抽题方式
 							</span>
 							<strong>随机抽取</strong>
 						</div>
-						<div className="flashcard-study-hero-pill flashcard-practice-hero-pill">
+						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
 								当前题量
 							</span>
 							<strong>{questionCount} 题</strong>
 						</div>
-						<div className="flashcard-study-hero-pill flashcard-practice-hero-pill">
+						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
 								覆盖率
 							</span>
@@ -256,7 +250,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						</div>
 					</div>
 					<button
-						className="flashcard-btn flashcard-btn-primary flashcard-practice-start-btn"
+						className="flashcard-btn flashcard-btn-green flashcard-practice-start-btn"
 						onClick={handleStart}
 						disabled={maxQuestions === 0}
 					>

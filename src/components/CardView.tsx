@@ -235,7 +235,7 @@ export const CardView: React.FC<CardViewProps> = ({
 				<h2>学习完成!</h2>
 				<p>本次学习时长: {formatTime(elapsedTime)}</p>
 				<button
-					className="flashcard-btn flashcard-btn-primary"
+					className="flashcard-btn flashcard-btn-green"
 					onClick={onClose}
 				>
 					返回首页
@@ -300,7 +300,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			<div className="flashcard-footer">
 				{!showAnswer ? (
 					<button
-						className="flashcard-btn flashcard-btn-primary flashcard-btn-show"
+						className="flashcard-btn flashcard-btn-green flashcard-btn-show"
 						onClick={handleShowAnswer}
 					>
 						显示答案

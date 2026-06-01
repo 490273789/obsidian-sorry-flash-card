@@ -89,22 +89,16 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 				{/* Header */}
 				<div className="flashcard-stats-header">
 					<button
-						className="flashcard-btn flashcard-btn-icon flashcard-stats-back"
+						className="flashcard-btn flashcard-btn-back"
 						onClick={onBack}
 						title="返回"
 					>
-						<ArrowLeft size={18} />
+						<ArrowLeft size={18} /> 返回
 					</button>
 					<div className="flashcard-stats-header-main">
-						<div className="flashcard-home-kicker">
-							Study archive
-						</div>
 						<h2 className="flashcard-stats-title">
 							<ChartBar size={18} /> 学习统计
 						</h2>
-						<div className="flashcard-stats-subtitle">
-							按天回看悟道、装杯和列表浏览的学习节奏。
-						</div>
 					</div>
 					<div className="flashcard-stats-header-right">
 						<span className="flashcard-stats-range">近 20 天</span>

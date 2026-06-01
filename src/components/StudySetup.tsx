@@ -53,10 +53,6 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 			<div className="flashcard-study-setup-content">
 				<div className="flashcard-study-hero">
 					<div className="flashcard-study-hero-copy">
-						<div className="flashcard-home-kicker">Study route</div>
-						<div className="flashcard-study-hero-kicker">
-							今日学习面板
-						</div>
 						<div className="flashcard-practice-deck-name">
 							{deck.name}
 						</div>
@@ -245,7 +241,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						</div>
 					</div>
 					<button
-						className="flashcard-btn flashcard-btn-primary flashcard-study-start-btn"
+						className="flashcard-btn flashcard-btn-green "
 						onClick={handleMainStart}
 						disabled={!hasAnythingToStudy && !allCompleted}
 					>
