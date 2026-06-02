@@ -120,7 +120,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 			<div className="flashcard-modal flashcard-deck-settings-modal">
 				<div className="flashcard-modal-header">
 					<div className="flashcard-modal-heading">
-						<div className="flashcard-modal-kicker">
+						<div className="flashcard-modal-kicker fc-kicker">
 							<Sparkles size={14} /> 专属学习节奏
 						</div>
 						<span className="flashcard-modal-title">
@@ -433,20 +433,20 @@ export const DeckList: React.FC<DeckListProps> = ({
 						</div>
 					</div>
 					<div className="flashcard-home-pills">
-						<span className="flashcard-home-pill">
+						<span className="flashcard-home-pill fc-pill">
 							<Layers3 size={14} /> {decks.length} 个题库
 						</span>
-						<span className="flashcard-home-pill">
+						<span className="flashcard-home-pill fc-pill">
 							<Brain size={14} /> {totals.newCards} 张待吸收
 						</span>
-						<span className="flashcard-home-pill">
+						<span className="flashcard-home-pill fc-pill">
 							<Clock3 size={14} /> {totals.dueCards} 张待复习
 						</span>
 					</div>
 				</div>
 
 				<div className="flashcard-home-overview">
-					<div className="flashcard-home-overview-card">
+					<div className="flashcard-home-overview-card fc-lift">
 						<span className="flashcard-home-overview-label">
 							总卡片
 						</span>
@@ -454,7 +454,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 							{totals.totalCards}
 						</strong>
 					</div>
-					<div className="flashcard-home-overview-card">
+					<div className="flashcard-home-overview-card fc-lift">
 						<span className="flashcard-home-overview-label">
 							学习次数
 						</span>
@@ -462,7 +462,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 							{totals.studyCount}
 						</strong>
 					</div>
-					<div className="flashcard-home-overview-card flashcard-home-overview-accent">
+					<div className="flashcard-home-overview-card flashcard-home-overview-accent fc-lift">
 						<span className="flashcard-home-overview-label">
 							今日主线 新卡 + 复习
 						</span>
@@ -484,37 +484,24 @@ export const DeckList: React.FC<DeckListProps> = ({
 					</p>
 				</div>
 			) : (
-				<div className="flashcard-deck-list-shell">
-					<div className="flashcard-section-heading">
-						<div>
-							<div className="flashcard-section-kicker">
-								Deck matrix
-							</div>
-							<h3 className="flashcard-section-title">
-								题库面板
-							</h3>
-						</div>
-						<div className="flashcard-section-meta">
-							优先处理新卡和待复习数量高的题库
-						</div>
-					</div>
-					<div className="flashcard-deck-list">
-						{decks.map((deck) => {
-							const deckStats = stats.get(deck.id);
-							return (
-								<article
-									key={deck.id}
-									className="flashcard-deck-item"
-								>
+				<div className="flashcard-deck-list">
+					{decks.map((deck) => {
+						const deckStats = stats.get(deck.id);
+						return (
+							<article
+								key={deck.id}
+								className="flashcard-deck-item fc-lift"
+							>
+								<div className="flashcard-deck-topline">
+									<span className="flashcard-deck-badge fc-pill">
+										{deck.tag}
+									</span>
+									<span className="flashcard-deck-meta fc-pill">
+										{deck.cards.length} cars
+									</span>
+								</div>
+								<div className="flashcard-deck-bottom">
 									<div className="flashcard-deck-main">
-										<div className="flashcard-deck-topline">
-											<span className="flashcard-deck-badge">
-												#{deck.tag}
-											</span>
-											<span className="flashcard-deck-meta">
-												{deck.cards.length} 张卡片
-											</span>
-										</div>
 										<div className="flashcard-deck-info">
 											<div className="flashcard-deck-name">
 												{deck.name}
@@ -526,23 +513,23 @@ export const DeckList: React.FC<DeckListProps> = ({
 													{deckStats?.totalCards || 0}
 												</span>
 												<span className="flashcard-stat-label">
-													总数
+													Total
 												</span>
 											</div>
-											<div className="flashcard-stat flashcard-stat-new">
-												<span className="flashcard-stat-value">
+											<div className="flashcard-stat">
+												<span className="flashcard-stat-value blue">
 													{deckStats?.newCards || 0}
 												</span>
 												<span className="flashcard-stat-label">
-													新卡
+													New
 												</span>
 											</div>
-											<div className="flashcard-stat flashcard-stat-due">
-												<span className="flashcard-stat-value">
+											<div className="flashcard-stat">
+												<span className="flashcard-stat-value green">
 													{deckStats?.dueCards || 0}
 												</span>
 												<span className="flashcard-stat-label">
-													待复习
+													ToBeReviewed
 												</span>
 											</div>
 											<div className="flashcard-stat">
@@ -550,21 +537,16 @@ export const DeckList: React.FC<DeckListProps> = ({
 													{deck.studyCount}
 												</span>
 												<span className="flashcard-stat-label">
-													学习次数
+													Study Count
 												</span>
 											</div>
 										</div>
 									</div>
 
 									<div className="flashcard-deck-side">
-										<div className="flashcard-deck-info">
-											<div className="flashcard-deck-tag">
-												累计学习 {deck.studyCount} 次
-											</div>
-										</div>
 										<div className="flashcard-deck-actions flashcard-deck-actions-primary">
 											<button
-												className="flashcard-btn flashcard-btn-orange"
+												className="flashcard-btn flashcard-btn-purple"
 												onClick={(e) => {
 													e.stopPropagation();
 													onSelectDeck(deck.id);
@@ -588,7 +570,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 										</div>
 										<div className="flashcard-deck-actions flashcard-deck-actions-secondary">
 											<button
-												className="flashcard-btn flashcard-btn-purple"
+												className="flashcard-btn flashcard-btn-orange"
 												onClick={(e) => {
 													e.stopPropagation();
 													onOpenWordList(deck.id);
@@ -609,7 +591,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 												title="打开源文件"
 											>
 												<FileText size={18} />
-												<span>源文件</span>
+												<span>Source</span>
 											</button>
 											<button
 												className="flashcard-btn flashcard-btn-gray"
@@ -620,14 +602,14 @@ export const DeckList: React.FC<DeckListProps> = ({
 												title="学习设置"
 											>
 												<Settings size={18} />
-												<span>设置</span>
+												<span>Setting</span>
 											</button>
 										</div>
 									</div>
-								</article>
-							);
-						})}
-					</div>
+								</div>
+							</article>
+						);
+					})}
 				</div>
 			)}
 

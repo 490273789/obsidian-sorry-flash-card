@@ -96,23 +96,23 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 
 				{/* Today's session stats */}
 				<div className="flashcard-today-stats">
-					<div className="flashcard-stat-card flashcard-stat-new">
+					<div className="flashcard-stat-card">
 						<span className="flashcard-stat-caption">新内容</span>
-						<span className="flashcard-stat-value">
+						<span className="flashcard-stat-value green">
 							{todayNewCount}
 						</span>
 						<span className="flashcard-stat-label">今日新学</span>
 					</div>
-					<div className="flashcard-stat-card flashcard-stat-review">
+					<div className="flashcard-stat-card">
 						<span className="flashcard-stat-caption">巩固</span>
-						<span className="flashcard-stat-value">
+						<span className="flashcard-stat-value purple">
 							{todayReviewCount}
 						</span>
 						<span className="flashcard-stat-label">待复习</span>
 					</div>
-					<div className="flashcard-stat-card flashcard-stat-progress">
+					<div className="flashcard-stat-card">
 						<span className="flashcard-stat-caption">进度</span>
-						<span className="flashcard-stat-value">
+						<span className="flashcard-stat-value blue">
 							{completedDays}
 						</span>
 						<span className="flashcard-stat-label">已完成天数</span>
@@ -120,7 +120,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 				</div>
 
 				{/* Study order selector */}
-				<div className="flashcard-study-panel flashcard-study-order-section">
+				<div className="flashcard-study-panel flashcard-study-order-section fc-lift">
 					<div className="flashcard-study-panel-heading">
 						<div className="flashcard-study-order-label">
 							出现顺序
@@ -149,7 +149,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 
 				{/* Day list */}
 				{dayList.length > 0 && (
-					<div className="flashcard-study-panel flashcard-study-day-section">
+					<div className="flashcard-study-panel flashcard-study-day-section fc-lift">
 						<div className="flashcard-study-panel-heading">
 							<div className="flashcard-study-day-section-title">
 								学习进度
@@ -162,7 +162,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 							{dayList.map((day) => (
 								<div
 									key={day.dayIndex}
-									className={`flashcard-study-day-item ${
+									className={`flashcard-study-day-item fc-lift ${
 										day.isCompleted
 											? "completed"
 											: day.isCurrent
@@ -236,10 +236,10 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						disabled={!hasAnythingToStudy && !allCompleted}
 					>
 						{allCompleted
-							? "开始复习 🔄"
+							? "Start Review"
 							: hasAnythingToStudy
-								? `开始学习 (${todayTotal} 张)`
-								: "今日任务已完成 🎉"}
+								? `Start (${todayTotal} Cards)`
+								: "Today's tasks completed 🎉"}
 					</button>
 				</div>
 			</div>

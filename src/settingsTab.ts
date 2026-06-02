@@ -360,16 +360,20 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			onRemove: (index: number) => void;
 		},
 	): void {
-		const listContainer = parentEl.createDiv({ cls: options.listClass });
+		const listContainer = parentEl.createDiv({
+			cls: `fc-settings-list ${options.listClass}`,
+		});
 
 		options.values.forEach((value, index) => {
-			const item = listContainer.createDiv({ cls: options.itemClass });
+			const item = listContainer.createDiv({
+				cls: `fc-settings-item ${options.itemClass}`,
+			});
 
 			const input = item.createEl("input", {
 				type: "text",
 				value,
 				placeholder: options.placeholder,
-				cls: options.inputClass,
+				cls: `fc-settings-input ${options.inputClass}`,
 			});
 
 			input.addEventListener("change", () => {
@@ -379,7 +383,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			if (options.values.length > 1) {
 				const removeBtn = item.createEl("button", {
 					text: "✕",
-					cls: options.removeButtonClass,
+					cls: `fc-btn-remove ${options.removeButtonClass}`,
 				});
 				removeBtn.addEventListener("click", () => {
 					options.onRemove(index);
@@ -389,7 +393,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 		const addBtn = listContainer.createEl("button", {
 			text: options.addLabel,
-			cls: options.addButtonClass,
+			cls: `fc-btn-add ${options.addButtonClass}`,
 		});
 		addBtn.addEventListener("click", () => {
 			options.onAdd();

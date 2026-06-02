@@ -107,7 +107,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 
 				{/* Summary bar */}
 				<div className="flashcard-stats-summary">
-					<div className="flashcard-stats-summary-item">
+					<div className="flashcard-stats-summary-item fc-lift">
 						<div className="flashcard-stats-summary-value">
 							{grouped.length}
 						</div>
@@ -116,7 +116,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 						</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
-					<div className="flashcard-stats-summary-item">
+					<div className="flashcard-stats-summary-item fc-lift">
 						<div className="flashcard-stats-summary-value">
 							{formatDuration(totalDuration)}
 						</div>
@@ -125,7 +125,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 						</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
-					<div className="flashcard-stats-summary-item">
+					<div className="flashcard-stats-summary-item fc-lift">
 						<div className="flashcard-stats-summary-value">
 							{totalCards}
 						</div>
@@ -157,7 +157,10 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 								totalDuration: dayDur,
 								totalCards: dayCards,
 							}) => (
-								<div key={date} className="flashcard-stats-day">
+								<div
+									key={date}
+									className="flashcard-stats-day fc-lift"
+								>
 									<div className="flashcard-stats-day-header">
 										<span className="flashcard-stats-day-date">
 											{formatDate(date)}
@@ -174,7 +177,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 										{entries.map((entry, idx) => (
 											<div
 												key={idx}
-												className={`flashcard-stats-session ${MODE_CONFIG[entry.mode].cls}`}
+												className={`flashcard-stats-session ${MODE_CONFIG[entry.mode].cls} fc-lift`}
 											>
 												<span className="flashcard-stats-session-mode">
 													{

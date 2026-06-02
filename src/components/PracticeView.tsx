@@ -192,7 +192,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						{formatTime(elapsedTime)}
 					</span>
 					<button
-						className="flashcard-btn flashcard-btn-close"
+						className="flashcard-btn flashcard-btn-icon"
 						onClick={onClose}
 						title="退出刷题"
 					>
@@ -249,7 +249,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				) : (
 					<div className="flashcard-practice-answer-buttons">
 						<button
-							className="flashcard-btn flashcard-practice-btn flashcard-practice-btn-wrong"
+							className="flashcard-btn flashcard-practice-btn-wrong"
 							onClick={() => handleAnswer(false)}
 						>
 							<span className="flashcard-practice-btn-icon">
@@ -261,7 +261,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 							<span className="flashcard-shortcut">1 / X</span>
 						</button>
 						<button
-							className="flashcard-btn flashcard-practice-btn flashcard-practice-btn-correct"
+							className="flashcard-btn flashcard-practice-btn-correct"
 							onClick={() => handleAnswer(true)}
 						>
 							<span className="flashcard-practice-btn-icon">

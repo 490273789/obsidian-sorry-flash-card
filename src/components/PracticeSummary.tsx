@@ -89,7 +89,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 				</div>
 
 				<div className="flashcard-practice-stat-row">
-					<div className="flashcard-practice-stat-item">
+					<div className="flashcard-practice-stat-item fc-lift">
 						<span className="flashcard-practice-stat-icon">
 							<FileText size={14} />
 						</span>
@@ -97,7 +97,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 							总题数: <strong>{result.totalQuestions}</strong>
 						</span>
 					</div>
-					<div className="flashcard-practice-stat-item flashcard-practice-stat-correct">
+					<div className="flashcard-practice-stat-item flashcard-practice-stat-correct fc-lift">
 						<span className="flashcard-practice-stat-icon">
 							<Check size={14} />
 						</span>
@@ -105,7 +105,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 							正确: <strong>{result.correctCount}</strong>
 						</span>
 					</div>
-					<div className="flashcard-practice-stat-item flashcard-practice-stat-wrong">
+					<div className="flashcard-practice-stat-item flashcard-practice-stat-wrong fc-lift">
 						<span className="flashcard-practice-stat-icon">
 							<X size={14} />
 						</span>
@@ -113,7 +113,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 							错误: <strong>{result.incorrectCount}</strong>
 						</span>
 					</div>
-					<div className="flashcard-practice-stat-item">
+					<div className="flashcard-practice-stat-item fc-lift">
 						<span className="flashcard-practice-stat-icon">
 							<Timer size={14} />
 						</span>
@@ -146,14 +146,14 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 
 			<div className="flashcard-practice-summary-actions">
 				<button
-					className="flashcard-btn flashcard-btn-green flashcard-practice-action-btn"
+					className="flashcard-btn flashcard-btn-green"
 					onClick={onRestart}
 				>
 					<RotateCw size={14} /> 再装一次
 				</button>
 				{result.incorrectCount > 0 && (
 					<button
-						className="flashcard-btn flashcard-btn-danger flashcard-practice-action-btn"
+						className="flashcard-btn flashcard-btn-red"
 						onClick={onPracticeIncorrect}
 					>
 						<CircleX size={14} /> Practice失败 (
@@ -161,7 +161,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					</button>
 				)}
 				<button
-					className="flashcard-btn flashcard-btn-secondary flashcard-practice-action-btn"
+					className="flashcard-btn flashcard-btn-blue"
 					onClick={onHome}
 				>
 					<House size={14} /> 返回首页
@@ -197,7 +197,7 @@ const IncorrectCardItem: React.FC<IncorrectCardItemProps> = ({
 	}, [card, markdownRenderer]);
 
 	return (
-		<div className="flashcard-practice-incorrect-item">
+		<div className="flashcard-practice-incorrect-item fc-lift">
 			<div className="flashcard-practice-incorrect-index">{index}</div>
 			<div className="flashcard-practice-incorrect-content">
 				<div className="flashcard-practice-incorrect-question">

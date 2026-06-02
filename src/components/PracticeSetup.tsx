@@ -118,23 +118,23 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 				</div>
 
 				<div className="flashcard-today-stats">
-					<div className="flashcard-stat-card  flashcard-stat-new">
+					<div className="flashcard-stat-card">
 						<span className="flashcard-stat-caption">题库规模</span>
-						<span className="flashcard-stat-value">
+						<span className="flashcard-stat-value purple">
 							{maxQuestions}
 						</span>
 						<span className="flashcard-stat-label">可抽取题目</span>
 					</div>
-					<div className=" flashcard-stat-card flashcard-stat-review">
+					<div className=" flashcard-stat-card">
 						<span className="flashcard-stat-caption">本次题量</span>
-						<span className="flashcard-stat-value">
+						<span className="flashcard-stat-value blue">
 							{questionCount}
 						</span>
 						<span className="flashcard-stat-label">当前选择</span>
 					</div>
-					<div className="flashcard-stat-card flashcard-stat-progress">
+					<div className="flashcard-stat-card">
 						<span className="flashcard-stat-caption">覆盖率</span>
-						<span className="flashcard-stat-value">
+						<span className="flashcard-stat-value green">
 							{coverage}%
 						</span>
 						<span className="flashcard-stat-label">
@@ -152,12 +152,12 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							建议先从接近整轮题量开始，方便快速感知整体状态
 						</div>
 					</div>
-
+					{/* flashcard-practice-quick-btn */}
 					<div className="flashcard-practice-quick-buttons">
 						{[20, 50, 100, 150, 200].map((count) => (
 							<button
 								key={count}
-								className={`flashcard-btn flashcard-practice-quick-btn flashcard-btn-reset ${
+								className={`flashcard-btn flashcard-active-orang  ${
 									questionCount ===
 									Math.min(count, maxQuestions)
 										? "active"
@@ -178,7 +178,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							}`}
 							onClick={() => handleQuickSelect(maxQuestions)}
 						>
-							全部
+							ALL
 						</button>
 					</div>
 
@@ -244,7 +244,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						onClick={handleStart}
 						disabled={maxQuestions === 0}
 					>
-						开始整活 · {questionCount} 题
+						Start · {questionCount} Questions
 					</button>
 				</div>
 			</div>

@@ -244,27 +244,27 @@ export const CardView: React.FC<CardViewProps> = ({
 		);
 	}
 
-	const progress = `${session.currentIndex + 1}/${session.cardQueue.length}`;
+	const progress = `${session.currentIndex + 1} / ${session.cardQueue.length}`;
 
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
 			<div className="flashcard-study-header">
 				<div className="flashcard-study-info">
-					<span className="flashcard-deck-title">{deck.name}</span>
-					<span className="flashcard-progress">{progress}</span>
+					<div className="flashcard-deck-title">{deck.name}</div>
+					<div className="flashcard-progress">{progress}</div>
 				</div>
 				<div className="flashcard-study-center">
-					<span className="flashcard-practice-badge">
+					<div className="flashcard-practice-badge">
 						<Target size={14} /> STUDYING
-					</span>
+					</div>
 				</div>
 				<div className="flashcard-study-meta">
-					<span className="flashcard-timer">
+					<div className="flashcard-timer">
 						{formatTime(elapsedTime)}
-					</span>
+					</div>
 					<button
-						className="flashcard-btn flashcard-btn-close"
+						className="flashcard-btn flashcard-btn-icon"
 						onClick={onClose}
 						title="关闭"
 					>
@@ -277,7 +277,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			<div
 				className={`flashcard-content ${isAnimating ? "animating" : ""}`}
 			>
-				<div className="flashcard-question">
+				<div className="flashcard-question fc-lift">
 					<div className="flashcard-label flashcard-label-question">
 						问题
 					</div>
@@ -287,7 +287,7 @@ export const CardView: React.FC<CardViewProps> = ({
 				{showAnswer && (
 					<div className="flashcard-answer-section">
 						<div className="flashcard-divider" />
-						<div className="flashcard-answer">
+						<div className="flashcard-answer fc-lift">
 							<div className="flashcard-label flashcard-label-answer">
 								答案
 							</div>
@@ -329,16 +329,11 @@ export const CardView: React.FC<CardViewProps> = ({
 										void handleRating(btn.rating)
 									}
 								>
-									<div className="flashcard-rating-content">
-										<span className="flashcard-rating-label">
-											{btn.label}
-										</span>
-										<span className="flashcard-rating-interval">
-											{btn.intervalDesc}
-										</span>
-									</div>
-									<span className="flashcard-shortcut">
+									<span className="flashcard-rating-interval">
 										{btn.shortcut}
+									</span>
+									<span className="flashcard-rating-label">
+										{btn.label}-{btn.intervalDesc}
 									</span>
 								</button>
 							))}
