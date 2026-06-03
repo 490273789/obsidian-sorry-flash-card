@@ -183,42 +183,36 @@
 	--fc-shadow: 0 18px 48px rgba(var(--fc-gray-900-rgb), 0.12);
 
 	/* ════════════════════════════════════════════
-	   Legacy aliases (keep for backward compat)
+	   Legacy aliases — 1 alias per color max
 	   ════════════════════════════════════════════ */
+
+	/* ── RGB (for rgba() composition) ── */
 	--flashcard-accent-rgb: var(--fc-teal-600-rgb);
-	--flashcard-accent-strong-rgb: var(--fc-teal-700-rgb);
 	--flashcard-highlight-rgb: var(--fc-amber-500-rgb);
 	--flashcard-danger-rgb: var(--fc-red-500-rgb);
-	--flashcard-red-strong-rgb: var(--fc-red-500-rgb);
-	--flashcard-orang-rgb: var(--fc-orange-500-rgb);
 	--flashcard-green-rgb: var(--fc-green-400-rgb);
-	--flashcard-success-strong-rgb: var(--fc-green-500-rgb);
 	--flashcard-blue-rgb: var(--fc-blue-500-rgb);
 	--flashcard-info-bright-rgb: var(--fc-blue-400-rgb);
 	--flashcard-purple-rgb: var(--fc-purple-500-rgb);
 	--flashcard-orange-rgb: var(--fc-orange-500-rgb);
-	--flashcard-amber-rgb: var(--fc-amber-400-rgb);
-	--flashcard-pink-rgb: var(--fc-pink-400-rgb);
 	--flashcard-gold-rgb: var(--fc-amber-300-rgb);
 	--flashcard-sky-rgb: var(--fc-cyan-400-rgb);
 	--flashcard-red-salmon-rgb: var(--fc-red-400-rgb);
 	--flashcard-slate-rgb: var(--fc-gray-900-rgb);
 	--flashcard-study-surface-rgb: 26, 28, 32;
-	--flashcard-study-surface-warm-rgb: 34, 24, 22;
 	--flashcard-white-rgb: var(--fc-white-rgb);
 	--flashcard-black-rgb: var(--fc-black-rgb);
+
+	/* ── Resolved colors (for direct use) ── */
 	--flashcard-accent: var(--fc-color-accent);
 	--flashcard-accent-strong: var(--fc-color-accent-strong);
-	--flashcard-accent-soft: var(--fc-color-accent-soft);
 	--flashcard-highlight: var(--fc-color-warning);
 	--flashcard-danger: var(--fc-color-danger);
 	--flashcard-surface: var(--fc-surface);
-	--flashcard-surface-strong: var(--fc-surface-strong);
 	--flashcard-border: var(--fc-border);
 	--flashcard-shadow: var(--fc-shadow);
 	--flashcard-white: var(--fc-color-white);
 	--flashcard-soft-cream: var(--fc-color-soft-cream);
-	--flashcard-highlight-deep: var(--fc-color-warning-strong);
 	--flashcard-mode-study: var(--fc-color-info);
 	--flashcard-mode-practice: var(--fc-color-practice);
 	--flashcard-mode-list: var(--fc-color-accent);
@@ -238,18 +232,6 @@
 	--flashcard-shuffle-hover-end: var(--fc-grad-brand-hover-end);
 	--flashcard-question-start: var(--fc-grad-question-start);
 	--flashcard-question-end: var(--fc-grad-question-end);
-	--flashcard-answer-start: var(--fc-grad-answer-start);
-	--flashcard-answer-end: var(--fc-grad-answer-end);
-	--flashcard-practice-badge-start: var(--fc-grad-practice-start);
-	--flashcard-practice-badge-end: var(--fc-grad-practice-end);
-	--flashcard-btn-orange-start: var(--fc-grad-orange-start);
-	--flashcard-btn-orange-end: var(--fc-grad-orange-end);
-	--flashcard-btn-purple-start: var(--fc-grad-purple-start);
-	--flashcard-btn-purple-end: var(--fc-grad-purple-end);
-	--flashcard-btn-blue-start: var(--fc-grad-blue-start);
-	--flashcard-btn-blue-end: var(--fc-grad-blue-end);
-	--flashcard-quick-active-start: var(--fc-grad-active-start);
-	--flashcard-quick-active-end: var(--fc-grad-active-end);
 }
 
 .flashcard-root {
@@ -826,8 +808,8 @@
 .flashcard-label-answer {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-answer-start) 0%,
-		var(--flashcard-answer-end) 100%
+		var(--fc-grad-answer-start) 0%,
+		var(--fc-grad-answer-end) 100%
 	);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -3382,8 +3364,8 @@
 .flashcard-btn-orange {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-btn-orange-start),
-		var(--flashcard-btn-orange-end)
+		var(--fc-grad-orange-start),
+		var(--fc-grad-orange-end)
 	);
 	box-shadow: 0 14px 26px rgba(var(--flashcard-highlight-rgb), 0.22);
 }
@@ -3401,8 +3383,8 @@
 	box-shadow: 0 4px 12px rgba(var(--flashcard-red-salmon-rgb), 0.3);
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-btn-orange-end),
-		var(--flashcard-btn-orange-start)
+		var(--fc-grad-orange-end),
+		var(--fc-grad-orange-start)
 	);
 }
 
@@ -3410,8 +3392,8 @@
 	padding: var(--fc-sp-2) var(--fc-sp-2);
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-btn-purple-start),
-		var(--flashcard-btn-purple-end)
+		var(--fc-grad-purple-start),
+		var(--fc-grad-purple-end)
 	);
 	box-shadow: 0 14px 26px rgba(var(--flashcard-blue-rgb), 0.24);
 }
@@ -3420,16 +3402,16 @@
 	box-shadow: 0 4px 12px rgba(var(--flashcard-info-bright-rgb), 0.35);
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-btn-purple-end),
-		var(--flashcard-btn-purple-start)
+		var(--fc-grad-purple-end),
+		var(--fc-grad-purple-start)
 	);
 }
 
 .flashcard-btn-blue {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-btn-blue-start),
-		var(--flashcard-btn-blue-end)
+		var(--fc-grad-blue-start),
+		var(--fc-grad-blue-end)
 	);
 	box-shadow: 0 14px 26px rgba(var(--flashcard-blue-rgb), 0.22);
 }
@@ -3437,8 +3419,8 @@
 .flashcard-btn-blue:hover {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-btn-blue-end),
-		var(--flashcard-btn-blue-start)
+		var(--fc-grad-blue-end),
+		var(--fc-grad-blue-start)
 	);
 	box-shadow: 0 4px 12px rgba(var(--flashcard-info-bright-rgb), 0.3);
 }
@@ -3503,19 +3485,19 @@
 }
 
 .flashcard-practice-btn-wrong {
-	background: rgba(var(--flashcard-red-strong-rgb), 0.1);
-	border-color: rgba(var(--flashcard-red-strong-rgb), 0.8);
+	background: rgba(var(--flashcard-danger-rgb), 0.1);
+	border-color: rgba(var(--flashcard-danger-rgb), 0.8);
 }
 
 .flashcard-practice-btn-wrong:hover {
-	background: rgba(var(--flashcard-red-strong-rgb), 0.15);
-	border-color: rgb(var(--flashcard-red-strong-rgb));
-	box-shadow: 0 4px 12px rgba(var(--flashcard-red-strong-rgb), 0.2);
+	background: rgba(var(--flashcard-danger-rgb), 0.15);
+	border-color: rgb(var(--flashcard-danger-rgb));
+	box-shadow: 0 4px 12px rgba(var(--flashcard-danger-rgb), 0.2);
 }
 
 .flashcard-practice-btn-wrong .flashcard-practice-btn-icon,
 .flashcard-practice-btn-wrong .flashcard-practice-btn-label {
-	color: rgb(var(--flashcard-red-strong-rgb));
+	color: rgb(var(--flashcard-danger-rgb));
 }
 
 .flashcard-practice-btn-correct {
@@ -3557,26 +3539,26 @@
 }
 /* Again */
 .flashcard-rating-1 {
-	border-color: rgba(var(--flashcard-red-strong-rgb), 0.8);
+	border-color: rgba(var(--flashcard-danger-rgb), 0.8);
 }
 .flashcard-rating-1:hover:not(:disabled) {
-	background-color: rgba(var(--flashcard-red-strong-rgb), 0.15) !important;
-	border-color: rgb(var(--flashcard-red-strong-rgb));
+	background-color: rgba(var(--flashcard-danger-rgb), 0.15) !important;
+	border-color: rgb(var(--flashcard-danger-rgb));
 }
 .flashcard-rating-1 .flashcard-rating-label {
-	color: rgb(var(--flashcard-red-strong-rgb));
+	color: rgb(var(--flashcard-danger-rgb));
 }
 
 /* Hard */
 .flashcard-rating-2 {
-	border-color: rgba(var(--flashcard-orang-rgb), 0.8);
+	border-color: rgba(var(--flashcard-orange-rgb), 0.8);
 }
 .flashcard-rating-2:hover:not(:disabled) {
-	background-color: rgba(var(--flashcard-orang-rgb), 0.15) !important;
-	border-color: rgb(var(--flashcard-orang-rgb));
+	background-color: rgba(var(--flashcard-orange-rgb), 0.15) !important;
+	border-color: rgb(var(--flashcard-orange-rgb));
 }
 .flashcard-rating-2 .flashcard-rating-label {
-	color: rgb(var(--flashcard-orang-rgb));
+	color: rgb(var(--flashcard-orange-rgb));
 }
 
 /* Good */
