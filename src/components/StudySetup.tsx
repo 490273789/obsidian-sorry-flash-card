@@ -39,55 +39,53 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	};
 
 	return (
-		<div className="flashcard-practice-setup flashcard-setup-screen">
-			<div className="flashcard-practice-setup-header">
-				<button
-					className="flashcard-btn flashcard-btn-back"
-					onClick={onBack}
-				>
-					← 返回
-				</button>
-				<h2 className="flashcard-setup-title">
+		<div className="flashcard-practice-setup">
+			<div className="flashcard-common-header">
+				<div className="flashcard-header-left">
+					<button
+						className="flashcard-btn flashcard-btn-back"
+						onClick={onBack}
+					>
+						← Back
+					</button>
+				</div>
+				<div className="flashcard-header-center">
 					<Brain size={18} /> Study
-				</h2>
+				</div>
+				<div className="flashcard-header-right"></div>
 			</div>
 
-			<div className="flashcard-study-setup-content">
+			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero">
 					<div className="flashcard-study-hero-copy">
-						<div className="flashcard-practice-deck-name">
-							{deck.name}
-						</div>
-						<div className="flashcard-practice-deck-tag">
-							{deck.tag}
-						</div>
-						<div className="flashcard-practice-deck-total">
-							共 <strong>{deck.cards.length}</strong> 张卡片
-						</div>
-						<div className="flashcard-study-hero-description">
-							按天推进新内容，并把当天需要复习的卡片一起收拢在这个视图里。
+						<div className="flashcard-deck-name">{deck.name}</div>
+						<div className="flashcard-deck-name-wrapper">
+							<div className="flashcard-deck-total">
+								Total <strong>{deck.cards.length}</strong> Cards
+							</div>
+							<div className="flashcard-deck-tag">{deck.tag}</div>
 						</div>
 					</div>
 					<div className="flashcard-study-hero-meta">
 						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
-								总天数
+								Total Days
 							</span>
 							<strong>{dayList.length || 1}</strong>
 						</div>
 						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
-								当前
+								Current Stage
 							</span>
 							<strong>
 								{allCompleted
-									? "复习阶段"
-									: `第 ${(currentDay?.dayIndex ?? 0) + 1} 天`}
+									? "Review Stage"
+									: `Day ${(currentDay?.dayIndex ?? 0) + 1}`}
 							</strong>
 						</div>
 						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
-								今日任务
+								Today's Tasks
 							</span>
 							<strong>{todayTotal}</strong>
 						</div>
@@ -123,12 +121,12 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 				<div className="flashcard-study-panel flashcard-study-order-section fc-lift">
 					<div className="flashcard-study-panel-heading">
 						<div className="flashcard-study-order-label">
-							出现顺序
+							Study Order
 						</div>
 						<div className="flashcard-study-panel-note">
 							{studyOrder === "random"
-								? "适合查漏补缺"
-								: "适合稳定推进"}
+								? "Suitable for reviewing missed cards"
+								: "Suitable for steady progress"}
 						</div>
 					</div>
 					<div className="flashcard-study-order-options">
@@ -136,13 +134,13 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 							className={`flashcard-btn flashcard-study-order-btn ${studyOrder === "sequential" ? "active" : ""}`}
 							onClick={() => setStudyOrder("sequential")}
 						>
-							📋 按顺序
+							📋 Sequential Order
 						</button>
 						<button
 							className={`flashcard-btn flashcard-study-order-btn ${studyOrder === "random" ? "active" : ""}`}
 							onClick={() => setStudyOrder("random")}
 						>
-							🔀 随机顺序
+							🔀 Random Order
 						</button>
 					</div>
 				</div>
@@ -152,10 +150,10 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 					<div className="flashcard-study-panel flashcard-study-day-section fc-lift">
 						<div className="flashcard-study-panel-heading">
 							<div className="flashcard-study-day-section-title">
-								学习进度
+								Study Plan
 							</div>
 							<div className="flashcard-study-panel-note">
-								已完成 {completedDays}/{dayList.length} 天
+								Completed {completedDays}/{dayList.length} Days
 							</div>
 						</div>
 						<div className="flashcard-study-day-list">
@@ -181,10 +179,10 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 											)}
 										</span>
 										<span className="flashcard-study-day-name">
-											第 {day.dayIndex + 1} 天
+											Day {day.dayIndex + 1}
 											{day.isCurrent && (
 												<span className="flashcard-study-day-today-badge">
-													今日
+													(Today)
 												</span>
 											)}
 										</span>
@@ -203,7 +201,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 													)
 												}
 											>
-												复习
+												Review
 											</button>
 										)}
 									</div>
@@ -214,13 +212,13 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 				)}
 
 				<div className="flashcard-study-action-bar">
-					<div className="flashcard-study-action-copy">
+					<div>
 						<div className="flashcard-study-action-title">
 							{allCompleted
-								? "今日进入复习轮次"
+								? "Start Review Stage"
 								: hasAnythingToStudy
-									? `准备开始 ${todayNewCount + todayReviewCount} 张卡片`
-									: "今日学习任务已完成"}
+									? `Ready to start ${todayNewCount + todayReviewCount} cards`
+									: "Today's tasks completed"}
 						</div>
 						<div className="flashcard-study-action-subtitle">
 							{allCompleted
@@ -231,7 +229,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						</div>
 					</div>
 					<button
-						className="flashcard-btn flashcard-btn-green "
+						className="flashcard-btn flashcard-btn-green"
 						onClick={handleMainStart}
 						disabled={!hasAnythingToStudy && !allCompleted}
 					>

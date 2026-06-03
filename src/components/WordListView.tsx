@@ -107,12 +107,12 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						className="flashcard-btn flashcard-btn-back"
 						onClick={onBack}
 					>
-						← 返回
+						← Back
 					</button>
 					<div className="flashcard-word-list-header-main">
-						<h2 className="flashcard-word-list-title">
+						<div className="flashcard-word-list-title">
 							📖 {deck.name} 单词List
-						</h2>
+						</div>
 						<div className="flashcard-word-list-subtitle">
 							共 {items.length} 个单词 · 标签 {deck.tag}
 						</div>

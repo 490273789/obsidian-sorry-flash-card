@@ -87,21 +87,26 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 		<div className="flashcard-stats-view">
 			<div className="flashcard-stats-top">
 				{/* Header */}
-				<div className="flashcard-stats-header">
-					<button
-						className="flashcard-btn flashcard-btn-back"
-						onClick={onBack}
-						title="返回"
-					>
-						<ArrowLeft size={18} /> 返回
-					</button>
-					<div className="flashcard-stats-header-main">
-						<h2 className="flashcard-stats-title">
-							<ChartBar size={18} /> 学习统计
-						</h2>
+				<div className="flashcard-common-header">
+					<div className="flashcard-header-left">
+						<button
+							className="flashcard-btn flashcard-btn-back"
+							onClick={onBack}
+						>
+							← Back
+						</button>
 					</div>
-					<div className="flashcard-stats-header-right">
-						<span className="flashcard-stats-range">近 20 天</span>
+					<div className="flashcard-header-center">
+						<div className="flashcard-header-title">
+							<ChartBar size={18} />
+							Study Stats
+						</div>
+					</div>
+
+					<div className="flashcard-header-right">
+						<span className="flashcard-stats-range">
+							Last 20 Days
+						</span>
 					</div>
 				</div>
 
@@ -111,8 +116,8 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 						<div className="flashcard-stats-summary-value">
 							{grouped.length}
 						</div>
-						<div className="flashcard-stats-summary-label">
-							学习天数
+						<div className="flashcard-summary-label">
+							Days Studied
 						</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
@@ -120,8 +125,8 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 						<div className="flashcard-stats-summary-value">
 							{formatDuration(totalDuration)}
 						</div>
-						<div className="flashcard-stats-summary-label">
-							总时长
+						<div className="flashcard-summary-label">
+							Total Duration
 						</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
@@ -129,8 +134,8 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 						<div className="flashcard-stats-summary-value">
 							{totalCards}
 						</div>
-						<div className="flashcard-stats-summary-label">
-							总卡片数
+						<div className="flashcard-summary-label">
+							Total Cards
 						</div>
 					</div>
 				</div>
@@ -143,9 +148,10 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 						<div className="flashcard-empty-icon">
 							<Sprout size={48} />
 						</div>
-						<p>暂无学习记录</p>
+						<p>No study records</p>
 						<p className="flashcard-empty-hint">
-							完成一次学习后，数据将在这里展示
+							After completing a study session, the data will be
+							displayed here
 						</p>
 					</div>
 				) : (
@@ -166,10 +172,10 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 											{formatDate(date)}
 										</span>
 										<span className="flashcard-stats-day-meta">
-											{entries.length} 次记录 ·
+											{entries.length} Records ·
 											{formatDuration(dayDur)}
 											{dayCards > 0 &&
-												` · ${dayCards} 张`}
+												` · ${dayCards} Cards`}
 										</span>
 									</div>
 
@@ -191,7 +197,8 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 												<div className="flashcard-stats-session-right">
 													{entry.cardCount > 0 && (
 														<span className="flashcard-stats-session-cards">
-															{entry.cardCount} 张
+															{entry.cardCount}{" "}
+															Cards
 														</span>
 													)}
 													<span className="flashcard-stats-session-dur">

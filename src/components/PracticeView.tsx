@@ -165,7 +165,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		return (
 			<div className="flashcard-complete">
 				<div className="flashcard-complete-icon">⏳</div>
-				<h2>加载中...</h2>
+				<div>加载中...</div>
 			</div>
 		);
 	}
@@ -177,17 +177,17 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	return (
 		<div className="flashcard-study flashcard-practice">
 			{/* Header */}
-			<div className="flashcard-study-header">
-				<div className="flashcard-study-info">
+			<div className="flashcard-common-header">
+				<div className="flashcard-header-left">
 					<span className="flashcard-deck-title">{deck.name}</span>
 					<span className="flashcard-progress">{progress}</span>
 				</div>
-				<div className="flashcard-study-center">
+				<div className="flashcard-header-center">
 					<span className="flashcard-practice-badge">
-						<Target size={14} /> Practice模式
+						<Target size={14} /> Practice
 					</span>
 				</div>
-				<div className="flashcard-study-meta">
+				<div className="flashcard-header-right">
 					<span className="flashcard-timer">
 						{formatTime(elapsedTime)}
 					</span>
@@ -215,7 +215,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			>
 				<div className="flashcard-question">
 					<div className="flashcard-label flashcard-label-question">
-						问题
+						Question
 					</div>
 					<div ref={questionRef} className="flashcard-markdown" />
 				</div>
@@ -225,7 +225,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						<div className="flashcard-divider" />
 						<div className="flashcard-answer">
 							<div className="flashcard-label flashcard-label-answer">
-								答案
+								Answer
 							</div>
 							<div
 								ref={answerRef}
@@ -243,8 +243,8 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						className="flashcard-btn flashcard-btn-green flashcard-btn-show"
 						onClick={handleShowAnswer}
 					>
-						显示答案
-						<span className="flashcard-shortcut">空格</span>
+						Show Answer
+						<span className="flashcard-shortcut">(Space)</span>
 					</button>
 				) : (
 					<div className="flashcard-practice-answer-buttons">
@@ -256,9 +256,9 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								<X size={18} />
 							</span>
 							<span className="flashcard-practice-btn-label">
-								拉垮
+								Bad
 							</span>
-							<span className="flashcard-shortcut">1 / X</span>
+							<span className="flashcard-shortcut">(1 or X)</span>
 						</button>
 						<button
 							className="flashcard-btn flashcard-practice-btn-correct"
@@ -268,9 +268,9 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								<Check size={18} />
 							</span>
 							<span className="flashcard-practice-btn-label">
-								夯
+								Good
 							</span>
-							<span className="flashcard-shortcut">2 / O</span>
+							<span className="flashcard-shortcut">(2 or O)</span>
 						</button>
 					</div>
 				)}

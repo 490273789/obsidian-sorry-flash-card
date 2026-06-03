@@ -68,9 +68,9 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	return (
 		<div className="flashcard-practice-summary">
 			<div className="flashcard-practice-summary-header">
-				<h2 className="flashcard-practice-summary-title">
+				<div className="flashcard-practice-summary-title">
 					{getCompletionMessage()}
-				</h2>
+				</div>
 				<div className="flashcard-practice-summary-deck">
 					{deck.name} · 共 {result.totalQuestions} 题 · 用时{" "}
 					{formatTime(result.timeSpent)}
@@ -164,7 +164,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					className="flashcard-btn flashcard-btn-blue"
 					onClick={onHome}
 				>
-					<House size={14} /> 返回首页
+					<House size={14} /> Back to Deck
 				</button>
 			</div>
 		</div>

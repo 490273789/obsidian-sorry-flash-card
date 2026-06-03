@@ -4,7 +4,6 @@ import {
 	Shuffle,
 	ChartBar,
 	CircleX,
-	Sparkles,
 	SlidersHorizontal,
 } from "lucide-react";
 import { Deck } from "../types";
@@ -67,28 +66,24 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 	return (
 		<div className="flashcard-practice-setup flashcard-setup-screen">
-			<div className="flashcard-practice-setup-header">
+			<div className="flashcard-common-header">
 				<button
 					className="flashcard-btn flashcard-btn-back"
 					onClick={onBack}
 				>
-					← 返回
+					← Back
 				</button>
-				<h2 className="flashcard-setup-title">
+				<div className="flashcard-header-title">
 					<Target size={18} /> Practice
-				</h2>
+				</div>
 			</div>
 
-			<div className="flashcard-practice-setup-content">
+			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
 					<div className="flashcard-study-hero-copy flashcard-practice-hero-copy">
-						<div className="flashcard-practice-deck-name">
-							{deck.name}
-						</div>
-						<div className="flashcard-practice-deck-tag">
-							{deck.tag}
-						</div>
-						<div className="flashcard-practice-deck-total">
+						<div className="flashcard-deck-name">{deck.name}</div>
+						<div className="flashcard-deck-tag">{deck.tag}</div>
+						<div className="flashcard-deck-total">
 							共 <strong>{maxQuestions}</strong> 次Practice机会
 						</div>
 						<div className="flashcard-practice-setup-subtitle">
@@ -230,17 +225,17 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					</div>
 				</div>
 
-				<div className="flashcard-study-action-bar flashcard-practice-action-bar">
-					<div className="flashcard-study-action-copy flashcard-practice-action-copy">
+				<div className="flashcard-study-action-bar">
+					<div>
 						<div className="flashcard-study-action-title">
-							准备开始 {questionCount} 题Practice挑战
+							{questionCount} Questions Practice Challenge
 						</div>
 						<div className="flashcard-study-action-subtitle">
 							系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。
 						</div>
 					</div>
 					<button
-						className="flashcard-btn flashcard-btn-green flashcard-practice-start-btn"
+						className="flashcard-btn flashcard-btn-green"
 						onClick={handleStart}
 						disabled={maxQuestions === 0}
 					>

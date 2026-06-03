@@ -232,13 +232,13 @@ export const CardView: React.FC<CardViewProps> = ({
 				<div className="flashcard-complete-icon">
 					<PartyPopper size={48} />
 				</div>
-				<h2>学习完成!</h2>
+				<div>学习完成!</div>
 				<p>本次学习时长: {formatTime(elapsedTime)}</p>
 				<button
 					className="flashcard-btn flashcard-btn-green"
 					onClick={onClose}
 				>
-					返回首页
+					Back to Deck
 				</button>
 			</div>
 		);
@@ -249,24 +249,24 @@ export const CardView: React.FC<CardViewProps> = ({
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
-			<div className="flashcard-study-header">
-				<div className="flashcard-study-info">
+			<div className="flashcard-common-header">
+				<div className="flashcard-header-left">
 					<div className="flashcard-deck-title">{deck.name}</div>
 					<div className="flashcard-progress">{progress}</div>
 				</div>
-				<div className="flashcard-study-center">
+				<div className="flashcard-header-center">
 					<div className="flashcard-practice-badge">
 						<Target size={14} /> STUDYING
 					</div>
 				</div>
-				<div className="flashcard-study-meta">
+				<div className="flashcard-header-right">
 					<div className="flashcard-timer">
 						{formatTime(elapsedTime)}
 					</div>
 					<button
 						className="flashcard-btn flashcard-btn-icon"
 						onClick={onClose}
-						title="关闭"
+						title="Close"
 					>
 						<X size={16} />
 					</button>
@@ -279,7 +279,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			>
 				<div className="flashcard-question fc-lift">
 					<div className="flashcard-label flashcard-label-question">
-						问题
+						Question
 					</div>
 					<div ref={questionRef} className="flashcard-markdown" />
 				</div>
@@ -289,7 +289,7 @@ export const CardView: React.FC<CardViewProps> = ({
 						<div className="flashcard-divider" />
 						<div className="flashcard-answer fc-lift">
 							<div className="flashcard-label flashcard-label-answer">
-								答案
+								Answer
 							</div>
 							<div
 								ref={answerRef}
@@ -307,8 +307,8 @@ export const CardView: React.FC<CardViewProps> = ({
 						className="flashcard-btn flashcard-btn-green flashcard-btn-show"
 						onClick={handleShowAnswer}
 					>
-						显示答案
-						<span className="flashcard-shortcut">空格</span>
+						Show Answer
+						<span className="flashcard-shortcut">(Space)</span>
 					</button>
 				) : (
 					<div className="flashcard-response-controls">
@@ -316,7 +316,7 @@ export const CardView: React.FC<CardViewProps> = ({
 							className="flashcard-btn flashcard-action-btn flashcard-btn-prev"
 							onClick={handlePrevious}
 							disabled={session.history.length === 0}
-							title="撤销 (6)"
+							title="Undo (6)"
 						>
 							<RotateCcw size={24} />
 						</button>
@@ -329,11 +329,11 @@ export const CardView: React.FC<CardViewProps> = ({
 										void handleRating(btn.rating)
 									}
 								>
-									<span className="flashcard-rating-interval">
-										{btn.shortcut}
-									</span>
 									<span className="flashcard-rating-label">
 										{btn.label}-{btn.intervalDesc}
+									</span>
+									<span className="flashcard-rating-interval">
+										({btn.shortcut})
 									</span>
 								</button>
 							))}
