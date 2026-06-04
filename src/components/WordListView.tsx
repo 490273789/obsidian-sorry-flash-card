@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import type { Deck, FlashCard } from "../types";
 import { shuffleArray } from "../utils";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 
 interface WordListViewProps {
 	deck: Deck;
@@ -103,19 +104,19 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	return (
 		<div className="flashcard-word-list-view">
 			<div className="flashcard-word-list-sticky-top">
-				<div className="flashcard-word-list-header">
-					<FlashcardButton preset="back" onClick={onBack}>
-						← Back
-					</FlashcardButton>
-					<div className="flashcard-word-list-header-main">
-						<div className="flashcard-word-list-title">
-							📖 {deck.name} 单词List
+				<FlashcardHeader
+					title={
+						<div className="flashcard-word-list-header-main">
+							<div className="flashcard-word-list-title">
+								📖 {deck.name} 单词List
+							</div>
+							<div className="flashcard-word-list-subtitle">
+								共 {items.length} 个单词 · 标签 {deck.tag}
+							</div>
 						</div>
-						<div className="flashcard-word-list-subtitle">
-							共 {items.length} 个单词 · 标签 {deck.tag}
-						</div>
-					</div>
-				</div>
+					}
+					onBack={onBack}
+				/>
 
 				<div className="flashcard-word-list-toolbar">
 					<FlashcardButton

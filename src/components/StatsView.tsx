@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { ChartBar, Sprout } from "lucide-react";
 import { DataStore } from "../dataStore";
 import { StudyHistoryEntry } from "../types";
-import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 
 interface StatsViewProps {
 	dataStore: DataStore;
@@ -88,25 +88,16 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 		<div className="flashcard-stats-view">
 			<div className="flashcard-stats-top">
 				{/* Header */}
-				<div className="flashcard-common-header">
-					<div className="flashcard-header-left">
-						<FlashcardButton preset="back" onClick={onBack}>
-							← Back
-						</FlashcardButton>
-					</div>
-					<div className="flashcard-header-center">
-						<div className="flashcard-header-title">
-							<ChartBar size={18} />
-							Study Stats
-						</div>
-					</div>
-
-					<div className="flashcard-header-right">
+				<FlashcardHeader
+					icon={ChartBar}
+					title="Study Stats"
+					onBack={onBack}
+					right={
 						<span className="flashcard-stats-range">
 							Last 20 Days
 						</span>
-					</div>
-				</div>
+					}
+				/>
 
 				{/* Summary bar */}
 				<div className="flashcard-stats-summary">

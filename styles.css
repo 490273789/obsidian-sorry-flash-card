@@ -516,17 +516,16 @@
 
 .flashcard-word-list-header-main {
 	flex: 1;
-	min-width: 0;
 }
 
 .flashcard-word-list-title {
-	margin: 0;
-	font-size: var(--font-size-lg);
-	font-weight: 700;
+	font-size: var(--font-size-md);
+	font-weight: 500;
 	color: var(--text-normal);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	text-align: center;
 }
 
 .flashcard-word-list-subtitle {
@@ -534,6 +533,7 @@
 	font-size: var(--font-size-sm);
 	color: var(--text-muted);
 	letter-spacing: 0.2px;
+	text-align: center;
 }
 
 /* 激活态 - 加深渐变 */
@@ -583,19 +583,6 @@
 		var(--fc-grad-brand-hover-start),
 		var(--fc-grad-brand-hover-end)
 	);
-}
-
-.flashcard-word-cell {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--fc-r-md);
-	min-height: 164px;
-	padding: var(--fc-sp-2) var(--fc-sp-2);
-	background: var(--background-secondary);
-	text-align: center;
 }
 
 .flashcard-word-cell-left,
@@ -936,11 +923,6 @@
 	box-shadow: var(--fc-shadow);
 }
 
-.flashcard-setup-screen {
-	gap: 0;
-	padding: 0;
-}
-
 .flashcard-practice-info-item {
 	display: inline-flex;
 	align-items: center;
@@ -1027,21 +1009,6 @@
 	margin-bottom: 14px;
 }
 
-.flashcard-word-cell {
-	min-height: 146px;
-	padding: var(--fc-sp-3);
-	border-radius: var(--fc-r-lg);
-	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
-	background:
-		radial-gradient(
-			circle at top left,
-			rgba(var(--fc-amber-500-rgb), 0.14),
-			transparent 28%
-		),
-		color-mix(in srgb, var(--background-secondary) 88%, transparent);
-	box-shadow: 0 12px 24px rgba(var(--fc-gray-900-rgb), 0.08);
-}
-
 .flashcard-word-cell:hover,
 .flashcard-word-cell.masked:hover {
 	transform: translateY(-2px);
@@ -1065,41 +1032,6 @@
 	border-radius: var(--fc-r-md);
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
 	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
-}
-
-.flashcard-practice-progress-bar {
-	height: 10px;
-	margin: 0 22px;
-	border-radius: var(--fc-r-pill);
-	background: rgba(var(--fc-gray-900-rgb), 0.18);
-	overflow: hidden;
-}
-
-.flashcard-practice-progress-fill {
-	position: relative;
-	background: linear-gradient(
-		90deg,
-		var(--fc-color-accent),
-		var(--fc-color-warning)
-	);
-	background-size: 200% 100%;
-	border-radius: inherit;
-	animation: progressShift 2.8s linear infinite;
-}
-
-.flashcard-practice-progress-fill::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent 0%,
-		rgba(var(--fc-white-rgb), 0.08) 28%,
-		rgba(var(--fc-white-rgb), 0.34) 50%,
-		transparent 72%
-	);
-	transform: translateX(-120%);
-	animation: progressSweep 2.2s ease-in-out infinite;
 }
 
 .flashcard-question,
@@ -1205,6 +1137,25 @@
 /* Interactive card lift: .fc-lift utility provides transition & hover for lift-able cards.
    Word cells have unique hover backgrounds so keep their own transition rule. */
 .flashcard-word-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	min-height: 164px;
+	padding: var(--fc-sp-2) var(--fc-sp-2);
+	text-align: center;
+	min-height: 146px;
+	padding: var(--fc-sp-3);
+	border-radius: var(--fc-r-md);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
+	background:
+		radial-gradient(
+			circle at top left,
+			rgba(var(--fc-amber-500-rgb), 0.14),
+			transparent 28%
+		),
+		color-mix(in srgb, var(--background-secondary) 88%, transparent);
+	box-shadow: 0 12px 24px rgba(var(--fc-gray-900-rgb), 0.08);
 	transition:
 		transform 220ms ease,
 		box-shadow 220ms ease,
@@ -1568,12 +1519,18 @@
 }
 
 .flashcard-practice-progress-bar {
+	margin: 0 22px;
+	border-radius: var(--fc-r-pill);
 	height: 4px;
 	background: var(--background-modifier-border);
 	overflow: hidden;
 }
 
 .flashcard-practice-progress-fill {
+	position: relative;
+	background-size: 200% 100%;
+	border-radius: inherit;
+	animation: progressShift 2.8s linear infinite;
 	height: 100%;
 	background: linear-gradient(
 		90deg,
@@ -1583,27 +1540,26 @@
 	transition: width 0.3s ease;
 }
 
+.flashcard-practice-progress-fill::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		90deg,
+		transparent 0%,
+		rgba(var(--fc-white-rgb), 0.08) 28%,
+		rgba(var(--fc-white-rgb), 0.34) 50%,
+		transparent 72%
+	);
+	transform: translateX(-120%);
+	animation: progressSweep 2.2s ease-in-out infinite;
+}
+
 .flashcard-practice-answer-buttons {
 	display: flex;
 	justify-content: center;
 	gap: 12px;
 	width: 100%;
-}
-
-.flashcard-practice-btn {
-	min-height: 70px;
-	flex: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: var(--fc-sp-4);
-	border-radius: var(--fc-r-md);
-	border: 2px solid transparent;
-	cursor: pointer;
-	transition: all 0.2s ease;
-	background: color-mix(in srgb, var(--background-primary) 82%, transparent);
-	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
-	box-shadow: none;
 }
 
 .flashcard-practice-btn-label {
@@ -2657,12 +2613,12 @@
 		radial-gradient(
 			circle at top right,
 			rgba(var(--fc-amber-500-rgb), 0.18),
-			transparent 28%
+			transparent 24%
 		),
 		radial-gradient(
 			circle at left center,
 			rgba(var(--fc-teal-600-rgb), 0.16),
-			transparent 36%
+			transparent 14%
 		),
 		var(--fc-surface);
 	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;

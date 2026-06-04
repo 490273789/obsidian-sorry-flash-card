@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Deck } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 
 interface PracticeSetupProps {
 	deck: Deck;
@@ -66,15 +67,8 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	};
 
 	return (
-		<div className="flashcard-practice-setup flashcard-setup-screen">
-			<div className="flashcard-common-header">
-				<FlashcardButton preset="back" onClick={onBack}>
-					← Back
-				</FlashcardButton>
-				<div className="flashcard-header-title">
-					<Target size={18} /> Practice
-				</div>
-			</div>
+		<div className="flashcard-practice-setup">
+			<FlashcardHeader icon={Target} title="Practice" onBack={onBack} />
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">

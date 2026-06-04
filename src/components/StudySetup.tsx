@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { CircleCheck, Target, Lock, Brain } from "lucide-react";
 import { Deck, StudyDayInfo } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 
 interface StudySetupProps {
 	deck: Deck;
@@ -41,17 +42,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 
 	return (
 		<div className="flashcard-practice-setup">
-			<div className="flashcard-common-header">
-				<div className="flashcard-header-left">
-					<FlashcardButton preset="back" onClick={onBack}>
-						← Back
-					</FlashcardButton>
-				</div>
-				<div className="flashcard-header-center">
-					<Brain size={18} /> Study
-				</div>
-				<div className="flashcard-header-right"></div>
-			</div>
+			<FlashcardHeader icon={Brain} title="Study" onBack={onBack} />
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero">

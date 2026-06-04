@@ -32,8 +32,7 @@ export type ButtonPreset =
 	| "practice-wrong"
 	| "practice-correct";
 
-interface FlashcardButtonProps
-	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	/** Color variant — ignored when `preset` is set (preset implies its own color). */
 	variant?: ButtonVariant;
 	/** Special shape / behavior preset. Takes precedence over variant for class generation. */

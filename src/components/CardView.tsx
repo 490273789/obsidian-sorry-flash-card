@@ -5,6 +5,7 @@ import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
 import { toFSRSRating, getRatingButtons } from "../scheduler";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 
 // Computed once — rating button config is static
 const RATING_BUTTONS = getRatingButtons();
@@ -247,28 +248,32 @@ export const CardView: React.FC<CardViewProps> = ({
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
-			<div className="flashcard-common-header">
-				<div className="flashcard-header-left">
-					<div className="flashcard-deck-title">{deck.name}</div>
-					<div className="flashcard-progress">{progress}</div>
-				</div>
-				<div className="flashcard-header-center">
+			<FlashcardHeader
+				left={
+					<>
+						<div className="flashcard-deck-title">{deck.name}</div>
+						<div className="flashcard-progress">{progress}</div>
+					</>
+				}
+				title={
 					<div className="flashcard-badge">
 						<Brain size={18} /> STUDYING
 					</div>
-				</div>
-				<div className="flashcard-header-right">
-					<div className="flashcard-timer">
-						{formatTime(elapsedTime)}
-					</div>
-					<FlashcardButton
-						preset="icon"
-						icon={X}
-						onClick={onClose}
-						title="Close"
-					/>
-				</div>
-			</div>
+				}
+				right={
+					<>
+						<div className="flashcard-timer">
+							{formatTime(elapsedTime)}
+						</div>
+						<FlashcardButton
+							preset="icon"
+							icon={X}
+							onClick={onClose}
+							title="Close"
+						/>
+					</>
+				}
+			/>
 
 			{/* Content */}
 			<div

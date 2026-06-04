@@ -321,9 +321,7 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 					>
 						Save
 					</FlashcardButton>
-					<FlashcardButton onClick={onClose}>
-						Cancel
-					</FlashcardButton>
+					<FlashcardButton onClick={onClose}>Cancel</FlashcardButton>
 				</div>
 			</div>
 		</div>
@@ -427,7 +425,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 							onClick={() => void handleRefresh()}
 							disabled={isLoading}
 							title="刷新题库"
-						iconClassName={isLoading ? "spinning" : ""}
+							iconClassName={isLoading ? "spinning" : ""}
 						/>
 					</div>
 				</div>

@@ -3,6 +3,7 @@ import { Target, X, Check } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 
 interface PracticeViewProps {
 	dataStore: DataStore;
@@ -178,28 +179,34 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
-			<div className="flashcard-common-header">
-				<div className="flashcard-header-left">
-					<span className="flashcard-deck-title">{deck.name}</span>
-					<span className="flashcard-progress">{progress}</span>
-				</div>
-				<div className="flashcard-header-center">
+			<FlashcardHeader
+				left={
+					<>
+						<span className="flashcard-deck-title">
+							{deck.name}
+						</span>
+						<span className="flashcard-progress">{progress}</span>
+					</>
+				}
+				title={
 					<span className="flashcard-badge">
 						<Target size={14} /> Practice
 					</span>
-				</div>
-				<div className="flashcard-header-right">
-					<span className="flashcard-timer">
-						{formatTime(elapsedTime)}
-					</span>
-					<FlashcardButton
-						preset="icon"
-						icon={X}
-						onClick={onClose}
-						title="退出刷题"
-					/>
-				</div>
-			</div>
+				}
+				right={
+					<>
+						<span className="flashcard-timer">
+							{formatTime(elapsedTime)}
+						</span>
+						<FlashcardButton
+							preset="icon"
+							icon={X}
+							onClick={onClose}
+							title="退出刷题"
+						/>
+					</>
+				}
+			/>
 
 			{/* Progress Bar */}
 			<div className="flashcard-practice-progress-bar">
