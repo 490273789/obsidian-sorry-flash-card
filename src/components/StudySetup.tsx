@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { CircleCheck, Target, Lock, Brain } from "lucide-react";
+import {
+	CircleCheck,
+	Target,
+	Lock,
+	Brain,
+	Dices,
+	AudioWaveform,
+} from "lucide-react";
 import { Deck, StudyDayInfo } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
@@ -124,14 +131,14 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 							active={studyOrder === "sequential"}
 							onClick={() => setStudyOrder("sequential")}
 						>
-							📋 Sequential Order
+							<AudioWaveform size={16} /> Sequential Order
 						</FlashcardButton>
 						<FlashcardButton
 							className="flashcard-study-order-btn"
 							active={studyOrder === "random"}
 							onClick={() => setStudyOrder("random")}
 						>
-							🔀 Random Order
+							<Dices size={16} /> Random Order
 						</FlashcardButton>
 					</div>
 				</div>

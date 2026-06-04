@@ -2424,6 +2424,14 @@
 	box-shadow: 0 12px 24px
 		rgba(var(--interactive-accent-rgb, 8, 109, 221), 0.25);
 }
+.flashcard-study-order-btn.active:hover {
+	border-color: rgba(var(--interactive-accent-rgb, 8, 109, 221), 0.75);
+	background: linear-gradient(
+		135deg,
+		rgba(var(--interactive-accent-rgb, 8, 109, 221), 0.98),
+		rgba(var(--flashcard-info-bright-rgb), 0.9)
+	);
+}
 
 /* Day list */
 .flashcard-study-day-section {
