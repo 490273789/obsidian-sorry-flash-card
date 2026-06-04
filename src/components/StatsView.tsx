@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import { ArrowLeft, ChartBar, Sprout } from "lucide-react";
+import { ChartBar, Sprout } from "lucide-react";
 import { DataStore } from "../dataStore";
 import { StudyHistoryEntry } from "../types";
+import { FlashcardButton } from "./FlashcardButton";
 
 interface StatsViewProps {
 	dataStore: DataStore;
@@ -89,12 +90,9 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 				{/* Header */}
 				<div className="flashcard-common-header">
 					<div className="flashcard-header-left">
-						<button
-							className="flashcard-btn flashcard-btn-back"
-							onClick={onBack}
-						>
+						<FlashcardButton preset="back" onClick={onBack}>
 							← Back
-						</button>
+						</FlashcardButton>
 					</div>
 					<div className="flashcard-header-center">
 						<div className="flashcard-header-title">

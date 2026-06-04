@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Deck, FlashCard, PracticeResult, FlashcardSettings } from "../types";
 import { DataStore } from "../dataStore";
+import { FlashcardButton } from "./FlashcardButton";
 
 interface PracticeSummaryProps {
 	deck: Deck;
@@ -145,27 +146,32 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 			)}
 
 			<div className="flashcard-practice-summary-actions">
-				<button
-					className="flashcard-btn flashcard-btn-green"
+				<FlashcardButton
+					variant="green"
+					icon={RotateCw}
+					iconSize={14}
 					onClick={onRestart}
 				>
-					<RotateCw size={14} /> 再装一次
-				</button>
+					再装一次
+				</FlashcardButton>
 				{result.incorrectCount > 0 && (
-					<button
-						className="flashcard-btn flashcard-btn-red"
+					<FlashcardButton
+						variant="red"
+						icon={CircleX}
+						iconSize={14}
 						onClick={onPracticeIncorrect}
 					>
-						<CircleX size={14} /> Practice失败 (
-						{result.incorrectCount})
-					</button>
+						Practice失败 ({result.incorrectCount})
+					</FlashcardButton>
 				)}
-				<button
-					className="flashcard-btn flashcard-btn-blue"
+				<FlashcardButton
+					variant="blue"
+					icon={House}
+					iconSize={14}
 					onClick={onHome}
 				>
-					<House size={14} /> Back to Deck
-				</button>
+					Back to Deck
+				</FlashcardButton>
 			</div>
 		</div>
 	);

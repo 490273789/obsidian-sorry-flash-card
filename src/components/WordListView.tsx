@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { Deck, FlashCard } from "../types";
 import { shuffleArray } from "../utils";
+import { FlashcardButton } from "./FlashcardButton";
 
 interface WordListViewProps {
 	deck: Deck;
@@ -103,12 +104,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		<div className="flashcard-word-list-view">
 			<div className="flashcard-word-list-sticky-top">
 				<div className="flashcard-word-list-header">
-					<button
-						className="flashcard-btn flashcard-btn-back"
-						onClick={onBack}
-					>
+					<FlashcardButton preset="back" onClick={onBack}>
 						← Back
-					</button>
+					</FlashcardButton>
 					<div className="flashcard-word-list-header-main">
 						<div className="flashcard-word-list-title">
 							📖 {deck.name} 单词List
@@ -120,30 +118,36 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 				</div>
 
 				<div className="flashcard-word-list-toolbar">
-					<button
-						className={`flashcard-btn shuffle flashcard-btn-green ${isShuffled ? "active" : ""}`}
+					<FlashcardButton
+						variant="green"
+						className="shuffle"
+						active={isShuffled}
 						onClick={handleShuffleToggle}
 					>
 						{isShuffled ? "恢复顺序" : "乱序"}
-					</button>
-					<button
-						className={`flashcard-btn english flashcard-btn-blue ${isMaskEnglish ? "active" : ""}`}
+					</FlashcardButton>
+					<FlashcardButton
+						variant="blue"
+						className="english"
+						active={isMaskEnglish}
 						onClick={() => {
 							setIsMaskEnglish((v) => !v);
 							setRevealedEnglishIds(new Set());
 						}}
 					>
 						{isMaskEnglish ? "取消遮罩英文" : "遮罩英文"}
-					</button>
-					<button
-						className={`flashcard-btn chinese flashcard-btn-orange ${isMaskChinese ? "active" : ""}`}
+					</FlashcardButton>
+					<FlashcardButton
+						variant="orange"
+						className="chinese"
+						active={isMaskChinese}
 						onClick={() => {
 							setIsMaskChinese((v) => !v);
 							setRevealedChineseIds(new Set());
 						}}
 					>
 						{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
-					</button>
+					</FlashcardButton>
 				</div>
 			</div>
 

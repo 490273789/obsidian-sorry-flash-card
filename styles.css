@@ -743,6 +743,7 @@
 	--flashcard-stagger: 180ms;
 	position: sticky;
 	bottom: 0;
+	overflow: hidden;
 	z-index: 10;
 	padding: var(--fc-sp-3);
 	border: 1px solid var(--fc-border);
@@ -1895,6 +1896,7 @@
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
+	overflow: hidden;
 	gap: var(--fc-sp-3);
 	padding: var(--fc-sp-4) var(--fc-sp-4) var(--fc-sp-3);
 	border-bottom: 1px solid
@@ -3062,18 +3064,18 @@
 }
 
 .flashcard-btn-back {
-	padding: var(--fc-sp-2) var(--fc-sp-3);
-	background: rgba(var(--flashcard-green-rgb), 0.12) !important;
-	color: rgb(var(--flashcard-green-rgb));
-	border: 1px solid rgba(var(--flashcard-green-rgb), 0.25);
+	/* padding: var(--fc-sp-2) var(--fc-sp-3); */
+	background: rgba(var(--flashcard-blue-rgb), 0.12) !important;
+	color: rgb(var(--flashcard-blue-rgb));
+	border: 1px solid rgba(var(--flashcard-blue-rgb), 0.25);
 	border-radius: var(--fc-r-sm);
 	font-weight: 600;
 	transition: all 0.2s ease;
 }
 
 .flashcard-btn-back:hover {
-	background: rgba(var(--flashcard-green-rgb), 0.22);
-	border-color: rgb(var(--flashcard-green-rgb));
+	background: rgba(var(--flashcard-blue-rgb), 0.22);
+	border-color: rgb(var(--flashcard-blue-rgb));
 }
 
 .flashcard-btn-show::after {

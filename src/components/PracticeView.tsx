@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Target, X, Check } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
+import { FlashcardButton } from "./FlashcardButton";
 
 interface PracticeViewProps {
 	dataStore: DataStore;
@@ -191,13 +192,12 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 					<span className="flashcard-timer">
 						{formatTime(elapsedTime)}
 					</span>
-					<button
-						className="flashcard-btn flashcard-btn-icon"
+					<FlashcardButton
+						preset="icon"
+						icon={X}
 						onClick={onClose}
 						title="退出刷题"
-					>
-						<X size={16} />
-					</button>
+					/>
 				</div>
 			</div>
 
@@ -239,17 +239,14 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			{/* Footer */}
 			<div className="flashcard-footer">
 				{!showAnswer ? (
-					<button
-						className="flashcard-btn flashcard-btn-green flashcard-btn-show"
-						onClick={handleShowAnswer}
-					>
+					<FlashcardButton preset="show" onClick={handleShowAnswer}>
 						Show Answer
 						<span className="flashcard-shortcut">(Space)</span>
-					</button>
+					</FlashcardButton>
 				) : (
 					<div className="flashcard-practice-answer-buttons">
-						<button
-							className="flashcard-btn flashcard-practice-btn-wrong"
+						<FlashcardButton
+							preset="practice-wrong"
 							onClick={() => handleAnswer(false)}
 						>
 							<span className="flashcard-practice-btn-icon">
@@ -259,9 +256,9 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								Bad
 							</span>
 							<span className="flashcard-shortcut">(1 or X)</span>
-						</button>
-						<button
-							className="flashcard-btn flashcard-practice-btn-correct"
+						</FlashcardButton>
+						<FlashcardButton
+							preset="practice-correct"
 							onClick={() => handleAnswer(true)}
 						>
 							<span className="flashcard-practice-btn-icon">
@@ -271,7 +268,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								Good
 							</span>
 							<span className="flashcard-shortcut">(2 or O)</span>
-						</button>
+						</FlashcardButton>
 					</div>
 				)}
 			</div>

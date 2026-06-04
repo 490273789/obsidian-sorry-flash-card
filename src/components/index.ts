@@ -1,3 +1,5 @@
+export { FlashcardButton } from "./FlashcardButton";
+export type { ButtonVariant, ButtonPreset } from "./FlashcardButton";
 export { DeckList } from "./DeckList";
 export { CardView } from "./CardView";
 export { FlashcardApp } from "./FlashcardApp";

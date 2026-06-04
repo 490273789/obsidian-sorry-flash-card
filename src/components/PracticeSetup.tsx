@@ -7,6 +7,7 @@ import {
 	SlidersHorizontal,
 } from "lucide-react";
 import { Deck } from "../types";
+import { FlashcardButton } from "./FlashcardButton";
 
 interface PracticeSetupProps {
 	deck: Deck;
@@ -67,12 +68,9 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	return (
 		<div className="flashcard-practice-setup flashcard-setup-screen">
 			<div className="flashcard-common-header">
-				<button
-					className="flashcard-btn flashcard-btn-back"
-					onClick={onBack}
-				>
+				<FlashcardButton preset="back" onClick={onBack}>
 					← Back
-				</button>
+				</FlashcardButton>
 				<div className="flashcard-header-title">
 					<Target size={18} /> Practice
 				</div>
@@ -150,14 +148,13 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					{/* flashcard-practice-quick-btn */}
 					<div className="flashcard-practice-quick-buttons">
 						{[20, 50, 100, 150, 200].map((count) => (
-							<button
+							<FlashcardButton
 								key={count}
-								className={`flashcard-btn flashcard-active-orang  ${
+								className="flashcard-active-orang"
+								active={
 									questionCount ===
 									Math.min(count, maxQuestions)
-										? "active"
-										: ""
-								}`}
+								}
 								onClick={() => handleQuickSelect(count)}
 								disabled={
 									count > maxQuestions &&
@@ -165,16 +162,15 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 								}
 							>
 								{count > maxQuestions ? maxQuestions : count}
-							</button>
+							</FlashcardButton>
 						))}
-						<button
-							className={`flashcard-btn flashcard-practice-quick-btn ${
-								questionCount === maxQuestions ? "active" : ""
-							}`}
+						<FlashcardButton
+							className="flashcard-practice-quick-btn"
+							active={questionCount === maxQuestions}
 							onClick={() => handleQuickSelect(maxQuestions)}
 						>
 							ALL
-						</button>
+						</FlashcardButton>
 					</div>
 
 					<div className="flashcard-practice-input-group">
@@ -234,13 +230,13 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。
 						</div>
 					</div>
-					<button
-						className="flashcard-btn flashcard-btn-green"
+					<FlashcardButton
+						variant="green"
 						onClick={handleStart}
 						disabled={maxQuestions === 0}
 					>
 						Start · {questionCount} Questions
-					</button>
+					</FlashcardButton>
 				</div>
 			</div>
 		</div>

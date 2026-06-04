@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { CircleCheck, Target, Lock, Brain } from "lucide-react";
 import { Deck, StudyDayInfo } from "../types";
+import { FlashcardButton } from "./FlashcardButton";
 
 interface StudySetupProps {
 	deck: Deck;
@@ -42,12 +43,9 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 		<div className="flashcard-practice-setup">
 			<div className="flashcard-common-header">
 				<div className="flashcard-header-left">
-					<button
-						className="flashcard-btn flashcard-btn-back"
-						onClick={onBack}
-					>
+					<FlashcardButton preset="back" onClick={onBack}>
 						← Back
-					</button>
+					</FlashcardButton>
 				</div>
 				<div className="flashcard-header-center">
 					<Brain size={18} /> Study
@@ -130,18 +128,20 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						</div>
 					</div>
 					<div className="flashcard-study-order-options">
-						<button
-							className={`flashcard-btn flashcard-study-order-btn ${studyOrder === "sequential" ? "active" : ""}`}
+						<FlashcardButton
+							className="flashcard-study-order-btn"
+							active={studyOrder === "sequential"}
 							onClick={() => setStudyOrder("sequential")}
 						>
 							📋 Sequential Order
-						</button>
-						<button
-							className={`flashcard-btn flashcard-study-order-btn ${studyOrder === "random" ? "active" : ""}`}
+						</FlashcardButton>
+						<FlashcardButton
+							className="flashcard-study-order-btn"
+							active={studyOrder === "random"}
 							onClick={() => setStudyOrder("random")}
 						>
 							🔀 Random Order
-						</button>
+						</FlashcardButton>
 					</div>
 				</div>
 
@@ -192,8 +192,8 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 											{day.studiedCards}/{day.totalCards}
 										</span>
 										{day.isCompleted && (
-											<button
-												className="flashcard-btn flashcard-study-day-review-btn"
+											<FlashcardButton
+												className="flashcard-study-day-review-btn"
 												onClick={() =>
 													onStartDay(
 														day.dayIndex,
@@ -202,7 +202,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 												}
 											>
 												Review
-											</button>
+											</FlashcardButton>
 										)}
 									</div>
 								</div>
@@ -228,8 +228,8 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 									: "可以稍后回来复习，系统会保留当前进度。"}
 						</div>
 					</div>
-					<button
-						className="flashcard-btn flashcard-btn-green"
+					<FlashcardButton
+						variant="green"
 						onClick={handleMainStart}
 						disabled={!hasAnythingToStudy && !allCompleted}
 					>
@@ -238,7 +238,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 							: hasAnythingToStudy
 								? `Start (${todayTotal} Cards)`
 								: "Today's tasks completed 🎉"}
-					</button>
+					</FlashcardButton>
 				</div>
 			</div>
 		</div>

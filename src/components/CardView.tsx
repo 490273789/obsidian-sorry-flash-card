@@ -4,6 +4,7 @@ import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
 import { toFSRSRating, getRatingButtons } from "../scheduler";
+import { FlashcardButton } from "./FlashcardButton";
 
 // Computed once — rating button config is static
 const RATING_BUTTONS = getRatingButtons();
@@ -234,12 +235,9 @@ export const CardView: React.FC<CardViewProps> = ({
 				</div>
 				<div>学习完成!</div>
 				<p>本次学习时长: {formatTime(elapsedTime)}</p>
-				<button
-					className="flashcard-btn flashcard-btn-green"
-					onClick={onClose}
-				>
+				<FlashcardButton variant="green" onClick={onClose}>
 					Back to Deck
-				</button>
+				</FlashcardButton>
 			</div>
 		);
 	}
@@ -263,13 +261,12 @@ export const CardView: React.FC<CardViewProps> = ({
 					<div className="flashcard-timer">
 						{formatTime(elapsedTime)}
 					</div>
-					<button
-						className="flashcard-btn flashcard-btn-icon"
+					<FlashcardButton
+						preset="icon"
+						icon={X}
 						onClick={onClose}
 						title="Close"
-					>
-						<X size={16} />
-					</button>
+					/>
 				</div>
 			</div>
 
@@ -303,28 +300,26 @@ export const CardView: React.FC<CardViewProps> = ({
 			{/* Footer */}
 			<div className="flashcard-footer">
 				{!showAnswer ? (
-					<button
-						className="flashcard-btn flashcard-btn-green flashcard-btn-show"
-						onClick={handleShowAnswer}
-					>
+					<FlashcardButton preset="show" onClick={handleShowAnswer}>
 						Show Answer
 						<span className="flashcard-shortcut">(Space)</span>
-					</button>
+					</FlashcardButton>
 				) : (
 					<div className="flashcard-response-controls">
-						<button
-							className="flashcard-btn flashcard-action-btn flashcard-btn-prev"
+						<FlashcardButton
+							preset="prev"
+							icon={RotateCcw}
+							iconSize={24}
 							onClick={handlePrevious}
 							disabled={session.history.length === 0}
 							title="Undo (6)"
-						>
-							<RotateCcw size={24} />
-						</button>
+						/>
 						<div className="flashcard-rating-grid">
 							{RATING_BUTTONS.map((btn) => (
-								<button
+								<FlashcardButton
 									key={btn.rating}
-									className={`flashcard-btn flashcard-rating-btn flashcard-rating-${btn.rating}`}
+									preset="rating"
+									className={`flashcard-rating-${btn.rating}`}
 									onClick={() =>
 										void handleRating(btn.rating)
 									}
@@ -335,7 +330,7 @@ export const CardView: React.FC<CardViewProps> = ({
 									<span className="flashcard-rating-interval">
 										({btn.shortcut})
 									</span>
-								</button>
+								</FlashcardButton>
 							))}
 						</div>
 					</div>

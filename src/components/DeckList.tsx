@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../types";
 import { DataStore } from "../dataStore";
+import { FlashcardButton } from "./FlashcardButton";
 
 // ── Per-deck settings modal ───────────────────────────────────────────────────
 
@@ -314,15 +315,15 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 				</div>
 
 				<div className="flashcard-modal-footer">
-					<button
-						className="flashcard-btn flashcard-btn-green"
+					<FlashcardButton
+						variant="green"
 						onClick={() => void handleSave()}
 					>
 						Save
-					</button>
-					<button className="flashcard-btn" onClick={onClose}>
+					</FlashcardButton>
+					<FlashcardButton onClick={onClose}>
 						Cancel
-					</button>
+					</FlashcardButton>
 				</div>
 			</div>
 		</div>
@@ -414,24 +415,20 @@ export const DeckList: React.FC<DeckListProps> = ({
 						<BookOpen size={22} /> Ultimate Repetition
 					</div>
 					<div className="flashcard-header-actions">
-						<button
-							className="flashcard-btn flashcard-btn-icon"
+						<FlashcardButton
+							preset="icon"
+							icon={ChartSpline}
 							onClick={onOpenStats}
 							title="学习统计"
-						>
-							<ChartSpline size={16} />
-						</button>
-						<button
-							className="flashcard-btn flashcard-btn-icon"
+						/>
+						<FlashcardButton
+							preset="icon"
+							icon={RefreshCcw}
 							onClick={() => void handleRefresh()}
 							disabled={isLoading}
 							title="刷新题库"
-						>
-							<RefreshCcw
-								size={16}
-								className={isLoading ? "spinning" : ""}
-							/>
-						</button>
+						iconClassName={isLoading ? "spinning" : ""}
+						/>
 					</div>
 				</div>
 				<div className="flashcard-home-pills">
@@ -528,63 +525,63 @@ export const DeckList: React.FC<DeckListProps> = ({
 
 								<div className="flashcard-deck-side">
 									<div className="flashcard-deck-actions2">
-										<button
-											className="flashcard-btn flashcard-btn-purple"
+										<FlashcardButton
+											variant="purple"
+											icon={Brain}
 											onClick={(e) => {
 												e.stopPropagation();
 												onSelectDeck(deck.id);
 											}}
 											title="学习模式"
 										>
-											<Brain size={18} />
 											<span>Study</span>
-										</button>
-										<button
-											className="flashcard-btn flashcard-btn-blue"
+										</FlashcardButton>
+										<FlashcardButton
+											variant="blue"
+											icon={Target}
 											onClick={(e) => {
 												e.stopPropagation();
 												onStartPractice(deck.id);
 											}}
 											title="刷题模式"
 										>
-											<Target size={18} />
 											<span>Practice</span>
-										</button>
+										</FlashcardButton>
 									</div>
 									<div className="flashcard-deck-actions3">
-										<button
-											className="flashcard-btn flashcard-btn-orange"
+										<FlashcardButton
+											variant="orange"
+											icon={List}
 											onClick={(e) => {
 												e.stopPropagation();
 												onOpenWordList(deck.id);
 											}}
 											title="单词List"
 										>
-											<List size={18} />
 											<span>List</span>
-										</button>
-										<button
-											className="flashcard-btn flashcard-btn-green"
+										</FlashcardButton>
+										<FlashcardButton
+											variant="green"
+											icon={FileText}
 											onClick={(e) => {
 												e.stopPropagation();
 												onOpenSourceFile(deck.filePath);
 											}}
 											title="打开源文件"
 										>
-											<FileText size={18} />
 											<span>Source</span>
-										</button>
-										<button
-											className="flashcard-btn flashcard-btn-gray"
+										</FlashcardButton>
+										<FlashcardButton
+											variant="gray"
+											icon={Settings}
 											onClick={(e) => {
 												e.stopPropagation();
 												setModalDeckId(deck.id);
 											}}
 											title="学习设置"
 										>
-											<Settings size={18} />
 											<span>Setting</span>
-										</button>
+										</FlashcardButton>
 									</div>
 								</div>
 							</article>
