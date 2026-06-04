@@ -3,13 +3,17 @@ import ReactDOM from "react-dom";
 import {
 	BookOpen,
 	Brain,
+	Calculator,
 	ChartBar,
-	Clock3,
+	ChartSpline,
 	FileText,
 	Inbox,
 	Layers3,
 	List,
+	NotebookPen,
+	RefreshCcw,
 	RefreshCw,
+	ScanEye,
 	Settings,
 	Sparkles,
 	Target,
@@ -415,7 +419,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 							onClick={onOpenStats}
 							title="学习统计"
 						>
-							<ChartBar size={16} />
+							<ChartSpline size={16} />
 						</button>
 						<button
 							className="flashcard-btn flashcard-btn-icon"
@@ -423,7 +427,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 							disabled={isLoading}
 							title="刷新题库"
 						>
-							<RefreshCw
+							<RefreshCcw
 								size={16}
 								className={isLoading ? "spinning" : ""}
 							/>
@@ -432,19 +436,28 @@ export const DeckList: React.FC<DeckListProps> = ({
 				</div>
 				<div className="flashcard-home-pills">
 					<span className="flashcard-home-pill fc-pill">
-						<Layers3 size={16} /> {decks.length} decks
+						<Layers3 size={16} />
+						<span className="blue">{decks.length}</span>decks
 					</span>
 					<span className="flashcard-home-pill fc-pill">
-						<Brain size={16} /> {totals.newCards} new cards
+						<Brain size={16} />
+						<span className="green">{totals.newCards}</span>new
+						cards
 					</span>
 					<span className="flashcard-home-pill fc-pill">
-						<Clock3 size={16} /> {totals.dueCards} review cards
+						<ScanEye size={16} />
+						<span className="red">{totals.dueCards}</span>
+						review cards
 					</span>
 					<span className="flashcard-home-pill fc-pill">
-						<Clock3 size={16} /> {totals.totalCards} total cards
+						<Calculator size={16} />
+						<span className="purple">{totals.totalCards}</span>
+						total cards
 					</span>
 					<span className="flashcard-home-pill fc-pill">
-						<Clock3 size={16} /> {totals.studyCount} study count
+						<NotebookPen size={16} />
+						<span className="orange">{totals.studyCount}</span>
+						study count
 					</span>
 				</div>
 			</div>

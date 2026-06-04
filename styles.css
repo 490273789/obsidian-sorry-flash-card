@@ -138,10 +138,6 @@
 	--fc-grad-answer-start: #ec4899;
 	--fc-grad-answer-end: #f43f5e;
 
-	/* Practice badge */
-	--fc-grad-practice-start: #f97316;
-	--fc-grad-practice-end: #f59e0b;
-
 	/* Action — Orange */
 	--fc-grad-orange-start: #ef4444;
 	--fc-grad-orange-end: #d97706;
@@ -205,40 +201,15 @@
 
 	/* ── Resolved colors (for direct use) ── */
 	--flashcard-accent: var(--fc-color-accent);
-	--flashcard-accent-strong: var(--fc-color-accent-strong);
 	--flashcard-highlight: var(--fc-color-warning);
 	--flashcard-danger: var(--fc-color-danger);
-	--flashcard-surface: var(--fc-surface);
-	--flashcard-border: var(--fc-border);
-	--flashcard-shadow: var(--fc-shadow);
 	--flashcard-white: var(--fc-color-white);
-	--flashcard-soft-cream: var(--fc-color-soft-cream);
-	--flashcard-mode-study: var(--fc-color-info);
-	--flashcard-mode-practice: var(--fc-color-practice);
-	--flashcard-mode-list: var(--fc-color-accent);
-
-	/* Gradient legacy aliases */
-	--flashcard-chinese-start: var(--fc-grad-warm-start);
-	--flashcard-chinese-end: var(--fc-grad-warm-end);
-	--flashcard-chinese-hover-start: var(--fc-grad-warm-hover-start);
-	--flashcard-chinese-hover-end: var(--fc-grad-warm-hover-end);
-	--flashcard-english-start: var(--fc-grad-cool-start);
-	--flashcard-english-end: var(--fc-grad-cool-end);
-	--flashcard-english-hover-start: var(--fc-grad-cool-hover-start);
-	--flashcard-english-hover-end: var(--fc-grad-cool-hover-end);
-	--flashcard-shuffle-start: var(--fc-grad-brand-start);
-	--flashcard-shuffle-end: var(--fc-grad-brand-end);
-	--flashcard-shuffle-hover-start: var(--fc-grad-brand-hover-start);
-	--flashcard-shuffle-hover-end: var(--fc-grad-brand-hover-end);
-	--flashcard-question-start: var(--fc-grad-question-start);
-	--flashcard-question-end: var(--fc-grad-question-end);
 }
 
 .flashcard-root {
 	height: 100%;
 	min-height: 100%;
 	box-sizing: border-box;
-	overflow: hidden;
 	scrollbar-gutter: stable;
 	border-radius: var(--fc-r-lg);
 	display: flex;
@@ -495,7 +466,6 @@
 .flashcard-header-actions {
 	display: flex;
 	gap: 12px;
-	flex-shrink: 0;
 }
 
 .flashcard-empty {
@@ -544,32 +514,6 @@
    Word List View
    ============================================= */
 
-.flashcard-word-list-view {
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	animation: fadeIn 0.22s ease-out;
-	background: var(--background-primary);
-}
-
-.flashcard-word-list-sticky-top {
-	position: sticky;
-	top: 0;
-	z-index: 10;
-	flex-shrink: 0;
-	background: var(--background-primary);
-}
-
-.flashcard-word-list-header {
-	display: flex;
-	align-items: center;
-	gap: 14px;
-	padding: var(--fc-sp-2) var(--fc-sp-4);
-	border-bottom: 1px solid var(--background-modifier-border);
-	background: var(--background-secondary);
-}
-
 .flashcard-word-list-header-main {
 	flex: 1;
 	min-width: 0;
@@ -592,101 +536,53 @@
 	letter-spacing: 0.2px;
 }
 
-.flashcard-word-list-toolbar {
-	display: flex;
-	gap: 8px;
-	padding: var(--fc-sp-2) var(--fc-sp-4);
-	border-bottom: 1px solid var(--background-modifier-border);
-	background: var(--background-primary-alt, var(--background-primary));
-	flex-wrap: wrap;
-}
-
 /* 激活态 - 加深渐变 */
 .chinese.active {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-chinese-start),
-		var(--flashcard-chinese-end)
+		var(--fc-grad-warm-start),
+		var(--fc-grad-warm-end)
 	);
 }
 
 .chinese.active:hover {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-chinese-hover-start),
-		var(--flashcard-chinese-hover-end)
+		var(--fc-grad-warm-hover-start),
+		var(--fc-grad-warm-hover-end)
 	);
 }
 
 .english.active {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-english-start),
-		var(--flashcard-english-end)
+		var(--fc-grad-cool-start),
+		var(--fc-grad-cool-end)
 	);
 }
 
 .english.active:hover {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-english-hover-start),
-		var(--flashcard-english-hover-end)
+		var(--fc-grad-cool-hover-start),
+		var(--fc-grad-cool-hover-end)
 	);
 }
 
 .shuffle.active {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-shuffle-start),
-		var(--flashcard-shuffle-end)
+		var(--fc-grad-brand-start),
+		var(--fc-grad-brand-end)
 	);
 }
 
 .shuffle.active:hover {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-shuffle-hover-start),
-		var(--flashcard-shuffle-hover-end)
+		var(--fc-grad-brand-hover-start),
+		var(--fc-grad-brand-hover-end)
 	);
-}
-
-.flashcard-word-list-head-row {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-
-	gap: 10px;
-	padding: var(--fc-sp-4);
-	border-bottom: 1px solid var(--background-modifier-border);
-	font-size: var(--font-size-md);
-	font-weight: 700;
-	color: var(--text-faint);
-	text-align: center;
-	text-transform: uppercase;
-	letter-spacing: 0.6px;
-	background: var(--background-secondary);
-}
-
-.flashcard-word-list-scroll {
-	flex: 1;
-	overflow-y: auto;
-	padding: 0 0 var(--fc-sp-2);
-	position: relative;
-}
-
-.flashcard-word-list-virtual {
-	position: absolute;
-	left: 0;
-	right: 0;
-	padding: var(--fc-sp-1) var(--fc-sp-4) 0;
-	box-sizing: border-box;
-	will-change: transform;
-}
-
-.flashcard-word-row {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 10px;
-	padding-bottom: var(--fc-sp-2);
 }
 
 .flashcard-word-cell {
@@ -737,7 +633,7 @@
 	white-space: pre-wrap;
 	line-height: 1.4;
 	width: 100%;
-	text-align: center;
+	text-align: left;
 }
 
 .flashcard-word-mask-text {
@@ -761,10 +657,8 @@
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	flex: 1 1 auto;
 	padding: var(--fc-sp-4) var(--fc-sp-3);
 	overflow-y: auto;
-	gap: 12px;
 	background: var(--fc-surface);
 	border: 1px solid var(--fc-border);
 	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.04);
@@ -777,11 +671,6 @@
 	transform: translateX(16px) scale(0.985);
 	filter: saturate(0.92) blur(2px);
 }
-
-/* .flashcard-question,
-.flashcard-answer {
-	margin-bottom: 12px;
-} */
 
 .flashcard-label {
 	font-size: var(--font-size-md);
@@ -796,8 +685,8 @@
 .flashcard-label-question {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-question-start) 0%,
-		var(--flashcard-question-end) 100%
+		var(--fc-grad-question-start) 0%,
+		var(--fc-grad-question-end) 100%
 	);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -814,7 +703,7 @@
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
-	font-weight: 700;
+	font-weight: 600;
 }
 
 .flashcard-markdown {
@@ -856,8 +745,8 @@
 	bottom: 0;
 	z-index: 10;
 	padding: var(--fc-sp-3);
-	border: 1px solid var(--flashcard-border);
-	box-shadow: var(--flashcard-shadow);
+	border: 1px solid var(--fc-border);
+	box-shadow: var(--fc-shadow);
 	backdrop-filter: blur(18px);
 	border-radius: 0 0 var(--fc-r-md);
 	background:
@@ -872,17 +761,6 @@
 /* =============================================
    Complete View
    ============================================= */
-
-.flashcard-complete {
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	text-align: center;
-	padding: var(--fc-sp-4);
-	animation: scaleIn 0.4s ease-out;
-}
 
 .flashcard-complete-icon {
 	font-size: var(--font-size-xl);
@@ -941,53 +819,20 @@
 	max-width: 250px;
 }
 
-/* .flashcard-tag-remove-btn, .flashcard-message-remove-btn — extends .fc-btn-remove (no extra overrides) */
-/* .flashcard-tag-add-btn, .flashcard-message-add-btn — extends .fc-btn-add (no extra overrides) */
-
 /* =============================================
    Modernized UI Overrides
    ============================================= */
-
-.flashcard-practice-summary,
-.flashcard-word-list-view {
-	gap: 18px;
-	min-height: 100%;
-}
-
-.flashcard-practice-summary,
-.flashcard-word-list-header,
-.flashcard-word-list-toolbar,
-.flashcard-complete {
-	background: var(--flashcard-surface);
-	border: 1px solid var(--flashcard-border);
-	box-shadow: var(--flashcard-shadow);
-	backdrop-filter: blur(18px);
-}
-
-.flashcard-practice-summary {
-	gap: 12px;
-	min-height: 100%;
-	border-radius: var(--fc-r-lg);
-	overflow: hidden;
-}
 
 .flashcard-study {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
 	min-height: 100%;
-	border-radius: var(--fc-r-lg);
+	border-radius: var(--fc-r-md);
 	overflow: hidden;
 	height: 100%;
 	background: transparent;
 	animation: surfaceRise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-.flashcard-word-list-view {
-	border-radius: 0;
-	margin: calc(-1 * var(--flashcard-shell-padding));
-	width: calc(100% + 2 * var(--flashcard-shell-padding));
-	max-width: none;
 }
 
 .flashcard-home-hero {
@@ -998,8 +843,8 @@
 	flex-direction: column;
 	gap: 12px;
 	padding: var(--fc-sp-4);
-	border: 1px solid var(--flashcard-border);
-	box-shadow: var(--flashcard-shadow);
+	border: 1px solid var(--fc-border);
+	box-shadow: var(--fc-shadow);
 	backdrop-filter: blur(12px);
 	border-radius: var(--fc-r-lg);
 	background:
@@ -1029,15 +874,13 @@
 	padding: var(--fc-sp-2) var(--fc-sp-3);
 	border-radius: var(--fc-r-md);
 	background: color-mix(in srgb, var(--background-primary) 74%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 84%, transparent);
 	color: var(--text-normal);
 	font-size: var(--font-size-sm);
 	font-weight: 600;
 }
 
-.flashcard-practice-setup-subtitle,
-.flashcard-stats-subtitle {
+.flashcard-practice-setup-subtitle {
 	font-size: var(--font-size-sm);
 	line-height: 1.65;
 	color: var(--text-muted);
@@ -1087,66 +930,14 @@
 .flashcard-empty {
 	padding: var(--fc-sp-4) var(--fc-sp-4);
 	border-radius: var(--fc-r-lg);
-	background: var(--flashcard-surface);
-	border: 1px dashed var(--flashcard-border);
-	box-shadow: var(--flashcard-shadow);
-}
-
-.flashcard-practice-summary-header,
-.flashcard-word-list-header {
-	padding: var(--fc-sp-3) var(--fc-sp-4);
-	border-bottom: 1px solid var(--flashcard-border);
-	background:
-		linear-gradient(
-			180deg,
-			rgba(var(--flashcard-white-rgb), 0.06),
-			transparent
-		),
-		var(--flashcard-surface);
-}
-
-.flashcard-practice-summary,
-.flashcard-word-list-view {
-	display: flex;
-	flex-direction: column;
-	padding: 0;
-	background: color-mix(in srgb, var(--background-primary) 70%, transparent);
-}
-
-.flashcard-practice-summary {
-	padding: var(--fc-sp-4);
-	gap: 18px;
-	background: transparent;
-	border: none;
-	box-shadow: none;
-	backdrop-filter: none;
+	background: var(--fc-surface);
+	border: 1px dashed var(--fc-border);
+	box-shadow: var(--fc-shadow);
 }
 
 .flashcard-setup-screen {
 	gap: 0;
 	padding: 0;
-}
-
-.flashcard-practice-question-selector,
-.flashcard-practice-info,
-.flashcard-practice-summary-stats,
-.flashcard-practice-incorrect-section,
-.flashcard-word-list-toolbar,
-.flashcard-word-row,
-.flashcard-complete {
-	border-radius: var(--fc-r-lg);
-}
-
-.flashcard-practice-question-selector,
-.flashcard-practice-info,
-.flashcard-practice-summary-stats,
-.flashcard-practice-incorrect-section,
-.flashcard-word-list-toolbar,
-.flashcard-word-row {
-	padding: var(--fc-sp-4);
-	background: var(--flashcard-surface);
-	border: 1px solid var(--flashcard-border);
-	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
 }
 
 .flashcard-practice-info-item {
@@ -1158,8 +949,7 @@
 	font-size: var(--font-size-xs);
 	font-weight: 700;
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 84%, transparent);
 }
 
 .flashcard-practice-summary-actions,
@@ -1194,16 +984,14 @@
 	margin-top: 14px;
 }
 
-.flashcard-study-day-item,
-.flashcard-practice-incorrect-item {
+.flashcard-study-day-item {
 	display: flex;
 	justify-content: space-between;
 	gap: 14px;
 	padding: var(--fc-sp-3) var(--fc-sp-3);
 	border-radius: var(--fc-r-md);
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 }
 
 .flashcard-study-day-item.current {
@@ -1228,73 +1016,14 @@
 	opacity: 0.78;
 }
 
-.flashcard-practice-summary-header {
-	padding: 0;
-	border: none;
-	box-shadow: none;
-	background: transparent;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: 6px;
-}
-
-.flashcard-practice-summary-deck {
-	font-size: var(--font-size-sm);
-	color: var(--text-muted);
-}
-
-.flashcard-practice-stat-row {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-	gap: 12px;
-	margin-top: 14px;
-}
-
-.flashcard-practice-stat-item {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: var(--fc-sp-3) var(--fc-sp-3);
-	border-radius: var(--fc-r-lg);
-	background: color-mix(in srgb, var(--background-primary) 76%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
-}
-
-.flashcard-practice-incorrect-list {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	margin-top: 14px;
-}
-
-.flashcard-practice-incorrect-index {
-	min-width: 36px;
-	height: 36px;
-	display: grid;
-	place-items: center;
-	border-radius: var(--fc-r-md);
-	background: var(--fc-color-danger-soft);
-	color: var(--fc-color-danger);
-	font-weight: 800;
-}
-
-.flashcard-practice-incorrect-item {
-	display: flex;
-	gap: 16px;
-	padding: var(--fc-sp-2);
-	background: var(--background-secondary);
-	border-radius: var(--fc-r-sm);
-	border-left: 3px solid var(--fc-color-danger);
-}
-
 .flashcard-word-row {
-	gap: 14px;
-	padding-bottom: 0;
-	margin-bottom: 14px;
-	background: transparent;
-	border: none;
+	display: grid;
+	grid-template-columns: 1fr 2fr;
+	gap: 10px;
+	border-radius: var(--fc-r-md);
+	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
 	box-shadow: none;
+	margin-bottom: 14px;
 }
 
 .flashcard-word-cell {
@@ -1334,8 +1063,7 @@
 	font-weight: 500;
 	border-radius: var(--fc-r-md);
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 }
 
 .flashcard-practice-progress-bar {
@@ -1375,7 +1103,7 @@
 
 .flashcard-question,
 .flashcard-answer {
-	border: 1px solid var(--flashcard-border);
+	border: 1px solid var(--fc-border);
 	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
 	border-radius: var(--fc-r-sm);
 	margin-bottom: 0;
@@ -1396,26 +1124,18 @@
 	line-height: 1.8;
 }
 
-.flashcard-word-list-view {
-	overflow: hidden;
-	overflow-y: hidden;
-	max-height: none;
-}
-
-.flashcard-word-list-scroll {
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow-y: auto;
-	overflow-x: hidden;
-	overscroll-behavior: contain;
-}
-
-.flashcard-modal-body {
-	padding: var(--fc-sp-4);
-	background: transparent;
-}
-
 .flashcard-complete {
+	border: 1px solid var(--fc-border);
+	box-shadow: var(--fc-shadow);
+	backdrop-filter: blur(18px);
+	border-radius: var(--fc-r-lg);
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	animation: scaleIn 0.4s ease-out;
 	max-width: 560px;
 	margin: auto;
 	padding: var(--fc-sp-4) var(--fc-sp-4);
@@ -1431,38 +1151,32 @@
 			transparent 30%
 		),
 		var(--fc-surface);
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
 }
 
 .spinning {
 	animation: spin 1s linear infinite;
 }
 
-.flashcard-practice-summary,
-.flashcard-word-list-view {
-	animation: surfaceRise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
 .flashcard-home-pill,
-.flashcard-practice-question-selector,
-.flashcard-practice-info,
-.flashcard-practice-summary-header,
-.flashcard-practice-summary-stats,
-.flashcard-practice-incorrect-section,
-.flashcard-stats-summary-item,
-.flashcard-word-list-header,
-.flashcard-word-list-toolbar,
-.flashcard-complete {
+.flashcard-stats-summary-item {
 	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 	animation-delay: var(--flashcard-stagger, 0ms);
 }
-
-.flashcard-practice-summary-header,
 .flashcard-word-list-header {
 	--flashcard-stagger: 40ms;
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	border-bottom: 1px solid var(--fc-border);
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
+	margin: 0;
+	padding: var(--fc-sp-3);
 }
 
 .flashcard-home-pill:nth-child(1),
-.flashcard-practice-question-selector,
 .flashcard-stats-summary-item:nth-child(1),
 .flashcard-question {
 	--flashcard-stagger: 110ms;
@@ -1472,7 +1186,6 @@
 .flashcard-deck-item:nth-child(1),
 .flashcard-stat-card:nth-child(1),
 .flashcard-study-panel:nth-of-type(1),
-.flashcard-practice-info,
 .flashcard-stats-summary-item:nth-child(2),
 .flashcard-stats-day:nth-child(1) {
 	--flashcard-stagger: 180ms;
@@ -1763,6 +1476,17 @@
 }
 
 .flashcard-practice-question-selector {
+	--flashcard-stagger: 110ms;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	border-radius: var(--fc-r-lg);
+	padding: var(--fc-sp-4);
+	background: var(--fc-surface);
+	border: 1px solid var(--fc-border);
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
+	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
 	margin-bottom: 32px;
 }
 
@@ -1780,8 +1504,7 @@
 	padding: var(--fc-sp-3);
 	border-radius: var(--fc-r-lg);
 	background: color-mix(in srgb, var(--background-primary) 74%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 84%, transparent);
 	/* background: rgba(var(--flashcard-white-rgb), 0.02);
 	border: 1px solid rgba(var(--flashcard-white-rgb), 0.06); */
 }
@@ -1811,13 +1534,6 @@
 	font-size: var(--font-size-sm);
 }
 
-.flashcard-practice-info {
-	background: var(--background-secondary);
-	border-radius: var(--fc-r-sm);
-	padding: var(--fc-sp-4);
-	margin-bottom: 32px;
-}
-
 .flashcard-practice-info-item {
 	display: flex;
 	align-items: center;
@@ -1834,11 +1550,11 @@
    Practice Mode - View
    ============================================= */
 
-.flashcard-practice-badge {
+.flashcard-badge {
 	background: linear-gradient(
 		135deg,
-		var(--fc-grad-practice-start),
-		var(--fc-grad-practice-end)
+		var(--fc-grad-blue-start),
+		var(--fc-grad-blue-end)
 	);
 	color: var(--fc-color-white);
 	padding: var(--fc-sp-2) var(--fc-sp-3);
@@ -1885,8 +1601,7 @@
 	cursor: pointer;
 	transition: all 0.2s ease;
 	background: color-mix(in srgb, var(--background-primary) 82%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 	box-shadow: none;
 }
 
@@ -1898,19 +1613,39 @@
 /* =============================================
    Practice Mode - Summary
    ============================================= */
-
 .flashcard-practice-summary {
 	height: 100%;
+	min-height: 100%;
 	display: flex;
 	flex-direction: column;
+	gap: 12px;
+	border-radius: var(--fc-r-lg);
+	border: 1px solid var(--fc-border);
+	box-shadow: var(--fc-shadow);
+	backdrop-filter: blur(18px);
 	padding: var(--fc-sp-2);
 	overflow-y: auto;
 	animation: fadeIn 0.3s ease-out;
 }
 
 .flashcard-practice-summary-header {
+	--flashcard-stagger: 40ms;
+	padding: var(--fc-sp-3) var(--fc-sp-4);
+	border-bottom: 1px solid var(--fc-border);
+	background:
+		linear-gradient(
+			180deg,
+			rgba(var(--flashcard-white-rgb), 0.06),
+			transparent
+		),
+		var(--fc-surface);
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 6px;
 	text-align: center;
 	margin-bottom: 32px;
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
 }
 
 .flashcard-practice-summary-title {
@@ -1927,9 +1662,16 @@
 }
 
 .flashcard-practice-summary-stats {
+	padding: var(--fc-sp-4);
+	background: var(--fc-surface);
+	border: 1px solid var(--fc-border);
+	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
+	border-radius: var(--fc-r-lg);
 	max-width: 500px;
 	margin: 0 auto 32px auto;
 	width: 100%;
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
 }
 
 .flashcard-practice-stat-card {
@@ -1953,6 +1695,7 @@
 }
 
 .flashcard-practice-stat-row {
+	margin-top: 14px;
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 12px;
@@ -1963,6 +1706,7 @@
 	align-items: center;
 	gap: 10px;
 	padding: var(--fc-sp-2);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 	background: var(--background-secondary);
 	border-radius: var(--fc-r-sm);
 }
@@ -1988,9 +1732,16 @@
 }
 
 .flashcard-practice-incorrect-section {
+	padding: var(--fc-sp-4);
+	background: var(--fc-surface);
+	border: 1px solid var(--fc-border);
+	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
 	max-width: 700px;
 	margin: 0 auto 32px auto;
 	width: 100%;
+	border-radius: var(--fc-r-lg);
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
 }
 
 .flashcard-practice-incorrect-title {
@@ -2004,11 +1755,14 @@
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+	margin-top: 14px;
 }
 
 .flashcard-practice-incorrect-item {
 	display: flex;
-	gap: 16px;
+	gap: 14px;
+	justify-content: space-between;
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 	padding: var(--fc-sp-2);
 	background: var(--background-secondary);
 	border-radius: var(--fc-r-sm);
@@ -2071,8 +1825,6 @@
 	margin: 0 auto;
 	width: 100%;
 }
-
-/* Mobile adjustments for practice mode */
 
 /* =============================================
    Per-Deck Settings Modal
@@ -2137,7 +1889,7 @@
 .flashcard-modal-header,
 .flashcard-modal-footer {
 	background: color-mix(in srgb, var(--background-primary) 62%, transparent);
-	border-color: var(--flashcard-border);
+	border-color: var(--fc-border);
 }
 .flashcard-modal-header {
 	display: flex;
@@ -2146,7 +1898,7 @@
 	gap: var(--fc-sp-3);
 	padding: var(--fc-sp-4) var(--fc-sp-4) var(--fc-sp-3);
 	border-bottom: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+		color-mix(in srgb, var(--fc-border) 82%, transparent);
 }
 
 .flashcard-modal-heading {
@@ -2202,7 +1954,8 @@
 }
 
 .flashcard-modal-body {
-	padding: 0 var(--fc-sp-4) var(--fc-sp-4);
+	background: transparent;
+	padding: 0 var(--fc-sp-3) var(--fc-sp-3);
 	overflow-y: auto;
 	flex: 1;
 }
@@ -2212,8 +1965,7 @@
 	gap: var(--fc-sp-2);
 	justify-content: flex-end;
 	padding: var(--fc-sp-3) var(--fc-sp-4) var(--fc-sp-4);
-	border-top: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border-top: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 }
 
 /* Settings fields (shared between modal and settings tab) */
@@ -2223,8 +1975,7 @@
 
 .flashcard-deck-settings-card {
 	padding: var(--fc-sp-3) var(--fc-sp-4);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 78%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 78%, transparent);
 	border-radius: var(--fc-r-lg);
 	background: color-mix(
 		in srgb,
@@ -2295,8 +2046,7 @@
 	flex-direction: column;
 	gap: var(--fc-sp-2);
 	padding: var(--fc-sp-3) var(--fc-sp-4);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 72%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 72%, transparent);
 	border-radius: var(--fc-r-lg);
 	background: color-mix(in srgb, var(--background-primary) 52%, transparent);
 }
@@ -2336,8 +2086,7 @@
 .flashcard-deck-settings-field select {
 	padding: var(--fc-sp-2);
 	border-radius: var(--fc-r-md);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 
 	background: color-mix(
 		in srgb,
@@ -2354,8 +2103,7 @@
 
 /* Days-to-complete row */
 .flashcard-deck-settings-days {
-	border-top: 1px dashed
-		color-mix(in srgb, var(--flashcard-border) 88%, transparent);
+	border-top: 1px dashed color-mix(in srgb, var(--fc-border) 88%, transparent);
 	padding-top: var(--fc-sp-2);
 }
 
@@ -2381,16 +2129,13 @@
    ============================================= */
 
 .flashcard-setup-content {
-	border-radius: var(--fc-r-lg);
+	border-radius: var(--fc-r-md);
 	display: flex;
 	flex-direction: column;
-	gap: 18px;
-	box-shadow: none;
-	backdrop-filter: none;
+	gap: 12px;
 	flex: 1;
 	max-width: 720px;
 	width: 100%;
-	height: auto;
 	margin: 0 auto;
 	scrollbar-gutter: stable;
 	animation: surfaceRise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -2426,12 +2171,25 @@
 }
 
 .flashcard-practice-hero-copy,
-.flashcard-practice-hero-meta,
-.flashcard-practice-question-selector,
+.flashcard-practice-hero-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
 .flashcard-practice-info {
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
+	border: 1px solid var(--fc-border);
+	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
+	--flashcard-stagger: 180ms;
+	background: var(--background-secondary);
+	border-radius: var(--fc-r-sm);
+	padding: var(--fc-sp-3);
+	margin-bottom: 32px;
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
 }
 
 .flashcard-practice-panel-heading {
@@ -2573,8 +2331,7 @@
 	padding: var(--fc-sp-3);
 	font-weight: 500;
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 84%, transparent);
 	gap: 6px;
 	border-radius: var(--fc-r-md);
 	backdrop-filter: blur(8px);
@@ -2893,7 +2650,7 @@
 	--flashcard-stagger: 40ms;
 	border-radius: var(--fc-r-md) var(--fc-r-md) 0 0;
 	padding: var(--fc-sp-3) var(--fc-sp-4);
-	border-bottom: 1px solid var(--flashcard-border);
+	border-bottom: 1px solid var(--fc-border);
 	background:
 		radial-gradient(
 			circle at top right,
@@ -2952,7 +2709,7 @@
 	background: var(--background-secondary);
 	flex-shrink: 0;
 	gap: 8px;
-	box-shadow: var(--flashcard-shadow);
+	box-shadow: var(--fc-shadow);
 	backdrop-filter: blur(18px);
 	border-radius: 0 0 var(--fc-r-md) var(--fc-r-md);
 }
@@ -3041,8 +2798,7 @@
 	transition: background 0.15s;
 	border-radius: var(--fc-r-md);
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 82%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 82%, transparent);
 	border-left: 3px solid transparent;
 }
 
@@ -3056,15 +2812,15 @@
 
 /* Mode color accents */
 .stats-mode-study {
-	border-left-color: var(--flashcard-mode-study);
+	border-left-color: var(--fc-color-info);
 }
 
 .stats-mode-practice {
-	border-left-color: var(--flashcard-mode-practice);
+	border-left-color: var(--fc-color-practice);
 }
 
 .stats-mode-list {
-	border-left-color: var(--flashcard-mode-list);
+	border-left-color: var(--fc-color-accent);
 }
 
 .flashcard-stats-session-mode {
@@ -3074,8 +2830,7 @@
 	padding: var(--fc-sp-2) var(--fc-sp-2);
 	border-radius: var(--fc-r-pill);
 	background: color-mix(in srgb, var(--background-primary) 78%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 84%, transparent);
 	font-size: var(--font-size-xs);
 	font-weight: 700;
 	white-space: nowrap;
@@ -3083,15 +2838,15 @@
 }
 
 .stats-mode-study .flashcard-stats-session-mode {
-	color: var(--flashcard-mode-study);
+	color: var(--fc-color-info);
 }
 
 .stats-mode-practice .flashcard-stats-session-mode {
-	color: var(--flashcard-mode-practice);
+	color: var(--fc-color-practice);
 }
 
 .stats-mode-list .flashcard-stats-session-mode {
-	color: var(--flashcard-mode-list);
+	color: var(--fc-color-accent);
 }
 
 .flashcard-stats-session-deck {
@@ -3141,8 +2896,7 @@
 			transparent 40%
 		),
 		color-mix(in srgb, var(--background-primary) 76%, transparent);
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 84%, transparent);
 	gap: 12px;
 	padding: var(--fc-sp-3);
 	border-radius: var(--fc-r-lg);
@@ -3187,8 +2941,7 @@
 	align-items: center;
 	justify-content: center;
 	min-width: 40px;
-	border: 1px solid
-		color-mix(in srgb, var(--flashcard-border) 84%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-border) 84%, transparent);
 	padding: var(--fc-sp-2) var(--fc-sp-3);
 	border-radius: var(--fc-r-md);
 	gap: 3px;
@@ -3231,10 +2984,6 @@
 	overflow: hidden;
 }
 
-.flashcard-word-list-flow {
-	transform: none;
-}
-
 /* =============================================
    Buttons
    ============================================= */
@@ -3261,16 +3010,16 @@
 }
 
 .flashcard-btn {
+	min-height: 38px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
 	font-size: var(--font-size-sm);
-	/* font-weight: 500; */
 	cursor: pointer;
 	color: var(--flashcard-white);
 	padding: var(--fc-sp-2) var(--fc-sp-3);
-	border-radius: var(--fc-r-sm);
+	border-radius: var(--fc-r-md);
 	border: 1px solid transparent;
 	letter-spacing: 0.2px;
 	background: color-mix(
@@ -3278,7 +3027,7 @@
 		var(--background-secondary) 86%,
 		transparent
 	);
-	min-height: 38px;
+
 	transition: all 0.2s ease;
 }
 
@@ -3298,7 +3047,7 @@
 	padding: 0;
 	border-radius: var(--fc-r-sm);
 	background: rgba(var(--flashcard-blue-rgb), 0.12);
-	color: var(--flashcard-accent-strong);
+	color: var(--fc-color-accent-strong);
 	border: 1px solid rgba(var(--flashcard-blue-rgb), 0.25);
 }
 
@@ -3429,7 +3178,7 @@
 	background: linear-gradient(
 		135deg,
 		var(--flashcard-accent),
-		var(--flashcard-accent-strong)
+		var(--fc-color-accent-strong)
 	);
 	box-shadow: 0 14px 26px rgba(var(--flashcard-accent-rgb), 0.24);
 }
@@ -3437,7 +3186,7 @@
 .flashcard-btn-green:hover {
 	background: linear-gradient(
 		135deg,
-		var(--flashcard-accent-strong),
+		var(--fc-color-accent-strong),
 		var(--flashcard-accent)
 	);
 }
@@ -3476,12 +3225,6 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-}
-
-.flashcard-practice-btn-icon svg {
-	width: 22px;
-	height: 22px;
-	stroke-width: 2.35;
 }
 
 .flashcard-practice-btn-wrong {
@@ -3600,12 +3343,6 @@
    Final Study Icon Sizing
    ============================================= */
 
-.flashcard-practice-badge svg {
-	width: 18px;
-	height: 18px;
-	stroke-width: 2.35;
-}
-
 /* =============================================
    Final Study Rating Controls
    ============================================= */
@@ -3644,56 +3381,46 @@
    ============================================= */
 
 .flashcard-word-list-view {
-	display: flex;
-	flex: 1 1 auto;
-	flex-direction: column;
+	min-height: 100%;
 	height: 100%;
-	min-height: 0;
-	gap: 0;
-	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	overflow: auto;
+	gap: 12px;
+	background: color-mix(in srgb, var(--background-primary) 70%, transparent);
+	animation: surfaceRise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
-
 .flashcard-word-list-sticky-top {
-	position: relative;
+	position: sticky;
 	top: 0;
+	z-index: 10;
 	flex-shrink: 0;
-	margin: var(--flashcard-shell-padding) var(--flashcard-shell-padding) 0;
-	padding-top: 0;
-	background: var(--flashcard-surface);
-	border: 1px solid var(--flashcard-border);
-	border-radius: var(--fc-r-lg);
+	background: var(--background-primary);
+}
+.flashcard-word-list-sticky-top {
+	position: sticky;
+	top: 0;
+	z-index: 10;
 	overflow: hidden;
+	background: var(--fc-surface);
+	border: 1px solid var(--fc-border);
+	border-radius: var(--fc-r-md);
 	box-shadow: 0 10px 24px rgba(var(--flashcard-slate-rgb), 0.12);
 }
 
-.flashcard-word-list-sticky-top .flashcard-word-list-header,
-.flashcard-word-list-sticky-top .flashcard-word-list-toolbar {
-	margin: 0;
-	border: none;
-	border-radius: 0;
-	box-shadow: none;
-	background: transparent;
-	backdrop-filter: none;
-}
-
-.flashcard-word-list-sticky-top .flashcard-word-list-header {
-	padding: var(--fc-sp-4) var(--fc-sp-4) var(--fc-sp-4);
-	padding-bottom: var(--fc-sp-4);
-}
-
-.flashcard-word-list-sticky-top .flashcard-word-list-toolbar {
-	padding: 0 var(--fc-sp-4) var(--fc-sp-2);
-	padding-bottom: var(--fc-sp-2);
+.flashcard-word-list-toolbar {
+	display: flex;
+	gap: 8px;
+	background: var(--background-primary-alt, var(--background-primary));
+	box-shadow: 0 14px 30px rgba(var(--flashcard-slate-rgb), 0.08);
+	animation: revealRise 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+	animation-delay: var(--flashcard-stagger, 0ms);
+	padding: var(--fc-sp-3);
 }
 
 .flashcard-word-list-scroll {
-	flex: 1 1 auto;
-	min-height: 0;
-	margin: 0;
-	padding: var(--fc-sp-4);
-	padding-top: 0;
-	overflow-x: hidden;
-	overflow-y: auto;
+	flex: 1;
+	padding: 0 var(--fc-sp-3);
 	overscroll-behavior: contain;
 }
 
@@ -3703,12 +3430,10 @@
 }
 
 .flashcard-word-list-virtual {
-	position: static;
-	left: auto;
-	right: auto;
-	padding-top: var(--fc-sp-3);
-	padding-inline: var(--fc-sp-4);
-	transform: none;
-	will-change: auto;
+	position: absolute;
+	left: 0;
+	right: 0;
+	padding: var(--fc-sp-1) var(--fc-sp-4) 0;
 	box-sizing: border-box;
+	will-change: transform;
 }

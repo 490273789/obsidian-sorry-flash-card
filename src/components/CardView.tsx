@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { PartyPopper, RotateCcw, Target, X } from "lucide-react";
+import { Brain, PartyPopper, RotateCcw, X } from "lucide-react";
 import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
@@ -255,8 +255,8 @@ export const CardView: React.FC<CardViewProps> = ({
 					<div className="flashcard-progress">{progress}</div>
 				</div>
 				<div className="flashcard-header-center">
-					<div className="flashcard-practice-badge">
-						<Target size={14} /> STUDYING
+					<div className="flashcard-badge">
+						<Brain size={18} /> STUDYING
 					</div>
 				</div>
 				<div className="flashcard-header-right">

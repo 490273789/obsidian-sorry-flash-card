@@ -121,13 +121,10 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 
 				<div className="flashcard-word-list-toolbar">
 					<button
-						className={`flashcard-btn chinese flashcard-btn-orange ${isMaskChinese ? "active" : ""}`}
-						onClick={() => {
-							setIsMaskChinese((v) => !v);
-							setRevealedChineseIds(new Set());
-						}}
+						className={`flashcard-btn shuffle flashcard-btn-green ${isShuffled ? "active" : ""}`}
+						onClick={handleShuffleToggle}
 					>
-						{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
+						{isShuffled ? "恢复顺序" : "乱序"}
 					</button>
 					<button
 						className={`flashcard-btn english flashcard-btn-blue ${isMaskEnglish ? "active" : ""}`}
@@ -139,21 +136,19 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						{isMaskEnglish ? "取消遮罩英文" : "遮罩英文"}
 					</button>
 					<button
-						className={`flashcard-btn shuffle flashcard-btn-green ${isShuffled ? "active" : ""}`}
-						onClick={handleShuffleToggle}
+						className={`flashcard-btn chinese flashcard-btn-orange ${isMaskChinese ? "active" : ""}`}
+						onClick={() => {
+							setIsMaskChinese((v) => !v);
+							setRevealedChineseIds(new Set());
+						}}
 					>
-						{isShuffled ? "恢复顺序" : "乱序"}
+						{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
 					</button>
-				</div>
-
-				<div className="flashcard-word-list-head-row">
-					<div>正面</div>
-					<div>背面</div>
 				</div>
 			</div>
 
 			<div className="flashcard-word-list-scroll">
-				<div className="flashcard-word-list-virtual flashcard-word-list-flow">
+				<div className="flashcard-word-list-virtual">
 					{items.map((item) => {
 						const showChinese =
 							!isMaskChinese || revealedChineseIds.has(item.id);

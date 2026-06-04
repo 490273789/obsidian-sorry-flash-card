@@ -182,7 +182,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 											Day {day.dayIndex + 1}
 											{day.isCurrent && (
 												<span className="flashcard-study-day-today-badge">
-													(Today)
+													Today
 												</span>
 											)}
 										</span>

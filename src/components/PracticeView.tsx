@@ -175,7 +175,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		((session.currentIndex + 1) / session.totalQuestions) * 100;
 
 	return (
-		<div className="flashcard-study flashcard-practice">
+		<div className="flashcard-study">
 			{/* Header */}
 			<div className="flashcard-common-header">
 				<div className="flashcard-header-left">
@@ -183,7 +183,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 					<span className="flashcard-progress">{progress}</span>
 				</div>
 				<div className="flashcard-header-center">
-					<span className="flashcard-practice-badge">
+					<span className="flashcard-badge">
 						<Target size={14} /> Practice
 					</span>
 				</div>
