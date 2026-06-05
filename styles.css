@@ -443,10 +443,8 @@
 	height: auto;
 	display: flex;
 	flex-direction: column;
-	padding: var(--fc-sp-4);
 	gap: 12px;
 	overflow-y: auto;
-	padding-right: var(--fc-sp-1);
 	scrollbar-gutter: stable;
 	animation: fadeIn 0.3s ease-out;
 }
@@ -883,6 +881,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+	padding: 0 var(--fc-sp-3);
 }
 
 .flashcard-deck-badge {
@@ -902,7 +901,8 @@
 .flashcard-deck-info {
 	flex: 1;
 	display: flex;
-	gap: 6px;
+	align-items: center;
+	gap: 10px;
 }
 
 .flashcard-deck-stats {
@@ -1388,11 +1388,12 @@
 
 .flashcard-practice-setup {
 	height: 100%;
+	min-height: 100%;
 	display: flex;
 	flex-direction: column;
 	animation: fadeIn 0.3s ease-out;
+	border-radius: var(--fc-r-md);
 	gap: 12px;
-	min-height: 100%;
 	overflow: auto;
 }
 
@@ -3417,7 +3418,6 @@
 		--font-size-lg: 16px;
 		--font-size-xl: 18px;
 		--flashcard-shell-padding: var(--fc-sp-2);
-		border-radius: 0;
 	}
 
 	.flashcard-root::before {
@@ -3438,13 +3438,10 @@
 		flex-wrap: wrap;
 		gap: 6px;
 		padding: var(--fc-sp-2) var(--fc-sp-3);
-		border-radius: 0;
-		position: sticky;
 	}
 
 	/* ── Home / Deck list ── */
 	.flashcard-home {
-		padding: var(--fc-sp-2);
 		gap: 10px;
 	}
 
@@ -3452,7 +3449,6 @@
 		padding: var(--fc-sp-3);
 		gap: 8px;
 		border-radius: var(--fc-r-md);
-		position: static;
 	}
 
 	.flashcard-header {
@@ -3463,7 +3459,6 @@
 	.flashcard-header-actions {
 		flex-wrap: wrap;
 		gap: 8px;
-		width: 100%;
 	}
 
 	.flashcard-deck-item {
@@ -3523,12 +3518,10 @@
 	/* ── Study view ── */
 	.flashcard-study {
 		gap: 8px;
-		border-radius: 0;
 	}
 
 	.flashcard-content {
 		padding: var(--fc-sp-3) var(--fc-sp-2);
-		border-radius: 0;
 	}
 
 	.flashcard-markdown {
@@ -3539,7 +3532,6 @@
 	.flashcard-footer {
 		padding: var(--fc-sp-2);
 		gap: 8px;
-		border-radius: 0;
 	}
 
 	/* ── Rating buttons: stack grid & make touch-friendly ── */
@@ -3640,7 +3632,6 @@
 
 	/* ── Practice summary ── */
 	.flashcard-practice-summary {
-		border-radius: 0;
 		padding: var(--fc-sp-2);
 		gap: 8px;
 	}
@@ -3737,8 +3728,7 @@
 	}
 
 	/* ── Stats view ── */
-	.flashcard-stats-top,
-	.flashcard-common-header {
+	.flashcard-stats-top {
 		position: static;
 	}
 
@@ -3746,7 +3736,6 @@
 		flex-wrap: wrap;
 		padding: var(--fc-sp-2);
 		gap: 4px;
-		border-radius: 0;
 	}
 
 	.flashcard-stats-summary-divider {
@@ -3845,7 +3834,6 @@
 	}
 
 	.flashcard-btn-back {
-		min-height: 40px;
 		font-size: var(--font-size-xs);
 	}
 
@@ -3889,20 +3877,23 @@
 
 	/* ── Buttons: ensure all touch targets ≥ 44px ── */
 	.flashcard-btn {
-		min-height: 32px;
+		min-height: 34px;
 		padding: var(--fc-sp-1) var(--fc-sp-2);
 	}
 
+	.flashcard-btn-back {
+		min-height: 0;
+	}
 	.flashcard-btn-icon {
 		box-sizing: border-box;
 
-		width: 32px;
-		height: 32px;
+		width: 34px;
+		height: 34px;
 		padding: 0;
 	}
 	.flashcard-btn-icon svg {
-		width: 12px;
-		height: 12px;
+		width: 14px;
+		height: 14px;
 	}
 
 	.flashcard-badge {
