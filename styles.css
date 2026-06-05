@@ -2641,6 +2641,7 @@
 	flex-shrink: 0;
 	min-width: 100px;
 }
+
 .flashcard-header-center {
 	flex: 1;
 	display: flex;
@@ -3432,24 +3433,13 @@
 		-webkit-overflow-scrolling: touch;
 	}
 
-	/* ── Header: allow wrapping so left/center/right don't overflow ── */
+	/* ── Header: compact & wrap-friendly ── */
 	.flashcard-common-header {
 		flex-wrap: wrap;
-		gap: 8px;
+		gap: 6px;
 		padding: var(--fc-sp-2) var(--fc-sp-3);
 		border-radius: 0;
-	}
-
-	.flashcard-header-left,
-	.flashcard-header-right {
-		flex: 1 1 auto;
-		min-width: fit-content;
-	}
-
-	.flashcard-header-center {
-		flex: 1 1 100%;
-		order: 3;
-		justify-content: flex-start;
+		position: sticky;
 	}
 
 	/* ── Home / Deck list ── */
@@ -3534,7 +3524,6 @@
 	.flashcard-study {
 		gap: 8px;
 		border-radius: 0;
-		padding-bottom: var(--fc-sp-3);
 	}
 
 	.flashcard-content {
@@ -3560,7 +3549,6 @@
 	}
 
 	.flashcard-rating-grid {
-		flex: 1 1 100%;
 		gap: 8px;
 		justify-content: center;
 		flex-wrap: wrap;
@@ -3568,8 +3556,6 @@
 
 	.flashcard-rating-btn {
 		padding: var(--fc-sp-2) var(--fc-sp-2);
-		min-height: 44px;
-		min-width: 44px;
 		flex: 1 1 auto;
 	}
 
@@ -3850,7 +3836,6 @@
 
 	/* ── Buttons: ensure all touch targets ≥ 44px ── */
 	.flashcard-btn {
-		min-height: 44px;
 		padding: var(--fc-sp-2) var(--fc-sp-3);
 	}
 
@@ -3862,11 +3847,6 @@
 	.flashcard-btn-back {
 		min-height: 40px;
 		font-size: var(--font-size-xs);
-	}
-
-	.flashcard-practice-btn-icon {
-		min-width: 44px;
-		min-height: 44px;
 	}
 
 	/* ── Settings tab inputs ── */
@@ -3904,23 +3884,47 @@
 		--font-size-md: 14px;
 		--font-size-lg: 15px;
 		--font-size-xl: 17px;
+		padding-bottom: 45px;
 	}
 
-	/* ── Header: fully stacked ── */
+	/* ── Buttons: ensure all touch targets ≥ 44px ── */
+	.flashcard-btn {
+		min-height: 32px;
+		padding: var(--fc-sp-1) var(--fc-sp-2);
+	}
+
+	.flashcard-btn-icon {
+		box-sizing: border-box;
+
+		width: 32px;
+		height: 32px;
+		padding: 0;
+	}
+	.flashcard-btn-icon svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	.flashcard-badge {
+		padding: var(--fc-sp-1) var(--fc-sp-2);
+		gap: 4px;
+		font-size: var(--font-size-xs);
+	}
+
+	.flashcard-badge svg {
+		width: 12px;
+		height: 12px;
+	}
+
+	/* ── Session header: compact single row, allow wrap ── */
 	.flashcard-common-header {
-		flex-direction: column;
-		align-items: stretch;
+		flex-wrap: wrap;
+		gap: 4px;
+		padding: var(--fc-sp-2);
 	}
 
-	.flashcard-header-left,
-	.flashcard-header-center,
-	.flashcard-header-right {
-		width: 100%;
-		justify-content: flex-start;
-	}
-
-	.flashcard-header-center {
-		order: unset;
+	.flashcard-header-left {
+		gap: 4px;
 	}
 
 	/* ── Deck stats: stay at 2 but tighter ── */
@@ -3945,14 +3949,14 @@
 		gap: 6px;
 	}
 
-	/* ── Rating buttons: full-width stack ── */
+	/* ── Rating buttons: 2 per row ── */
 	.flashcard-rating-grid {
-		flex-direction: column;
+		flex-wrap: wrap;
 		gap: 6px;
 	}
 
 	.flashcard-rating-btn {
-		width: 100%;
+		width: calc(50% - 3px);
 		justify-content: space-between;
 	}
 
