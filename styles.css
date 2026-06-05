@@ -3953,7 +3953,7 @@
 	}
 
 	.flashcard-rating-btn {
-		width: calc(50% - 3px);
+		width: calc(50% - var(--fc-gap-2));
 		justify-content: space-between;
 	}
 
