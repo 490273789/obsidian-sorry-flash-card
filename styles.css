@@ -740,7 +740,7 @@
 	border: 1px solid var(--fc-border);
 	box-shadow: var(--fc-shadow);
 	backdrop-filter: blur(18px);
-	border-radius: 0 0 var(--fc-r-md);
+	border-radius: 0 0 var(--fc-r-md) var(--fc-r-md);
 	background:
 		linear-gradient(180deg, rgba(var(--fc-white-rgb), 0.06), transparent),
 		var(--fc-surface);
@@ -1826,6 +1826,7 @@
 			var(--fc-border) 88%,
 			rgba(var(--fc-white-rgb), 0.08)
 		);
+	overflow: hidden;
 	border-radius: var(--fc-r-lg);
 	width: min(520px, 100%);
 	max-height: min(720px, calc(100dvh - var(--fc-sp-4) * 2));
@@ -3533,6 +3534,7 @@
 	.flashcard-study {
 		gap: 8px;
 		border-radius: 0;
+		padding-bottom: var(--fc-sp-3);
 	}
 
 	.flashcard-content {
