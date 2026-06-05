@@ -3408,8 +3408,8 @@
    Mobile Adaptation
    ============================================= */
 
-/* ── Tablet / Small screens (≤768px) ── */
-@media (max-width: 768px) {
+/* ── Tablet / Small screens (≤991px) ── */
+@media (max-width: 991px) {
 	/* ── Root & container ── */
 	.flashcard-root {
 		--font-size-xs: 11px;
@@ -3828,11 +3828,6 @@
 		padding: var(--fc-sp-2) var(--fc-sp-3);
 	}
 
-	.flashcard-btn-icon {
-		width: 44px;
-		height: 44px;
-	}
-
 	.flashcard-btn-back {
 		font-size: var(--font-size-xs);
 	}
@@ -3864,8 +3859,8 @@
 	}
 }
 
-/* ── Small phones (≤480px) ── */
-@media (max-width: 480px) {
+/* ── Small phones (≤767px) ── */
+@media (max-width: 767px) {
 	.flashcard-root {
 		--font-size-xs: 10px;
 		--font-size-sm: 12px;
@@ -3884,6 +3879,7 @@
 	.flashcard-btn-back {
 		min-height: 0;
 	}
+
 	.flashcard-btn-icon {
 		box-sizing: border-box;
 
