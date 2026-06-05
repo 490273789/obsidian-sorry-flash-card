@@ -1120,7 +1120,6 @@
 }
 
 .flashcard-home-pill:nth-child(2),
-.flashcard-deck-item:nth-child(1),
 .flashcard-stat-card:nth-child(1),
 .flashcard-study-panel:nth-of-type(1),
 .flashcard-stats-summary-item:nth-child(2),
@@ -1129,7 +1128,6 @@
 }
 
 .flashcard-home-pill:nth-child(3),
-.flashcard-deck-item:nth-child(2),
 .flashcard-stat-card:nth-child(2),
 .flashcard-study-panel:nth-of-type(2),
 .flashcard-stats-summary-item:nth-child(3),
@@ -2617,7 +2615,6 @@
 	display: flex;
 	align-items: center;
 	gap: 16px;
-	--flashcard-stagger: 40ms;
 	border-radius: var(--fc-r-md) var(--fc-r-md) 0 0;
 	padding: var(--fc-sp-3) var(--fc-sp-4);
 	border-bottom: 1px solid var(--fc-border);
@@ -2855,7 +2852,12 @@
 /* =============================================
    Final Home Layout Fixes
    ============================================= */
-
+.flashcard-deck-item:nth-child(odd) {
+	--flashcard-stagger: 80ms;
+}
+.flashcard-deck-item:nth-child(even) {
+	--flashcard-stagger: 160ms;
+}
 .flashcard-deck-item {
 	display: flex;
 	cursor: pointer;
@@ -3397,4 +3399,599 @@
 	padding: var(--fc-sp-1) var(--fc-sp-4) 0;
 	box-sizing: border-box;
 	will-change: transform;
+}
+
+/* =============================================
+   Mobile Adaptation
+   ============================================= */
+
+/* ── Tablet / Small screens (≤768px) ── */
+@media (max-width: 768px) {
+	/* ── Root & container ── */
+	.flashcard-root {
+		--font-size-xs: 11px;
+		--font-size-sm: 13px;
+		--font-size-md: 15px;
+		--font-size-lg: 16px;
+		--font-size-xl: 18px;
+		--flashcard-shell-padding: var(--fc-sp-2);
+		border-radius: 0;
+	}
+
+	.flashcard-root::before {
+		background-size: 16px 16px;
+	}
+
+	/* ── Scrollable areas: ensure touch-friendly overscroll ── */
+	.flashcard-home,
+	.flashcard-practice-summary,
+	.flashcard-stats-body,
+	.flashcard-word-list-scroll,
+	.flashcard-content {
+		-webkit-overflow-scrolling: touch;
+	}
+
+	/* ── Header: allow wrapping so left/center/right don't overflow ── */
+	.flashcard-common-header {
+		flex-wrap: wrap;
+		gap: 8px;
+		padding: var(--fc-sp-2) var(--fc-sp-3);
+		border-radius: 0;
+	}
+
+	.flashcard-header-left,
+	.flashcard-header-right {
+		flex: 1 1 auto;
+		min-width: fit-content;
+	}
+
+	.flashcard-header-center {
+		flex: 1 1 100%;
+		order: 3;
+		justify-content: flex-start;
+	}
+
+	/* ── Home / Deck list ── */
+	.flashcard-home {
+		padding: var(--fc-sp-2);
+		gap: 10px;
+	}
+
+	.flashcard-home-hero {
+		padding: var(--fc-sp-3);
+		gap: 8px;
+		border-radius: var(--fc-r-md);
+		position: static;
+	}
+
+	.flashcard-header {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.flashcard-header-actions {
+		flex-wrap: wrap;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.flashcard-deck-item {
+		flex-direction: column;
+		gap: 10px;
+		padding: var(--fc-sp-2);
+	}
+
+	.flashcard-deck-main {
+		width: 100%;
+	}
+
+	.flashcard-deck-side {
+		width: 100%;
+	}
+
+	.flashcard-deck-stats {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+
+	.flashcard-stat {
+		min-width: 0;
+		padding: var(--fc-sp-1) var(--fc-sp-2);
+	}
+
+	.flashcard-deck-actions2,
+	.flashcard-deck-actions3 {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+
+	.flashcard-title {
+		font-size: var(--font-size-lg);
+	}
+
+	.flashcard-home-pills {
+		gap: 8px;
+	}
+
+	.flashcard-home-pill {
+		padding: var(--fc-sp-1) var(--fc-sp-2);
+		font-size: var(--font-size-xs);
+	}
+
+	/* ── Deck info row ── */
+	.flashcard-deck-info {
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+
+	.flashcard-deck-total {
+		font-size: var(--font-size-md);
+		max-width: 24ch;
+	}
+
+	/* ── Study view ── */
+	.flashcard-study {
+		gap: 8px;
+		border-radius: 0;
+	}
+
+	.flashcard-content {
+		padding: var(--fc-sp-3) var(--fc-sp-2);
+		border-radius: 0;
+	}
+
+	.flashcard-markdown {
+		font-size: var(--font-size-md);
+		line-height: 1.6;
+	}
+
+	.flashcard-footer {
+		padding: var(--fc-sp-2);
+		gap: 8px;
+		border-radius: 0;
+	}
+
+	/* ── Rating buttons: stack grid & make touch-friendly ── */
+	.flashcard-response-controls {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.flashcard-rating-grid {
+		flex: 1 1 100%;
+		gap: 8px;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	.flashcard-rating-btn {
+		padding: var(--fc-sp-2) var(--fc-sp-2);
+		min-height: 44px;
+		min-width: 44px;
+		flex: 1 1 auto;
+	}
+
+	.flashcard-rating-label {
+		font-size: var(--font-size-xs);
+	}
+
+	.flashcard-rating-interval {
+		font-size: 10px;
+	}
+
+	.flashcard-btn-prev {
+		width: 40px;
+		height: 40px;
+	}
+
+	/* ── Complete card ── */
+	.flashcard-complete {
+		max-width: 100%;
+		margin: var(--fc-sp-2);
+		padding: var(--fc-sp-3);
+	}
+
+	/* ── Word list ── */
+	.flashcard-word-row {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.flashcard-word-cell {
+		min-height: 100px;
+		padding: var(--fc-sp-2);
+	}
+
+	.flashcard-word-list-header {
+		flex-wrap: wrap;
+		gap: 8px;
+		padding: var(--fc-sp-2);
+	}
+
+	.flashcard-word-list-toolbar {
+		flex-wrap: wrap;
+		padding: var(--fc-sp-2);
+		gap: 6px;
+	}
+
+	/* ── Practice setup ── */
+	.flashcard-practice-setup {
+		gap: 8px;
+	}
+
+	.flashcard-practice-question-selector {
+		padding: var(--fc-sp-3);
+		gap: 10px;
+		margin-bottom: 16px;
+	}
+
+	.flashcard-practice-input-group {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+
+	.flashcard-practice-input {
+		width: 100%;
+		max-width: 120px;
+	}
+
+	.flashcard-practice-quick-buttons {
+		gap: 8px;
+	}
+
+	/* ── Practice view ── */
+	.flashcard-practice-answer-buttons {
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.flashcard-practice-progress-bar {
+		margin: 0 8px;
+	}
+
+	/* ── Practice summary ── */
+	.flashcard-practice-summary {
+		border-radius: 0;
+		padding: var(--fc-sp-2);
+		gap: 8px;
+	}
+
+	.flashcard-practice-summary-stats {
+		padding: var(--fc-sp-3);
+		margin: 0;
+		max-width: 100%;
+	}
+
+	.flashcard-practice-stat-row {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.flashcard-practice-incorrect-section {
+		padding: var(--fc-sp-3);
+		max-width: 100%;
+		margin: 0;
+	}
+
+	.flashcard-practice-incorrect-item {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.flashcard-practice-summary-actions {
+		flex-direction: column;
+		max-width: 100%;
+		gap: 8px;
+	}
+
+	.flashcard-practice-summary-header {
+		padding: var(--fc-sp-2) var(--fc-sp-3);
+		margin-bottom: 16px;
+	}
+
+	/* ── Study setup ── */
+	.flashcard-setup-content {
+		max-width: 100%;
+		margin: 0;
+		gap: 8px;
+	}
+
+	.flashcard-study-hero {
+		padding: var(--fc-sp-2);
+		gap: 10px;
+	}
+
+	.flashcard-study-hero-meta {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+
+	.flashcard-today-stats {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+
+	.flashcard-stat-card {
+		padding: var(--fc-sp-2);
+	}
+
+	.flashcard-study-panel {
+		padding: var(--fc-sp-3);
+	}
+
+	.flashcard-study-order-options {
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+	}
+
+	.flashcard-study-order-btn {
+		padding: var(--fc-sp-2);
+		font-size: var(--font-size-sm);
+	}
+
+	.flashcard-study-day-item {
+		flex-wrap: wrap;
+		gap: 8px;
+		padding: var(--fc-sp-2);
+	}
+
+	.flashcard-study-day-progress {
+		width: 100%;
+		justify-content: flex-end;
+	}
+
+	.flashcard-study-action-bar {
+		flex-direction: column;
+		gap: 8px;
+		align-items: stretch;
+		text-align: center;
+	}
+
+	/* ── Stats view ── */
+	.flashcard-stats-top,
+	.flashcard-common-header {
+		position: static;
+	}
+
+	.flashcard-stats-summary {
+		flex-wrap: wrap;
+		padding: var(--fc-sp-2);
+		gap: 4px;
+		border-radius: 0;
+	}
+
+	.flashcard-stats-summary-divider {
+		height: 24px;
+	}
+
+	.flashcard-stats-summary-item {
+		flex: 1 1 calc(50% - 8px);
+	}
+
+	.flashcard-stats-session {
+		flex-wrap: wrap;
+		gap: 8px;
+		padding: var(--fc-sp-2);
+	}
+
+	.flashcard-stats-session-deck {
+		flex: 1 1 100%;
+	}
+
+	.flashcard-stats-day {
+		padding: var(--fc-sp-2);
+	}
+
+	.flashcard-stats-body {
+		padding: var(--fc-sp-1);
+	}
+
+	.flashcard-stats-range {
+		font-size: 10px;
+	}
+
+	/* ── Modal ── */
+	.flashcard-modal-backdrop {
+		padding: var(--fc-sp-2);
+		align-items: flex-end;
+	}
+
+	.flashcard-modal {
+		width: 100%;
+		max-height: calc(100dvh - var(--fc-sp-2) * 2);
+		border-radius: var(--fc-r-lg) var(--fc-r-lg) 0 0;
+	}
+
+	@keyframes slideUp {
+		from {
+			opacity: 0;
+			transform: translateY(100%);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.flashcard-modal-header {
+		padding: var(--fc-sp-3);
+	}
+
+	.flashcard-modal-body {
+		padding: 0 var(--fc-sp-2) var(--fc-sp-2);
+	}
+
+	.flashcard-modal-footer {
+		padding: var(--fc-sp-2) var(--fc-sp-3) var(--fc-sp-3);
+		flex-wrap: wrap;
+	}
+
+	/* ── Deck settings fields ── */
+	.flashcard-deck-settings-field {
+		padding: var(--fc-sp-2) var(--fc-sp-3);
+	}
+
+	.flashcard-deck-settings-card {
+		padding: var(--fc-sp-2) var(--fc-sp-3);
+	}
+
+	.flashcard-deck-settings-field-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.flashcard-deck-settings-days-inputs {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	/* ── Buttons: ensure all touch targets ≥ 44px ── */
+	.flashcard-btn {
+		min-height: 44px;
+		padding: var(--fc-sp-2) var(--fc-sp-3);
+	}
+
+	.flashcard-btn-icon {
+		width: 44px;
+		height: 44px;
+	}
+
+	.flashcard-btn-back {
+		min-height: 40px;
+		font-size: var(--font-size-xs);
+	}
+
+	.flashcard-practice-btn-icon {
+		min-width: 44px;
+		min-height: 44px;
+	}
+
+	/* ── Settings tab inputs ── */
+	.fc-settings-item {
+		flex-wrap: wrap;
+	}
+
+	.fc-settings-input {
+		font-size: var(--font-size-md);
+		min-height: 44px;
+	}
+
+	.flashcard-tag-input {
+		max-width: 100%;
+	}
+
+	/* ── Empty state ── */
+	.flashcard-empty {
+		padding: var(--fc-sp-3);
+		margin: var(--fc-sp-2);
+	}
+
+	/* ── Question / Answer cards ── */
+	.flashcard-question,
+	.flashcard-answer {
+		padding: var(--fc-sp-3);
+	}
+}
+
+/* ── Small phones (≤480px) ── */
+@media (max-width: 480px) {
+	.flashcard-root {
+		--font-size-xs: 10px;
+		--font-size-sm: 12px;
+		--font-size-md: 14px;
+		--font-size-lg: 15px;
+		--font-size-xl: 17px;
+	}
+
+	/* ── Header: fully stacked ── */
+	.flashcard-common-header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.flashcard-header-left,
+	.flashcard-header-center,
+	.flashcard-header-right {
+		width: 100%;
+		justify-content: flex-start;
+	}
+
+	.flashcard-header-center {
+		order: unset;
+	}
+
+	/* ── Deck stats: stay at 2 but tighter ── */
+	.flashcard-deck-stats {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 6px;
+	}
+
+	.flashcard-deck-actions2,
+	.flashcard-deck-actions3 {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	/* ── Hero pills ── */
+	.flashcard-study-hero-meta {
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+
+	.flashcard-today-stats {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	/* ── Rating buttons: full-width stack ── */
+	.flashcard-rating-grid {
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.flashcard-rating-btn {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	/* ── Study order ── */
+	.flashcard-study-order-options {
+		grid-template-columns: 1fr;
+	}
+
+	/* ── Practice summary stat cards ── */
+	.flashcard-practice-stat-card {
+		padding: var(--fc-sp-2);
+	}
+
+	/* ── Stats summary ── */
+	.flashcard-stats-summary-item {
+		flex: 1 1 100%;
+	}
+
+	.flashcard-stats-summary-divider {
+		display: none;
+	}
+
+	/* ── Progress / timer ── */
+	.flashcard-progress,
+	.flashcard-timer {
+		min-width: 60px;
+		font-size: var(--font-size-sm);
+		padding: var(--fc-sp-1) var(--fc-sp-2);
+	}
+
+	/* ── Modal: bottom sheet style ── */
+	.flashcard-modal {
+		border-radius: var(--fc-r-lg) var(--fc-r-lg) 0 0;
+	}
+
+	/* ── Study day items ── */
+	.flashcard-study-day-name {
+		font-size: var(--font-size-sm);
+	}
+
+	.flashcard-study-hero-pill {
+		padding: var(--fc-sp-2);
+	}
 }
