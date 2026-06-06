@@ -1,14 +1,22 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import {
+	App,
+	PluginSettingTab,
+	Setting,
+	type SettingDefinitionGroup,
+	type SettingDefinitionItem,
+	type SettingDefinitionRender,
+} from "obsidian";
 import type FlashcardPlugin from "./main";
 import { findAllFlashcardTags } from "./parser";
 
-// @ts-ignore VS Code may keep older Obsidian tab typings cached until reload.
-type SettingDefinitions = ReturnType<PluginSettingTab["getSettingDefinitions"]>;
-type GroupDefinition = Extract<
-	SettingDefinitions[number],
-	{ type: "group" | "list" }
->;
-type GroupItem = NonNullable<GroupDefinition["items"]>[number];
+type VisibleDefinition = { visible?: boolean | (() => boolean) };
+type GroupDefinition = SettingDefinitionGroup;
+type RenderableSettingDefinition = SettingDefinitionRender;
+type ImperativeSettingDefinition = VisibleDefinition & {
+	name: string;
+	desc?: string | DocumentFragment;
+	render?: (setting: Setting) => void | (() => void);
+};
 
 export class FlashcardSettingTab extends PluginSettingTab {
 	plugin: FlashcardPlugin;
@@ -19,16 +27,17 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+		this.containerEl.addClass("flashcard-settings-tab");
 	}
 
 	display(): void {
-		// Obsidian 1.13+ renders this tab from getSettingDefinitions().
+		this.renderSettings();
 	}
 
-	getSettingDefinitions(): SettingDefinitions {
+	getSettingDefinitions(): SettingDefinitionItem[] {
 		this.ensureAvailableTagsLoaded();
 
-		const flashcardItems: GroupItem[] = [
+		const flashcardItems: RenderableSettingDefinition[] = [
 			{
 				name: "闪卡标签",
 				desc: "每个标签代表一个题库，插件会扫描所有带有这些标签的文件",
@@ -271,7 +280,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 										),
 									)
 									.onChange(async (value) => {
-										const num = parseInt(value);
+										const num = parseInt(value, 10);
 										if (
 											!isNaN(num) &&
 											num >= 30 &&
@@ -341,7 +350,90 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	private refreshDefinitions(): void {
-		(this as PluginSettingTab & { update?: () => void }).update?.();
+		const tab = this as PluginSettingTab & { update?: () => void };
+		if (typeof tab.update === "function") {
+			tab.update();
+			return;
+		}
+
+		this.renderSettings();
+	}
+
+	private renderSettings(): void {
+		const { containerEl } = this;
+		containerEl.empty();
+		containerEl.addClass("flashcard-settings-tab");
+
+		for (const definition of this.getSettingDefinitions()) {
+			if (!this.isVisible(definition.visible)) {
+				continue;
+			}
+
+			if (this.isGroupDefinition(definition)) {
+				if (definition.heading) {
+					new Setting(containerEl)
+						.setName(definition.heading)
+						.setHeading();
+				}
+
+				for (const item of definition.items ?? []) {
+					this.renderSettingDefinition(containerEl, item);
+				}
+				continue;
+			}
+
+			this.renderSettingDefinition(containerEl, definition);
+		}
+	}
+
+	private isGroupDefinition(
+		definition: SettingDefinitionItem,
+	): definition is GroupDefinition {
+		return (
+			"type" in definition &&
+			(definition.type === "group" || definition.type === "list")
+		);
+	}
+
+	private renderSettingDefinition(
+		parentEl: HTMLElement,
+		definition: unknown,
+	): void {
+		if (!this.isImperativeSettingDefinition(definition)) {
+			return;
+		}
+
+		if (!this.isVisible(definition.visible)) {
+			return;
+		}
+
+		const setting = new Setting(parentEl);
+		setting.setName(definition.name);
+
+		if (definition.desc) {
+			setting.setDesc(definition.desc);
+		}
+
+		definition.render?.(setting);
+	}
+
+	private isImperativeSettingDefinition(
+		definition: unknown,
+	): definition is ImperativeSettingDefinition {
+		return (
+			typeof definition === "object" &&
+			definition !== null &&
+			"name" in definition &&
+			typeof definition.name === "string"
+		);
+	}
+
+	private isVisible(visible: VisibleDefinition["visible"]): boolean {
+		if (typeof visible === "function") {
+			return visible();
+		}
+
+		return visible !== false;
 	}
 
 	private renderEditableTextList(
@@ -365,8 +457,13 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		});
 
 		options.values.forEach((value, index) => {
+			const hasRemoveButton = options.values.length > 1;
 			const item = listContainer.createDiv({
-				cls: `fc-settings-item ${options.itemClass}`,
+				cls: [
+					"fc-settings-item",
+					options.itemClass,
+					hasRemoveButton ? "has-remove" : "",
+				].join(" "),
 			});
 
 			const input = item.createEl("input", {
@@ -380,11 +477,13 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				options.onChange(index, input.value);
 			});
 
-			if (options.values.length > 1) {
+			if (hasRemoveButton) {
 				const removeBtn = item.createEl("button", {
+					type: "button",
 					text: "✕",
 					cls: `fc-btn-remove ${options.removeButtonClass}`,
 				});
+				removeBtn.setAttr("aria-label", "删除");
 				removeBtn.addEventListener("click", () => {
 					options.onRemove(index);
 				});
@@ -392,6 +491,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		});
 
 		const addBtn = listContainer.createEl("button", {
+			type: "button",
 			text: options.addLabel,
 			cls: `fc-btn-add ${options.addButtonClass}`,
 		});

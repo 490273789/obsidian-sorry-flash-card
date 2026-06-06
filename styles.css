@@ -1,4 +1,5 @@
-.flashcard-root {
+.flashcard-root,
+.flashcard-settings-tab {
 	/* ── Typography scale ── */
 	--font-size-xs: 12px;
 	--font-size-sm: 14px;
@@ -349,6 +350,7 @@
 	flex-direction: column;
 	gap: var(--fc-gap-2);
 	margin-bottom: 16px;
+	max-width: min(100%, 640px);
 }
 
 /* Settings item row: input + action button */
@@ -358,9 +360,15 @@
 	gap: var(--fc-gap-2);
 }
 
+/* .fc-settings-item.has-remove {
+	grid-template-columns: minmax(0, 1fr) 34px;
+} */
+
 /* Shared text input style for settings panels */
 .fc-settings-input {
-	flex: 1;
+	width: 100%;
+	min-width: 0;
+	height: 34px;
 	padding: var(--fc-sp-1) var(--fc-sp-2);
 	border: 1px solid var(--background-modifier-border);
 	border-radius: var(--fc-r-2);
@@ -376,12 +384,15 @@
 
 /* Shared remove button for settings lists */
 .fc-btn-remove {
-	padding: var(--fc-sp-1) var(--fc-sp-2);
+	width: 34px;
+	height: 34px;
+	padding: 0;
 	border: 1px solid var(--text-error);
 	border-radius: var(--fc-r-2);
 	background: transparent;
 	color: var(--text-error);
 	font-size: var(--font-size-sm);
+	line-height: 1;
 	cursor: pointer;
 	transition: all 0.2s ease;
 }
@@ -811,9 +822,6 @@
 .flashcard-tag-input,
 .flashcard-message-input {
 	max-width: 400px;
-}
-.flashcard-tag-input {
-	max-width: 250px;
 }
 
 /* =============================================
@@ -3845,13 +3853,22 @@
 	}
 
 	/* ── Settings tab inputs ── */
-	.fc-settings-item {
-		flex-wrap: wrap;
+	/* .fc-settings-item {
+		grid-template-columns: minmax(0, 1fr);
 	}
+
+	.fc-settings-item.has-remove {
+		grid-template-columns: minmax(0, 1fr) 44px;
+	} */
 
 	.fc-settings-input {
 		font-size: var(--font-size-md);
 		min-height: 44px;
+	}
+
+	.fc-btn-remove {
+		width: 44px;
+		height: 44px;
 	}
 
 	.flashcard-tag-input {
