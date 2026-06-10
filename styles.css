@@ -59,9 +59,11 @@
 	--fc-font-data:
 		"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 	--fc-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
-	--fc-glow-cyan: 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.28),
+	--fc-glow-cyan:
+		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.28),
 		0 0 22px rgba(var(--fc-cyan-rgb), 0.14);
-	--fc-glow-magenta: 0 0 0 1px rgba(var(--fc-magenta-rgb), 0.24),
+	--fc-glow-magenta:
+		0 0 0 1px rgba(var(--fc-magenta-rgb), 0.24),
 		0 0 22px rgba(var(--fc-magenta-rgb), 0.12);
 
 	font-family: var(--fc-font-ui);
@@ -80,8 +82,17 @@
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.16);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(120deg, transparent 0 34%, rgba(var(--fc-magenta-rgb), 0.09) 34% 35%, transparent 35% 100%),
-		linear-gradient(180deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 28%),
+		linear-gradient(
+			120deg,
+			transparent 0 34%,
+			rgba(var(--fc-magenta-rgb), 0.09) 34% 35%,
+			transparent 35% 100%
+		),
+		linear-gradient(
+			180deg,
+			rgba(var(--fc-cyan-rgb), 0.08),
+			transparent 28%
+		),
 		linear-gradient(var(--fc-grid) 1px, transparent 1px),
 		linear-gradient(90deg, var(--fc-grid) 1px, transparent 1px),
 		var(--fc-bg);
@@ -215,6 +226,7 @@
 .flashcard-btn {
 	appearance: none;
 	position: relative;
+	min-width: 0;
 	min-height: 38px;
 	display: inline-flex;
 	align-items: center;
@@ -226,6 +238,7 @@
 	background: rgba(16, 21, 33, 0.9);
 	color: var(--fc-text);
 	font: 700 var(--fc-font-sm) / 1.2 var(--fc-font-ui);
+	text-align: center;
 	cursor: pointer;
 	transition:
 		transform 150ms ease,
@@ -233,6 +246,10 @@
 		border-color 150ms ease,
 		background 150ms ease,
 		color 150ms ease;
+}
+
+.flashcard-btn > span {
+	min-width: 0;
 }
 
 .flashcard-root button.flashcard-btn,
@@ -268,7 +285,11 @@
 .flashcard-root button.flashcard-btn-prev {
 	border-color: rgba(var(--fc-cyan-rgb), 0.34);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), rgba(var(--fc-blue-rgb), 0.08)),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.12),
+			rgba(var(--fc-blue-rgb), 0.08)
+		),
 		rgba(10, 15, 28, 0.92);
 	color: var(--fc-text);
 }
@@ -280,31 +301,51 @@
 
 .flashcard-btn-green {
 	border-color: rgba(var(--fc-lime-rgb), 0.42);
-	background: linear-gradient(135deg, rgba(25, 74, 49, 0.95), rgba(9, 112, 94, 0.95));
+	background: linear-gradient(
+		135deg,
+		rgba(25, 74, 49, 0.95),
+		rgba(9, 112, 94, 0.95)
+	);
 	color: #effff4;
 }
 
 .flashcard-btn-blue {
 	border-color: rgba(var(--fc-blue-rgb), 0.45);
-	background: linear-gradient(135deg, rgba(22, 54, 109, 0.95), rgba(11, 105, 137, 0.92));
+	background: linear-gradient(
+		135deg,
+		rgba(22, 54, 109, 0.95),
+		rgba(11, 105, 137, 0.92)
+	);
 	color: #eef8ff;
 }
 
 .flashcard-btn-purple {
 	border-color: rgba(var(--fc-violet-rgb), 0.46);
-	background: linear-gradient(135deg, rgba(70, 36, 126, 0.95), rgba(121, 45, 136, 0.9));
+	background: linear-gradient(
+		135deg,
+		rgba(70, 36, 126, 0.95),
+		rgba(121, 45, 136, 0.9)
+	);
 	color: #f8f2ff;
 }
 
 .flashcard-btn-orange {
 	border-color: rgba(var(--fc-orange-rgb), 0.5);
-	background: linear-gradient(135deg, rgba(112, 55, 16, 0.95), rgba(133, 43, 55, 0.9));
+	background: linear-gradient(
+		135deg,
+		rgba(112, 55, 16, 0.95),
+		rgba(133, 43, 55, 0.9)
+	);
 	color: #fff8ef;
 }
 
 .flashcard-btn-red {
 	border-color: rgba(var(--fc-red-rgb), 0.5);
-	background: linear-gradient(135deg, rgba(122, 26, 48, 0.95), rgba(100, 26, 82, 0.88));
+	background: linear-gradient(
+		135deg,
+		rgba(122, 26, 48, 0.95),
+		rgba(100, 26, 82, 0.88)
+	);
 	color: #fff0f4;
 }
 
@@ -312,13 +353,21 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.28);
 	color: var(--fc-text);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.1), rgba(var(--fc-violet-rgb), 0.08)),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.1),
+			rgba(var(--fc-violet-rgb), 0.08)
+		),
 		rgba(10, 15, 28, 0.88);
 }
 
 .flashcard-root button.flashcard-btn-gray {
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.1), rgba(var(--fc-violet-rgb), 0.08)),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.1),
+			rgba(var(--fc-violet-rgb), 0.08)
+		),
 		rgba(10, 15, 28, 0.88);
 	color: var(--fc-text);
 }
@@ -327,7 +376,11 @@
 .flashcard-active-orang.active {
 	border-color: rgba(var(--fc-magenta-rgb), 0.58);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-magenta-rgb), 0.28), rgba(var(--fc-cyan-rgb), 0.16)),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.28),
+			rgba(var(--fc-cyan-rgb), 0.16)
+		),
 		var(--fc-bg-panel);
 	color: var(--fc-text);
 	box-shadow: var(--fc-glow-magenta);
@@ -345,7 +398,12 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(110deg, transparent 0 40%, rgba(255, 255, 255, 0.32) 50%, transparent 60% 100%);
+	background: linear-gradient(
+		110deg,
+		transparent 0 40%,
+		rgba(255, 255, 255, 0.32) 50%,
+		transparent 60% 100%
+	);
 	transform: translateX(-120%);
 	animation: fc-sheen 5s ease-in-out infinite;
 	pointer-events: none;
@@ -585,6 +643,14 @@
 	grid-template-columns: repeat(4, minmax(74px, 1fr));
 }
 
+.flashcard-stats-summary-item {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	align-items: center;
+	justify-content: center;
+}
+
 .flashcard-stat,
 .flashcard-stat-card,
 .flashcard-stats-summary-item,
@@ -667,7 +733,11 @@
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 40%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.07),
+			transparent 40%
+		),
 		rgba(10, 15, 28, 0.88);
 	box-shadow: var(--fc-shadow);
 }
@@ -688,8 +758,18 @@
 	inset: 0;
 	pointer-events: none;
 	background:
-		linear-gradient(135deg, transparent 0 48%, rgba(var(--fc-magenta-rgb), 0.18) 48% 49%, transparent 49% 100%),
-		linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.08), transparent);
+		linear-gradient(
+			135deg,
+			transparent 0 48%,
+			rgba(var(--fc-magenta-rgb), 0.18) 48% 49%,
+			transparent 49% 100%
+		),
+		linear-gradient(
+			90deg,
+			transparent,
+			rgba(var(--fc-cyan-rgb), 0.08),
+			transparent
+		);
 }
 
 .flashcard-study-hero-copy,
@@ -785,12 +865,20 @@
 	gap: var(--fc-space-2);
 }
 
+.flashcard-study-order-section {
+	min-width: 0;
+}
+
 .flashcard-practice-quick-buttons {
 	grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
 }
 
 .flashcard-study-order-btn {
 	min-height: 46px;
+}
+
+.flashcard-practice-quick-btn {
+	min-width: 0;
 }
 
 .flashcard-study-day-list {
@@ -1000,7 +1088,11 @@
 .flashcard-answer {
 	border-color: rgba(var(--fc-magenta-rgb), 0.2);
 	background:
-		linear-gradient(90deg, rgba(var(--fc-magenta-rgb), 0.08), transparent 42%),
+		linear-gradient(
+			90deg,
+			rgba(var(--fc-magenta-rgb), 0.08),
+			transparent 42%
+		),
 		rgba(16, 21, 33, 0.84);
 }
 
@@ -1044,7 +1136,12 @@
 
 .flashcard-divider {
 	height: 1px;
-	background: linear-gradient(90deg, transparent, rgba(var(--fc-magenta-rgb), 0.48), transparent);
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(var(--fc-magenta-rgb), 0.48),
+		transparent
+	);
 }
 
 .flashcard-footer {
@@ -1140,7 +1237,12 @@
 	position: relative;
 	height: 100%;
 	border-radius: inherit;
-	background: linear-gradient(90deg, var(--fc-cyan), var(--fc-magenta), var(--fc-lime));
+	background: linear-gradient(
+		90deg,
+		var(--fc-cyan),
+		var(--fc-magenta),
+		var(--fc-lime)
+	);
 	transition: width 240ms ease;
 }
 
@@ -1148,7 +1250,12 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.42),
+		transparent
+	);
 	animation: fc-progress-scan 1.8s linear infinite;
 }
 
@@ -1226,6 +1333,10 @@
 	white-space: nowrap;
 }
 
+.flashcard-word-list-header-main {
+	min-width: 0;
+}
+
 .flashcard-word-list-subtitle {
 	margin-top: var(--fc-space-1);
 	color: var(--fc-muted);
@@ -1290,6 +1401,14 @@
 		box-shadow 160ms ease;
 }
 
+.flashcard-word-cell-left {
+	border-left-color: rgba(var(--fc-blue-rgb), 0.36);
+}
+
+.flashcard-word-cell-right {
+	border-left-color: rgba(var(--fc-magenta-rgb), 0.36);
+}
+
 .flashcard-word-cell:hover,
 .flashcard-word-cell:focus-visible {
 	transform: translateY(-1px);
@@ -1302,7 +1421,11 @@
 	border-style: dashed;
 	color: var(--fc-faint);
 	background:
-		repeating-linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055) 0 8px, transparent 8px 16px),
+		repeating-linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.055) 0 8px,
+			transparent 8px 16px
+		),
 		rgba(16, 21, 33, 0.78);
 }
 
@@ -1367,6 +1490,11 @@
 	margin-bottom: var(--fc-space-3);
 	padding: var(--fc-space-4);
 	text-align: center;
+}
+
+.flashcard-practice-stat-accuracy {
+	border-color: rgba(var(--fc-cyan-rgb), 0.26);
+	box-shadow: inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.08);
 }
 
 .flashcard-practice-stat-card .flashcard-practice-stat-value {
@@ -1434,6 +1562,10 @@
 	font-weight: 900;
 }
 
+.flashcard-practice-incorrect-content {
+	min-width: 0;
+}
+
 .flashcard-practice-incorrect-question,
 .flashcard-practice-incorrect-answer {
 	display: grid;
@@ -1473,7 +1605,7 @@
 	flex: 0 0 auto;
 	display: flex;
 	flex-direction: column;
-	overflow: visible;
+	overflow: hidden;
 }
 
 .flashcard-stats-summary {
@@ -1573,6 +1705,17 @@
 	white-space: nowrap;
 }
 
+.flashcard-stats-session-cards,
+.flashcard-stats-session-dur {
+	display: inline-flex;
+	align-items: center;
+	min-height: 24px;
+	padding: 3px 7px;
+	border: 1px solid rgba(139, 159, 181, 0.16);
+	border-radius: var(--fc-radius-pill);
+	background: rgba(16, 21, 33, 0.56);
+}
+
 /* Empty state */
 .flashcard-empty {
 	margin: auto;
@@ -1621,7 +1764,11 @@
 	padding: var(--fc-space-4);
 	overflow-y: auto;
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.12),
+			transparent 38%
+		),
 		rgba(0, 0, 0, 0.74);
 	backdrop-filter: blur(14px);
 	animation: fc-enter 140ms ease-out both;
@@ -1636,7 +1783,9 @@
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.22);
 	border-radius: var(--fc-radius-md);
 	background: var(--fc-bg-elevated);
-	box-shadow: 0 28px 80px rgba(0, 0, 0, 0.48), var(--fc-glow-cyan);
+	box-shadow:
+		0 28px 80px rgba(0, 0, 0, 0.48),
+		var(--fc-glow-cyan);
 }
 
 .flashcard-modal-header,
@@ -1663,6 +1812,11 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-2);
+}
+
+.flashcard-modal-kicker {
+	width: fit-content;
+	max-width: 100%;
 }
 
 .flashcard-modal-title {
@@ -1877,6 +2031,408 @@
 	color: var(--fc-muted);
 }
 
+/* Light theme: tuned to sit closer to Obsidian's native light surfaces. */
+.theme-light .flashcard-root,
+.theme-light .flashcard-settings-tab {
+	--fc-bg: #f6f8fb;
+	--fc-bg-elevated: #ffffff;
+	--fc-bg-panel: #f8fbff;
+	--fc-bg-panel-soft: #eef4fb;
+	--fc-grid: rgba(22, 124, 141, 0.105);
+	--fc-line: rgba(33, 55, 83, 0.16);
+	--fc-line-strong: rgba(20, 135, 151, 0.34);
+	--fc-text: #172033;
+	--fc-muted: #58677a;
+	--fc-faint: #8794a5;
+	--fc-cyan: #0f8797;
+	--fc-blue: #256fba;
+	--fc-magenta: #b23a92;
+	--fc-violet: #7656c7;
+	--fc-lime: #258f56;
+	--fc-amber: #a46e00;
+	--fc-red: #c33b54;
+	--fc-orange: #b85d1f;
+	--fc-cyan-rgb: 15, 135, 151;
+	--fc-blue-rgb: 37, 111, 186;
+	--fc-magenta-rgb: 178, 58, 146;
+	--fc-violet-rgb: 118, 86, 199;
+	--fc-lime-rgb: 37, 143, 86;
+	--fc-amber-rgb: 164, 110, 0;
+	--fc-red-rgb: 195, 59, 84;
+	--fc-orange-rgb: 184, 93, 31;
+	--fc-shadow: 0 14px 34px rgba(35, 49, 68, 0.11);
+	--fc-glow-cyan:
+		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.2),
+		0 10px 24px rgba(var(--fc-cyan-rgb), 0.08);
+	--fc-glow-magenta:
+		0 0 0 1px rgba(var(--fc-magenta-rgb), 0.18),
+		0 10px 24px rgba(var(--fc-magenta-rgb), 0.08);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-root {
+	border-color: rgba(var(--fc-cyan-rgb), 0.2);
+	background:
+		linear-gradient(
+			120deg,
+			transparent 0 34%,
+			rgba(var(--fc-magenta-rgb), 0.055) 34% 35%,
+			transparent 35% 100%
+		),
+		linear-gradient(
+			180deg,
+			rgba(var(--fc-cyan-rgb), 0.08),
+			transparent 34%
+		),
+		linear-gradient(var(--fc-grid) 1px, transparent 1px),
+		linear-gradient(90deg, var(--fc-grid) 1px, transparent 1px),
+		var(--fc-bg);
+}
+
+.theme-light .flashcard-root::before {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 26%),
+		repeating-linear-gradient(
+			180deg,
+			rgba(23, 32, 51, 0.025) 0,
+			rgba(23, 32, 51, 0.025) 1px,
+			transparent 1px,
+			transparent 7px
+		);
+	mix-blend-mode: normal;
+	opacity: 0.55;
+}
+
+.theme-light .flashcard-header,
+.theme-light .flashcard-common-header,
+.theme-light .flashcard-home-hero,
+.theme-light .flashcard-word-list-sticky-top,
+.theme-light .flashcard-stats-top,
+.theme-light .flashcard-deck-item,
+.theme-light .flashcard-study-hero,
+.theme-light .flashcard-study-panel,
+.theme-light .flashcard-practice-question-selector,
+.theme-light .flashcard-practice-info,
+.theme-light .flashcard-study-action-bar,
+.theme-light .flashcard-practice-summary-stats,
+.theme-light .flashcard-practice-incorrect-section,
+.theme-light .flashcard-stats-day,
+.theme-light .flashcard-content,
+.theme-light .flashcard-footer,
+.theme-light .flashcard-empty,
+.theme-light .flashcard-complete,
+.theme-light .flashcard-modal,
+.theme-light .flashcard-practice-summary-header {
+	border-color: var(--fc-line);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.055),
+			transparent 46%
+		),
+		rgba(255, 255, 255, 0.86);
+	box-shadow: var(--fc-shadow);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-question,
+.theme-light .flashcard-answer,
+.theme-light .flashcard-word-cell,
+.theme-light .flashcard-stat,
+.theme-light .flashcard-stat-card,
+.theme-light .flashcard-stats-summary-item,
+.theme-light .flashcard-practice-stat-item,
+.theme-light .flashcard-practice-stat-card,
+.theme-light .flashcard-study-hero-pill,
+.theme-light .flashcard-stats-session,
+.theme-light .flashcard-deck-settings-card,
+.theme-light .flashcard-deck-settings-summary,
+.theme-light .flashcard-deck-settings-field,
+.theme-light .flashcard-practice-input-group,
+.theme-light .flashcard-practice-incorrect-item,
+.theme-light .flashcard-study-day-item,
+.theme-light .flashcard-practice-info-item,
+.theme-light .flashcard-help {
+	border-color: rgba(33, 55, 83, 0.15);
+	background:
+		linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.72),
+			rgba(246, 248, 251, 0.78)
+		),
+		var(--fc-bg-panel);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-answer {
+	border-color: rgba(var(--fc-magenta-rgb), 0.2);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.065),
+			transparent 45%
+		),
+		rgba(255, 255, 255, 0.88);
+}
+
+.theme-light .flashcard-question {
+	border-color: rgba(var(--fc-cyan-rgb), 0.22);
+}
+
+.theme-light .flashcard-markdown,
+.theme-light .flashcard-deck-name,
+.theme-light .flashcard-deck-title,
+.theme-light .flashcard-header-title,
+.theme-light .flashcard-study-action-title,
+.theme-light .flashcard-practice-summary-title,
+.theme-light .flashcard-stats-day-date,
+.theme-light .flashcard-stats-session-deck {
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-progress,
+.theme-light .flashcard-timer,
+.theme-light .flashcard-badge,
+.theme-light .flashcard-stats-range,
+.theme-light .flashcard-deck-badge,
+.theme-light .flashcard-deck-tag,
+.theme-light .fc-pill,
+.theme-light .fc-kicker {
+	background: rgba(255, 255, 255, 0.72);
+	border-color: rgba(var(--fc-cyan-rgb), 0.26);
+	color: var(--fc-cyan);
+}
+
+.theme-light .flashcard-badge,
+.theme-light .fc-kicker {
+	border-color: rgba(var(--fc-magenta-rgb), 0.28);
+	background: rgba(var(--fc-magenta-rgb), 0.07);
+	color: var(--fc-magenta);
+}
+
+.theme-light .flashcard-root button.flashcard-btn,
+.theme-light .flashcard-root .flashcard-btn {
+	border-color: rgba(33, 55, 83, 0.18);
+	background:
+		linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.92),
+			rgba(236, 242, 249, 0.92)
+		),
+		var(--fc-bg-panel);
+	color: var(--fc-text);
+	box-shadow: 0 8px 18px rgba(35, 49, 68, 0.08);
+}
+
+.theme-light .flashcard-root button.flashcard-btn:hover:not(:disabled),
+.theme-light .flashcard-root .flashcard-btn:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-btn:focus-visible {
+	border-color: rgba(var(--fc-cyan-rgb), 0.42);
+	box-shadow: var(--fc-glow-cyan);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-icon,
+.theme-light .flashcard-root button.flashcard-btn-prev,
+.theme-light .flashcard-root button.flashcard-btn-gray {
+	border-color: rgba(var(--fc-cyan-rgb), 0.28);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.08),
+			rgba(var(--fc-blue-rgb), 0.06)
+		),
+		rgba(255, 255, 255, 0.88);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-green {
+	border-color: rgba(var(--fc-lime-rgb), 0.28);
+	background: linear-gradient(
+		135deg,
+		rgba(210, 244, 224, 0.96),
+		rgba(188, 233, 219, 0.96)
+	);
+	color: #164f32;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-blue {
+	border-color: rgba(var(--fc-blue-rgb), 0.3);
+	background: linear-gradient(
+		135deg,
+		rgba(217, 235, 255, 0.98),
+		rgba(193, 226, 242, 0.98)
+	);
+	color: #164d82;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-purple {
+	border-color: rgba(var(--fc-violet-rgb), 0.3);
+	background: linear-gradient(
+		135deg,
+		rgba(232, 224, 255, 0.98),
+		rgba(239, 217, 244, 0.98)
+	);
+	color: #503890;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-orange {
+	border-color: rgba(var(--fc-orange-rgb), 0.32);
+	background: linear-gradient(
+		135deg,
+		rgba(255, 234, 213, 0.98),
+		rgba(249, 219, 205, 0.98)
+	);
+	color: #7f3f18;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-red,
+.theme-light .flashcard-root button.flashcard-practice-btn-wrong {
+	border-color: rgba(var(--fc-red-rgb), 0.34);
+	background: rgba(var(--fc-red-rgb), 0.075);
+	color: var(--fc-red);
+}
+
+.theme-light .flashcard-root button.flashcard-practice-btn-correct {
+	border-color: rgba(var(--fc-lime-rgb), 0.34);
+	background: rgba(var(--fc-lime-rgb), 0.075);
+	color: var(--fc-lime);
+}
+
+.theme-light .flashcard-root button.flashcard-btn.active,
+.theme-light .flashcard-root button.flashcard-study-order-btn.active {
+	border-color: rgba(var(--fc-cyan-rgb), 0.62);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.18),
+			rgba(var(--fc-blue-rgb), 0.1)
+		),
+		rgba(232, 248, 250, 0.96);
+	color: #0d6070;
+	box-shadow:
+		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.18),
+		0 0 0 3px rgba(var(--fc-cyan-rgb), 0.11),
+		0 12px 24px rgba(var(--fc-cyan-rgb), 0.12);
+}
+
+.theme-light .flashcard-root button.flashcard-active-orang.active,
+.theme-light .flashcard-root button.chinese.active {
+	border-color: rgba(var(--fc-orange-rgb), 0.48);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-orange-rgb), 0.17),
+			rgba(var(--fc-amber-rgb), 0.1)
+		),
+		rgba(255, 244, 234, 0.96);
+	color: #7f3f18;
+	box-shadow:
+		inset 0 0 0 1px rgba(var(--fc-orange-rgb), 0.14),
+		0 0 0 3px rgba(var(--fc-orange-rgb), 0.1);
+}
+
+.theme-light .flashcard-root button.shuffle.active {
+	border-color: rgba(var(--fc-lime-rgb), 0.45);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-lime-rgb), 0.16),
+			rgba(var(--fc-cyan-rgb), 0.08)
+		),
+		rgba(237, 250, 241, 0.96);
+	color: #164f32;
+}
+
+.theme-light .flashcard-root button.english.active {
+	border-color: rgba(var(--fc-blue-rgb), 0.46);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-blue-rgb), 0.16),
+			rgba(var(--fc-cyan-rgb), 0.08)
+		),
+		rgba(234, 244, 255, 0.96);
+	color: #164d82;
+}
+
+.theme-light .flashcard-root button.flashcard-study-order-btn.active::after {
+	content: "";
+	position: absolute;
+	inset: 6px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.24);
+	border-radius: calc(var(--fc-radius-sm) - 2px);
+	pointer-events: none;
+}
+
+.theme-light .flashcard-root button.flashcard-study-order-btn.active svg {
+	color: var(--fc-cyan);
+}
+
+.theme-light .flashcard-root button.flashcard-rating-btn {
+	background: rgba(255, 255, 255, 0.78);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-stats-session-cards,
+.theme-light .flashcard-stats-session-dur {
+	border-color: rgba(33, 55, 83, 0.12);
+	background: rgba(255, 255, 255, 0.68);
+}
+
+.theme-light .flashcard-word-cell.masked {
+	background:
+		repeating-linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.055) 0 8px,
+			transparent 8px 16px
+		),
+		rgba(255, 255, 255, 0.76);
+	color: var(--fc-faint);
+}
+
+.theme-light .flashcard-modal-backdrop {
+	background: rgba(232, 239, 248, 0.72);
+}
+
+.theme-light .flashcard-modal-header,
+.theme-light .flashcard-modal-footer,
+.theme-light .flashcard-word-list-toolbar,
+.theme-light .flashcard-stats-summary {
+	background: rgba(246, 248, 251, 0.78);
+	border-color: var(--fc-line);
+}
+
+.theme-light .flashcard-settings-tab {
+	--background-primary: #f6f8fb;
+	--background-secondary: #ffffff;
+	--background-secondary-alt: #eef4fb;
+	--text-normal: var(--fc-text);
+	--text-muted: var(--fc-muted);
+	--text-faint: var(--fc-faint);
+	--text-accent: var(--fc-cyan);
+}
+
+.theme-light .flashcard-settings-tab .setting-item-heading {
+	border-color: rgba(var(--fc-cyan-rgb), 0.18);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 48%),
+		rgba(255, 255, 255, 0.82);
+}
+
+.theme-light .fc-settings-input,
+.theme-light .flashcard-practice-input,
+.theme-light .flashcard-deck-settings-field input[type="number"],
+.theme-light .flashcard-deck-settings-field select {
+	border-color: rgba(33, 55, 83, 0.18);
+	background: rgba(255, 255, 255, 0.86);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-help pre {
+	border-color: rgba(var(--fc-cyan-rgb), 0.16);
+	background: rgba(246, 248, 251, 0.92);
+}
+
 /* Form focus and scrollbars */
 .flashcard-root input:focus,
 .flashcard-root select:focus,
@@ -2076,6 +2632,16 @@
 	.flashcard-practice-stat-row,
 	.flashcard-practice-summary-actions {
 		grid-template-columns: 1fr;
+	}
+
+	.flashcard-deck-actions2,
+	.flashcard-deck-actions3,
+	.flashcard-study-order-options {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.flashcard-practice-quick-buttons {
+		grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
 	}
 
 	.flashcard-word-row {
