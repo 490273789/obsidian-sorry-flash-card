@@ -3000,7 +3000,8 @@
 }
 
 .flashcard-btn {
-	height: auto;
+	min-height: 38px;
+	/* height: auto; */
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -3425,11 +3426,6 @@
 @media (max-width: 991px) {
 	/* ── Root & container ── */
 	.flashcard-root {
-		--font-size-xs: 11px;
-		--font-size-sm: 13px;
-		--font-size-md: 15px;
-		--font-size-lg: 16px;
-		--font-size-xl: 18px;
 		--flashcard-shell-padding: var(--fc-sp-2);
 	}
 
@@ -3772,10 +3768,6 @@
 		padding: var(--fc-sp-2);
 	}
 
-	.flashcard-stats-session-deck {
-		flex: 1 1 100%;
-	}
-
 	.flashcard-stats-day {
 		padding: var(--fc-sp-2);
 	}
@@ -3894,6 +3886,7 @@
 		padding-bottom: 45px;
 	}
 	.flashcard-btn {
+		min-height: 36px;
 		border-radius: var(--fc-r-1);
 	}
 
@@ -3904,14 +3897,14 @@
 
 	.flashcard-btn-icon {
 		box-sizing: border-box;
-		width: 34px;
-		height: 34px;
+		width: 36px;
+		height: 36px;
 		padding: 0;
 	}
 
-	.flashcard-btn-back {
+	/* .flashcard-btn-back {
 		min-height: 0;
-	}
+	} */
 
 	.flashcard-btn-icon svg {
 		width: 16px;
