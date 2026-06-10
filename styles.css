@@ -651,6 +651,7 @@
 	gap: 2px;
 	align-items: center;
 	justify-content: center;
+	padding: var(--fc-space-1);
 }
 
 .flashcard-stat,
@@ -678,7 +679,7 @@
 .flashcard-practice-stat-value,
 .flashcard-stats-summary-value {
 	font-family: var(--fc-font-data);
-	font-size: var(--fc-font-lg);
+	font-size: var(--fc-font-md);
 	font-weight: 900;
 	line-height: 1;
 }
@@ -1944,7 +1945,7 @@
 }
 
 .flashcard-settings-tab .setting-item {
-	padding: var(--fc-space-4) 0;
+	padding: var(--fc-space-4);
 	border-top-color: rgba(139, 159, 181, 0.18);
 }
 
@@ -2570,8 +2571,9 @@
 	.flashcard-root {
 		padding: var(--fc-space-2);
 		border-radius: 0;
-		padding-bottom: env(safe-area-inset-bottom, var(--fc-space-2));
-		/* padding-bottom: 30px; */
+		padding-bottom: calc(
+			env(safe-area-inset-bottom, var(--fc-space-6)) + 10px
+		);
 	}
 
 	.flashcard-home,
@@ -2688,8 +2690,7 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
-	.flashcard-practice-input-group,
-	.fc-settings-item {
+	.flashcard-practice-input-group {
 		align-items: stretch;
 		flex-direction: column;
 	}
@@ -2807,5 +2808,8 @@
 	.flashcard-settings-tab .setting-item {
 		flex-direction: column;
 		align-items: stretch;
+	}
+	.setting-item-info {
+		width: 100%;
 	}
 }
