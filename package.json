@@ -28,7 +28,7 @@
 	},
 	"dependencies": {
 		"lucide-react": "^1.17.0",
-		"obsidian": "latest",
+		"obsidian": "^1.13.1",
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
 		"ts-fsrs": "^5.4.1"
