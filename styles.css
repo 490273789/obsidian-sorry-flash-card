@@ -75,7 +75,7 @@
 	box-sizing: border-box;
 	height: 100%;
 	min-height: 100%;
-	overflow: hidden;
+	/* overflow: hidden; */
 	display: flex;
 	flex-direction: column;
 	padding: var(--fc-space-4);
@@ -2460,16 +2460,15 @@
 
 .flashcard-root ::-webkit-scrollbar,
 .flashcard-settings-tab ::-webkit-scrollbar {
-	width: 10px;
-	height: 10px;
+	display: none;
+	width: 0;
+	height: 0;
 }
 
-.flashcard-root ::-webkit-scrollbar-thumb,
-.flashcard-settings-tab ::-webkit-scrollbar-thumb {
-	border: 3px solid transparent;
-	border-radius: var(--fc-radius-pill);
-	background: rgba(var(--fc-cyan-rgb), 0.35);
-	background-clip: content-box;
+.flashcard-root,
+.flashcard-settings-tab {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
 }
 
 .spinning {
@@ -2571,6 +2570,8 @@
 	.flashcard-root {
 		padding: var(--fc-space-2);
 		border-radius: 0;
+		padding-bottom: env(safe-area-inset-bottom, var(--fc-space-2));
+		/* padding-bottom: 30px; */
 	}
 
 	.flashcard-home,
