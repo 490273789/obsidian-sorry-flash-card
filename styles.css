@@ -388,7 +388,7 @@
 
 .flashcard-btn-show {
 	width: 100%;
-	min-height: 48px;
+	min-height: 50px;
 	overflow: hidden;
 	font-size: var(--fc-font-md);
 	letter-spacing: 0.02em;
@@ -1175,7 +1175,7 @@
 .flashcard-rating-btn {
 	display: flex;
 	flex-direction: column;
-	min-height: 46px;
+	min-height: 55px;
 	padding: var(--fc-space-2);
 }
 
