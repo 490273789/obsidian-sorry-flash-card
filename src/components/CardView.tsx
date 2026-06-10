@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { Brain, PartyPopper, RotateCcw, X } from "lucide-react";
 import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
@@ -6,6 +12,9 @@ import { DataStore } from "../dataStore";
 import { toFSRSRating, getRatingButtons } from "../scheduler";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
+import { MarkdownContent } from "./MarkdownContent";
+import { SessionTimer } from "./SessionTimer";
+import { useWindowKeyDown } from "./hooks";
 
 // Computed once — rating button config is static
 const RATING_BUTTONS = getRatingButtons();
@@ -28,120 +37,25 @@ export const CardView: React.FC<CardViewProps> = ({
 	markdownRenderer,
 }) => {
 	const [showAnswer, setShowAnswer] = useState(false);
-	const [currentCard, setCurrentCard] = useState<FlashCard | null>(null);
 	// isAnimatingRef is the source of truth used inside callbacks/closures
 	// to avoid stale captures; isAnimating state drives the CSS class.
 	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
-	const [elapsedTime, setElapsedTime] = useState(0);
-	const questionRef = useRef<HTMLDivElement>(null);
-	const answerRef = useRef<HTMLDivElement>(null);
 
-	// Get current card
-	useEffect(() => {
+	const currentCard = useMemo<FlashCard | null>(() => {
 		const cardId = session.cardQueue[session.currentIndex];
-		if (cardId) {
-			const card = dataStore.getCard(deck.id, cardId);
-			setCurrentCard(card || null);
-			setShowAnswer(false);
-		} else {
-			setCurrentCard(null);
-		}
+		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
 	}, [session.currentIndex, session.cardQueue, dataStore, deck.id]);
 
-	// Render markdown
 	useEffect(() => {
-		if (currentCard && questionRef.current) {
-			questionRef.current.innerHTML = "";
-			void markdownRenderer(currentCard.question, questionRef.current);
-		}
-	}, [currentCard?.question, markdownRenderer]);
+		setShowAnswer(false);
+	}, [currentCard?.id]);
 
-	useEffect(() => {
-		if (currentCard && showAnswer && answerRef.current) {
-			answerRef.current.innerHTML = "";
-			void markdownRenderer(currentCard.answer, answerRef.current);
-		}
-	}, [currentCard?.answer, showAnswer, markdownRenderer]);
-
-	// Timer
-	useEffect(() => {
-		const interval = window.setInterval(() => {
-			setElapsedTime(Math.floor((Date.now() - session.startTime) / 1000));
-		}, 1000);
-		return () => window.clearInterval(interval);
-	}, [session.startTime]);
-
-	// Keyboard shortcuts
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			// Ignore if in input field
-			if (
-				e.target instanceof HTMLInputElement ||
-				e.target instanceof HTMLTextAreaElement
-			) {
-				return;
-			}
-
-			if (!showAnswer) {
-				// Show answer on space
-				if (e.code === "Space") {
-					e.preventDefault();
-					setShowAnswer(true);
-				}
-			} else {
-				// Rating shortcuts
-				switch (e.code) {
-					case "Digit1":
-					case "Numpad1":
-						e.preventDefault();
-						void handleRating(1);
-						break;
-					case "Digit2":
-					case "Numpad2":
-						e.preventDefault();
-						void handleRating(2);
-						break;
-					case "Digit3":
-					case "Numpad3":
-					case "Space":
-						e.preventDefault();
-						void handleRating(3);
-						break;
-					case "Digit4":
-					case "Numpad4":
-						e.preventDefault();
-						void handleRating(4);
-						break;
-					case "Digit5":
-					case "Numpad5":
-						e.preventDefault();
-						void handleRating(5);
-						break;
-					case "Digit6":
-					case "Numpad6":
-						e.preventDefault();
-						handlePrevious();
-						break;
-				}
-			}
-		};
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [showAnswer, currentCard, session]);
-
-	const formatTime = (seconds: number): string => {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-	};
-
-	const handleShowAnswer = () => {
+	const handleShowAnswer = useCallback(() => {
 		setShowAnswer(true);
-	};
+	}, []);
 
-	const handleRating = async (rating: 1 | 2 | 3 | 4 | 5) => {
+	const handleRating = useCallback(async (rating: 1 | 2 | 3 | 4 | 5) => {
 		if (!currentCard || isAnimatingRef.current) return;
 
 		isAnimatingRef.current = true;
@@ -167,12 +81,19 @@ export const CardView: React.FC<CardViewProps> = ({
 		await dataStore.updateCard(deck.id, currentCard.id, updatedCard);
 
 		// Update session
-		const newSession = { ...session };
-		newSession.history.push(currentCard.id);
+		const newSession: StudySession = {
+			...session,
+			cardQueue: [...session.cardQueue],
+			repeatQueue: [...session.repeatQueue],
+			history: [...session.history, currentCard.id],
+		};
 
 		if (repeatInSession) {
 			// Add to repeat queue for later in this session
-			newSession.repeatQueue.push(currentCard.id);
+			newSession.repeatQueue = [
+				...newSession.repeatQueue,
+				currentCard.id,
+			];
 		}
 
 		// Move to next card
@@ -200,32 +121,93 @@ export const CardView: React.FC<CardViewProps> = ({
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
-	};
+	}, [currentCard, dataStore, deck.id, onClose, onSessionUpdate, session]);
 
-	const handlePrevious = () => {
+	const handlePrevious = useCallback(() => {
 		if (session.history.length === 0 || isAnimatingRef.current) return;
 
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
-		const newSession = { ...session };
-		const previousCardId = newSession.history.pop();
+		const newHistory = [...session.history];
+		const previousCardId = newHistory.pop();
 
-		if (previousCardId) {
-			// Insert previous card at current position
-			newSession.cardQueue = [
-				...newSession.cardQueue.slice(0, newSession.currentIndex),
-				previousCardId,
-				...newSession.cardQueue.slice(newSession.currentIndex),
-			];
+		if (!previousCardId) {
+			isAnimatingRef.current = false;
+			setIsAnimating(false);
+			return;
 		}
+
+		const newSession: StudySession = {
+			...session,
+			history: newHistory,
+			cardQueue: [
+				...session.cardQueue.slice(0, session.currentIndex),
+				previousCardId,
+				...session.cardQueue.slice(session.currentIndex),
+			],
+		};
 
 		window.setTimeout(() => {
 			onSessionUpdate(newSession);
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
-	};
+	}, [onSessionUpdate, session]);
+
+	useWindowKeyDown((e) => {
+		// Ignore if in input field
+		if (
+			e.target instanceof HTMLInputElement ||
+			e.target instanceof HTMLTextAreaElement
+		) {
+			return;
+		}
+
+		if (!showAnswer) {
+			// Show answer on space
+			if (e.code === "Space") {
+				e.preventDefault();
+				setShowAnswer(true);
+			}
+			return;
+		}
+
+		// Rating shortcuts
+		switch (e.code) {
+			case "Digit1":
+			case "Numpad1":
+				e.preventDefault();
+				void handleRating(1);
+				break;
+			case "Digit2":
+			case "Numpad2":
+				e.preventDefault();
+				void handleRating(2);
+				break;
+			case "Digit3":
+			case "Numpad3":
+			case "Space":
+				e.preventDefault();
+				void handleRating(3);
+				break;
+			case "Digit4":
+			case "Numpad4":
+				e.preventDefault();
+				void handleRating(4);
+				break;
+			case "Digit5":
+			case "Numpad5":
+				e.preventDefault();
+				void handleRating(5);
+				break;
+			case "Digit6":
+			case "Numpad6":
+				e.preventDefault();
+				handlePrevious();
+				break;
+		}
+	});
 
 	// Check if session is complete
 	if (!currentCard) {
@@ -235,7 +217,10 @@ export const CardView: React.FC<CardViewProps> = ({
 					<PartyPopper size={48} />
 				</div>
 				<div>学习完成!</div>
-				<p>本次学习时长: {formatTime(elapsedTime)}</p>
+				<p>
+					本次学习时长:{" "}
+					<SessionTimer startTime={session.startTime} />
+				</p>
 				<FlashcardButton variant="green" onClick={onClose}>
 					Back to Deck
 				</FlashcardButton>
@@ -262,9 +247,10 @@ export const CardView: React.FC<CardViewProps> = ({
 				}
 				right={
 					<>
-						<div className="flashcard-timer">
-							{formatTime(elapsedTime)}
-						</div>
+						<SessionTimer
+							startTime={session.startTime}
+							className="flashcard-timer"
+						/>
 						<FlashcardButton
 							preset="icon"
 							icon={X}
@@ -283,7 +269,11 @@ export const CardView: React.FC<CardViewProps> = ({
 					<div className="flashcard-label flashcard-label-question">
 						Question
 					</div>
-					<div ref={questionRef} className="flashcard-markdown" />
+					<MarkdownContent
+						content={currentCard.question}
+						className="flashcard-markdown"
+						markdownRenderer={markdownRenderer}
+					/>
 				</div>
 
 				{showAnswer && (
@@ -293,9 +283,10 @@ export const CardView: React.FC<CardViewProps> = ({
 							<div className="flashcard-label flashcard-label-answer">
 								Answer
 							</div>
-							<div
-								ref={answerRef}
+							<MarkdownContent
+								content={currentCard.answer}
 								className="flashcard-markdown"
+								markdownRenderer={markdownRenderer}
 							/>
 						</div>
 					</div>

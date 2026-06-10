@@ -564,6 +564,8 @@
 }
 
 .flashcard-deck-item {
+	content-visibility: auto;
+	contain-intrinsic-size: 0 168px;
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(260px, 0.55fr);
 	gap: var(--fc-space-4);
@@ -751,6 +753,11 @@
 	padding: var(--fc-space-5);
 }
 
+.flashcard-stats-day {
+	content-visibility: auto;
+	contain-intrinsic-size: 0 160px;
+}
+
 .flashcard-study-hero::before,
 .flashcard-practice-summary-header::before {
 	content: "";
@@ -888,6 +895,8 @@
 }
 
 .flashcard-study-day-item {
+	content-visibility: auto;
+	contain-intrinsic-size: 0 64px;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -1379,6 +1388,8 @@
 }
 
 .flashcard-word-row {
+	content-visibility: auto;
+	contain-intrinsic-size: 0 118px;
 	display: grid;
 	grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
 	gap: var(--fc-space-3);
@@ -1540,6 +1551,8 @@
 }
 
 .flashcard-practice-incorrect-item {
+	content-visibility: auto;
+	contain-intrinsic-size: 0 96px;
 	display: grid;
 	grid-template-columns: 34px minmax(0, 1fr);
 	gap: var(--fc-space-3);

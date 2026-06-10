@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { memo, useMemo } from "react";
 import {
 	FileText,
 	Check,
@@ -11,6 +11,7 @@ import {
 import { Deck, FlashCard, PracticeResult, FlashcardSettings } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
+import { MarkdownContent } from "./MarkdownContent";
 
 interface PracticeSummaryProps {
 	deck: Deck;
@@ -23,6 +24,25 @@ interface PracticeSummaryProps {
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
 
+function formatTime(seconds: number): string {
+	const mins = Math.floor(seconds / 60);
+	const secs = seconds % 60;
+	return `${mins}分${secs}秒`;
+}
+
+function getRandomMessage(messages: string[]): string {
+	if (messages.length === 0) return "刷题完成！";
+	const randomIndex = Math.floor(Math.random() * messages.length);
+	return messages[randomIndex] || "刷题完成！";
+}
+
+function getAccuracyColor(accuracy: number): string {
+	if (accuracy >= 90) return "var(--color-green)";
+	if (accuracy >= 70) return "var(--color-blue)";
+	if (accuracy >= 50) return "var(--color-orange)";
+	return "var(--color-red)";
+}
+
 export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	deck,
 	dataStore,
@@ -33,44 +53,39 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	onHome,
 	markdownRenderer,
 }) => {
-	const formatTime = (seconds: number): string => {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins}分${secs}秒`;
-	};
-
-	const getRandomMessage = (messages: string[]): string => {
-		if (messages.length === 0) return "刷题完成！";
-		const randomIndex = Math.floor(Math.random() * messages.length);
-		return messages[randomIndex] || "刷题完成！";
-	};
-
-	const getCompletionMessage = (): string => {
+	const completionMessage = useMemo(() => {
 		if (result.incorrectCount === 0) {
 			// 全对，使用全对文案
 			return getRandomMessage(settings.practicePerfectMessages);
-		} else {
-			// 有错题，使用错题文案
-			return getRandomMessage(settings.practiceErrorMessages);
 		}
-	};
 
-	const getAccuracyColor = (accuracy: number): string => {
-		if (accuracy >= 90) return "var(--color-green)";
-		if (accuracy >= 70) return "var(--color-blue)";
-		if (accuracy >= 50) return "var(--color-orange)";
-		return "var(--color-red)";
-	};
+		// 有错题，使用错题文案
+		return getRandomMessage(settings.practiceErrorMessages);
+	}, [
+		result.incorrectCount,
+		settings.practiceErrorMessages,
+		settings.practicePerfectMessages,
+	]);
 
-	const incorrectCards: FlashCard[] = result.incorrectCardIds
-		.map((id) => dataStore.getCard(deck.id, id))
-		.filter((card): card is FlashCard => card !== undefined);
+	const cardById = useMemo(
+		() => new Map(deck.cards.map((card) => [card.id, card])),
+		[deck.cards],
+	);
+
+	const incorrectCards: FlashCard[] = useMemo(() => {
+		const cards: FlashCard[] = [];
+		for (const id of result.incorrectCardIds) {
+			const card = cardById.get(id) ?? dataStore.getCard(deck.id, id);
+			if (card) cards.push(card);
+		}
+		return cards;
+	}, [cardById, dataStore, deck.id, result.incorrectCardIds]);
 
 	return (
 		<div className="flashcard-practice-summary">
 			<div className="flashcard-practice-summary-header">
 				<div className="flashcard-practice-summary-title">
-					{getCompletionMessage()}
+					{completionMessage}
 				</div>
 				<div className="flashcard-practice-summary-deck">
 					{deck.name} · 共 {result.totalQuestions} 题 · 用时{" "}
@@ -183,25 +198,11 @@ interface IncorrectCardItemProps {
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
 
-const IncorrectCardItem: React.FC<IncorrectCardItemProps> = ({
+const IncorrectCardItem = memo(function IncorrectCardItem({
 	card,
 	index,
 	markdownRenderer,
-}) => {
-	const questionRef = useRef<HTMLDivElement>(null);
-	const answerRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		if (questionRef.current) {
-			questionRef.current.innerHTML = "";
-			void markdownRenderer(card.question, questionRef.current);
-		}
-		if (answerRef.current) {
-			answerRef.current.innerHTML = "";
-			void markdownRenderer(card.answer, answerRef.current);
-		}
-	}, [card, markdownRenderer]);
-
+}: IncorrectCardItemProps) {
 	return (
 		<div className="flashcard-practice-incorrect-item fc-lift">
 			<div className="flashcard-practice-incorrect-index">{index}</div>
@@ -210,21 +211,23 @@ const IncorrectCardItem: React.FC<IncorrectCardItemProps> = ({
 					<span className="flashcard-practice-incorrect-label">
 						问:
 					</span>
-					<div
-						ref={questionRef}
+					<MarkdownContent
+						content={card.question}
 						className="flashcard-practice-incorrect-text"
+						markdownRenderer={markdownRenderer}
 					/>
 				</div>
 				<div className="flashcard-practice-incorrect-answer">
 					<span className="flashcard-practice-incorrect-label">
 						答:
 					</span>
-					<div
-						ref={answerRef}
+					<MarkdownContent
+						content={card.answer}
 						className="flashcard-practice-incorrect-text"
+						markdownRenderer={markdownRenderer}
 					/>
 				</div>
 			</div>
 		</div>
 	);
-};
+});

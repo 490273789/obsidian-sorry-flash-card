@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, {
+	memo,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import ReactDOM from "react-dom";
 import {
 	BookOpen,
@@ -24,7 +30,6 @@ import { FlashcardButton } from "./FlashcardButton";
 
 interface DeckSettingsModalProps {
 	deckName: string;
-	deckId: string;
 	totalCards: number;
 	globalSettings: FlashcardSettings;
 	deckOverrides: Partial<StudySettings> | undefined;
@@ -32,15 +37,14 @@ interface DeckSettingsModalProps {
 	onClose: () => void;
 }
 
-const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
+const DeckSettingsModal = memo(function DeckSettingsModal({
 	deckName,
-	deckId: _deckId,
 	totalCards,
 	globalSettings,
 	deckOverrides,
 	onSave,
 	onClose,
-}) => {
+}: DeckSettingsModalProps) {
 	const [useCustom, setUseCustom] = useState(deckOverrides !== undefined);
 
 	const effective = {
@@ -329,7 +333,177 @@ const DeckSettingsModal: React.FC<DeckSettingsModalProps> = ({
 	const container =
 		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
 	return ReactDOM.createPortal(modal, container);
-};
+});
+
+interface HomeTotals {
+	totalCards: number;
+	newCards: number;
+	dueCards: number;
+	studyCount: number;
+}
+
+interface HomeStatsBarProps {
+	deckCount: number;
+	totals: HomeTotals;
+}
+
+const HomeStatsBar = memo(function HomeStatsBar({
+	deckCount,
+	totals,
+}: HomeStatsBarProps) {
+	return (
+		<div className="flashcard-home-pills">
+			<span className="flashcard-home-pill fc-pill">
+				<Layers3 size={16} />
+				<span className="blue">{deckCount}</span>decks
+			</span>
+			<span className="flashcard-home-pill fc-pill">
+				<Brain size={16} />
+				<span className="green">{totals.newCards}</span>new cards
+			</span>
+			<span className="flashcard-home-pill fc-pill">
+				<ScanEye size={16} />
+				<span className="red">{totals.dueCards}</span>
+				review cards
+			</span>
+			<span className="flashcard-home-pill fc-pill">
+				<Calculator size={16} />
+				<span className="purple">{totals.totalCards}</span>
+				total cards
+			</span>
+			<span className="flashcard-home-pill fc-pill">
+				<NotebookPen size={16} />
+				<span className="orange">{totals.studyCount}</span>
+				study count
+			</span>
+		</div>
+	);
+});
+
+interface DeckCardProps {
+	deck: Deck;
+	deckStats: DeckStats | undefined;
+	onSelectDeck: (deckId: string) => void;
+	onOpenWordList: (deckId: string) => void;
+	onStartPractice: (deckId: string) => void;
+	onOpenSourceFile: (filePath: string) => void;
+	onOpenSettings: (deckId: string) => void;
+}
+
+const DeckCard = memo(function DeckCard({
+	deck,
+	deckStats,
+	onSelectDeck,
+	onOpenWordList,
+	onStartPractice,
+	onOpenSourceFile,
+	onOpenSettings,
+}: DeckCardProps) {
+	return (
+		<article className="flashcard-deck-item fc-lift">
+			<div className="flashcard-deck-main">
+				<div className="flashcard-deck-info">
+					<div className="flashcard-deck-name">{deck.name}</div>
+					<span className="flashcard-deck-badge fc-pill">
+						{deck.tag}
+					</span>
+				</div>
+				<div className="flashcard-deck-stats">
+					<div className="flashcard-stat">
+						<span className="flashcard-stat-value orange">
+							{deckStats?.totalCards || 0}
+						</span>
+						<span className="flashcard-stat-label">Total</span>
+					</div>
+					<div className="flashcard-stat">
+						<span className="flashcard-stat-value blue">
+							{deckStats?.newCards || 0}
+						</span>
+						<span className="flashcard-stat-label">New</span>
+					</div>
+					<div className="flashcard-stat">
+						<span className="flashcard-stat-value green">
+							{deckStats?.dueCards || 0}
+						</span>
+						<span className="flashcard-stat-label">
+							ToBeReviewed
+						</span>
+					</div>
+					<div className="flashcard-stat">
+						<span className="flashcard-stat-value purple">
+							{deck.studyCount}
+						</span>
+						<span className="flashcard-stat-label">
+							Study Count
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<div className="flashcard-deck-side">
+				<div className="flashcard-deck-actions2">
+					<FlashcardButton
+						variant="purple"
+						icon={Brain}
+						onClick={(e) => {
+							e.stopPropagation();
+							onSelectDeck(deck.id);
+						}}
+						title="学习模式"
+					>
+						<span>Study</span>
+					</FlashcardButton>
+					<FlashcardButton
+						variant="blue"
+						icon={Target}
+						onClick={(e) => {
+							e.stopPropagation();
+							onStartPractice(deck.id);
+						}}
+						title="刷题模式"
+					>
+						<span>Practice</span>
+					</FlashcardButton>
+				</div>
+				<div className="flashcard-deck-actions3">
+					<FlashcardButton
+						variant="orange"
+						icon={List}
+						onClick={(e) => {
+							e.stopPropagation();
+							onOpenWordList(deck.id);
+						}}
+						title="单词List"
+					>
+						<span>List</span>
+					</FlashcardButton>
+					<FlashcardButton
+						variant="green"
+						icon={FileText}
+						onClick={(e) => {
+							e.stopPropagation();
+							onOpenSourceFile(deck.filePath);
+						}}
+						title="打开源文件"
+					>
+						<span>Source</span>
+					</FlashcardButton>
+					<FlashcardButton
+						variant="gray"
+						icon={Settings}
+						onClick={(e) => {
+							e.stopPropagation();
+							onOpenSettings(deck.id);
+						}}
+						title="学习设置"
+					>
+						<span>Setting</span>
+					</FlashcardButton>
+				</div>
+			</div>
+		</article>
+	);
+});
 
 // ── DeckList ─────────────────────────────────────────────────────────────────
 
@@ -360,29 +534,30 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onOpenStats,
 }) => {
 	const [decks, setDecks] = useState<Deck[]>([]);
-	const [stats, setStats] = useState<Map<string, DeckStats>>(new Map());
 	const [isLoading, setIsLoading] = useState(false);
 	const [modalDeckId, setModalDeckId] = useState<string | null>(null);
 
 	const loadDecks = useCallback(() => {
 		const allDecks = dataStore.getAllDecks();
 		setDecks(allDecks);
-
-		const newStats = new Map<string, DeckStats>();
-		for (const deck of allDecks) {
-			newStats.set(deck.id, dataStore.getDeckStats(deck));
-		}
-		setStats(newStats);
 	}, [dataStore]);
 
 	useEffect(() => {
 		loadDecks();
 	}, [loadDecks]);
 
-	const totals = useMemo(() => {
+	const deckStatsById = useMemo(() => {
+		const nextStats = new Map<string, DeckStats>();
+		for (const deck of decks) {
+			nextStats.set(deck.id, dataStore.getDeckStats(deck));
+		}
+		return nextStats;
+	}, [dataStore, decks]);
+
+	const totals = useMemo<HomeTotals>(() => {
 		return decks.reduce(
 			(accumulator, deck) => {
-				const deckStats = stats.get(deck.id);
+				const deckStats = deckStatsById.get(deck.id);
 				accumulator.totalCards += deckStats?.totalCards ?? 0;
 				accumulator.newCards += deckStats?.newCards ?? 0;
 				accumulator.dueCards += deckStats?.dueCards ?? 0;
@@ -391,9 +566,9 @@ export const DeckList: React.FC<DeckListProps> = ({
 			},
 			{ totalCards: 0, newCards: 0, dueCards: 0, studyCount: 0 },
 		);
-	}, [decks, stats]);
+	}, [decks, deckStatsById]);
 
-	const handleRefresh = async () => {
+	const handleRefresh = useCallback(async () => {
 		setIsLoading(true);
 		try {
 			await onRefresh();
@@ -401,7 +576,24 @@ export const DeckList: React.FC<DeckListProps> = ({
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}, [loadDecks, onRefresh]);
+
+	const handleCloseModal = useCallback(() => {
+		setModalDeckId(null);
+	}, []);
+
+	const handleSaveDeckSettings = useCallback(
+		async (overrides: Partial<StudySettings> | null) => {
+			if (modalDeckId === null) return;
+			await onUpdateDeckStudySettings(modalDeckId, overrides);
+		},
+		[modalDeckId, onUpdateDeckStudySettings],
+	);
+
+	const modalDeck = useMemo(
+		() => decks.find((deck) => deck.id === modalDeckId),
+		[decks, modalDeckId],
+	);
 
 	return (
 		<div className="flashcard-home">
@@ -427,32 +619,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 						/>
 					</div>
 				</div>
-				<div className="flashcard-home-pills">
-					<span className="flashcard-home-pill fc-pill">
-						<Layers3 size={16} />
-						<span className="blue">{decks.length}</span>decks
-					</span>
-					<span className="flashcard-home-pill fc-pill">
-						<Brain size={16} />
-						<span className="green">{totals.newCards}</span>new
-						cards
-					</span>
-					<span className="flashcard-home-pill fc-pill">
-						<ScanEye size={16} />
-						<span className="red">{totals.dueCards}</span>
-						review cards
-					</span>
-					<span className="flashcard-home-pill fc-pill">
-						<Calculator size={16} />
-						<span className="purple">{totals.totalCards}</span>
-						total cards
-					</span>
-					<span className="flashcard-home-pill fc-pill">
-						<NotebookPen size={16} />
-						<span className="orange">{totals.studyCount}</span>
-						study count
-					</span>
-				</div>
+				<HomeStatsBar deckCount={decks.length} totals={totals} />
 			</div>
 
 			{decks.length === 0 ? (
@@ -467,148 +634,31 @@ export const DeckList: React.FC<DeckListProps> = ({
 				</div>
 			) : (
 				<div className="flashcard-deck-list">
-					{decks.map((deck) => {
-						const deckStats = stats.get(deck.id);
-						return (
-							<article
-								key={deck.id}
-								className="flashcard-deck-item fc-lift"
-							>
-								<div className="flashcard-deck-main">
-									<div className="flashcard-deck-info">
-										<div className="flashcard-deck-name">
-											{deck.name}
-										</div>
-										<span className="flashcard-deck-badge fc-pill">
-											{deck.tag}
-										</span>
-									</div>
-									<div className="flashcard-deck-stats">
-										<div className="flashcard-stat">
-											<span className="flashcard-stat-value orange">
-												{deckStats?.totalCards || 0}
-											</span>
-											<span className="flashcard-stat-label">
-												Total
-											</span>
-										</div>
-										<div className="flashcard-stat">
-											<span className="flashcard-stat-value blue">
-												{deckStats?.newCards || 0}
-											</span>
-											<span className="flashcard-stat-label">
-												New
-											</span>
-										</div>
-										<div className="flashcard-stat">
-											<span className="flashcard-stat-value green">
-												{deckStats?.dueCards || 0}
-											</span>
-											<span className="flashcard-stat-label">
-												ToBeReviewed
-											</span>
-										</div>
-										<div className="flashcard-stat">
-											<span className="flashcard-stat-value purple">
-												{deck.studyCount}
-											</span>
-											<span className="flashcard-stat-label">
-												Study Count
-											</span>
-										</div>
-									</div>
-								</div>
-
-								<div className="flashcard-deck-side">
-									<div className="flashcard-deck-actions2">
-										<FlashcardButton
-											variant="purple"
-											icon={Brain}
-											onClick={(e) => {
-												e.stopPropagation();
-												onSelectDeck(deck.id);
-											}}
-											title="学习模式"
-										>
-											<span>Study</span>
-										</FlashcardButton>
-										<FlashcardButton
-											variant="blue"
-											icon={Target}
-											onClick={(e) => {
-												e.stopPropagation();
-												onStartPractice(deck.id);
-											}}
-											title="刷题模式"
-										>
-											<span>Practice</span>
-										</FlashcardButton>
-									</div>
-									<div className="flashcard-deck-actions3">
-										<FlashcardButton
-											variant="orange"
-											icon={List}
-											onClick={(e) => {
-												e.stopPropagation();
-												onOpenWordList(deck.id);
-											}}
-											title="单词List"
-										>
-											<span>List</span>
-										</FlashcardButton>
-										<FlashcardButton
-											variant="green"
-											icon={FileText}
-											onClick={(e) => {
-												e.stopPropagation();
-												onOpenSourceFile(deck.filePath);
-											}}
-											title="打开源文件"
-										>
-											<span>Source</span>
-										</FlashcardButton>
-										<FlashcardButton
-											variant="gray"
-											icon={Settings}
-											onClick={(e) => {
-												e.stopPropagation();
-												setModalDeckId(deck.id);
-											}}
-											title="学习设置"
-										>
-											<span>Setting</span>
-										</FlashcardButton>
-									</div>
-								</div>
-							</article>
-						);
-					})}
+					{decks.map((deck) => (
+						<DeckCard
+							key={deck.id}
+							deck={deck}
+							deckStats={deckStatsById.get(deck.id)}
+							onSelectDeck={onSelectDeck}
+							onOpenWordList={onOpenWordList}
+							onStartPractice={onStartPractice}
+							onOpenSourceFile={onOpenSourceFile}
+							onOpenSettings={setModalDeckId}
+						/>
+					))}
 				</div>
 			)}
 
-			{modalDeckId !== null &&
-				(() => {
-					const modalDeck = decks.find((d) => d.id === modalDeckId);
-					if (!modalDeck) return null;
-					return (
-						<DeckSettingsModal
-							deckName={modalDeck.name}
-							deckId={modalDeckId}
-							totalCards={modalDeck.cards.length}
-							globalSettings={settings}
-							deckOverrides={
-								settings.deckStudySettings?.[modalDeckId]
-							}
-							onSave={async (overrides) => {
-								await onUpdateDeckStudySettings(
-									modalDeckId,
-									overrides,
-								);
-							}}
-							onClose={() => setModalDeckId(null)}
-						/>
-					);
-				})()}
+			{modalDeckId !== null && modalDeck && (
+				<DeckSettingsModal
+					deckName={modalDeck.name}
+					totalCards={modalDeck.cards.length}
+					globalSettings={settings}
+					deckOverrides={settings.deckStudySettings?.[modalDeckId]}
+					onSave={handleSaveDeckSettings}
+					onClose={handleCloseModal}
+				/>
+			)}
 		</div>
 	);
 };

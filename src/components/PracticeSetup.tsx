@@ -10,6 +10,8 @@ import { Deck } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 
+const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
+
 interface PracticeSetupProps {
 	deck: Deck;
 	onStartPractice: (questionCount: number) => void;
@@ -141,7 +143,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					</div>
 					{/* flashcard-practice-quick-btn */}
 					<div className="flashcard-practice-quick-buttons">
-						{[20, 50, 100, 150, 200].map((count) => (
+						{QUICK_QUESTION_COUNTS.map((count) => (
 							<FlashcardButton
 								key={count}
 								className="flashcard-active-orang"

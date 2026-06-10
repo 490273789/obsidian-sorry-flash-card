@@ -1,9 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { Target, X, Check } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
+import { MarkdownContent } from "./MarkdownContent";
+import { SessionTimer } from "./SessionTimer";
+import { useWindowKeyDown } from "./hooks";
 
 interface PracticeViewProps {
 	dataStore: DataStore;
@@ -25,105 +34,36 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	markdownRenderer,
 }) => {
 	const [showAnswer, setShowAnswer] = useState(false);
-	const [currentCard, setCurrentCard] = useState<FlashCard | null>(null);
+	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
-	const [elapsedTime, setElapsedTime] = useState(0);
-	const questionRef = useRef<HTMLDivElement>(null);
-	const answerRef = useRef<HTMLDivElement>(null);
 
-	// Get current card
-	useEffect(() => {
+	const currentCard = useMemo<FlashCard | null>(() => {
 		const cardId = session.cardQueue[session.currentIndex];
-		if (cardId) {
-			const card = dataStore.getCard(deck.id, cardId);
-			setCurrentCard(card || null);
-			setShowAnswer(false);
-		} else {
-			setCurrentCard(null);
-		}
+		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
 	}, [session.currentIndex, session.cardQueue, dataStore, deck.id]);
 
-	// Render markdown
 	useEffect(() => {
-		if (currentCard && questionRef.current) {
-			questionRef.current.innerHTML = "";
-			void markdownRenderer(currentCard.question, questionRef.current);
-		}
-	}, [currentCard?.question, markdownRenderer]);
+		setShowAnswer(false);
+	}, [currentCard?.id]);
 
-	useEffect(() => {
-		if (currentCard && showAnswer && answerRef.current) {
-			answerRef.current.innerHTML = "";
-			void markdownRenderer(currentCard.answer, answerRef.current);
-		}
-	}, [currentCard?.answer, showAnswer, markdownRenderer]);
-
-	// Timer
-	useEffect(() => {
-		const interval = window.setInterval(() => {
-			setElapsedTime(Math.floor((Date.now() - session.startTime) / 1000));
-		}, 1000);
-		return () => window.clearInterval(interval);
-	}, [session.startTime]);
-
-	// Keyboard shortcuts
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (
-				e.target instanceof HTMLInputElement ||
-				e.target instanceof HTMLTextAreaElement
-			) {
-				return;
-			}
-
-			if (!showAnswer) {
-				if (e.code === "Space") {
-					e.preventDefault();
-					setShowAnswer(true);
-				}
-			} else {
-				switch (e.code) {
-					case "Digit1":
-					case "Numpad1":
-					case "KeyX":
-						e.preventDefault();
-						handleAnswer(false);
-						break;
-					case "Digit2":
-					case "Numpad2":
-					case "KeyO":
-					case "Space":
-						e.preventDefault();
-						handleAnswer(true);
-						break;
-				}
-			}
-		};
-
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [showAnswer, currentCard, session]);
-
-	const formatTime = (seconds: number): string => {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
-		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-	};
-
-	const handleShowAnswer = () => {
+	const handleShowAnswer = useCallback(() => {
 		setShowAnswer(true);
-	};
+	}, []);
 
-	const handleAnswer = (isCorrect: boolean) => {
-		if (!currentCard || isAnimating) return;
+	const handleAnswer = useCallback((isCorrect: boolean) => {
+		if (!currentCard || isAnimatingRef.current) return;
 
+		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
 		// Update session with answer
-		const newSession = { ...session };
-		newSession.answers = {
-			...newSession.answers,
-			[currentCard.id]: isCorrect,
+		const newSession: PracticeSession = {
+			...session,
+			cardQueue: [...session.cardQueue],
+			answers: {
+				...session.answers,
+				[currentCard.id]: isCorrect,
+			},
 		};
 
 		// Move to next card
@@ -131,6 +71,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			newSession.currentIndex++;
 			window.setTimeout(() => {
 				onSessionUpdate(newSession);
+				isAnimatingRef.current = false;
 				setIsAnimating(false);
 			}, 200);
 		} else {
@@ -161,7 +102,40 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				onComplete(result);
 			}, 300);
 		}
-	};
+	}, [currentCard, onComplete, onSessionUpdate, session]);
+
+	useWindowKeyDown((e) => {
+		if (
+			e.target instanceof HTMLInputElement ||
+			e.target instanceof HTMLTextAreaElement
+		) {
+			return;
+		}
+
+		if (!showAnswer) {
+			if (e.code === "Space") {
+				e.preventDefault();
+				setShowAnswer(true);
+			}
+			return;
+		}
+
+		switch (e.code) {
+			case "Digit1":
+			case "Numpad1":
+			case "KeyX":
+				e.preventDefault();
+				handleAnswer(false);
+				break;
+			case "Digit2":
+			case "Numpad2":
+			case "KeyO":
+			case "Space":
+				e.preventDefault();
+				handleAnswer(true);
+				break;
+		}
+	});
 
 	if (!currentCard) {
 		return (
@@ -195,9 +169,10 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				}
 				right={
 					<>
-						<span className="flashcard-timer">
-							{formatTime(elapsedTime)}
-						</span>
+						<SessionTimer
+							startTime={session.startTime}
+							className="flashcard-timer"
+						/>
 						<FlashcardButton
 							preset="icon"
 							icon={X}
@@ -224,7 +199,11 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 					<div className="flashcard-label flashcard-label-question">
 						Question
 					</div>
-					<div ref={questionRef} className="flashcard-markdown" />
+					<MarkdownContent
+						content={currentCard.question}
+						className="flashcard-markdown"
+						markdownRenderer={markdownRenderer}
+					/>
 				</div>
 
 				{showAnswer && (
@@ -234,9 +213,10 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 							<div className="flashcard-label flashcard-label-answer">
 								Answer
 							</div>
-							<div
-								ref={answerRef}
+							<MarkdownContent
+								content={currentCard.answer}
 								className="flashcard-markdown"
+								markdownRenderer={markdownRenderer}
 							/>
 						</div>
 					</div>

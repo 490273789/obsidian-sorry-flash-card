@@ -25,7 +25,6 @@ interface FlashcardAppProps {
 	settings: FlashcardSettings;
 	onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 	onRefresh: () => Promise<void>;
-	availableTags: string[];
 }
 
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
@@ -34,7 +33,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	settings,
 	onSaveSettings,
 	onRefresh,
-	availableTags,
 }) => {
 	const [viewState, setViewState] = useState<ViewState>({ type: "home" });
 	const [studySession, setStudySession] = useState<StudySession | null>(null);
@@ -55,16 +53,24 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[app],
 	);
 
-	const handleSelectDeck = (deckId: string) => {
+	const handleBackHome = useCallback(() => {
+		setViewState({ type: "home" });
+	}, []);
+
+	const handleOpenStats = useCallback(() => {
+		setViewState({ type: "stats" });
+	}, []);
+
+	const handleSelectDeck = useCallback((deckId: string) => {
 		const deck = dataStore.getDeck(deckId);
 		if (deck && deck.cards.length > 0) {
 			setViewState({ type: "study-setup", deckId });
 		} else {
 			new Notice(deck ? "该题库没有卡片，请先添加内容" : "题库不存在");
 		}
-	};
+	}, [dataStore]);
 
-	const handleStartStudyFromSetup = (
+	const handleStartStudyFromSetup = useCallback((
 		deckId: string,
 		studyOrder: "sequential" | "random",
 	) => {
@@ -75,9 +81,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		} else {
 			new Notice("今日学习任务已完成! 🎉");
 		}
-	};
+	}, [dataStore]);
 
-	const handleStudyDay = (
+	const handleStudyDay = useCallback((
 		deckId: string,
 		dayIndex: number,
 		studyOrder: "sequential" | "random",
@@ -99,9 +105,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setPracticeSession(session);
 		setPracticeResult(null);
 		setViewState({ type: "practice", deckId });
-	};
+	}, [dataStore]);
 
-	const handleCloseStudy = () => {
+	const handleCloseStudy = useCallback(() => {
 		// Record Study session before clearing state
 		if (studySession && studySession.currentIndex > 0) {
 			const deck = dataStore.getDeck(studySession.deckId);
@@ -118,18 +124,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		}
 		setStudySession(null);
 		setViewState({ type: "home" });
-	};
+	}, [dataStore, studySession]);
 
-	const handleSessionUpdate = (session: StudySession) => {
+	const handleSessionUpdate = useCallback((session: StudySession) => {
 		setStudySession(session);
-	};
+	}, []);
 
-	const handleOpenWordList = (deckId: string) => {
+	const handleOpenWordList = useCallback((deckId: string) => {
 		wordListStartTime.current = Date.now();
 		setViewState({ type: "word-list", deckId });
-	};
+	}, []);
 
-	const handleCloseWordList = (deckId: string) => {
+	const handleCloseWordList = useCallback((deckId: string) => {
 		if (wordListStartTime.current !== null) {
 			const duration = Math.floor(
 				(Date.now() - wordListStartTime.current) / 1000,
@@ -147,19 +153,19 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			wordListStartTime.current = null;
 		}
 		setViewState({ type: "home" });
-	};
+	}, [dataStore]);
 
 	// Practice mode handlers
-	const handleStartPracticeSetup = (deckId: string) => {
+	const handleStartPracticeSetup = useCallback((deckId: string) => {
 		const deck = dataStore.getDeck(deckId);
 		if (deck && deck.cards.length > 0) {
 			setViewState({ type: "practice-setup", deckId });
 		} else {
 			new Notice("该题库没有卡片，请先添加内容");
 		}
-	};
+	}, [dataStore]);
 
-	const handleStartPractice = (deckId: string, questionCount: number) => {
+	const handleStartPractice = useCallback((deckId: string, questionCount: number) => {
 		const deck = dataStore.getDeck(deckId);
 		if (!deck) return;
 
@@ -178,13 +184,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setPracticeSession(session);
 		setPracticeResult(null);
 		setViewState({ type: "practice", deckId });
-	};
+	}, [dataStore]);
 
-	const handlePracticeSessionUpdate = (session: PracticeSession) => {
+	const handlePracticeSessionUpdate = useCallback((session: PracticeSession) => {
 		setPracticeSession(session);
-	};
+	}, []);
 
-	const handlePracticeComplete = (result: PracticeResult) => {
+	const handlePracticeComplete = useCallback((result: PracticeResult) => {
 		// Record Practice session
 		if (practiceSession) {
 			const deck = dataStore.getDeck(practiceSession.deckId);
@@ -203,18 +209,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				deckId: practiceSession.deckId,
 			});
 		}
-	};
+	}, [dataStore, practiceSession]);
 
-	const handlePracticeRestart = () => {
+	const handlePracticeRestart = useCallback(() => {
 		if (practiceSession) {
 			setViewState({
 				type: "practice-setup",
 				deckId: practiceSession.deckId,
 			});
 		}
-	};
+	}, [practiceSession]);
 
-	const handlePracticeIncorrect = () => {
+	const handlePracticeIncorrect = useCallback(() => {
 		if (
 			practiceResult &&
 			practiceSession &&
@@ -238,24 +244,24 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			setPracticeResult(null);
 			setViewState({ type: "practice", deckId: practiceSession.deckId });
 		}
-	};
+	}, [practiceResult, practiceSession]);
 
-	const handlePracticeClose = () => {
+	const handlePracticeClose = useCallback(() => {
 		setPracticeSession(null);
 		setPracticeResult(null);
 		setViewState({ type: "home" });
-	};
+	}, []);
 
-	const handleOpenSourceFile = (filePath: string) => {
+	const handleOpenSourceFile = useCallback((filePath: string) => {
 		const file = app.vault.getAbstractFileByPath(filePath);
 		if (file instanceof TFile) {
 			void app.workspace.getLeaf(false).openFile(file);
 		} else {
 			new Notice(`找不到源文件：${filePath}`);
 		}
-	};
+	}, [app]);
 
-	const handleUpdateDeckStudySettings = async (
+	const handleUpdateDeckStudySettings = useCallback(async (
 		deckId: string,
 		overrides: Partial<StudySettings> | null,
 	) => {
@@ -271,15 +277,28 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			...settings,
 			deckStudySettings: newDeckStudySettings,
 		});
-	};
+	}, [onSaveSettings, settings]);
+
+	const renderHome = () => (
+		<DeckList
+			dataStore={dataStore}
+			settings={settings}
+			onSelectDeck={handleSelectDeck}
+			onOpenWordList={handleOpenWordList}
+			onStartPractice={handleStartPracticeSetup}
+			onRefresh={onRefresh}
+			onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
+			onOpenSourceFile={handleOpenSourceFile}
+			onOpenStats={handleOpenStats}
+		/>
+	);
 
 	// Render based on view state
 	switch (viewState.type) {
 		case "study-setup": {
 			const deck = dataStore.getDeck(viewState.deckId);
 			if (!deck) {
-				setViewState({ type: "home" });
-				return null;
+				return renderHome();
 			}
 			const dayList = dataStore.getDayList(viewState.deckId);
 			const { newCount, reviewCount } = dataStore.getTodayStudyCounts(
@@ -290,6 +309,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			);
 			return (
 				<StudySetup
+					key={deck.id}
 					deck={deck}
 					dayList={dayList}
 					todayNewCount={newCount}
@@ -301,7 +321,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					onStartDay={(dayIndex, order) =>
 						handleStudyDay(viewState.deckId, dayIndex, order)
 					}
-					onBack={() => setViewState({ type: "home" })}
+					onBack={handleBackHome}
 				/>
 			);
 		}
@@ -316,6 +336,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			}
 			return (
 				<CardView
+					key={deck.id}
 					dataStore={dataStore}
 					deck={deck}
 					session={studySession}
@@ -329,32 +350,31 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		case "practice-setup": {
 			const deck = dataStore.getDeck(viewState.deckId);
 			if (!deck) {
-				setViewState({ type: "home" });
-				return null;
+				return renderHome();
 			}
 			return (
 				<PracticeSetup
+					key={deck.id}
 					deck={deck}
 					onStartPractice={(count) =>
 						handleStartPractice(viewState.deckId, count)
 					}
-					onBack={() => setViewState({ type: "home" })}
+					onBack={handleBackHome}
 				/>
 			);
 		}
 
 		case "practice": {
 			if (!practiceSession) {
-				setViewState({ type: "home" });
-				return null;
+				return renderHome();
 			}
 			const deck = dataStore.getDeck(viewState.deckId);
 			if (!deck) {
-				setViewState({ type: "home" });
-				return null;
+				return renderHome();
 			}
 			return (
 				<PracticeView
+					key={deck.id}
 					dataStore={dataStore}
 					deck={deck}
 					session={practiceSession}
@@ -368,16 +388,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 		case "practice-summary": {
 			if (!practiceResult || !practiceSession) {
-				setViewState({ type: "home" });
-				return null;
+				return renderHome();
 			}
 			const deck = dataStore.getDeck(viewState.deckId);
 			if (!deck) {
-				setViewState({ type: "home" });
-				return null;
+				return renderHome();
 			}
 			return (
 				<PracticeSummary
+					key={deck.id}
 					deck={deck}
 					dataStore={dataStore}
 					result={practiceResult}
@@ -393,11 +412,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		case "word-list": {
 			const deck = dataStore.getDeck(viewState.deckId);
 			if (!deck) {
-				setViewState({ type: "home" });
-				return null;
+				return renderHome();
 			}
 			return (
 				<WordListView
+					key={deck.id}
 					deck={deck}
 					onBack={() => handleCloseWordList(viewState.deckId)}
 				/>
@@ -408,24 +427,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			return (
 				<StatsView
 					dataStore={dataStore}
-					onBack={() => setViewState({ type: "home" })}
+					onBack={handleBackHome}
 				/>
 			);
 
 		case "home":
 		default:
-			return (
-				<DeckList
-					dataStore={dataStore}
-					settings={settings}
-					onSelectDeck={handleSelectDeck}
-					onOpenWordList={handleOpenWordList}
-					onStartPractice={handleStartPracticeSetup}
-					onRefresh={onRefresh}
-					onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
-					onOpenSourceFile={handleOpenSourceFile}
-					onOpenStats={() => setViewState({ type: "stats" })}
-				/>
-			);
+			return renderHome();
 	}
 };

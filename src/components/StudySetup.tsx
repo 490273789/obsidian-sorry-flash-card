@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useCallback, useMemo, useState } from "react";
 import {
 	CircleCheck,
 	Target,
@@ -22,6 +22,67 @@ interface StudySetupProps {
 	onBack: () => void;
 }
 
+interface StudyDayRowProps {
+	day: StudyDayInfo;
+	studyOrder: "sequential" | "random";
+	onStartDay: (dayIndex: number, studyOrder: "sequential" | "random") => void;
+}
+
+const StudyDayRow = memo(function StudyDayRow({
+	day,
+	studyOrder,
+	onStartDay,
+}: StudyDayRowProps) {
+	const handleReview = useCallback(() => {
+		onStartDay(day.dayIndex, studyOrder);
+	}, [day.dayIndex, onStartDay, studyOrder]);
+
+	return (
+		<div
+			className={`flashcard-study-day-item fc-lift ${
+				day.isCompleted
+					? "completed"
+					: day.isCurrent
+						? "current"
+						: "locked"
+			}`}
+		>
+			<div className="flashcard-study-day-info">
+				<span className="flashcard-study-day-badge">
+					{day.isCompleted ? (
+						<CircleCheck size={16} />
+					) : day.isCurrent ? (
+						<Target size={16} />
+					) : (
+						<Lock size={16} />
+					)}
+				</span>
+				<span className="flashcard-study-day-name">
+					Day {day.dayIndex + 1}
+					{day.isCurrent && (
+						<span className="flashcard-study-day-today-badge">
+							Today
+						</span>
+					)}
+				</span>
+			</div>
+			<div className="flashcard-study-day-progress">
+				<span className="flashcard-study-day-count">
+					{day.studiedCards}/{day.totalCards}
+				</span>
+				{day.isCompleted && (
+					<FlashcardButton
+						className="flashcard-study-day-review-btn"
+						onClick={handleReview}
+					>
+						Review
+					</FlashcardButton>
+				)}
+			</div>
+		</div>
+	);
+});
+
 export const StudySetup: React.FC<StudySetupProps> = ({
 	deck,
 	todayNewCount,
@@ -37,15 +98,21 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	);
 
 	const currentDay = dayList.find((d) => d.isCurrent);
-	const completedDays = dayList.filter((d) => d.isCompleted).length;
-	const allCompleted =
-		dayList.length > 0 && dayList.every((d) => d.isCompleted);
+	const completedDays = useMemo(
+		() =>
+			dayList.reduce(
+				(total, day) => total + (day.isCompleted ? 1 : 0),
+				0,
+			),
+		[dayList],
+	);
+	const allCompleted = dayList.length > 0 && completedDays === dayList.length;
 	const hasAnythingToStudy = todayNewCount > 0 || todayReviewCount > 0;
 	const todayTotal = todayNewCount + todayReviewCount;
 
-	const handleMainStart = () => {
+	const handleMainStart = useCallback(() => {
 		onStart(studyOrder);
-	};
+	}, [onStart, studyOrder]);
 
 	return (
 		<div className="flashcard-practice-setup">
@@ -156,54 +223,12 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						</div>
 						<div className="flashcard-study-day-list">
 							{dayList.map((day) => (
-								<div
+								<StudyDayRow
 									key={day.dayIndex}
-									className={`flashcard-study-day-item fc-lift ${
-										day.isCompleted
-											? "completed"
-											: day.isCurrent
-												? "current"
-												: "locked"
-									}`}
-								>
-									<div className="flashcard-study-day-info">
-										<span className="flashcard-study-day-badge">
-											{day.isCompleted ? (
-												<CircleCheck size={16} />
-											) : day.isCurrent ? (
-												<Target size={16} />
-											) : (
-												<Lock size={16} />
-											)}
-										</span>
-										<span className="flashcard-study-day-name">
-											Day {day.dayIndex + 1}
-											{day.isCurrent && (
-												<span className="flashcard-study-day-today-badge">
-													Today
-												</span>
-											)}
-										</span>
-									</div>
-									<div className="flashcard-study-day-progress">
-										<span className="flashcard-study-day-count">
-											{day.studiedCards}/{day.totalCards}
-										</span>
-										{day.isCompleted && (
-											<FlashcardButton
-												className="flashcard-study-day-review-btn"
-												onClick={() =>
-													onStartDay(
-														day.dayIndex,
-														studyOrder,
-													)
-												}
-											>
-												Review
-											</FlashcardButton>
-										)}
-									</div>
-								</div>
+									day={day}
+									studyOrder={studyOrder}
+									onStartDay={onStartDay}
+								/>
 							))}
 						</div>
 					</div>

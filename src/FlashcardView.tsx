@@ -12,7 +12,6 @@ export class FlashcardView extends ItemView {
 	private dataStore: DataStore;
 	private settings: FlashcardSettings;
 	private onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
-	private availableTags: string[] = [];
 
 	constructor(
 		leaf: WorkspaceLeaf,
@@ -47,7 +46,6 @@ export class FlashcardView extends ItemView {
 
 		// Single vault scan: syncs decks and caches available tags
 		await this.dataStore.syncFromVault();
-		this.availableTags = this.dataStore.getAvailableTags();
 
 		// Create React root
 		const rootEl = container.createDiv({ cls: "flashcard-root" });
@@ -67,7 +65,6 @@ export class FlashcardView extends ItemView {
 					settings={this.settings}
 					onSaveSettings={this.handleSaveSettings}
 					onRefresh={this.handleRefresh}
-					availableTags={this.availableTags}
 				/>
 			</React.StrictMode>,
 		);
@@ -84,7 +81,6 @@ export class FlashcardView extends ItemView {
 
 	private handleRefresh = async (): Promise<void> => {
 		await this.dataStore.syncFromVault();
-		this.availableTags = this.dataStore.getAvailableTags();
 		this.renderApp();
 	};
 

@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+	memo,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import type { Deck, FlashCard } from "../types";
 import { shuffleArray } from "../utils";
 import { FlashcardButton } from "./FlashcardButton";
@@ -29,6 +35,81 @@ function toWordItem(card: FlashCard): WordItem {
 	};
 }
 
+function activateOnKey(
+	e: React.KeyboardEvent<HTMLDivElement>,
+	action: () => void,
+): void {
+	if (e.key === "Enter" || e.key === " ") {
+		e.preventDefault();
+		action();
+	}
+}
+
+interface WordRowProps {
+	item: WordItem;
+	showChinese: boolean;
+	showEnglish: boolean;
+	isMaskChinese: boolean;
+	isMaskEnglish: boolean;
+	onRevealChinese: (itemId: string) => void;
+	onRevealEnglish: (itemId: string) => void;
+}
+
+const WordRow = memo(function WordRow({
+	item,
+	showChinese,
+	showEnglish,
+	isMaskChinese,
+	isMaskEnglish,
+	onRevealChinese,
+	onRevealEnglish,
+}: WordRowProps) {
+	const handleRevealEnglish = useCallback(() => {
+		onRevealEnglish(item.id);
+	}, [item.id, onRevealEnglish]);
+
+	const handleRevealChinese = useCallback(() => {
+		onRevealChinese(item.id);
+	}, [item.id, onRevealChinese]);
+
+	return (
+		<div className="flashcard-word-row">
+			<div
+				role="button"
+				tabIndex={0}
+				className={`flashcard-word-cell flashcard-word-cell-left ${
+					!showEnglish ? "masked" : ""
+				}`}
+				onClick={handleRevealEnglish}
+				onKeyDown={(e) => activateOnKey(e, handleRevealEnglish)}
+				title={isMaskEnglish ? "点击切换显示/隐藏英文" : "英文列"}
+			>
+				{showEnglish ? (
+					<span className="flashcard-word-front">{item.front}</span>
+				) : (
+					<span className="flashcard-word-mask-text">点击显示</span>
+				)}
+			</div>
+			<div
+				role="button"
+				tabIndex={0}
+				className={`flashcard-word-cell flashcard-word-cell-right ${
+					!showChinese ? "masked" : ""
+				}`}
+				onClick={handleRevealChinese}
+				onKeyDown={(e) => activateOnKey(e, handleRevealChinese)}
+				title={isMaskChinese ? "点击切换显示/隐藏中文" : "中文列"}
+			>
+				{showChinese ? (
+					<span className="flashcard-word-back">{item.back}</span>
+				) : (
+					<span className="flashcard-word-mask-text">点击显示</span>
+				)}
+			</div>
+		</div>
+	);
+});
+
 export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	const sourceItems = useMemo(
 		() =>
@@ -39,8 +120,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	);
 	const [isMaskChinese, setIsMaskChinese] = useState(false);
 	const [isMaskEnglish, setIsMaskEnglish] = useState(false);
-	const [isShuffled, setIsShuffled] = useState(false);
-	const [items, setItems] = useState<WordItem[]>(sourceItems);
+	const [shuffledItems, setShuffledItems] = useState<WordItem[] | null>(
+		null,
+	);
 	const [revealedChineseIds, setRevealedChineseIds] = useState<Set<string>>(
 		new Set(),
 	);
@@ -48,24 +130,22 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		new Set(),
 	);
 
+	const isShuffled = shuffledItems !== null;
+	const items = shuffledItems ?? sourceItems;
+
 	useEffect(() => {
-		setItems(sourceItems);
-		setIsShuffled(false);
+		setShuffledItems(null);
 		setRevealedChineseIds(new Set());
 		setRevealedEnglishIds(new Set());
 	}, [sourceItems]);
 
-	const handleShuffleToggle = () => {
-		if (isShuffled) {
-			setItems(sourceItems);
-			setIsShuffled(false);
-		} else {
-			setItems(shuffleArray(sourceItems));
-			setIsShuffled(true);
-		}
-	};
+	const handleShuffleToggle = useCallback(() => {
+		setShuffledItems((currentItems) =>
+			currentItems ? null : shuffleArray(sourceItems),
+		);
+	}, [sourceItems]);
 
-	const handleRevealChinese = (itemId: string) => {
+	const handleRevealChinese = useCallback((itemId: string) => {
 		if (!isMaskChinese) return;
 		setRevealedChineseIds((prev) => {
 			const next = new Set(prev);
@@ -76,9 +156,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 			}
 			return next;
 		});
-	};
+	}, [isMaskChinese]);
 
-	const handleRevealEnglish = (itemId: string) => {
+	const handleRevealEnglish = useCallback((itemId: string) => {
 		if (!isMaskEnglish) return;
 		setRevealedEnglishIds((prev) => {
 			const next = new Set(prev);
@@ -89,17 +169,17 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 			}
 			return next;
 		});
-	};
+	}, [isMaskEnglish]);
 
-	const activateOnKey = (
-		e: React.KeyboardEvent<HTMLDivElement>,
-		action: () => void,
-	) => {
-		if (e.key === "Enter" || e.key === " ") {
-			e.preventDefault();
-			action();
-		}
-	};
+	const handleToggleEnglishMask = useCallback(() => {
+		setIsMaskEnglish((value) => !value);
+		setRevealedEnglishIds(new Set());
+	}, []);
+
+	const handleToggleChineseMask = useCallback(() => {
+		setIsMaskChinese((value) => !value);
+		setRevealedChineseIds(new Set());
+	}, []);
 
 	return (
 		<div className="flashcard-word-list-view">
@@ -131,10 +211,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						variant="blue"
 						className="english"
 						active={isMaskEnglish}
-						onClick={() => {
-							setIsMaskEnglish((v) => !v);
-							setRevealedEnglishIds(new Set());
-						}}
+						onClick={handleToggleEnglishMask}
 					>
 						{isMaskEnglish ? "取消遮罩英文" : "遮罩英文"}
 					</FlashcardButton>
@@ -142,10 +219,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						variant="orange"
 						className="chinese"
 						active={isMaskChinese}
-						onClick={() => {
-							setIsMaskChinese((v) => !v);
-							setRevealedChineseIds(new Set());
-						}}
+						onClick={handleToggleChineseMask}
 					>
 						{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
 					</FlashcardButton>
@@ -161,64 +235,16 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 							!isMaskEnglish || revealedEnglishIds.has(item.id);
 
 						return (
-							<div key={item.id} className="flashcard-word-row">
-								<div
-									role="button"
-									tabIndex={0}
-									className={`flashcard-word-cell flashcard-word-cell-left ${
-										!showEnglish ? "masked" : ""
-									}`}
-									onClick={() => handleRevealEnglish(item.id)}
-									onKeyDown={(e) =>
-										activateOnKey(e, () =>
-											handleRevealEnglish(item.id),
-										)
-									}
-									title={
-										isMaskEnglish
-											? "点击切换显示/隐藏英文"
-											: "英文列"
-									}
-								>
-									{showEnglish ? (
-										<span className="flashcard-word-front">
-											{item.front}
-										</span>
-									) : (
-										<span className="flashcard-word-mask-text">
-											点击显示
-										</span>
-									)}
-								</div>
-								<div
-									role="button"
-									tabIndex={0}
-									className={`flashcard-word-cell flashcard-word-cell-right ${
-										!showChinese ? "masked" : ""
-									}`}
-									onClick={() => handleRevealChinese(item.id)}
-									onKeyDown={(e) =>
-										activateOnKey(e, () =>
-											handleRevealChinese(item.id),
-										)
-									}
-									title={
-										isMaskChinese
-											? "点击切换显示/隐藏中文"
-											: "中文列"
-									}
-								>
-									{showChinese ? (
-										<span className="flashcard-word-back">
-											{item.back}
-										</span>
-									) : (
-										<span className="flashcard-word-mask-text">
-											点击显示
-										</span>
-									)}
-								</div>
-							</div>
+							<WordRow
+								key={item.id}
+								item={item}
+								showChinese={showChinese}
+								showEnglish={showEnglish}
+								isMaskChinese={isMaskChinese}
+								isMaskEnglish={isMaskEnglish}
+								onRevealChinese={handleRevealChinese}
+								onRevealEnglish={handleRevealEnglish}
+							/>
 						);
 					})}
 				</div>

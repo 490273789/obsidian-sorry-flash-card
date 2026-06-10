@@ -9,6 +9,8 @@ interface StatsViewProps {
 	onBack: () => void;
 }
 
+const WEEK_DAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+
 function formatDuration(seconds: number): string {
 	if (seconds < 60) return `${seconds}秒`;
 	const m = Math.floor(seconds / 60);
@@ -41,8 +43,7 @@ function formatDate(dateStr: string): string {
 
 	// Show day of week for recent days
 	const d = new Date(dateStr + "T00:00:00");
-	const weekDays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-	return `${display}（${weekDays[d.getDay()]}）`;
+	return `${display}（${WEEK_DAYS[d.getDay()]}）`;
 }
 
 const MODE_CONFIG: Record<
@@ -81,8 +82,17 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 			}));
 	}, [history]);
 
-	const totalDuration = history.reduce((s, e) => s + e.duration, 0);
-	const totalCards = history.reduce((s, e) => s + e.cardCount, 0);
+	const totals = useMemo(
+		() =>
+			history.reduce(
+				(accumulator, entry) => ({
+					duration: accumulator.duration + entry.duration,
+					cards: accumulator.cards + entry.cardCount,
+				}),
+				{ duration: 0, cards: 0 },
+			),
+		[history],
+	);
 
 	return (
 		<div className="flashcard-stats-view">
@@ -112,7 +122,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 					<div className="flashcard-stats-summary-divider" />
 					<div className="flashcard-stats-summary-item fc-lift">
 						<div className="flashcard-stats-summary-value">
-							{formatDuration(totalDuration)}
+							{formatDuration(totals.duration)}
 						</div>
 						<div className="flashcard-summary-label">
 							Total Duration
@@ -121,7 +131,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 					<div className="flashcard-stats-summary-divider" />
 					<div className="flashcard-stats-summary-item fc-lift">
 						<div className="flashcard-stats-summary-value">
-							{totalCards}
+							{totals.cards}
 						</div>
 						<div className="flashcard-summary-label">
 							Total Cards
