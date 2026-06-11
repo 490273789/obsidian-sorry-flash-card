@@ -426,46 +426,64 @@ const DeckCard = memo(function DeckCard({
 	onOpenSettings,
 }: DeckCardProps) {
 	const { t } = useI18n();
+	const totalCards = deckStats?.totalCards ?? 0;
+	const newCards = deckStats?.newCards ?? 0;
+	const dueCards = deckStats?.dueCards ?? 0;
 
 	return (
 		<article className="flashcard-deck-item fc-lift">
 			<div className="flashcard-deck-main">
-				<div className="flashcard-deck-info">
-					<div className="flashcard-deck-name">{deck.name}</div>
-					<span className="flashcard-deck-badge fc-pill">
-						{deck.tag}
+				<div className="flashcard-deck-headline">
+					<div className="flashcard-deck-info">
+						<div className="flashcard-deck-name">{deck.name}</div>
+						<span className="flashcard-deck-badge fc-pill">
+							{deck.tag}
+						</span>
+					</div>
+					<span
+						className={`flashcard-deck-review-chip${
+							dueCards > 0 ? " has-due" : ""
+						}`}
+					>
+						<ScanEye size={14} />
+						<strong>{dueCards}</strong>
+						{t("home.toBeReviewed")}
 					</span>
 				</div>
 				<div className="flashcard-deck-stats">
-					<div className="flashcard-stat">
-						<span className="flashcard-stat-value orange">
-							{deckStats?.totalCards || 0}
+					<div className="flashcard-deck-stat">
+						<span className="flashcard-deck-stat-value orange">
+							{totalCards}
 						</span>
-						<span className="flashcard-stat-label">
+						<span className="flashcard-deck-stat-label">
 							{t("home.total")}
 						</span>
 					</div>
-					<div className="flashcard-stat">
-						<span className="flashcard-stat-value blue">
-							{deckStats?.newCards || 0}
+					<div className="flashcard-deck-stat">
+						<span className="flashcard-deck-stat-value blue">
+							{newCards}
 						</span>
-						<span className="flashcard-stat-label">
+						<span className="flashcard-deck-stat-label">
 							{t("home.new")}
 						</span>
 					</div>
-					<div className="flashcard-stat">
-						<span className="flashcard-stat-value green">
-							{deckStats?.dueCards || 0}
+					<div className="flashcard-deck-stat">
+						<span
+							className={`flashcard-deck-stat-value${
+								dueCards > 0 ? " red" : ""
+							}`}
+						>
+							{dueCards}
 						</span>
-						<span className="flashcard-stat-label">
+						<span className="flashcard-deck-stat-label">
 							{t("home.toBeReviewed")}
 						</span>
 					</div>
-					<div className="flashcard-stat">
-						<span className="flashcard-stat-value purple">
+					<div className="flashcard-deck-stat">
+						<span className="flashcard-deck-stat-value purple">
 							{deck.studyCount}
 						</span>
-						<span className="flashcard-stat-label">
+						<span className="flashcard-deck-stat-label">
 							{t("home.studyCount")}
 						</span>
 					</div>
@@ -499,38 +517,38 @@ const DeckCard = memo(function DeckCard({
 				</div>
 				<div className="flashcard-deck-actions3">
 					<FlashcardButton
-						variant="orange"
+						preset="icon"
+						className="flashcard-deck-utility-btn"
 						icon={List}
 						onClick={(e) => {
 							e.stopPropagation();
 							onOpenWordList(deck.id);
 						}}
 						title={t("home.wordListTitle")}
-					>
-						<span>{t("home.list")}</span>
-					</FlashcardButton>
+						aria-label={t("home.wordListTitle")}
+					/>
 					<FlashcardButton
-						variant="green"
+						preset="icon"
+						className="flashcard-deck-utility-btn"
 						icon={FileText}
 						onClick={(e) => {
 							e.stopPropagation();
 							onOpenSourceFile(deck.filePath);
 						}}
 						title={t("home.openSourceTitle")}
-					>
-						<span>{t("home.source")}</span>
-					</FlashcardButton>
+						aria-label={t("home.openSourceTitle")}
+					/>
 					<FlashcardButton
-						variant="gray"
+						preset="icon"
+						className="flashcard-deck-utility-btn"
 						icon={Settings}
 						onClick={(e) => {
 							e.stopPropagation();
 							onOpenSettings(deck.id);
 						}}
 						title={t("home.studySettingsTitle")}
-					>
-						<span>{t("home.setting")}</span>
-					</FlashcardButton>
+						aria-label={t("home.studySettingsTitle")}
+					/>
 				</div>
 			</div>
 		</article>
