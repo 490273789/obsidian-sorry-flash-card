@@ -1,6 +1,6 @@
 {
 	"name": "wsr-flash-card",
-	"version": "3.1.0",
+	"version": "3.1.1",
 	"description": "A flashcard learning plugin for Obsidian based on FSRS algorithm",
 	"main": "main.js",
 	"type": "module",
