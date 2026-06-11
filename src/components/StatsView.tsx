@@ -3,25 +3,19 @@ import { ChartBar, Sprout } from "lucide-react";
 import { DataStore } from "../dataStore";
 import { StudyHistoryEntry } from "../types";
 import { FlashcardHeader } from "./FlashcardHeader";
+import { useI18n } from "./I18nContext";
+import { formatCompactDuration } from "../i18n";
 
 interface StatsViewProps {
 	dataStore: DataStore;
 	onBack: () => void;
 }
 
-const WEEK_DAYS = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-
-function formatDuration(seconds: number): string {
-	if (seconds < 60) return `${seconds}秒`;
-	const m = Math.floor(seconds / 60);
-	const s = seconds % 60;
-	if (m < 60) return s > 0 ? `${m}分${s}秒` : `${m}分钟`;
-	const h = Math.floor(m / 60);
-	const mm = m % 60;
-	return mm > 0 ? `${h}小时${mm}分钟` : `${h}小时`;
-}
-
-function formatDate(dateStr: string): string {
+function formatDate(
+	dateStr: string,
+	language: "zh" | "en",
+	t: ReturnType<typeof useI18n>["t"],
+): string {
 	const now = new Date();
 	const todayStr = [
 		now.getFullYear(),
@@ -36,23 +30,39 @@ function formatDate(dateStr: string): string {
 	].join("-");
 
 	const parts = dateStr.split("-");
-	const display = `${parts[1]}月${parts[2]}日`;
+	const month = parts[1] ?? "";
+	const day = parts[2] ?? "";
+	const display = t("stats.monthDay", { month, day });
 
-	if (dateStr === todayStr) return `${display}（今天）`;
-	if (dateStr === yesterdayStr) return `${display}（昨天）`;
+	if (dateStr === todayStr) {
+		return t("stats.dateWithLabel", {
+			date: display,
+			label: t("stats.today"),
+		});
+	}
+	if (dateStr === yesterdayStr) {
+		return t("stats.dateWithLabel", {
+			date: display,
+			label: t("stats.yesterday"),
+		});
+	}
 
 	// Show day of week for recent days
 	const d = new Date(dateStr + "T00:00:00");
-	return `${display}（${WEEK_DAYS[d.getDay()]}）`;
+	const weekday = new Intl.DateTimeFormat(
+		language === "zh" ? "zh-CN" : "en-US",
+		{ weekday: "short" },
+	).format(d);
+	return t("stats.dateWithLabel", { date: display, label: weekday });
 }
 
 const MODE_CONFIG: Record<
 	StudyHistoryEntry["mode"],
-	{ label: string; cls: string }
+	{ labelKey: "stats.modeStudy" | "stats.modePractice" | "stats.modeList"; cls: string }
 > = {
-	study: { label: "⚡ Study", cls: "stats-mode-study" },
-	practice: { label: "⚔️ Practice", cls: "stats-mode-practice" },
-	"word-list": { label: "📜 List", cls: "stats-mode-list" },
+	study: { labelKey: "stats.modeStudy", cls: "stats-mode-study" },
+	practice: { labelKey: "stats.modePractice", cls: "stats-mode-practice" },
+	"word-list": { labelKey: "stats.modeList", cls: "stats-mode-list" },
 };
 
 interface DayGroup {
@@ -63,6 +73,7 @@ interface DayGroup {
 }
 
 export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
+	const { t, language } = useI18n();
 	const history = useMemo(() => dataStore.getStudyHistory(), [dataStore]);
 
 	const grouped: DayGroup[] = useMemo(() => {
@@ -100,11 +111,11 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 				{/* Header */}
 				<FlashcardHeader
 					icon={ChartBar}
-					title="Study Stats"
+					title={t("stats.title")}
 					onBack={onBack}
 					right={
 						<span className="flashcard-stats-range">
-							Last 20 Days
+							{t("stats.last20Days")}
 						</span>
 					}
 				/>
@@ -116,16 +127,16 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 							{grouped.length}
 						</div>
 						<div className="flashcard-summary-label">
-							Days Studied
+							{t("stats.daysStudied")}
 						</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
 					<div className="flashcard-stats-summary-item fc-lift">
 						<div className="flashcard-stats-summary-value">
-							{formatDuration(totals.duration)}
+							{formatCompactDuration(language, totals.duration)}
 						</div>
 						<div className="flashcard-summary-label">
-							Total Duration
+							{t("stats.totalDuration")}
 						</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
@@ -134,7 +145,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 							{totals.cards}
 						</div>
 						<div className="flashcard-summary-label">
-							Total Cards
+							{t("stats.totalCards")}
 						</div>
 					</div>
 				</div>
@@ -147,10 +158,9 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 						<div className="flashcard-empty-icon">
 							<Sprout size={48} />
 						</div>
-						<p>No study records</p>
+						<p>{t("stats.noRecords")}</p>
 						<p className="flashcard-empty-hint">
-							After completing a study session, the data will be
-							displayed here
+							{t("stats.noRecordsHint")}
 						</p>
 					</div>
 				) : (
@@ -168,13 +178,21 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 								>
 									<div className="flashcard-stats-day-header">
 										<span className="flashcard-stats-day-date">
-											{formatDate(date)}
+											{formatDate(date, language, t)}
 										</span>
 										<span className="flashcard-stats-day-meta">
-											{entries.length} Records ·
-											{formatDuration(dayDur)}
+											{t("stats.records", {
+												count: entries.length,
+											})}{" "}
+											·{" "}
+											{formatCompactDuration(
+												language,
+												dayDur,
+											)}
 											{dayCards > 0 &&
-												` · ${dayCards} Cards`}
+												` · ${t("stats.cards", {
+													count: dayCards,
+												})}`}
 										</span>
 									</div>
 
@@ -185,10 +203,10 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 												className={`flashcard-stats-session ${MODE_CONFIG[entry.mode].cls} fc-lift`}
 											>
 												<span className="flashcard-stats-session-mode">
-													{
+													{t(
 														MODE_CONFIG[entry.mode]
-															.label
-													}
+															.labelKey,
+													)}
 												</span>
 												<span className="flashcard-stats-session-deck">
 													{entry.deckName}
@@ -196,12 +214,15 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 												<div className="flashcard-stats-session-right">
 													{entry.cardCount > 0 && (
 														<span className="flashcard-stats-session-cards">
-															{entry.cardCount}{" "}
-															Cards
+															{t("stats.cards", {
+																count:
+																	entry.cardCount,
+															})}
 														</span>
 													)}
 													<span className="flashcard-stats-session-dur">
-														{formatDuration(
+														{formatCompactDuration(
+															language,
 															entry.duration,
 														)}
 													</span>

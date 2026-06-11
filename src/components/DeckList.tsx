@@ -25,6 +25,8 @@ import {
 import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
+import { useI18n } from "./I18nContext";
+import { formatStudyOrder } from "../i18n";
 
 // ── Per-deck settings modal ───────────────────────────────────────────────────
 
@@ -45,6 +47,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 	onSave,
 	onClose,
 }: DeckSettingsModalProps) {
+	const { t, language } = useI18n();
 	const [useCustom, setUseCustom] = useState(deckOverrides !== undefined);
 
 	const effective = {
@@ -128,22 +131,24 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 				<div className="flashcard-modal-header">
 					<div className="flashcard-modal-heading">
 						<div className="flashcard-modal-kicker fc-kicker">
-							<Sparkles size={14} /> Personalized learning pace
+							<Sparkles size={14} /> {t("deckSettings.kicker")}
 						</div>
 						<span className="flashcard-modal-title">
-							{deckName} · Study Settings
+							{t("deckSettings.title", { deckName })}
 						</span>
 						<span className="flashcard-modal-subtitle">
-							{totalCards} Cards,
-							{useCustom
-								? "Using custom settings"
-								: "Using global default settings"}
+							{t("deckSettings.subtitle", {
+								totalCards,
+								mode: useCustom
+									? t("deckSettings.usingCustom")
+									: t("deckSettings.usingGlobal"),
+							})}
 						</span>
 					</div>
 					<button
 						className="flashcard-modal-close"
 						onClick={onClose}
-						aria-label="Close"
+						aria-label={t("common.close")}
 					>
 						✕
 					</button>
@@ -157,33 +162,32 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								checked={useCustom}
 								onChange={(e) => setUseCustom(e.target.checked)}
 							/>
-							<span>Use custom study settings</span>
+							<span>{t("deckSettings.useCustom")}</span>
 						</label>
 						<p className="flashcard-deck-settings-toggle-copy">
-							Adjust the new card pace, review capacity, and
-							memory goals for this deck individually.
+							{t("deckSettings.useCustomCopy")}
 						</p>
 					</div>
 
 					{!useCustom ? (
 						<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
-							Currently using global default settings: Daily new
-							cards&nbsp;
-							<strong>{globalSettings.dailyNewCards}</strong>
-							&nbsp;Cards, Daily review&nbsp;
-							<strong>{globalSettings.dailyReviewCards}</strong>
-							&nbsp;Cards,
-							{globalSettings.studyOrder === "random"
-								? "Random"
-								: "Sequential"}
-							learning.
+							{t("deckSettings.globalHint", {
+								dailyNewCards: globalSettings.dailyNewCards,
+								dailyReviewCards:
+									globalSettings.dailyReviewCards,
+								studyOrder: formatStudyOrder(
+									language,
+									globalSettings.studyOrder,
+								),
+							})}
 							{totalCards > 0 && (
 								<span>
-									&nbsp;Estimated days to complete&nbsp;
-									<strong>
-										{calcDays(globalSettings.dailyNewCards)}
-									</strong>
-									&nbsp;days.
+									&nbsp;
+									{t("deckSettings.estimatedDays", {
+										days: calcDays(
+											globalSettings.dailyNewCards,
+										),
+									})}
 								</span>
 							)}
 						</div>
@@ -192,20 +196,24 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							<div className="flashcard-deck-settings-summary flashcard-deck-settings-card">
 								<div>
 									<span className="flashcard-deck-settings-summary-label">
-										Estimated completion pace -&nbsp;
+										{t("deckSettings.completionPace")}
 									</span>
 									<strong className="flashcard-deck-settings-summary-value">
-										{daysToComplete} days
+										{t("deckSettings.days", {
+											count: daysToComplete,
+										})}
 									</strong>
 								</div>
 								<span className="flashcard-deck-settings-summary-label">
-									Daily new cards {dailyNewCards}, Daily
-									review {dailyReviewCards}
+									{t("deckSettings.dailySummary", {
+										dailyNewCards,
+										dailyReviewCards,
+									})}
 								</span>
 							</div>
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>Daily new cards</span>
+									<span>{t("deckSettings.dailyNewCards")}</span>
 									<strong>{dailyNewCards}</strong>
 								</label>
 								<input
@@ -222,7 +230,9 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							</div>
 							{totalCards > 0 && (
 								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row flashcard-deck-settings-days">
-									<label>Estimated days to complete</label>
+									<label>
+										{t("deckSettings.estimatedDaysLabel")}
+									</label>
 									<div className="flashcard-deck-settings-days-inputs">
 										<input
 											type="number"
@@ -236,17 +246,21 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 											}
 										/>
 										<span className="flashcard-deck-settings-days-unit">
-											days
+											{t("deckSettings.daysUnit")}
 										</span>
 										<span className="flashcard-deck-settings-days-hint">
-											(Total {totalCards} cards)
+											{t("deckSettings.totalCardsHint", {
+												totalCards,
+											})}
 										</span>
 									</div>
 								</div>
 							)}
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>Daily review cards</span>
+									<span>
+										{t("deckSettings.dailyReviewCards")}
+									</span>
 									<strong>{dailyReviewCards}</strong>
 								</label>
 								<input
@@ -263,7 +277,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								/>
 							</div>
 							<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
-								<label>Study order</label>
+								<label>{t("deckSettings.studyOrder")}</label>
 								<select
 									value={studyOrder}
 									onChange={(e) =>
@@ -275,14 +289,18 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									}
 								>
 									<option value="sequential">
-										Sequential
+										{t("order.sequential")}
 									</option>
-									<option value="random">Random</option>
+									<option value="random">
+										{t("order.random")}
+									</option>
 								</select>
 							</div>
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>Target retention rate</span>
+									<span>
+										{t("deckSettings.targetRetention")}
+									</span>
 									<strong>
 										{requestRetention.toFixed(2)}
 									</strong>
@@ -301,7 +319,9 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								/>
 							</div>
 							<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
-								<label>Maximum review interval (days)</label>
+								<label>
+									{t("deckSettings.maxReviewInterval")}
+								</label>
 								<input
 									type="number"
 									min={30}
@@ -321,9 +341,11 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						variant="green"
 						onClick={() => void handleSave()}
 					>
-						Save
+						{t("common.save")}
 					</FlashcardButton>
-					<FlashcardButton onClick={onClose}>Cancel</FlashcardButton>
+					<FlashcardButton onClick={onClose}>
+						{t("common.cancel")}
+					</FlashcardButton>
 				</div>
 			</div>
 		</div>
@@ -351,30 +373,34 @@ const HomeStatsBar = memo(function HomeStatsBar({
 	deckCount,
 	totals,
 }: HomeStatsBarProps) {
+	const { t } = useI18n();
+
 	return (
 		<div className="flashcard-home-pills">
 			<span className="flashcard-home-pill fc-pill">
 				<Layers3 size={16} />
-				<span className="blue">{deckCount}</span>decks
+				<span className="blue">{deckCount}</span>
+				{t("home.decks")}
 			</span>
 			<span className="flashcard-home-pill fc-pill">
 				<Brain size={16} />
-				<span className="green">{totals.newCards}</span>new cards
+				<span className="green">{totals.newCards}</span>
+				{t("home.newCards")}
 			</span>
 			<span className="flashcard-home-pill fc-pill">
 				<ScanEye size={16} />
 				<span className="red">{totals.dueCards}</span>
-				review cards
+				{t("home.reviewCards")}
 			</span>
 			<span className="flashcard-home-pill fc-pill">
 				<Calculator size={16} />
 				<span className="purple">{totals.totalCards}</span>
-				total cards
+				{t("home.totalCards")}
 			</span>
 			<span className="flashcard-home-pill fc-pill">
 				<NotebookPen size={16} />
 				<span className="orange">{totals.studyCount}</span>
-				study count
+				{t("home.studyCount")}
 			</span>
 		</div>
 	);
@@ -399,6 +425,8 @@ const DeckCard = memo(function DeckCard({
 	onOpenSourceFile,
 	onOpenSettings,
 }: DeckCardProps) {
+	const { t } = useI18n();
+
 	return (
 		<article className="flashcard-deck-item fc-lift">
 			<div className="flashcard-deck-main">
@@ -413,20 +441,24 @@ const DeckCard = memo(function DeckCard({
 						<span className="flashcard-stat-value orange">
 							{deckStats?.totalCards || 0}
 						</span>
-						<span className="flashcard-stat-label">Total</span>
+						<span className="flashcard-stat-label">
+							{t("home.total")}
+						</span>
 					</div>
 					<div className="flashcard-stat">
 						<span className="flashcard-stat-value blue">
 							{deckStats?.newCards || 0}
 						</span>
-						<span className="flashcard-stat-label">New</span>
+						<span className="flashcard-stat-label">
+							{t("home.new")}
+						</span>
 					</div>
 					<div className="flashcard-stat">
 						<span className="flashcard-stat-value green">
 							{deckStats?.dueCards || 0}
 						</span>
 						<span className="flashcard-stat-label">
-							ToBeReviewed
+							{t("home.toBeReviewed")}
 						</span>
 					</div>
 					<div className="flashcard-stat">
@@ -434,7 +466,7 @@ const DeckCard = memo(function DeckCard({
 							{deck.studyCount}
 						</span>
 						<span className="flashcard-stat-label">
-							Study Count
+							{t("home.studyCount")}
 						</span>
 					</div>
 				</div>
@@ -449,9 +481,9 @@ const DeckCard = memo(function DeckCard({
 							e.stopPropagation();
 							onSelectDeck(deck.id);
 						}}
-						title="学习模式"
+						title={t("home.studyModeTitle")}
 					>
-						<span>Study</span>
+						<span>{t("home.study")}</span>
 					</FlashcardButton>
 					<FlashcardButton
 						variant="blue"
@@ -460,9 +492,9 @@ const DeckCard = memo(function DeckCard({
 							e.stopPropagation();
 							onStartPractice(deck.id);
 						}}
-						title="刷题模式"
+						title={t("home.practiceModeTitle")}
 					>
-						<span>Practice</span>
+						<span>{t("home.practice")}</span>
 					</FlashcardButton>
 				</div>
 				<div className="flashcard-deck-actions3">
@@ -473,9 +505,9 @@ const DeckCard = memo(function DeckCard({
 							e.stopPropagation();
 							onOpenWordList(deck.id);
 						}}
-						title="单词List"
+						title={t("home.wordListTitle")}
 					>
-						<span>List</span>
+						<span>{t("home.list")}</span>
 					</FlashcardButton>
 					<FlashcardButton
 						variant="green"
@@ -484,9 +516,9 @@ const DeckCard = memo(function DeckCard({
 							e.stopPropagation();
 							onOpenSourceFile(deck.filePath);
 						}}
-						title="打开源文件"
+						title={t("home.openSourceTitle")}
 					>
-						<span>Source</span>
+						<span>{t("home.source")}</span>
 					</FlashcardButton>
 					<FlashcardButton
 						variant="gray"
@@ -495,9 +527,9 @@ const DeckCard = memo(function DeckCard({
 							e.stopPropagation();
 							onOpenSettings(deck.id);
 						}}
-						title="学习设置"
+						title={t("home.studySettingsTitle")}
 					>
-						<span>Setting</span>
+						<span>{t("home.setting")}</span>
 					</FlashcardButton>
 				</div>
 			</div>
@@ -533,6 +565,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onOpenSourceFile,
 	onOpenStats,
 }) => {
+	const { t } = useI18n();
 	const [decks, setDecks] = useState<Deck[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [modalDeckId, setModalDeckId] = useState<string | null>(null);
@@ -600,21 +633,21 @@ export const DeckList: React.FC<DeckListProps> = ({
 			<div className="flashcard-home-hero">
 				<div className="flashcard-header">
 					<div className="flashcard-title">
-						<BookOpen size={22} /> Ultimate Repetition
+						<BookOpen size={22} /> {t("home.title")}
 					</div>
 					<div className="flashcard-header-actions">
 						<FlashcardButton
 							preset="icon"
 							icon={ChartSpline}
 							onClick={onOpenStats}
-							title="学习统计"
+							title={t("home.statsTitle")}
 						/>
 						<FlashcardButton
 							preset="icon"
 							icon={RefreshCcw}
 							onClick={() => void handleRefresh()}
 							disabled={isLoading}
-							title="刷新题库"
+							title={t("home.refreshTitle")}
 							iconClassName={isLoading ? "spinning" : ""}
 						/>
 					</div>
@@ -627,9 +660,9 @@ export const DeckList: React.FC<DeckListProps> = ({
 					<div className="flashcard-empty-icon">
 						<Inbox size={48} />
 					</div>
-					<p>暂无题库</p>
+					<p>{t("home.emptyTitle")}</p>
 					<p className="flashcard-empty-hint">
-						点击刷新按钮扫描带有 <code>#wordTag</code> 标签的文件
+						{t("home.emptyHint", { tag: "#wordTag" })}
 					</p>
 				</div>
 			) : (

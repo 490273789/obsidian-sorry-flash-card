@@ -13,6 +13,7 @@ import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionTimer } from "./SessionTimer";
 import { useWindowKeyDown } from "./hooks";
+import { useI18n } from "./I18nContext";
 
 interface PracticeViewProps {
 	dataStore: DataStore;
@@ -33,6 +34,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	onClose,
 	markdownRenderer,
 }) => {
+	const { t } = useI18n();
 	const [showAnswer, setShowAnswer] = useState(false);
 	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
@@ -141,7 +143,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		return (
 			<div className="flashcard-complete">
 				<div className="flashcard-complete-icon">⏳</div>
-				<div>加载中...</div>
+				<div>{t("common.loading")}</div>
 			</div>
 		);
 	}
@@ -164,7 +166,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				}
 				title={
 					<span className="flashcard-badge">
-						<Target size={14} /> Practice
+						<Target size={14} /> {t("practice.practicing")}
 					</span>
 				}
 				right={
@@ -177,7 +179,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 							preset="icon"
 							icon={X}
 							onClick={onClose}
-							title="退出刷题"
+							title={t("practice.exitTitle")}
 						/>
 					</>
 				}
@@ -197,7 +199,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			>
 				<div className="flashcard-question">
 					<div className="flashcard-label flashcard-label-question">
-						Question
+						{t("common.question")}
 					</div>
 					<MarkdownContent
 						content={currentCard.question}
@@ -211,7 +213,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						<div className="flashcard-divider" />
 						<div className="flashcard-answer">
 							<div className="flashcard-label flashcard-label-answer">
-								Answer
+								{t("common.answer")}
 							</div>
 							<MarkdownContent
 								content={currentCard.answer}
@@ -227,8 +229,10 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			<div className="flashcard-footer">
 				{!showAnswer ? (
 					<FlashcardButton preset="show" onClick={handleShowAnswer}>
-						Show Answer
-						<span className="flashcard-shortcut">(Space)</span>
+						{t("common.showAnswer")}
+						<span className="flashcard-shortcut">
+							({t("common.space")})
+						</span>
 					</FlashcardButton>
 				) : (
 					<div className="flashcard-practice-answer-buttons">
@@ -240,9 +244,11 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								<X size={18} />
 							</span>
 							<span className="flashcard-practice-btn-label">
-								Bad
+								{t("practice.bad")}
 							</span>
-							<span className="flashcard-shortcut">(1 or X)</span>
+							<span className="flashcard-shortcut">
+								{t("practice.badShortcut")}
+							</span>
 						</FlashcardButton>
 						<FlashcardButton
 							preset="practice-correct"
@@ -252,9 +258,11 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								<Check size={18} />
 							</span>
 							<span className="flashcard-practice-btn-label">
-								Good
+								{t("practice.good")}
 							</span>
-							<span className="flashcard-shortcut">(2 or O)</span>
+							<span className="flashcard-shortcut">
+								{t("practice.goodShortcut")}
+							</span>
 						</FlashcardButton>
 					</div>
 				)}

@@ -4,6 +4,7 @@ import React from "react";
 import { FlashcardApp } from "./components/FlashcardApp";
 import { DataStore } from "./dataStore";
 import { FlashcardSettings } from "./types";
+import { translate } from "./i18n";
 
 export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
@@ -30,7 +31,7 @@ export class FlashcardView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "闪卡学习";
+		return translate(this.settings.language, "main.viewTitle");
 	}
 
 	getIcon(): string {

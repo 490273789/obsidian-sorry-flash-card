@@ -12,6 +12,8 @@ import { Deck, FlashCard, PracticeResult, FlashcardSettings } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
+import { useI18n } from "./I18nContext";
+import { formatCompactDuration } from "../i18n";
 
 interface PracticeSummaryProps {
 	deck: Deck;
@@ -24,16 +26,10 @@ interface PracticeSummaryProps {
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
 
-function formatTime(seconds: number): string {
-	const mins = Math.floor(seconds / 60);
-	const secs = seconds % 60;
-	return `${mins}分${secs}秒`;
-}
-
-function getRandomMessage(messages: string[]): string {
-	if (messages.length === 0) return "刷题完成！";
+function getRandomMessage(messages: string[], fallback: string): string {
+	if (messages.length === 0) return fallback;
 	const randomIndex = Math.floor(Math.random() * messages.length);
-	return messages[randomIndex] || "刷题完成！";
+	return messages[randomIndex] || fallback;
 }
 
 function getAccuracyColor(accuracy: number): string {
@@ -53,18 +49,26 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	onHome,
 	markdownRenderer,
 }) => {
+	const { t, language } = useI18n();
 	const completionMessage = useMemo(() => {
 		if (result.incorrectCount === 0) {
 			// 全对，使用全对文案
-			return getRandomMessage(settings.practicePerfectMessages);
+			return getRandomMessage(
+				settings.practicePerfectMessages,
+				t("practice.completeFallback"),
+			);
 		}
 
 		// 有错题，使用错题文案
-		return getRandomMessage(settings.practiceErrorMessages);
+		return getRandomMessage(
+			settings.practiceErrorMessages,
+			t("practice.completeFallback"),
+		);
 	}, [
 		result.incorrectCount,
 		settings.practiceErrorMessages,
 		settings.practicePerfectMessages,
+		t,
 	]);
 
 	const cardById = useMemo(
@@ -88,8 +92,14 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					{completionMessage}
 				</div>
 				<div className="flashcard-practice-summary-deck">
-					{deck.name} · 共 {result.totalQuestions} 题 · 用时{" "}
-					{formatTime(result.timeSpent)}
+					{t("practice.summaryDeck", {
+						deckName: deck.name,
+						totalQuestions: result.totalQuestions,
+						time: formatCompactDuration(
+							language,
+							result.timeSpent,
+						),
+					})}
 				</div>
 			</div>
 
@@ -101,7 +111,9 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					>
 						{result.accuracy.toFixed(1)}%
 					</div>
-					<div className="flashcard-practice-stat-label">正确率</div>
+					<div className="flashcard-practice-stat-label">
+						{t("practice.accuracy")}
+					</div>
 				</div>
 
 				<div className="flashcard-practice-stat-row">
@@ -110,7 +122,8 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 							<FileText size={14} />
 						</span>
 						<span className="flashcard-practice-stat-text">
-							总题数: <strong>{result.totalQuestions}</strong>
+							{t("practice.totalQuestions")}
+							<strong>{result.totalQuestions}</strong>
 						</span>
 					</div>
 					<div className="flashcard-practice-stat-item flashcard-practice-stat-correct fc-lift">
@@ -118,7 +131,8 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 							<Check size={14} />
 						</span>
 						<span className="flashcard-practice-stat-text">
-							正确: <strong>{result.correctCount}</strong>
+							{t("practice.correct")}
+							<strong>{result.correctCount}</strong>
 						</span>
 					</div>
 					<div className="flashcard-practice-stat-item flashcard-practice-stat-wrong fc-lift">
@@ -126,7 +140,8 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 							<X size={14} />
 						</span>
 						<span className="flashcard-practice-stat-text">
-							错误: <strong>{result.incorrectCount}</strong>
+							{t("practice.incorrect")}
+							<strong>{result.incorrectCount}</strong>
 						</span>
 					</div>
 					<div className="flashcard-practice-stat-item fc-lift">
@@ -134,8 +149,13 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 							<Timer size={14} />
 						</span>
 						<span className="flashcard-practice-stat-text">
-							用时:{" "}
-							<strong>{formatTime(result.timeSpent)}</strong>
+							{t("practice.timeSpent")}
+							<strong>
+								{formatCompactDuration(
+									language,
+									result.timeSpent,
+								)}
+							</strong>
 						</span>
 					</div>
 				</div>
@@ -144,12 +164,14 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 			{incorrectCards.length > 0 && (
 				<div className="flashcard-practice-incorrect-section">
 					<h3 className="flashcard-practice-incorrect-title">
-						<CircleX size={16} /> 错题List ({incorrectCards.length}
-						题)
+						<CircleX size={16} />{" "}
+						{t("practice.incorrectList", {
+							count: incorrectCards.length,
+						})}
 					</h3>
 					<div className="flashcard-practice-incorrect-list">
 						{incorrectCards.map((card, index) => (
-							<IncorrectCardItem
+					<IncorrectCardItem
 								key={card.id}
 								card={card}
 								index={index + 1}
@@ -167,7 +189,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					iconSize={14}
 					onClick={onRestart}
 				>
-					再装一次
+					{t("practice.restart")}
 				</FlashcardButton>
 				{result.incorrectCount > 0 && (
 					<FlashcardButton
@@ -176,7 +198,9 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 						iconSize={14}
 						onClick={onPracticeIncorrect}
 					>
-						Practice失败 ({result.incorrectCount})
+						{t("practice.failed", {
+							count: result.incorrectCount,
+						})}
 					</FlashcardButton>
 				)}
 				<FlashcardButton
@@ -185,7 +209,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					iconSize={14}
 					onClick={onHome}
 				>
-					Back to Deck
+					{t("practice.home")}
 				</FlashcardButton>
 			</div>
 		</div>
@@ -203,13 +227,15 @@ const IncorrectCardItem = memo(function IncorrectCardItem({
 	index,
 	markdownRenderer,
 }: IncorrectCardItemProps) {
+	const { t } = useI18n();
+
 	return (
 		<div className="flashcard-practice-incorrect-item fc-lift">
 			<div className="flashcard-practice-incorrect-index">{index}</div>
 			<div className="flashcard-practice-incorrect-content">
 				<div className="flashcard-practice-incorrect-question">
 					<span className="flashcard-practice-incorrect-label">
-						问:
+						{t("practice.questionLabel")}
 					</span>
 					<MarkdownContent
 						content={card.question}
@@ -219,7 +245,7 @@ const IncorrectCardItem = memo(function IncorrectCardItem({
 				</div>
 				<div className="flashcard-practice-incorrect-answer">
 					<span className="flashcard-practice-incorrect-label">
-						答:
+						{t("practice.answerLabel")}
 					</span>
 					<MarkdownContent
 						content={card.answer}

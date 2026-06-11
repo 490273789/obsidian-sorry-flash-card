@@ -2,21 +2,26 @@ import {
 	App,
 	PluginSettingTab,
 	Setting,
-	type SettingDefinitionGroup,
 	type SettingDefinitionItem,
-	type SettingDefinitionRender,
 } from "obsidian";
 import type FlashcardPlugin from "./main";
 import { findAllFlashcardTags } from "./parser";
+import type { Language } from "./types";
+import { createTranslator, getDefaultPracticeMessages } from "./i18n";
 
 type VisibleDefinition = { visible?: boolean | (() => boolean) };
-type GroupDefinition = SettingDefinitionGroup;
-type RenderableSettingDefinition = SettingDefinitionRender;
-type ImperativeSettingDefinition = VisibleDefinition & {
+type FlashcardSettingDefinition = VisibleDefinition & {
 	name: string;
 	desc?: string | DocumentFragment;
 	render?: (setting: Setting) => void | (() => void);
 };
+type FlashcardSettingGroup = VisibleDefinition & {
+	type: "group";
+	heading: string;
+	items: FlashcardSettingDefinition[];
+};
+type FlashcardSettingItem = FlashcardSettingDefinition | FlashcardSettingGroup;
+const LANGUAGE_OPTIONS: readonly Language[] = ["zh", "en"];
 
 export class FlashcardSettingTab extends PluginSettingTab {
 	plugin: FlashcardPlugin;
@@ -36,11 +41,12 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	getSettingDefinitions(): SettingDefinitionItem[] {
 		this.ensureAvailableTagsLoaded();
+		const t = createTranslator(this.getSelectedLanguage());
 
-		const flashcardItems: RenderableSettingDefinition[] = [
+		const flashcardItems: FlashcardSettingDefinition[] = [
 			{
-				name: "闪卡标签",
-				desc: "每个标签代表一个题库，插件会扫描所有带有这些标签的文件",
+				name: t("settings.flashcardTagsName"),
+				desc: t("settings.flashcardTagsDesc"),
 				render: (setting: Setting) => {
 					this.renderEditableTextList(setting.descEl, {
 						values: this.plugin.settings.flashcardTags,
@@ -49,8 +55,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						inputClass: "flashcard-tag-input",
 						removeButtonClass: "flashcard-tag-remove-btn",
 						addButtonClass: "flashcard-tag-add-btn",
-						placeholder: "#标签名",
-						addLabel: "+ 添加标签",
+						placeholder: t("settings.flashcardTagPlaceholder"),
+						addLabel: t("settings.addTag"),
+						removeAriaLabel: t("settings.delete"),
 						onChange: (index, value) => {
 							this.plugin.settings.flashcardTags[index] = value;
 							void this.saveSettings(true);
@@ -71,8 +78,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		const unusedTags = this.getUnusedTags();
 		if (unusedTags.length > 0) {
 			flashcardItems.push({
-				name: "已发现的标签",
-				desc: "点击标签可快速添加",
+				name: t("settings.discoveredTagsName"),
+				desc: t("settings.discoveredTagsDesc"),
 				render: (setting: Setting) => {
 					const tagsContainer = setting.descEl.createDiv({
 						cls: "flashcard-tags-container",
@@ -91,19 +98,43 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			});
 		}
 
-		return [
+		const definitions: FlashcardSettingItem[] = [
 			{
 				type: "group",
-				heading: "闪卡设置",
+				heading: t("settings.flashcardGroup"),
 				items: flashcardItems,
 			},
 			{
 				type: "group",
-				heading: "界面设置",
+				heading: t("settings.interfaceGroup"),
 				items: [
 					{
-						name: "刷题全对文案",
-						desc: "刷题全部答对时随机显示的文案，一行一个",
+						name: t("settings.languageName"),
+						desc: t("settings.languageDesc"),
+						render: (setting: Setting) => {
+							setting.addDropdown((dropdown) => {
+								for (const language of LANGUAGE_OPTIONS) {
+									dropdown.addOption(
+										language,
+										language === "zh"
+											? t("settings.languageZh")
+											: t("settings.languageEn"),
+									);
+								}
+								dropdown
+									.setValue(this.getSelectedLanguage())
+									.onChange(async (value: string) => {
+										this.plugin.settings.language =
+											this.parseLanguage(value);
+										this.applyLocalizedDefaultPracticeMessages();
+										await this.saveSettings(true);
+									});
+							});
+						},
+					},
+					{
+						name: t("settings.perfectMessagesName"),
+						desc: t("settings.perfectMessagesDesc"),
 						render: (setting: Setting) => {
 							this.renderEditableTextList(setting.descEl, {
 								values: this.plugin.settings
@@ -114,21 +145,27 @@ export class FlashcardSettingTab extends PluginSettingTab {
 								removeButtonClass:
 									"flashcard-message-remove-btn",
 								addButtonClass: "flashcard-message-add-btn",
-								placeholder: "输入全对时的文案",
-								addLabel: "+ 添加文案",
+								placeholder: t(
+									"settings.perfectMessagesPlaceholder",
+								),
+								addLabel: t("settings.addMessage"),
+								removeAriaLabel: t("settings.delete"),
 								onChange: (index, value) => {
+									this.plugin.settings.practiceMessagesCustomized = true;
 									this.plugin.settings.practicePerfectMessages[
 										index
 									] = value;
 									void this.saveSettings();
 								},
 								onAdd: () => {
+									this.plugin.settings.practiceMessagesCustomized = true;
 									this.plugin.settings.practicePerfectMessages.push(
 										"",
 									);
 									void this.saveSettings(true);
 								},
 								onRemove: (index) => {
+									this.plugin.settings.practiceMessagesCustomized = true;
 									this.plugin.settings.practicePerfectMessages.splice(
 										index,
 										1,
@@ -139,8 +176,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: "刷题有错文案",
-						desc: "刷题有错题时随机显示的文案，一行一个",
+						name: t("settings.errorMessagesName"),
+						desc: t("settings.errorMessagesDesc"),
 						render: (setting: Setting) => {
 							this.renderEditableTextList(setting.descEl, {
 								values: this.plugin.settings
@@ -151,21 +188,27 @@ export class FlashcardSettingTab extends PluginSettingTab {
 								removeButtonClass:
 									"flashcard-message-remove-btn",
 								addButtonClass: "flashcard-message-add-btn",
-								placeholder: "输入有错题时的文案",
-								addLabel: "+ 添加文案",
+								placeholder: t(
+									"settings.errorMessagesPlaceholder",
+								),
+								addLabel: t("settings.addMessage"),
+								removeAriaLabel: t("settings.delete"),
 								onChange: (index, value) => {
+									this.plugin.settings.practiceMessagesCustomized = true;
 									this.plugin.settings.practiceErrorMessages[
 										index
 									] = value;
 									void this.saveSettings();
 								},
 								onAdd: () => {
+									this.plugin.settings.practiceMessagesCustomized = true;
 									this.plugin.settings.practiceErrorMessages.push(
 										"",
 									);
 									void this.saveSettings(true);
 								},
 								onRemove: (index) => {
+									this.plugin.settings.practiceMessagesCustomized = true;
 									this.plugin.settings.practiceErrorMessages.splice(
 										index,
 										1,
@@ -179,15 +222,15 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			},
 			{
 				type: "group",
-				heading: "默认学习设置（全局兜底）",
+				heading: t("settings.defaultStudyGroup"),
 				items: [
 					{
-						name: "作用范围",
-						desc: "以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。",
+						name: t("settings.scopeName"),
+						desc: t("settings.scopeDesc"),
 					},
 					{
-						name: "每日新卡数量",
-						desc: "每天学习的新卡片最大数量",
+						name: t("settings.dailyNewName"),
+						desc: t("settings.dailyNewDesc"),
 						render: (setting: Setting) => {
 							setting.addSlider((slider) =>
 								slider
@@ -195,7 +238,6 @@ export class FlashcardSettingTab extends PluginSettingTab {
 									.setValue(
 										this.plugin.settings.dailyNewCards,
 									)
-									.setDynamicTooltip()
 									.onChange(async (value) => {
 										this.plugin.settings.dailyNewCards =
 											value;
@@ -205,8 +247,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: "每日复习数量",
-						desc: "每天复习的卡片最大数量",
+						name: t("settings.dailyReviewName"),
+						desc: t("settings.dailyReviewDesc"),
 						render: (setting: Setting) => {
 							setting.addSlider((slider) =>
 								slider
@@ -214,7 +256,6 @@ export class FlashcardSettingTab extends PluginSettingTab {
 									.setValue(
 										this.plugin.settings.dailyReviewCards,
 									)
-									.setDynamicTooltip()
 									.onChange(async (value) => {
 										this.plugin.settings.dailyReviewCards =
 											value;
@@ -224,13 +265,16 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: "学习顺序",
-						desc: "选择卡片的出现顺序",
+						name: t("settings.studyOrderName"),
+						desc: t("settings.studyOrderDesc"),
 						render: (setting: Setting) => {
 							setting.addDropdown((dropdown) =>
 								dropdown
-									.addOption("sequential", "顺序学习")
-									.addOption("random", "乱序学习")
+									.addOption(
+										"sequential",
+										t("order.sequential"),
+									)
+									.addOption("random", t("order.random"))
 									.setValue(this.plugin.settings.studyOrder)
 									.onChange(async (value) => {
 										this.plugin.settings.studyOrder =
@@ -244,11 +288,11 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			},
 			{
 				type: "group",
-				heading: "Fsrs 算法参数",
+				heading: t("settings.fsrsGroup"),
 				items: [
 					{
-						name: "目标记忆保持率",
-						desc: "期望的长期记忆保持率 (0.7-0.99)",
+						name: t("settings.retentionName"),
+						desc: t("settings.retentionDesc"),
 						render: (setting: Setting) => {
 							setting.addSlider((slider) =>
 								slider
@@ -257,7 +301,6 @@ export class FlashcardSettingTab extends PluginSettingTab {
 										this.plugin.settings.fsrsParameters
 											.requestRetention,
 									)
-									.setDynamicTooltip()
 									.onChange(async (value) => {
 										this.plugin.settings.fsrsParameters.requestRetention =
 											value;
@@ -267,8 +310,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						},
 					},
 					{
-						name: "最大复习间隔 (天)",
-						desc: "卡片复习间隔的最大天数",
+						name: t("settings.maxIntervalName"),
+						desc: t("settings.maxIntervalDesc"),
 						render: (setting: Setting) => {
 							setting.addText((text) =>
 								text
@@ -298,15 +341,36 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			},
 			{
 				type: "group",
-				heading: "使用说明",
+				heading: t("settings.helpGroup"),
 				items: [
 					{
-						name: "卡片格式和快捷键",
+						name: t("settings.helpName"),
 						desc: this.createHelpDescription(),
 					},
 				],
 			},
 		];
+		return definitions as SettingDefinitionItem[];
+	}
+
+	private getSelectedLanguage(): Language {
+		return this.parseLanguage(this.plugin.settings.language);
+	}
+
+	private parseLanguage(value: unknown): Language {
+		return value === "en" ? "en" : "zh";
+	}
+
+	private applyLocalizedDefaultPracticeMessages(): void {
+		if (this.plugin.settings.practiceMessagesCustomized) {
+			return;
+		}
+
+		const messages = getDefaultPracticeMessages(
+			this.plugin.settings.language,
+		);
+		this.plugin.settings.practicePerfectMessages = messages.perfect;
+		this.plugin.settings.practiceErrorMessages = messages.error;
 	}
 
 	private ensureAvailableTagsLoaded(): void {
@@ -364,7 +428,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		containerEl.addClass("flashcard-settings-tab");
 
-		for (const definition of this.getSettingDefinitions()) {
+		for (const definition of this.getSettingDefinitions() as FlashcardSettingItem[]) {
 			if (!this.isVisible(definition.visible)) {
 				continue;
 			}
@@ -387,12 +451,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	private isGroupDefinition(
-		definition: SettingDefinitionItem,
-	): definition is GroupDefinition {
-		return (
-			"type" in definition &&
-			(definition.type === "group" || definition.type === "list")
-		);
+		definition: FlashcardSettingItem,
+	): definition is FlashcardSettingGroup {
+		return "type" in definition && definition.type === "group";
 	}
 
 	private renderSettingDefinition(
@@ -419,7 +480,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	private isImperativeSettingDefinition(
 		definition: unknown,
-	): definition is ImperativeSettingDefinition {
+	): definition is FlashcardSettingDefinition {
 		return (
 			typeof definition === "object" &&
 			definition !== null &&
@@ -447,6 +508,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			addButtonClass: string;
 			placeholder: string;
 			addLabel: string;
+			removeAriaLabel: string;
 			onChange: (index: number, value: string) => void;
 			onAdd: () => void;
 			onRemove: (index: number) => void;
@@ -483,7 +545,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 					text: "✕",
 					cls: `fc-btn-remove ${options.removeButtonClass}`,
 				});
-				removeBtn.setAttr("aria-label", "删除");
+				removeBtn.setAttr("aria-label", options.removeAriaLabel);
 				removeBtn.addEventListener("click", () => {
 					options.onRemove(index);
 				});
@@ -501,26 +563,28 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	private createHelpDescription(): DocumentFragment {
+		const t = createTranslator(this.plugin.settings.language);
 		const fragment = activeDocument.createDocumentFragment();
 		const helpDiv = fragment.createDiv({ cls: "flashcard-help" });
 
-		helpDiv.createEl("p", { text: "卡片格式说明:" });
+		helpDiv.createEl("p", { text: t("settings.cardFormatTitle") });
 
 		const codeBlock = helpDiv.createEl("pre");
-		codeBlock.createEl("code").textContent =
-			"#示例标签\n\n问题写在这个地方\n---div---\n答案写在这个地方\n<->\n\n问题写在这个地方\n---div---\n答案写在这个地方\n<->";
+		codeBlock.createEl("code").textContent = t(
+			"settings.cardFormatExample",
+		);
 
-		helpDiv.createEl("p", { text: "快捷键说明:" });
+		helpDiv.createEl("p", { text: t("settings.shortcutsTitle") });
 
 		const shortcutsList = helpDiv.createEl("ul");
 		const shortcuts = [
-			"空格键: 显示答案 / 良好",
-			"数字1: 重来",
-			"数字2: 困难",
-			"数字3: 良好",
-			"数字4: 简单",
-			"数字5: 辣鸡",
-			"数字6: 上一题",
+			t("settings.shortcutSpace"),
+			t("settings.shortcutAgain"),
+			t("settings.shortcutHard"),
+			t("settings.shortcutGood"),
+			t("settings.shortcutEasy"),
+			t("settings.shortcutTrash"),
+			t("settings.shortcutPrevious"),
 		];
 
 		for (const shortcut of shortcuts) {

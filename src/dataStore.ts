@@ -14,6 +14,11 @@ import {
 import { FSRSScheduler } from "./scheduler";
 import { extractFirstTag, parseFileIntoDeck } from "./parser";
 import { shuffleArray } from "./utils";
+import {
+	DEFAULT_PRACTICE_MESSAGES,
+	getDefaultPracticeMessages,
+	normalizeLanguage,
+} from "./i18n";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -103,7 +108,7 @@ export class DataStore {
 				s.flashcardTags = [s.flashcardTag];
 				delete s.flashcardTag;
 			}
-			this.settings = Object.assign({}, DEFAULT_SETTINGS, s);
+			this.settings = this.normalizeSettings(s);
 		} else if (
 			data &&
 			("flashcardTags" in data || "flashcardTag" in data)
@@ -115,9 +120,9 @@ export class DataStore {
 				legacy.flashcardTags = [legacy.flashcardTag];
 				delete legacy.flashcardTag;
 			}
-			this.settings = Object.assign({}, DEFAULT_SETTINGS, legacy);
+			this.settings = this.normalizeSettings(legacy);
 		} else {
-			this.settings = DEFAULT_SETTINGS;
+			this.settings = this.normalizeSettings({});
 		}
 
 		// ── Decks ────────────────────────────────────────────────────────────
@@ -153,6 +158,67 @@ export class DataStore {
 	 */
 	getSettings(): FlashcardSettings {
 		return this.settings;
+	}
+
+	/**
+	 * Merge persisted settings with defaults while preserving old-data compatibility.
+	 */
+	private normalizeSettings(
+		settings: Partial<FlashcardSettings> & { flashcardTag?: string },
+	): FlashcardSettings {
+		const language = normalizeLanguage(settings.language);
+		const defaultMessages = getDefaultPracticeMessages(language);
+		const messagesCustomized =
+			settings.practiceMessagesCustomized ??
+			this.hasCustomPracticeMessages(settings);
+
+		return {
+			...DEFAULT_SETTINGS,
+			...settings,
+			language,
+			deckStudySettings: settings.deckStudySettings ?? {},
+			fsrsParameters: {
+				...DEFAULT_SETTINGS.fsrsParameters,
+				...(settings.fsrsParameters ?? {}),
+			},
+			practiceMessagesCustomized: messagesCustomized,
+			practicePerfectMessages: messagesCustomized
+				? [...(settings.practicePerfectMessages ?? defaultMessages.perfect)]
+				: defaultMessages.perfect,
+			practiceErrorMessages: messagesCustomized
+				? [...(settings.practiceErrorMessages ?? defaultMessages.error)]
+				: defaultMessages.error,
+		};
+	}
+
+	private hasCustomPracticeMessages(
+		settings: Partial<FlashcardSettings>,
+	): boolean {
+		if (
+			settings.practicePerfectMessages === undefined &&
+			settings.practiceErrorMessages === undefined
+		) {
+			return false;
+		}
+
+		const defaultZh = DEFAULT_PRACTICE_MESSAGES.zh;
+		return (
+			!this.areStringArraysEqual(
+				settings.practicePerfectMessages ?? defaultZh.perfect,
+				defaultZh.perfect,
+			) ||
+			!this.areStringArraysEqual(
+				settings.practiceErrorMessages ?? defaultZh.error,
+				defaultZh.error,
+			)
+		);
+	}
+
+	private areStringArraysEqual(left: string[], right: string[]): boolean {
+		return (
+			left.length === right.length &&
+			left.every((value, index) => value === right[index])
+		);
 	}
 
 	/**

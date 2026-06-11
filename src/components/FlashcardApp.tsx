@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useMemo } from "react";
 import { App, Component, MarkdownRenderer, Notice, TFile } from "obsidian";
 import {
 	ViewState,
@@ -18,6 +18,8 @@ import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
 import { StudySetup } from "./StudySetup";
 import { StatsView } from "./StatsView";
+import { I18nProvider } from "./I18nContext";
+import { createTranslator } from "../i18n";
 
 interface FlashcardAppProps {
 	app: App;
@@ -34,6 +36,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	onSaveSettings,
 	onRefresh,
 }) => {
+	const t = useMemo(
+		() => createTranslator(settings.language),
+		[settings.language],
+	);
 	const [viewState, setViewState] = useState<ViewState>({ type: "home" });
 	const [studySession, setStudySession] = useState<StudySession | null>(null);
 	const [practiceSession, setPracticeSession] =
@@ -66,9 +72,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (deck && deck.cards.length > 0) {
 			setViewState({ type: "study-setup", deckId });
 		} else {
-			new Notice(deck ? "该题库没有卡片，请先添加内容" : "题库不存在");
+			new Notice(deck ? t("notice.deckEmpty") : t("notice.deckMissing"));
 		}
-	}, [dataStore]);
+	}, [dataStore, t]);
 
 	const handleStartStudyFromSetup = useCallback((
 		deckId: string,
@@ -79,9 +85,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			setStudySession(session);
 			setViewState({ type: "study", deckId });
 		} else {
-			new Notice("今日学习任务已完成! 🎉");
+			new Notice(t("notice.todayComplete"));
 		}
-	}, [dataStore]);
+	}, [dataStore, t]);
 
 	const handleStudyDay = useCallback((
 		deckId: string,
@@ -161,9 +167,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (deck && deck.cards.length > 0) {
 			setViewState({ type: "practice-setup", deckId });
 		} else {
-			new Notice("该题库没有卡片，请先添加内容");
+			new Notice(t("notice.deckEmpty"));
 		}
-	}, [dataStore]);
+	}, [dataStore, t]);
 
 	const handleStartPractice = useCallback((deckId: string, questionCount: number) => {
 		const deck = dataStore.getDeck(deckId);
@@ -257,9 +263,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (file instanceof TFile) {
 			void app.workspace.getLeaf(false).openFile(file);
 		} else {
-			new Notice(`找不到源文件：${filePath}`);
+			new Notice(t("notice.sourceMissing", { filePath }));
 		}
-	}, [app]);
+	}, [app, t]);
 
 	const handleUpdateDeckStudySettings = useCallback(async (
 		deckId: string,
@@ -293,8 +299,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		/>
 	);
 
-	// Render based on view state
-	switch (viewState.type) {
+	const renderContent = (): React.ReactNode => {
+		// Render based on view state
+		switch (viewState.type) {
 		case "study-setup": {
 			const deck = dataStore.getDeck(viewState.deckId);
 			if (!deck) {
@@ -434,5 +441,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		case "home":
 		default:
 			return renderHome();
-	}
+		}
+	};
+
+	return (
+		<I18nProvider language={settings.language}>
+			{renderContent()}
+		</I18nProvider>
+	);
 };

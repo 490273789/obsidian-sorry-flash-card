@@ -1,4 +1,10 @@
 import type { Card } from "ts-fsrs";
+import {
+	DEFAULT_LANGUAGE,
+	DEFAULT_PRACTICE_MESSAGES,
+} from "./i18n";
+
+export type Language = "zh" | "en";
 
 /**
  * Per-deck or global study settings
@@ -21,12 +27,16 @@ export interface StudySettings {
  * Plugin settings interface
  */
 export interface FlashcardSettings extends StudySettings {
+	/** Interface language */
+	language: Language;
 	/** Tags to scan for flashcards (each tag represents a deck) */
 	flashcardTags: string[];
 	/** Practice completion messages when all correct */
 	practicePerfectMessages: string[];
 	/** Practice completion messages when there are errors */
 	practiceErrorMessages: string[];
+	/** User has edited practice completion messages */
+	practiceMessagesCustomized?: boolean;
 	/** Per-deck study setting overrides, keyed by deck ID */
 	deckStudySettings: Record<string, Partial<StudySettings>>;
 }
@@ -35,6 +45,7 @@ export interface FlashcardSettings extends StudySettings {
  * Default plugin settings
  */
 export const DEFAULT_SETTINGS: FlashcardSettings = {
+	language: DEFAULT_LANGUAGE,
 	flashcardTags: ["#wordTag"],
 	dailyNewCards: 20,
 	dailyReviewCards: 100,
@@ -44,23 +55,9 @@ export const DEFAULT_SETTINGS: FlashcardSettings = {
 		maximumInterval: 365,
 	},
 	deckStudySettings: {},
-	practicePerfectMessages: [
-		"这波装稳了🎉",
-		"沉浸式装 X🌟",
-		"帅是一种常态💪",
-		"优雅，实在是优雅💎",
-		"Practice小能手🏆",
-		"Practice界的扛把子🔥",
-	],
-	practiceErrorMessages: [
-		"这波菜稳了💩",
-		"沉浸式翻车🌟",
-		"错是一种常态❌",
-		"拉胯，实在是拉胯💔",
-		"错题小能手🏆",
-		"翻车界的扛把子🔥",
-		"菜鸡实锤了🐔",
-	],
+	practicePerfectMessages: DEFAULT_PRACTICE_MESSAGES.zh.perfect,
+	practiceErrorMessages: DEFAULT_PRACTICE_MESSAGES.zh.error,
+	practiceMessagesCustomized: false,
 };
 
 /**

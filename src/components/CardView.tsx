@@ -15,9 +15,7 @@ import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionTimer } from "./SessionTimer";
 import { useWindowKeyDown } from "./hooks";
-
-// Computed once — rating button config is static
-const RATING_BUTTONS = getRatingButtons();
+import { useI18n } from "./I18nContext";
 
 interface CardViewProps {
 	dataStore: DataStore;
@@ -36,6 +34,7 @@ export const CardView: React.FC<CardViewProps> = ({
 	onClose,
 	markdownRenderer,
 }) => {
+	const { t, language } = useI18n();
 	const [showAnswer, setShowAnswer] = useState(false);
 	// isAnimatingRef is the source of truth used inside callbacks/closures
 	// to avoid stale captures; isAnimating state drives the CSS class.
@@ -46,6 +45,10 @@ export const CardView: React.FC<CardViewProps> = ({
 		const cardId = session.cardQueue[session.currentIndex];
 		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
 	}, [session.currentIndex, session.cardQueue, dataStore, deck.id]);
+	const ratingButtons = useMemo(
+		() => getRatingButtons(language),
+		[language],
+	);
 
 	useEffect(() => {
 		setShowAnswer(false);
@@ -216,13 +219,13 @@ export const CardView: React.FC<CardViewProps> = ({
 				<div className="flashcard-complete-icon">
 					<PartyPopper size={48} />
 				</div>
-				<div>学习完成!</div>
+				<div>{t("study.complete")}</div>
 				<p>
-					本次学习时长:{" "}
+					{t("study.duration")}
 					<SessionTimer startTime={session.startTime} />
 				</p>
 				<FlashcardButton variant="green" onClick={onClose}>
-					Back to Deck
+					{t("study.backToDeck")}
 				</FlashcardButton>
 			</div>
 		);
@@ -242,7 +245,7 @@ export const CardView: React.FC<CardViewProps> = ({
 				}
 				title={
 					<div className="flashcard-badge">
-						<Brain size={18} /> STUDYING
+						<Brain size={18} /> {t("study.studying")}
 					</div>
 				}
 				right={
@@ -255,7 +258,7 @@ export const CardView: React.FC<CardViewProps> = ({
 							preset="icon"
 							icon={X}
 							onClick={onClose}
-							title="Close"
+							title={t("common.close")}
 						/>
 					</>
 				}
@@ -267,7 +270,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			>
 				<div className="flashcard-question fc-lift">
 					<div className="flashcard-label flashcard-label-question">
-						Question
+						{t("common.question")}
 					</div>
 					<MarkdownContent
 						content={currentCard.question}
@@ -281,7 +284,7 @@ export const CardView: React.FC<CardViewProps> = ({
 						<div className="flashcard-divider" />
 						<div className="flashcard-answer fc-lift">
 							<div className="flashcard-label flashcard-label-answer">
-								Answer
+								{t("common.answer")}
 							</div>
 							<MarkdownContent
 								content={currentCard.answer}
@@ -297,8 +300,10 @@ export const CardView: React.FC<CardViewProps> = ({
 			<div className="flashcard-footer">
 				{!showAnswer ? (
 					<FlashcardButton preset="show" onClick={handleShowAnswer}>
-						Show Answer
-						<span className="flashcard-shortcut">(Space)</span>
+						{t("common.showAnswer")}
+						<span className="flashcard-shortcut">
+							({t("common.space")})
+						</span>
 					</FlashcardButton>
 				) : (
 					<div className="flashcard-response-controls">
@@ -308,10 +313,10 @@ export const CardView: React.FC<CardViewProps> = ({
 							iconSize={24}
 							onClick={handlePrevious}
 							disabled={session.history.length === 0}
-							title="Undo (6)"
+							title={`${t("common.undo")} (6)`}
 						/>
 						<div className="flashcard-rating-grid">
-							{RATING_BUTTONS.map((btn) => (
+							{ratingButtons.map((btn) => (
 								<FlashcardButton
 									key={btn.rating}
 									preset="rating"

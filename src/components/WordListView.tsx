@@ -9,6 +9,7 @@ import type { Deck, FlashCard } from "../types";
 import { shuffleArray } from "../utils";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
+import { useI18n } from "./I18nContext";
 
 interface WordListViewProps {
 	deck: Deck;
@@ -64,6 +65,7 @@ const WordRow = memo(function WordRow({
 	onRevealChinese,
 	onRevealEnglish,
 }: WordRowProps) {
+	const { t } = useI18n();
 	const handleRevealEnglish = useCallback(() => {
 		onRevealEnglish(item.id);
 	}, [item.id, onRevealEnglish]);
@@ -82,12 +84,18 @@ const WordRow = memo(function WordRow({
 				}`}
 				onClick={handleRevealEnglish}
 				onKeyDown={(e) => activateOnKey(e, handleRevealEnglish)}
-				title={isMaskEnglish ? "点击切换显示/隐藏英文" : "英文列"}
+				title={
+					isMaskEnglish
+						? t("wordList.toggleEnglish")
+						: t("wordList.englishColumn")
+				}
 			>
 				{showEnglish ? (
 					<span className="flashcard-word-front">{item.front}</span>
 				) : (
-					<span className="flashcard-word-mask-text">点击显示</span>
+					<span className="flashcard-word-mask-text">
+						{t("wordList.clickToShow")}
+					</span>
 				)}
 			</div>
 			<div
@@ -98,12 +106,18 @@ const WordRow = memo(function WordRow({
 				}`}
 				onClick={handleRevealChinese}
 				onKeyDown={(e) => activateOnKey(e, handleRevealChinese)}
-				title={isMaskChinese ? "点击切换显示/隐藏中文" : "中文列"}
+				title={
+					isMaskChinese
+						? t("wordList.toggleChinese")
+						: t("wordList.chineseColumn")
+				}
 			>
 				{showChinese ? (
 					<span className="flashcard-word-back">{item.back}</span>
 				) : (
-					<span className="flashcard-word-mask-text">点击显示</span>
+					<span className="flashcard-word-mask-text">
+						{t("wordList.clickToShow")}
+					</span>
 				)}
 			</div>
 		</div>
@@ -111,6 +125,7 @@ const WordRow = memo(function WordRow({
 });
 
 export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
+	const { t } = useI18n();
 	const sourceItems = useMemo(
 		() =>
 			[...deck.cards]
@@ -188,10 +203,15 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 					title={
 						<div className="flashcard-word-list-header-main">
 							<div className="flashcard-word-list-title">
-								📖 {deck.name} 单词List
+								{t("wordList.title", {
+									deckName: deck.name,
+								})}
 							</div>
 							<div className="flashcard-word-list-subtitle">
-								共 {items.length} 个单词 · 标签 {deck.tag}
+								{t("wordList.subtitle", {
+									count: items.length,
+									tag: deck.tag,
+								})}
 							</div>
 						</div>
 					}
@@ -205,7 +225,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						active={isShuffled}
 						onClick={handleShuffleToggle}
 					>
-						{isShuffled ? "恢复顺序" : "乱序"}
+						{isShuffled
+							? t("wordList.restoreOrder")
+							: t("wordList.shuffle")}
 					</FlashcardButton>
 					<FlashcardButton
 						variant="blue"
@@ -213,7 +235,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						active={isMaskEnglish}
 						onClick={handleToggleEnglishMask}
 					>
-						{isMaskEnglish ? "取消遮罩英文" : "遮罩英文"}
+						{isMaskEnglish
+							? t("wordList.unmaskEnglish")
+							: t("wordList.maskEnglish")}
 					</FlashcardButton>
 					<FlashcardButton
 						variant="orange"
@@ -221,7 +245,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 						active={isMaskChinese}
 						onClick={handleToggleChineseMask}
 					>
-						{isMaskChinese ? "取消遮罩中文" : "遮罩中文"}
+						{isMaskChinese
+							? t("wordList.unmaskChinese")
+							: t("wordList.maskChinese")}
 					</FlashcardButton>
 				</div>
 			</div>

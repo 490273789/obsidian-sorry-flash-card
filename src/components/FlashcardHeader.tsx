@@ -1,6 +1,7 @@
 import React from "react";
 import type { LucideIcon } from "lucide-react";
 import { FlashcardButton } from "./FlashcardButton";
+import { useI18n } from "./I18nContext";
 
 interface FlashcardHeaderProps {
 	/** Icon displayed next to the title (optional). */
@@ -45,12 +46,14 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 	right,
 	onBack,
 }) => {
+	const { t } = useI18n();
+
 	return (
 		<div className="flashcard-common-header">
 			<div className="flashcard-header-left">
 				{onBack && (
 					<FlashcardButton preset="back" onClick={onBack}>
-						← Back
+						← {t("common.back")}
 					</FlashcardButton>
 				)}
 				{left}

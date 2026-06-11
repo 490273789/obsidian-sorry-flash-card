@@ -3,16 +3,22 @@ import { FlashcardSettings, DEFAULT_SETTINGS } from "./types";
 import { DataStore } from "./dataStore";
 import { FlashcardView, VIEW_TYPE_FLASHCARD } from "./FlashcardView";
 import { FlashcardSettingTab } from "./settingsTab";
+import { createTranslator } from "./i18n";
+
+const OPEN_COMMAND_ID = "open-flashcard-view";
+const SYNC_COMMAND_ID = "sync-flashcard-decks";
 
 export default class FlashcardPlugin extends Plugin {
 	settings: FlashcardSettings = DEFAULT_SETTINGS;
 	dataStore!: DataStore;
+	private ribbonIconEl: HTMLElement | null = null;
 
 	async onload() {
 		this.dataStore = new DataStore(this);
 		// loadSettings() performs a single disk read: settings + decks + history.
 		// load() is a no-op when called right after (data already in memory).
 		this.settings = await this.dataStore.loadSettings();
+		this.t = createTranslator(this.settings.language);
 		await this.dataStore.load();
 
 		// Register view
@@ -27,28 +33,7 @@ export default class FlashcardPlugin extends Plugin {
 				),
 		);
 
-		// Add ribbon icon
-		this.addRibbonIcon("layers", "打开闪卡", () => {
-			void this.activateView();
-		});
-
-		// Add command to open flashcard view
-		this.addCommand({
-			id: "open-flashcard-view",
-			name: "打开闪卡学习",
-			callback: () => {
-				void this.activateView();
-			},
-		});
-
-		// Add command to sync decks
-		this.addCommand({
-			id: "sync-flashcard-decks",
-			name: "同步闪卡题库",
-			callback: async () => {
-				await this.dataStore.syncFromVault();
-			},
-		});
+		this.registerLocalizedControls();
 
 		// Add settings tab
 		this.addSettingTab(new FlashcardSettingTab(this.app, this));
@@ -57,6 +42,54 @@ export default class FlashcardPlugin extends Plugin {
 	onunload() {
 		// Plugin cleanup is handled automatically by Obsidian
 	}
+
+	private registerLocalizedControls(): void {
+		this.ribbonIconEl = this.addRibbonIcon(
+			"layers",
+			this.t("main.ribbonOpenFlashcards"),
+			() => {
+				void this.activateView();
+			},
+		);
+		this.registerCommands();
+	}
+
+	private registerCommands(): void {
+		this.removeCommand(OPEN_COMMAND_ID);
+		this.removeCommand(SYNC_COMMAND_ID);
+
+		this.addCommand({
+			id: OPEN_COMMAND_ID,
+			name: this.t("main.commandOpenFlashcards"),
+			callback: () => {
+				void this.activateView();
+			},
+		});
+
+		this.addCommand({
+			id: SYNC_COMMAND_ID,
+			name: this.t("main.commandSyncDecks"),
+			callback: async () => {
+				await this.dataStore.syncFromVault();
+			},
+		});
+	}
+
+	private updateLocalizedControls(): void {
+		if (this.ribbonIconEl) {
+			this.ribbonIconEl.setAttr(
+				"aria-label",
+				this.t("main.ribbonOpenFlashcards"),
+			);
+			this.ribbonIconEl.setAttr(
+				"title",
+				this.t("main.ribbonOpenFlashcards"),
+			);
+		}
+		this.registerCommands();
+	}
+
+	t = createTranslator(DEFAULT_SETTINGS.language);
 
 	async saveSettings(newSettings?: FlashcardSettings) {
 		if (newSettings) {
@@ -67,6 +100,9 @@ export default class FlashcardPlugin extends Plugin {
 		if (this.dataStore) {
 			await this.dataStore.saveSettings(this.settings);
 		}
+
+		this.t = createTranslator(this.settings.language);
+		this.updateLocalizedControls();
 
 		// Update active views
 		this.app.workspace

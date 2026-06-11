@@ -9,6 +9,7 @@ import {
 import { Deck } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
+import { useI18n } from "./I18nContext";
 
 const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
@@ -23,6 +24,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	onStartPractice,
 	onBack,
 }) => {
+	const { t } = useI18n();
 	const maxQuestions = deck.cards.length;
 	const [questionCount, setQuestionCount] = useState(
 		Math.min(50, maxQuestions),
@@ -70,7 +72,11 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 	return (
 		<div className="flashcard-practice-setup">
-			<FlashcardHeader icon={Target} title="Practice" onBack={onBack} />
+			<FlashcardHeader
+				icon={Target}
+				title={t("practice.title")}
+				onBack={onBack}
+			/>
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
@@ -78,28 +84,32 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						<div className="flashcard-deck-name">{deck.name}</div>
 						<div className="flashcard-deck-tag">{deck.tag}</div>
 						<div className="flashcard-deck-total">
-							共 <strong>{maxQuestions}</strong> 次Practice机会
+							{t("practice.opportunities", {
+								count: maxQuestions,
+							})}
 						</div>
 						<div className="flashcard-practice-setup-subtitle">
-							选择本轮题量后，系统会随机抽题，并在结束后汇总正确率与Practice失败List。
+							{t("practice.setupSubtitle")}
 						</div>
 					</div>
 					<div className="flashcard-study-hero-meta flashcard-practice-hero-meta">
 						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
-								抽题方式
+								{t("practice.pickMethod")}
 							</span>
-							<strong>随机抽取</strong>
+							<strong>{t("practice.randomPick")}</strong>
 						</div>
 						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
-								当前题量
+								{t("practice.currentCount")}
 							</span>
-							<strong>{questionCount} 题</strong>
+							<strong>
+								{questionCount} {t("common.questions")}
+							</strong>
 						</div>
 						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
-								覆盖率
+								{t("practice.coverage")}
 							</span>
 							<strong>{coverage}%</strong>
 						</div>
@@ -108,26 +118,36 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 				<div className="flashcard-today-stats">
 					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">题库规模</span>
+						<span className="flashcard-stat-caption">
+							{t("practice.deckScale")}
+						</span>
 						<span className="flashcard-stat-value purple">
 							{maxQuestions}
 						</span>
-						<span className="flashcard-stat-label">可抽取题目</span>
+						<span className="flashcard-stat-label">
+							{t("practice.availableQuestions")}
+						</span>
 					</div>
 					<div className=" flashcard-stat-card">
-						<span className="flashcard-stat-caption">本次题量</span>
+						<span className="flashcard-stat-caption">
+							{t("practice.currentCount")}
+						</span>
 						<span className="flashcard-stat-value blue">
 							{questionCount}
 						</span>
-						<span className="flashcard-stat-label">当前选择</span>
+						<span className="flashcard-stat-label">
+							{t("practice.currentSelection")}
+						</span>
 					</div>
 					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">覆盖率</span>
+						<span className="flashcard-stat-caption">
+							{t("practice.coverage")}
+						</span>
 						<span className="flashcard-stat-value green">
 							{coverage}%
 						</span>
 						<span className="flashcard-stat-label">
-							本轮扫描范围
+							{t("practice.scanRange")}
 						</span>
 					</div>
 				</div>
@@ -135,10 +155,11 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 				<div className="flashcard-study-panel flashcard-practice-question-selector">
 					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
 						<div className="flashcard-practice-panel-title">
-							<SlidersHorizontal size={16} /> 选择Practice次数
+							<SlidersHorizontal size={16} />{" "}
+							{t("practice.chooseCount")}
 						</div>
 						<div className="flashcard-study-panel-note">
-							建议先从接近整轮题量开始，方便快速感知整体状态
+							{t("practice.chooseCountNote")}
 						</div>
 					</div>
 					{/* flashcard-practice-quick-btn */}
@@ -165,13 +186,13 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							active={questionCount === maxQuestions}
 							onClick={() => handleQuickSelect(maxQuestions)}
 						>
-							ALL
+							{t("common.all")}
 						</FlashcardButton>
 					</div>
 
 					<div className="flashcard-practice-input-group">
 						<span className="flashcard-practice-input-label">
-							自定义数量:
+							{t("practice.customCount")}
 						</span>
 						<input
 							type="number"
@@ -191,39 +212,41 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 				<div className="flashcard-study-panel flashcard-practice-info">
 					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
 						<div className="flashcard-practice-panel-title">
-							<Target size={16} /> 本轮规则
+							<Target size={16} /> {t("practice.rules")}
 						</div>
 						<div className="flashcard-study-panel-note">
-							开始后直接进入答题流，结果页统一收口本轮表现
+							{t("practice.rulesNote")}
 						</div>
 					</div>
 					<div className="flashcard-practice-info-item">
 						<span className="flashcard-practice-info-icon">
 							<Shuffle size={16} />
 						</span>
-						<span>Practice顺序随机</span>
+						<span>{t("practice.randomOrder")}</span>
 					</div>
 					<div className="flashcard-practice-info-item">
 						<span className="flashcard-practice-info-icon">
 							<ChartBar size={16} />
 						</span>
-						<span>完成后查看成功Practice率统计</span>
+						<span>{t("practice.statsAfter")}</span>
 					</div>
 					<div className="flashcard-practice-info-item">
 						<span className="flashcard-practice-info-icon">
 							<CircleX size={16} />
 						</span>
-						<span>查看Practice失败List</span>
+						<span>{t("practice.reviewMisses")}</span>
 					</div>
 				</div>
 
 				<div className="flashcard-study-action-bar">
 					<div>
 						<div className="flashcard-study-action-title">
-							{questionCount} Questions Practice Challenge
+							{t("practice.challenge", {
+								count: questionCount,
+							})}
 						</div>
 						<div className="flashcard-study-action-subtitle">
-							系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。
+							{t("practice.actionSubtitle")}
 						</div>
 					</div>
 					<FlashcardButton
@@ -231,7 +254,9 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						onClick={handleStart}
 						disabled={maxQuestions === 0}
 					>
-						Start · {questionCount} Questions
+						{t("practice.startQuestions", {
+							count: questionCount,
+						})}
 					</FlashcardButton>
 				</div>
 			</div>

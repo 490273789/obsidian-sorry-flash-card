@@ -8,7 +8,11 @@ import {
 	RecordLogItem,
 	IPreview,
 } from "ts-fsrs";
-import { FlashcardSettings } from "./types";
+import { FlashcardSettings, Language, RatingButton } from "./types";
+import {
+	formatReviewInterval,
+	getLocalizedRatingButtons,
+} from "./i18n";
 
 /**
  * FSRS Scheduler - handles spaced repetition scheduling using FSRS algorithm
@@ -107,7 +111,11 @@ export class FSRSScheduler {
 	/**
 	 * Calculate next review interval description
 	 */
-	getIntervalDescription(card: Card, rating: Rating): string {
+	getIntervalDescription(
+		card: Card,
+		rating: Rating,
+		language: Language = "zh",
+	): string {
 		const options = this.getSchedulingOptions(card);
 
 		let result: RecordLogItem | undefined;
@@ -136,12 +144,12 @@ export class FSRSScheduler {
 			const diffMs = result.card.due.getTime() - new Date().getTime();
 			const minutes = Math.round(diffMs / (1000 * 60));
 			if (minutes < 60) {
-				return `${minutes}分钟`;
+				return formatReviewInterval(language, "minute", minutes);
 			}
 			const hours = Math.round(minutes / 60);
-			return `${hours}小时`;
+			return formatReviewInterval(language, "hour", hours);
 		}
-		return `${interval}天`;
+		return formatReviewInterval(language, "day", interval);
 	}
 
 	/**
@@ -186,17 +194,8 @@ export function toFSRSRating(rating: 1 | 2 | 3 | 4): Rating {
 /**
  * Get rating buttons configuration
  */
-export function getRatingButtons(): Array<{
-	label: string;
-	shortcut: string;
-	rating: 1 | 2 | 3 | 4 | 5;
-	intervalDesc: string;
-}> {
-	return [
-		{ label: "重来", shortcut: "1", rating: 1, intervalDesc: "1分钟" },
-		{ label: "困难", shortcut: "2", rating: 2, intervalDesc: "1天" },
-		{ label: "良好", shortcut: "3/空格", rating: 3, intervalDesc: "3天" },
-		{ label: "简单", shortcut: "4", rating: 4, intervalDesc: "10天" },
-		{ label: "辣鸡", shortcut: "5", rating: 5, intervalDesc: "21天" },
-	];
+export function getRatingButtons(
+	language: Language = "zh",
+): RatingButton[] {
+	return getLocalizedRatingButtons(language);
 }
