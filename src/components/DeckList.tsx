@@ -16,6 +16,7 @@ import {
 	Layers3,
 	List,
 	NotebookPen,
+	Plus,
 	RefreshCcw,
 	ScanEye,
 	Settings,
@@ -560,6 +561,7 @@ const DeckCard = memo(function DeckCard({
 interface DeckListProps {
 	dataStore: DataStore;
 	settings: FlashcardSettings;
+	refreshKey: number;
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
@@ -570,11 +572,13 @@ interface DeckListProps {
 	) => Promise<void>;
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenStats: () => void;
+	onOpenAddCard: () => void;
 }
 
 export const DeckList: React.FC<DeckListProps> = ({
 	dataStore,
 	settings,
+	refreshKey,
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
@@ -582,6 +586,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onUpdateDeckStudySettings,
 	onOpenSourceFile,
 	onOpenStats,
+	onOpenAddCard,
 }) => {
 	const { t } = useI18n();
 	const [decks, setDecks] = useState<Deck[]>([]);
@@ -595,7 +600,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 
 	useEffect(() => {
 		loadDecks();
-	}, [loadDecks]);
+	}, [loadDecks, refreshKey]);
 
 	const deckStatsById = useMemo(() => {
 		const nextStats = new Map<string, DeckStats>();
@@ -710,6 +715,16 @@ export const DeckList: React.FC<DeckListProps> = ({
 					onClose={handleCloseModal}
 				/>
 			)}
+
+			<FlashcardButton
+				preset="icon"
+				className="flashcard-add-card-fab"
+				icon={Plus}
+				iconSize={22}
+				onClick={onOpenAddCard}
+				title={t("cardEditor.addCardTitle")}
+				aria-label={t("cardEditor.addCardTitle")}
+			/>
 		</div>
 	);
 };

@@ -20,6 +20,10 @@ import { StudySetup } from "./StudySetup";
 import { StatsView } from "./StatsView";
 import { I18nProvider } from "./I18nContext";
 import { createTranslator } from "../i18n";
+import {
+	CardEditorModal,
+	type CardEditorSavePayload,
+} from "./CardEditorModal";
 
 interface FlashcardAppProps {
 	app: App;
@@ -28,6 +32,19 @@ interface FlashcardAppProps {
 	onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 	onRefresh: () => Promise<void>;
 }
+
+type CardEditorState =
+	| {
+			mode: "create";
+			deckId: string | null;
+	  }
+	| {
+			mode: "edit";
+			deckId: string;
+			cardId: string;
+			question: string;
+			answer: string;
+	  };
 
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	app,
@@ -47,8 +64,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const [practiceResult, setPracticeResult] = useState<PracticeResult | null>(
 		null,
 	);
+	const [contentVersion, setContentVersion] = useState(0);
+	const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
 	// Track when word-list view was opened for duration recording
 	const wordListStartTime = useRef<number | null>(null);
+
+	const decks = useMemo(
+		() => dataStore.getAllDecks(),
+		[dataStore, contentVersion],
+	);
 
 	// Markdown renderer function
 	const renderMarkdown = useCallback(
@@ -66,6 +90,67 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleOpenStats = useCallback(() => {
 		setViewState({ type: "stats" });
 	}, []);
+
+	const handleOpenAddCard = useCallback(() => {
+		const firstDeck = dataStore.getAllDecks()[0];
+		if (!firstDeck) {
+			new Notice(t("notice.noDecks"));
+			return;
+		}
+		setCardEditor({
+			mode: "create",
+			deckId: firstDeck.id,
+		});
+	}, [dataStore, t]);
+
+	const handleOpenEditCard = useCallback((deckId: string, cardId: string) => {
+		const card = dataStore.getCard(deckId, cardId);
+		if (!card) {
+			new Notice(t("notice.cardMissing"));
+			return;
+		}
+		setCardEditor({
+			mode: "edit",
+			deckId,
+			cardId,
+			question: card.question,
+			answer: card.answer,
+		});
+	}, [dataStore, t]);
+
+	const handleCloseCardEditor = useCallback(() => {
+		setCardEditor(null);
+	}, []);
+
+	const handleSaveCardEditor = useCallback(async ({
+		deckId,
+		question,
+		answer,
+	}: CardEditorSavePayload) => {
+		if (!cardEditor) return;
+
+		try {
+			if (cardEditor.mode === "edit") {
+				await dataStore.updateCardContent(
+					cardEditor.deckId,
+					cardEditor.cardId,
+					question,
+					answer,
+				);
+				new Notice(t("notice.cardSaved"));
+			} else {
+				await dataStore.addCardToDeck(deckId, question, answer);
+				new Notice(t("notice.cardAdded"));
+			}
+			setContentVersion((version) => version + 1);
+			setCardEditor(null);
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : t("cardEditor.saveFailed");
+			new Notice(t("notice.cardSaveFailed", { message }));
+			throw error;
+		}
+	}, [cardEditor, dataStore, t]);
 
 	const handleSelectDeck = useCallback((deckId: string) => {
 		const deck = dataStore.getDeck(deckId);
@@ -289,6 +374,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		<DeckList
 			dataStore={dataStore}
 			settings={settings}
+			refreshKey={contentVersion}
 			onSelectDeck={handleSelectDeck}
 			onOpenWordList={handleOpenWordList}
 			onStartPractice={handleStartPracticeSetup}
@@ -296,6 +382,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
 			onOpenSourceFile={handleOpenSourceFile}
 			onOpenStats={handleOpenStats}
+			onOpenAddCard={handleOpenAddCard}
 		/>
 	);
 
@@ -347,7 +434,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					dataStore={dataStore}
 					deck={deck}
 					session={studySession}
+					contentVersion={contentVersion}
 					onSessionUpdate={handleSessionUpdate}
+					onEditCard={handleOpenEditCard}
 					onClose={handleCloseStudy}
 					markdownRenderer={renderMarkdown}
 				/>
@@ -385,7 +474,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					dataStore={dataStore}
 					deck={deck}
 					session={practiceSession}
+					contentVersion={contentVersion}
 					onSessionUpdate={handlePracticeSessionUpdate}
+					onEditCard={handleOpenEditCard}
 					onComplete={handlePracticeComplete}
 					onClose={handlePracticeClose}
 					markdownRenderer={renderMarkdown}
@@ -447,6 +538,21 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	return (
 		<I18nProvider language={settings.language}>
 			{renderContent()}
+			{cardEditor && (
+				<CardEditorModal
+					mode={cardEditor.mode}
+					decks={decks}
+					initialDeckId={cardEditor.deckId}
+					initialQuestion={
+						cardEditor.mode === "edit" ? cardEditor.question : ""
+					}
+					initialAnswer={
+						cardEditor.mode === "edit" ? cardEditor.answer : ""
+					}
+					onSave={handleSaveCardEditor}
+					onClose={handleCloseCardEditor}
+				/>
+			)}
 		</I18nProvider>
 	);
 };

@@ -5,7 +5,7 @@ import React, {
 	useRef,
 	useState,
 } from "react";
-import { Brain, PartyPopper, RotateCcw, X } from "lucide-react";
+import { Brain, PartyPopper, Pencil, RotateCcw, X } from "lucide-react";
 import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
@@ -21,7 +21,9 @@ interface CardViewProps {
 	dataStore: DataStore;
 	deck: Deck;
 	session: StudySession;
+	contentVersion: number;
 	onSessionUpdate: (session: StudySession) => void;
+	onEditCard: (deckId: string, cardId: string) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
@@ -30,7 +32,9 @@ export const CardView: React.FC<CardViewProps> = ({
 	dataStore,
 	deck,
 	session,
+	contentVersion,
 	onSessionUpdate,
+	onEditCard,
 	onClose,
 	markdownRenderer,
 }) => {
@@ -44,7 +48,13 @@ export const CardView: React.FC<CardViewProps> = ({
 	const currentCard = useMemo<FlashCard | null>(() => {
 		const cardId = session.cardQueue[session.currentIndex];
 		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
-	}, [session.currentIndex, session.cardQueue, dataStore, deck.id]);
+	}, [
+		contentVersion,
+		session.currentIndex,
+		session.cardQueue,
+		dataStore,
+		deck.id,
+	]);
 	const ratingButtons = useMemo(
 		() => getRatingButtons(language),
 		[language],
@@ -253,6 +263,13 @@ export const CardView: React.FC<CardViewProps> = ({
 						<SessionTimer
 							startTime={session.startTime}
 							className="flashcard-timer"
+						/>
+						<FlashcardButton
+							preset="icon"
+							icon={Pencil}
+							onClick={() => onEditCard(deck.id, currentCard.id)}
+							title={t("cardEditor.editCurrentTitle")}
+							aria-label={t("cardEditor.editCurrentTitle")}
 						/>
 						<FlashcardButton
 							preset="icon"

@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, TFile } from "obsidian";
 import { Card, State } from "ts-fsrs";
 import {
 	Deck,
@@ -19,6 +19,10 @@ import {
 	getDefaultPracticeMessages,
 	normalizeLanguage,
 } from "./i18n";
+
+const CARD_SEPARATOR = "<->";
+const QUESTION_ANSWER_SEPARATOR = "---div---";
+const FIRST_TAG_LINE_PATTERN = /(?:^|\n)\s*#[\w\u4e00-\u9fa5]+\s*\n?/;
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -612,6 +616,153 @@ export class DataStore {
 	getCard(deckId: string, cardId: string): FlashCard | undefined {
 		const deck = this.decks.get(deckId);
 		return deck?.cards.find((c) => c.id === cardId);
+	}
+
+	/**
+	 * Update a card's question/answer in the source Markdown file.
+	 */
+	async updateCardContent(
+		deckId: string,
+		cardId: string,
+		question: string,
+		answer: string,
+	): Promise<Deck> {
+		const deck = this.decks.get(deckId);
+		if (!deck) throw new Error("Deck not found");
+
+		const card = deck.cards.find((c) => c.id === cardId);
+		if (!card) throw new Error("Card not found");
+
+		const file = this.getDeckSourceFile(deck);
+		const content = await this.plugin.app.vault.cachedRead(file);
+		const nextContent = this.replaceCardBlock(
+			content,
+			card.indexInFile,
+			question,
+			answer,
+		);
+		if (nextContent === null) {
+			throw new Error("Card block not found in source file");
+		}
+
+		await this.plugin.app.vault.modify(file, nextContent);
+		return this.refreshDeckFromSource(file, deck, nextContent);
+	}
+
+	/**
+	 * Append a new card to an existing deck's source Markdown file.
+	 */
+	async addCardToDeck(
+		deckId: string,
+		question: string,
+		answer: string,
+	): Promise<Deck> {
+		const deck = this.decks.get(deckId);
+		if (!deck) throw new Error("Deck not found");
+
+		const file = this.getDeckSourceFile(deck);
+		const content = await this.plugin.app.vault.cachedRead(file);
+		const nextContent = this.appendCardBlock(content, question, answer);
+
+		await this.plugin.app.vault.modify(file, nextContent);
+		return this.refreshDeckFromSource(file, deck, nextContent);
+	}
+
+	private getDeckSourceFile(deck: Deck): TFile {
+		const file = this.plugin.app.vault.getAbstractFileByPath(
+			deck.filePath,
+		);
+		if (!(file instanceof TFile)) {
+			throw new Error("Source file not found");
+		}
+		return file;
+	}
+
+	private replaceCardBlock(
+		content: string,
+		indexInFile: number,
+		question: string,
+		answer: string,
+	): string | null {
+		const blocks = content.split(CARD_SEPARATOR);
+		const currentBlock = blocks[indexInFile];
+		if (
+			indexInFile < 0 ||
+			currentBlock === undefined ||
+			!currentBlock.includes(QUESTION_ANSWER_SEPARATOR)
+		) {
+			return null;
+		}
+
+		blocks[indexInFile] = this.mergePreservedPrefixWithCardBlock(
+			currentBlock,
+			indexInFile,
+			question,
+			answer,
+		);
+		return blocks.join(CARD_SEPARATOR);
+	}
+
+	private mergePreservedPrefixWithCardBlock(
+		currentBlock: string,
+		indexInFile: number,
+		question: string,
+		answer: string,
+	): string {
+		const cardBlock = this.formatCardBlock(question, answer);
+		if (indexInFile !== 0) return cardBlock;
+
+		const tagMatch = currentBlock.match(FIRST_TAG_LINE_PATTERN);
+		if (!tagMatch || tagMatch.index === undefined) return cardBlock;
+
+		const prefix = currentBlock.slice(
+			0,
+			tagMatch.index + tagMatch[0].length,
+		);
+		const separator = prefix.endsWith("\n") ? "" : "\n";
+		return `${prefix}${separator}${cardBlock}`;
+	}
+
+	private appendCardBlock(
+		content: string,
+		question: string,
+		answer: string,
+	): string {
+		const base = content.trimEnd();
+		const separator = base.endsWith(CARD_SEPARATOR)
+			? "\n\n"
+			: `\n${CARD_SEPARATOR}\n\n`;
+		return `${base}${separator}${this.formatCardBlock(question, answer)}\n`;
+	}
+
+	private formatCardBlock(question: string, answer: string): string {
+		return [
+			question.trim(),
+			QUESTION_ANSWER_SEPARATOR,
+			answer.trim(),
+		].join("\n");
+	}
+
+	private async refreshDeckFromSource(
+		file: TFile,
+		existingDeck: Deck,
+		content: string,
+	): Promise<Deck> {
+		const deck = await parseFileIntoDeck(
+			file,
+			this.plugin.app.vault,
+			existingDeck,
+			content,
+		);
+		if (!deck) throw new Error("Updated source has no valid cards");
+
+		this.decks.set(deck.id, deck);
+		const tag = extractFirstTag(content);
+		if (tag && content.includes(QUESTION_ANSWER_SEPARATOR)) {
+			this.availableTags = Array.from(new Set([...this.availableTags, tag]));
+		}
+		await this.save();
+		return deck;
 	}
 
 	/**

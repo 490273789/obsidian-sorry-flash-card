@@ -5,7 +5,7 @@ import React, {
 	useRef,
 	useState,
 } from "react";
-import { Target, X, Check } from "lucide-react";
+import { Target, X, Check, Pencil } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
@@ -19,7 +19,9 @@ interface PracticeViewProps {
 	dataStore: DataStore;
 	deck: Deck;
 	session: PracticeSession;
+	contentVersion: number;
 	onSessionUpdate: (session: PracticeSession) => void;
+	onEditCard: (deckId: string, cardId: string) => void;
 	onComplete: (result: PracticeResult) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
@@ -29,7 +31,9 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	dataStore,
 	deck,
 	session,
+	contentVersion,
 	onSessionUpdate,
+	onEditCard,
 	onComplete,
 	onClose,
 	markdownRenderer,
@@ -42,7 +46,13 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	const currentCard = useMemo<FlashCard | null>(() => {
 		const cardId = session.cardQueue[session.currentIndex];
 		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
-	}, [session.currentIndex, session.cardQueue, dataStore, deck.id]);
+	}, [
+		contentVersion,
+		session.currentIndex,
+		session.cardQueue,
+		dataStore,
+		deck.id,
+	]);
 
 	useEffect(() => {
 		setShowAnswer(false);
@@ -174,6 +184,13 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						<SessionTimer
 							startTime={session.startTime}
 							className="flashcard-timer"
+						/>
+						<FlashcardButton
+							preset="icon"
+							icon={Pencil}
+							onClick={() => onEditCard(deck.id, currentCard.id)}
+							title={t("cardEditor.editCurrentTitle")}
+							aria-label={t("cardEditor.editCurrentTitle")}
 						/>
 						<FlashcardButton
 							preset="icon"
