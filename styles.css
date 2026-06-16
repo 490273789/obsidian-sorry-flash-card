@@ -99,21 +99,17 @@
 		transform var(--fc-motion-quick) var(--fc-ease-out),
 		border-color var(--fc-motion-quick) ease,
 		box-shadow var(--fc-motion-quick) ease;
-	--fc-motion-page-enter:
-		fc-enter var(--fc-motion-page) var(--fc-ease-out) both;
-	--fc-motion-rise:
-		fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both;
+	--fc-motion-page-enter: fc-enter var(--fc-motion-page) var(--fc-ease-out)
+		both;
+	--fc-motion-rise: fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both;
 	--fc-motion-current-day:
 		fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both 1,
 		fc-soft-pulse 2.6s ease-in-out infinite;
-	--fc-motion-answer:
-		fc-answer-reveal 300ms var(--fc-ease-out) both;
-	--fc-motion-divider:
-		fc-divider-scan 820ms var(--fc-ease-out) both;
-	--fc-motion-active-glow:
-		fc-active-glow var(--fc-motion-page) var(--fc-ease-out) both;
-	--fc-motion-choice-pulse:
-		fc-choice-pulse 300ms var(--fc-ease-out) both;
+	--fc-motion-answer: fc-answer-reveal 300ms var(--fc-ease-out) both;
+	--fc-motion-divider: fc-divider-scan 820ms var(--fc-ease-out) both;
+	--fc-motion-active-glow: fc-active-glow var(--fc-motion-page)
+		var(--fc-ease-out) both;
+	--fc-motion-choice-pulse: fc-choice-pulse 300ms var(--fc-ease-out) both;
 	--fc-motion-progress-scan: fc-progress-scan 1.2s linear infinite;
 	--fc-motion-complete-pop: fc-complete-pop 420ms var(--fc-ease-out) both;
 	--fc-motion-soft-pulse: fc-soft-pulse 1.4s ease-out 1;
@@ -678,7 +674,8 @@
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(2),
 .flashcard-practice-stat-row .flashcard-practice-stat-item:nth-child(2),
 .flashcard-stats-days .flashcard-stats-day:nth-child(2),
-.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(2),
+.flashcard-practice-incorrect-list
+	.flashcard-practice-incorrect-item:nth-child(2),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(2) {
 	animation-delay: 55ms;
 }
@@ -688,7 +685,8 @@
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(3),
 .flashcard-practice-stat-row .flashcard-practice-stat-item:nth-child(3),
 .flashcard-stats-days .flashcard-stats-day:nth-child(3),
-.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(3),
+.flashcard-practice-incorrect-list
+	.flashcard-practice-incorrect-item:nth-child(3),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(3) {
 	animation-delay: 110ms;
 }
@@ -696,7 +694,8 @@
 .flashcard-deck-list .flashcard-deck-item:nth-child(n + 4),
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(n + 4),
 .flashcard-stats-days .flashcard-stats-day:nth-child(n + 4),
-.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(n + 4),
+.flashcard-practice-incorrect-list
+	.flashcard-practice-incorrect-item:nth-child(n + 4),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(n + 4) {
 	animation-delay: 165ms;
 }
@@ -2287,7 +2286,7 @@
 }
 
 .flashcard-add-card-fab {
-	position: absolute;
+	position: fixed;
 	right: var(--fc-space-5);
 	bottom: var(--fc-space-5);
 	z-index: 20;
