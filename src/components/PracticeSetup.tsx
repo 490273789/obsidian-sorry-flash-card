@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-	Target,
-	Shuffle,
-	ChartBar,
-	CircleX,
-	SlidersHorizontal,
-	Repeat2,
-} from "lucide-react";
+import { Target, Shuffle, ChartBar, CircleX, SlidersHorizontal, Repeat2 } from "lucide-react";
 import { CardDirection, Deck } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
@@ -17,10 +10,7 @@ const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 interface PracticeSetupProps {
 	deck: Deck;
 	defaultDirection: CardDirection;
-	onStartPractice: (
-		questionCount: number,
-		direction: CardDirection,
-	) => void;
+	onStartPractice: (questionCount: number, direction: CardDirection) => void;
 	onBack: () => void;
 }
 
@@ -32,14 +22,9 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 }) => {
 	const { t } = useI18n();
 	const maxQuestions = deck.cards.length;
-	const [questionCount, setQuestionCount] = useState(
-		Math.min(50, maxQuestions),
-	);
-	const coverage =
-		maxQuestions > 0 ? Math.round((questionCount / maxQuestions) * 100) : 0;
-	const [inputValue, setInputValue] = useState(
-		Math.min(50, maxQuestions).toString(),
-	);
+	const [questionCount, setQuestionCount] = useState(Math.min(50, maxQuestions));
+	const coverage = maxQuestions > 0 ? Math.round((questionCount / maxQuestions) * 100) : 0;
+	const [inputValue, setInputValue] = useState(Math.min(50, maxQuestions).toString());
 	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,11 +64,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 	return (
 		<div className="flashcard-practice-setup">
-			<FlashcardHeader
-				icon={Target}
-				title={t("practice.title")}
-				onBack={onBack}
-			/>
+			<FlashcardHeader icon={Target} title={t("practice.title")} onBack={onBack} />
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
@@ -125,45 +106,30 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 				<div className="flashcard-today-stats">
 					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">
-							{t("practice.deckScale")}
-						</span>
-						<span className="flashcard-stat-value purple">
-							{maxQuestions}
-						</span>
+						<span className="flashcard-stat-caption">{t("practice.deckScale")}</span>
+						<span className="flashcard-stat-value purple">{maxQuestions}</span>
 						<span className="flashcard-stat-label">
 							{t("practice.availableQuestions")}
 						</span>
 					</div>
 					<div className=" flashcard-stat-card">
-						<span className="flashcard-stat-caption">
-							{t("practice.currentCount")}
-						</span>
-						<span className="flashcard-stat-value blue">
-							{questionCount}
-						</span>
+						<span className="flashcard-stat-caption">{t("practice.currentCount")}</span>
+						<span className="flashcard-stat-value blue">{questionCount}</span>
 						<span className="flashcard-stat-label">
 							{t("practice.currentSelection")}
 						</span>
 					</div>
 					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">
-							{t("practice.coverage")}
-						</span>
-						<span className="flashcard-stat-value green">
-							{coverage}%
-						</span>
-						<span className="flashcard-stat-label">
-							{t("practice.scanRange")}
-						</span>
+						<span className="flashcard-stat-caption">{t("practice.coverage")}</span>
+						<span className="flashcard-stat-value green">{coverage}%</span>
+						<span className="flashcard-stat-label">{t("practice.scanRange")}</span>
 					</div>
 				</div>
 
 				<div className="flashcard-study-panel flashcard-practice-question-selector">
 					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
 						<div className="flashcard-practice-panel-title">
-							<SlidersHorizontal size={16} />{" "}
-							{t("practice.chooseCount")}
+							<SlidersHorizontal size={16} /> {t("practice.chooseCount")}
 						</div>
 						<div className="flashcard-study-panel-note">
 							{t("practice.chooseCountNote")}
@@ -175,15 +141,9 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							<FlashcardButton
 								key={count}
 								className="flashcard-active-orang"
-								active={
-									questionCount ===
-									Math.min(count, maxQuestions)
-								}
+								active={questionCount === Math.min(count, maxQuestions)}
 								onClick={() => handleQuickSelect(count)}
-								disabled={
-									count > maxQuestions &&
-									count !== maxQuestions
-								}
+								disabled={count > maxQuestions && count !== maxQuestions}
 							>
 								{count > maxQuestions ? maxQuestions : count}
 							</FlashcardButton>
@@ -210,9 +170,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							min={1}
 							max={maxQuestions}
 						/>
-						<span className="flashcard-practice-input-hint">
-							(1 - {maxQuestions})
-						</span>
+						<span className="flashcard-practice-input-hint">(1 - {maxQuestions})</span>
 					</div>
 				</div>
 
@@ -222,9 +180,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							<Repeat2 size={16} /> {t("mode.direction")}
 						</div>
 						<div className="flashcard-study-panel-note">
-							{direction === "normal"
-								? t("mode.normalNote")
-								: t("mode.reversedNote")}
+							{direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")}
 						</div>
 					</div>
 					<div className="flashcard-direction-options">
@@ -250,9 +206,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						<div className="flashcard-practice-panel-title">
 							<Target size={16} /> {t("practice.rules")}
 						</div>
-						<div className="flashcard-study-panel-note">
-							{t("practice.rulesNote")}
-						</div>
+						<div className="flashcard-study-panel-note">{t("practice.rulesNote")}</div>
 					</div>
 					<div className="flashcard-practice-info-item">
 						<span className="flashcard-practice-info-icon">

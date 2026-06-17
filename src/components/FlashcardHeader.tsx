@@ -72,11 +72,7 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 	return (
 		<div className="flashcard-common-header flashcard-navigation-header">
 			<div className="flashcard-header-left">
-				{onBack && (
-					<span className="flashcard-header-back-mobile">
-						{mobileBackButton}
-					</span>
-				)}
+				{onBack && <span className="flashcard-header-back-mobile">{mobileBackButton}</span>}
 				{left}
 			</div>
 			<div className="flashcard-header-center">
@@ -86,9 +82,7 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 			<div className="flashcard-header-right">
 				{right}
 				{onBack && (
-					<span className="flashcard-header-back-desktop">
-						{desktopBackButton}
-					</span>
+					<span className="flashcard-header-back-desktop">{desktopBackButton}</span>
 				)}
 			</div>
 		</div>

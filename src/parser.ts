@@ -77,14 +77,11 @@ export function parseFlashcards(
 function parseCardBlock(
 	blockLines: string[],
 ): Pick<FlashCard, "front" | "back" | "explanation"> | null {
-	const frontBackIndex = blockLines.findIndex((line) =>
-		isMarkerLine(line, FRONT_BACK_SEPARATOR),
-	);
+	const frontBackIndex = blockLines.findIndex((line) => isMarkerLine(line, FRONT_BACK_SEPARATOR));
 	if (frontBackIndex === -1) return null;
 
 	const explanationIndex = blockLines.findIndex(
-		(line, index) =>
-			index > frontBackIndex && isMarkerLine(line, EXPLANATION_SEPARATOR),
+		(line, index) => index > frontBackIndex && isMarkerLine(line, EXPLANATION_SEPARATOR),
 	);
 
 	const front = blockLines.slice(0, frontBackIndex).join("\n").trim();
@@ -96,7 +93,10 @@ function parseCardBlock(
 	const explanation =
 		explanationIndex === -1
 			? ""
-			: blockLines.slice(explanationIndex + 1).join("\n").trim();
+			: blockLines
+					.slice(explanationIndex + 1)
+					.join("\n")
+					.trim();
 
 	if (!front || !back) return null;
 

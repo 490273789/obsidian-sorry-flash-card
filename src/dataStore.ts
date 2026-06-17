@@ -23,11 +23,7 @@ import {
 	hasFlashcardSyntax,
 	isMarkerLine,
 } from "./cardFormat";
-import {
-	DEFAULT_PRACTICE_MESSAGES,
-	getDefaultPracticeMessages,
-	normalizeLanguage,
-} from "./i18n";
+import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "./i18n";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -119,10 +115,7 @@ export class DataStore {
 				delete s.flashcardTag;
 			}
 			this.settings = this.normalizeSettings(s);
-		} else if (
-			data &&
-			("flashcardTags" in data || "flashcardTag" in data)
-		) {
+		} else if (data && ("flashcardTags" in data || "flashcardTag" in data)) {
 			const legacy = data as unknown as Partial<FlashcardSettings> & {
 				flashcardTag?: string;
 			};
@@ -179,8 +172,7 @@ export class DataStore {
 		const language = normalizeLanguage(settings.language);
 		const defaultMessages = getDefaultPracticeMessages(language);
 		const messagesCustomized =
-			settings.practiceMessagesCustomized ??
-			this.hasCustomPracticeMessages(settings);
+			settings.practiceMessagesCustomized ?? this.hasCustomPracticeMessages(settings);
 
 		return {
 			...DEFAULT_SETTINGS,
@@ -201,9 +193,7 @@ export class DataStore {
 		};
 	}
 
-	private hasCustomPracticeMessages(
-		settings: Partial<FlashcardSettings>,
-	): boolean {
+	private hasCustomPracticeMessages(settings: Partial<FlashcardSettings>): boolean {
 		if (
 			settings.practicePerfectMessages === undefined &&
 			settings.practiceErrorMessages === undefined
@@ -225,10 +215,7 @@ export class DataStore {
 	}
 
 	private areStringArraysEqual(left: string[], right: string[]): boolean {
-		return (
-			left.length === right.length &&
-			left.every((value, index) => value === right[index])
-		);
+		return left.length === right.length && left.every((value, index) => value === right[index]);
 	}
 
 	/**
@@ -297,9 +284,7 @@ export class DataStore {
 			...serializedCard,
 			due: due instanceof Date ? due.toISOString() : due,
 			last_review:
-				last_review instanceof Date
-					? last_review.toISOString()
-					: (last_review ?? null),
+				last_review instanceof Date ? last_review.toISOString() : (last_review ?? null),
 			learning_steps: serializedCard.learning_steps ?? 0,
 		};
 	}
@@ -345,9 +330,7 @@ export class DataStore {
 			reps: data.reps,
 			lapses: data.lapses,
 			state: data.state,
-			last_review: data.last_review
-				? new Date(data.last_review)
-				: undefined,
+			last_review: data.last_review ? new Date(data.last_review) : undefined,
 			learning_steps: data.learning_steps ?? 0,
 		};
 	}
@@ -380,12 +363,7 @@ export class DataStore {
 				if (configuredTagsLower.has(tag.toLowerCase())) {
 					const existingDeck = this.decks.get(file.path);
 					// Pass pre-read content to avoid reading the file again
-					const deck = await parseFileIntoDeck(
-						file,
-						vault,
-						existingDeck,
-						content,
-					);
+					const deck = await parseFileIntoDeck(file, vault, existingDeck, content);
 					if (deck) newDecksMap.set(deck.id, deck);
 				}
 			} catch (error) {
@@ -490,9 +468,7 @@ export class DataStore {
 		if (!deck) return [];
 
 		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
-		const sortedCards = [...deck.cards].sort(
-			(a, b) => a.indexInFile - b.indexInFile,
-		);
+		const sortedCards = [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile);
 		const totalCards = sortedCards.length;
 		if (totalCards === 0) return [];
 
@@ -504,9 +480,7 @@ export class DataStore {
 			const start = i * dailyNewCards;
 			const end = Math.min(start + dailyNewCards, totalCards);
 			const dayCards = sortedCards.slice(start, end);
-			const studiedCards = dayCards.filter(
-				(c) => c.fsrsCard.state !== State.New,
-			).length;
+			const studiedCards = dayCards.filter((c) => c.fsrsCard.state !== State.New).length;
 			const isCompleted = studiedCards === dayCards.length;
 			const isCurrent = !isCompleted && !foundCurrent;
 			if (isCurrent) foundCurrent = true;
@@ -536,8 +510,7 @@ export class DataStore {
 		const deck = this.decks.get(deckId);
 		if (!deck) return { newCount: 0, reviewCount: 0 };
 
-		const { dailyNewCards, dailyReviewCards } =
-			this.getEffectiveStudySettings(deckId);
+		const { dailyNewCards, dailyReviewCards } = this.getEffectiveStudySettings(deckId);
 		const now = new Date();
 		let newCards = 0;
 		let dueCards = 0;
@@ -564,9 +537,7 @@ export class DataStore {
 		if (!deck) return [];
 
 		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
-		const sortedCards = [...deck.cards].sort(
-			(a, b) => a.indexInFile - b.indexInFile,
-		);
+		const sortedCards = [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile);
 		const start = dayIndex * dailyNewCards;
 		const end = Math.min(start + dailyNewCards, sortedCards.length);
 		return sortedCards.slice(start, end);
@@ -681,12 +652,7 @@ export class DataStore {
 
 		const file = this.getDeckSourceFile(deck);
 		const content = await this.plugin.app.vault.cachedRead(file);
-		const nextContent = this.appendCardBlock(
-			content,
-			front,
-			back,
-			explanation,
-		);
+		const nextContent = this.appendCardBlock(content, front, back, explanation);
 
 		await this.plugin.app.vault.modify(file, nextContent);
 		return this.refreshDeckFromSource(file, deck, nextContent);
@@ -739,9 +705,7 @@ export class DataStore {
 	}
 
 	private getDeckSourceFile(deck: Deck): TFile {
-		const file = this.plugin.app.vault.getAbstractFileByPath(
-			deck.filePath,
-		);
+		const file = this.plugin.app.vault.getAbstractFileByPath(deck.filePath);
 		if (!(file instanceof TFile)) {
 			throw new Error("Source file not found");
 		}
@@ -758,19 +722,12 @@ export class DataStore {
 		const lines = content.split(/\r?\n/);
 		const ranges = this.findCardBlockRanges(lines);
 		const currentRange = ranges[indexInFile];
-		if (
-			indexInFile < 0 ||
-			currentRange === undefined
-		) {
+		if (indexInFile < 0 || currentRange === undefined) {
 			return null;
 		}
 
-		const currentBlock = lines
-			.slice(currentRange.start, currentRange.end)
-			.join("\n");
-		if (!currentBlock.split(/\r?\n/).some((line) =>
-			isMarkerLine(line, FRONT_BACK_SEPARATOR)
-		)) {
+		const currentBlock = lines.slice(currentRange.start, currentRange.end).join("\n");
+		if (!currentBlock.split(/\r?\n/).some((line) => isMarkerLine(line, FRONT_BACK_SEPARATOR))) {
 			return null;
 		}
 
@@ -790,29 +747,18 @@ export class DataStore {
 		return nextLines.join("\n");
 	}
 
-	private deleteCardBlock(
-		content: string,
-		indexInFile: number,
-	): string | null {
+	private deleteCardBlock(content: string, indexInFile: number): string | null {
 		const lines = content.split(/\r?\n/);
 		const ranges = this.findCardBlockRanges(lines);
 		const currentRange = ranges[indexInFile];
-		if (
-			indexInFile < 0 ||
-			currentRange === undefined
-		) {
+		if (indexInFile < 0 || currentRange === undefined) {
 			return null;
 		}
 
-		const currentBlock = lines
-			.slice(currentRange.start, currentRange.end)
-			.join("\n");
+		const currentBlock = lines.slice(currentRange.start, currentRange.end).join("\n");
 		const replacement =
-			indexInFile === 0
-				? this.extractPreservedPrefix(currentBlock).trimEnd()
-				: "";
-		const replacementLines =
-			replacement.length > 0 ? replacement.split("\n") : [];
+			indexInFile === 0 ? this.extractPreservedPrefix(currentBlock).trimEnd() : "";
+		const replacementLines = replacement.length > 0 ? replacement.split("\n") : [];
 		const nextLines = [
 			...lines.slice(0, currentRange.start),
 			...replacementLines,
@@ -858,10 +804,7 @@ export class DataStore {
 		const tagMatch = currentBlock.match(FIRST_TAG_LINE_PATTERN);
 		if (!tagMatch || tagMatch.index === undefined) return "";
 
-		return currentBlock.slice(
-			0,
-			tagMatch.index + tagMatch[0].length,
-		);
+		return currentBlock.slice(0, tagMatch.index + tagMatch[0].length);
 	}
 
 	private appendCardBlock(
@@ -884,12 +827,7 @@ export class DataStore {
 		existingDeck: Deck,
 		content: string,
 	): Promise<Deck> {
-		const deck = await parseFileIntoDeck(
-			file,
-			this.plugin.app.vault,
-			existingDeck,
-			content,
-		);
+		const deck = await parseFileIntoDeck(file, this.plugin.app.vault, existingDeck, content);
 		if (!deck) throw new Error("Updated source has no valid cards");
 
 		this.decks.set(deck.id, deck);
@@ -904,11 +842,7 @@ export class DataStore {
 	/**
 	 * Update a card after rating
 	 */
-	async updateCard(
-		deckId: string,
-		cardId: string,
-		updatedCard: Card,
-	): Promise<void> {
+	async updateCard(deckId: string, cardId: string, updatedCard: Card): Promise<void> {
 		const deck = this.decks.get(deckId);
 		if (!deck) return;
 
@@ -965,14 +899,10 @@ export class DataStore {
 		});
 
 		// Prune to last 20 distinct days
-		const days = [...new Set(this.studyHistory.map((e) => e.date))]
-			.sort()
-			.reverse();
+		const days = [...new Set(this.studyHistory.map((e) => e.date))].sort().reverse();
 		if (days.length > 20) {
 			const keep = new Set(days.slice(0, 20));
-			this.studyHistory = this.studyHistory.filter((e) =>
-				keep.has(e.date),
-			);
+			this.studyHistory = this.studyHistory.filter((e) => keep.has(e.date));
 		}
 
 		await this.save();

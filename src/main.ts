@@ -77,14 +77,8 @@ export default class FlashcardPlugin extends Plugin {
 
 	private updateLocalizedControls(): void {
 		if (this.ribbonIconEl) {
-			this.ribbonIconEl.setAttr(
-				"aria-label",
-				this.t("main.ribbonOpenFlashcards"),
-			);
-			this.ribbonIconEl.setAttr(
-				"title",
-				this.t("main.ribbonOpenFlashcards"),
-			);
+			this.ribbonIconEl.setAttr("aria-label", this.t("main.ribbonOpenFlashcards"));
+			this.ribbonIconEl.setAttr("title", this.t("main.ribbonOpenFlashcards"));
 		}
 		this.registerCommands();
 	}
@@ -105,14 +99,12 @@ export default class FlashcardPlugin extends Plugin {
 		this.updateLocalizedControls();
 
 		// Update active views
-		this.app.workspace
-			.getLeavesOfType(VIEW_TYPE_FLASHCARD)
-			.forEach((leaf) => {
-				const view = leaf.view as FlashcardView;
-				if (view && typeof view.updateSettings === "function") {
-					view.updateSettings(this.settings);
-				}
-			});
+		this.app.workspace.getLeavesOfType(VIEW_TYPE_FLASHCARD).forEach((leaf) => {
+			const view = leaf.view as FlashcardView;
+			if (view && typeof view.updateSettings === "function") {
+				view.updateSettings(this.settings);
+			}
+		});
 	}
 
 	async activateView() {

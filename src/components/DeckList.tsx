@@ -1,10 +1,4 @@
-import React, {
-	memo,
-	useCallback,
-	useEffect,
-	useMemo,
-	useState,
-} from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import {
 	BookOpen,
@@ -52,10 +46,8 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 	const [useCustom, setUseCustom] = useState(deckOverrides !== undefined);
 
 	const effective = {
-		dailyNewCards:
-			deckOverrides?.dailyNewCards ?? globalSettings.dailyNewCards,
-		dailyReviewCards:
-			deckOverrides?.dailyReviewCards ?? globalSettings.dailyReviewCards,
+		dailyNewCards: deckOverrides?.dailyNewCards ?? globalSettings.dailyNewCards,
+		dailyReviewCards: deckOverrides?.dailyReviewCards ?? globalSettings.dailyReviewCards,
 		studyOrder: deckOverrides?.studyOrder ?? globalSettings.studyOrder,
 		requestRetention:
 			deckOverrides?.fsrsParameters?.requestRetention ??
@@ -66,25 +58,14 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 	};
 
 	const [dailyNewCards, setDailyNewCards] = useState(effective.dailyNewCards);
-	const [dailyReviewCards, setDailyReviewCards] = useState(
-		effective.dailyReviewCards,
-	);
-	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(
-		effective.studyOrder,
-	);
-	const [requestRetention, setRequestRetention] = useState(
-		effective.requestRetention,
-	);
-	const [maximumInterval, setMaximumInterval] = useState(
-		String(effective.maximumInterval),
-	);
+	const [dailyReviewCards, setDailyReviewCards] = useState(effective.dailyReviewCards);
+	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(effective.studyOrder);
+	const [requestRetention, setRequestRetention] = useState(effective.requestRetention);
+	const [maximumInterval, setMaximumInterval] = useState(String(effective.maximumInterval));
 
 	// Days-to-complete: bidirectionally linked with dailyNewCards
-	const calcDays = (perDay: number) =>
-		totalCards > 0 ? Math.ceil(totalCards / perDay) : 0;
-	const [daysToComplete, setDaysToComplete] = useState(
-		String(calcDays(effective.dailyNewCards)),
-	);
+	const calcDays = (perDay: number) => (totalCards > 0 ? Math.ceil(totalCards / perDay) : 0);
+	const [daysToComplete, setDaysToComplete] = useState(String(calcDays(effective.dailyNewCards)));
 
 	const handleDailyNewCardsChange = (val: number) => {
 		setDailyNewCards(val);
@@ -174,20 +155,14 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
 							{t("deckSettings.globalHint", {
 								dailyNewCards: globalSettings.dailyNewCards,
-								dailyReviewCards:
-									globalSettings.dailyReviewCards,
-								studyOrder: formatStudyOrder(
-									language,
-									globalSettings.studyOrder,
-								),
+								dailyReviewCards: globalSettings.dailyReviewCards,
+								studyOrder: formatStudyOrder(language, globalSettings.studyOrder),
 							})}
 							{totalCards > 0 && (
 								<span>
 									&nbsp;
 									{t("deckSettings.estimatedDays", {
-										days: calcDays(
-											globalSettings.dailyNewCards,
-										),
+										days: calcDays(globalSettings.dailyNewCards),
 									})}
 								</span>
 							)}
@@ -223,17 +198,13 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									max={200}
 									value={dailyNewCards}
 									onChange={(e) =>
-										handleDailyNewCardsChange(
-											parseInt(e.target.value),
-										)
+										handleDailyNewCardsChange(parseInt(e.target.value))
 									}
 								/>
 							</div>
 							{totalCards > 0 && (
 								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row flashcard-deck-settings-days">
-									<label>
-										{t("deckSettings.estimatedDaysLabel")}
-									</label>
+									<label>{t("deckSettings.estimatedDaysLabel")}</label>
 									<div className="flashcard-deck-settings-days-inputs">
 										<input
 											type="number"
@@ -241,9 +212,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 											max={totalCards}
 											value={daysToComplete}
 											onChange={(e) =>
-												handleDaysToCompleteChange(
-													e.target.value,
-												)
+												handleDaysToCompleteChange(e.target.value)
 											}
 										/>
 										<span className="flashcard-deck-settings-days-unit">
@@ -259,9 +228,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							)}
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>
-										{t("deckSettings.dailyReviewCards")}
-									</span>
+									<span>{t("deckSettings.dailyReviewCards")}</span>
 									<strong>{dailyReviewCards}</strong>
 								</label>
 								<input
@@ -270,11 +237,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									max={500}
 									step={10}
 									value={dailyReviewCards}
-									onChange={(e) =>
-										setDailyReviewCards(
-											parseInt(e.target.value),
-										)
-									}
+									onChange={(e) => setDailyReviewCards(parseInt(e.target.value))}
 								/>
 							</div>
 							<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
@@ -282,29 +245,17 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								<select
 									value={studyOrder}
 									onChange={(e) =>
-										setStudyOrder(
-											e.target.value as
-												| "sequential"
-												| "random",
-										)
+										setStudyOrder(e.target.value as "sequential" | "random")
 									}
 								>
-									<option value="sequential">
-										{t("order.sequential")}
-									</option>
-									<option value="random">
-										{t("order.random")}
-									</option>
+									<option value="sequential">{t("order.sequential")}</option>
+									<option value="random">{t("order.random")}</option>
 								</select>
 							</div>
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>
-										{t("deckSettings.targetRetention")}
-									</span>
-									<strong>
-										{requestRetention.toFixed(2)}
-									</strong>
+									<span>{t("deckSettings.targetRetention")}</span>
+									<strong>{requestRetention.toFixed(2)}</strong>
 								</label>
 								<input
 									type="range"
@@ -313,24 +264,18 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									step={0.01}
 									value={requestRetention}
 									onChange={(e) =>
-										setRequestRetention(
-											parseFloat(e.target.value),
-										)
+										setRequestRetention(parseFloat(e.target.value))
 									}
 								/>
 							</div>
 							<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
-								<label>
-									{t("deckSettings.maxReviewInterval")}
-								</label>
+								<label>{t("deckSettings.maxReviewInterval")}</label>
 								<input
 									type="number"
 									min={30}
 									max={3650}
 									value={maximumInterval}
-									onChange={(e) =>
-										setMaximumInterval(e.target.value)
-									}
+									onChange={(e) => setMaximumInterval(e.target.value)}
 								/>
 							</div>
 						</div>
@@ -338,23 +283,17 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 				</div>
 
 				<div className="flashcard-modal-footer">
-					<FlashcardButton
-						variant="green"
-						onClick={() => void handleSave()}
-					>
+					<FlashcardButton variant="green" onClick={() => void handleSave()}>
 						{t("common.save")}
 					</FlashcardButton>
-					<FlashcardButton onClick={onClose}>
-						{t("common.cancel")}
-					</FlashcardButton>
+					<FlashcardButton onClick={onClose}>{t("common.cancel")}</FlashcardButton>
 				</div>
 			</div>
 		</div>
 	);
 
 	// Keep the modal inside the plugin root so design tokens remain available.
-	const container =
-		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
+	const container = activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
 	return ReactDOM.createPortal(modal, container);
 });
 
@@ -370,10 +309,7 @@ interface HomeStatsBarProps {
 	totals: HomeTotals;
 }
 
-const HomeStatsBar = memo(function HomeStatsBar({
-	deckCount,
-	totals,
-}: HomeStatsBarProps) {
+const HomeStatsBar = memo(function HomeStatsBar({ deckCount, totals }: HomeStatsBarProps) {
 	const { t } = useI18n();
 
 	return (
@@ -437,15 +373,9 @@ const DeckCard = memo(function DeckCard({
 				<div className="flashcard-deck-headline">
 					<div className="flashcard-deck-info">
 						<div className="flashcard-deck-name">{deck.name}</div>
-						<span className="flashcard-deck-badge fc-pill">
-							{deck.tag}
-						</span>
+						<span className="flashcard-deck-badge fc-pill">{deck.tag}</span>
 					</div>
-					<span
-						className={`flashcard-deck-review-chip${
-							dueCards > 0 ? " has-due" : ""
-						}`}
-					>
+					<span className={`flashcard-deck-review-chip${dueCards > 0 ? " has-due" : ""}`}>
 						<ScanEye size={14} />
 						<strong>{dueCards}</strong>
 						{t("home.toBeReviewed")}
@@ -453,40 +383,22 @@ const DeckCard = memo(function DeckCard({
 				</div>
 				<div className="flashcard-deck-stats">
 					<div className="flashcard-deck-stat">
-						<span className="flashcard-deck-stat-value orange">
-							{totalCards}
-						</span>
-						<span className="flashcard-deck-stat-label">
-							{t("home.total")}
-						</span>
+						<span className="flashcard-deck-stat-value orange">{totalCards}</span>
+						<span className="flashcard-deck-stat-label">{t("home.total")}</span>
 					</div>
 					<div className="flashcard-deck-stat">
-						<span className="flashcard-deck-stat-value blue">
-							{newCards}
-						</span>
-						<span className="flashcard-deck-stat-label">
-							{t("home.new")}
-						</span>
+						<span className="flashcard-deck-stat-value blue">{newCards}</span>
+						<span className="flashcard-deck-stat-label">{t("home.new")}</span>
 					</div>
 					<div className="flashcard-deck-stat">
-						<span
-							className={`flashcard-deck-stat-value${
-								dueCards > 0 ? " red" : ""
-							}`}
-						>
+						<span className={`flashcard-deck-stat-value${dueCards > 0 ? " red" : ""}`}>
 							{dueCards}
 						</span>
-						<span className="flashcard-deck-stat-label">
-							{t("home.toBeReviewed")}
-						</span>
+						<span className="flashcard-deck-stat-label">{t("home.toBeReviewed")}</span>
 					</div>
 					<div className="flashcard-deck-stat">
-						<span className="flashcard-deck-stat-value purple">
-							{deck.studyCount}
-						</span>
-						<span className="flashcard-deck-stat-label">
-							{t("home.studyCount")}
-						</span>
+						<span className="flashcard-deck-stat-value purple">{deck.studyCount}</span>
+						<span className="flashcard-deck-stat-label">{t("home.studyCount")}</span>
 					</div>
 				</div>
 			</div>

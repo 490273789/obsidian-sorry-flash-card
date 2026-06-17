@@ -1,9 +1,6 @@
 import React, { createContext, useContext, useMemo } from "react";
 import type { Language } from "../types";
-import {
-	createTranslator,
-	type TranslationKey,
-} from "../i18n";
+import { createTranslator, type TranslationKey } from "../i18n";
 
 interface I18nContextValue {
 	language: Language;
@@ -24,9 +21,7 @@ export const I18nProvider: React.FC<{
 		[language],
 	);
 
-	return (
-		<I18nContext.Provider value={value}>{children}</I18nContext.Provider>
-	);
+	return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 };
 
 export function useI18n(): I18nContextValue {

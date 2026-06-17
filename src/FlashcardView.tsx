@@ -71,9 +71,7 @@ export class FlashcardView extends ItemView {
 		);
 	}
 
-	private handleSaveSettings = async (
-		newSettings: FlashcardSettings,
-	): Promise<void> => {
+	private handleSaveSettings = async (newSettings: FlashcardSettings): Promise<void> => {
 		this.settings = newSettings;
 		await this.onSaveSettings(newSettings);
 		this.dataStore.updateSettings(newSettings);

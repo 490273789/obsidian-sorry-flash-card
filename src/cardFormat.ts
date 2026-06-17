@@ -12,27 +12,16 @@ export function isMarkerLine(line: string, marker: string): boolean {
 }
 
 export function hasFlashcardSyntax(content: string): boolean {
-	return (
-		FLASHCARD_FRONT_BACK_PATTERN.test(content) &&
-		FLASHCARD_END_PATTERN.test(content)
-	);
+	return FLASHCARD_FRONT_BACK_PATTERN.test(content) && FLASHCARD_END_PATTERN.test(content);
 }
 
 export function containsReservedMarkerLine(content: string): boolean {
 	return RESERVED_MARKER_LINE_PATTERN.test(content);
 }
 
-export function formatCardBlock(
-	front: string,
-	back: string,
-	explanation?: string,
-): string {
+export function formatCardBlock(front: string, back: string, explanation?: string): string {
 	const trimmedExplanation = explanation?.trim() ?? "";
-	const parts = [
-		front.trim(),
-		FRONT_BACK_SEPARATOR,
-		back.trim(),
-	];
+	const parts = [front.trim(), FRONT_BACK_SEPARATOR, back.trim()];
 
 	if (trimmedExplanation.length > 0) {
 		parts.push(EXPLANATION_SEPARATOR, trimmedExplanation);

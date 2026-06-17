@@ -49,10 +49,9 @@ function formatDate(
 
 	// Show day of week for recent days
 	const d = new Date(dateStr + "T00:00:00");
-	const weekday = new Intl.DateTimeFormat(
-		language === "zh" ? "zh-CN" : "en-US",
-		{ weekday: "short" },
-	).format(d);
+	const weekday = new Intl.DateTimeFormat(language === "zh" ? "zh-CN" : "en-US", {
+		weekday: "short",
+	}).format(d);
 	return t("stats.dateWithLabel", { date: display, label: weekday });
 }
 
@@ -113,40 +112,26 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 					icon={ChartBar}
 					title={t("stats.title")}
 					onBack={onBack}
-					right={
-						<span className="flashcard-stats-range">
-							{t("stats.last20Days")}
-						</span>
-					}
+					right={<span className="flashcard-stats-range">{t("stats.last20Days")}</span>}
 				/>
 
 				{/* Summary bar */}
 				<div className="flashcard-stats-summary">
 					<div className="flashcard-stats-summary-item fc-lift">
-						<div className="flashcard-stats-summary-value">
-							{grouped.length}
-						</div>
-						<div className="flashcard-summary-label">
-							{t("stats.daysStudied")}
-						</div>
+						<div className="flashcard-stats-summary-value">{grouped.length}</div>
+						<div className="flashcard-summary-label">{t("stats.daysStudied")}</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
 					<div className="flashcard-stats-summary-item fc-lift">
 						<div className="flashcard-stats-summary-value">
 							{formatCompactDuration(language, totals.duration)}
 						</div>
-						<div className="flashcard-summary-label">
-							{t("stats.totalDuration")}
-						</div>
+						<div className="flashcard-summary-label">{t("stats.totalDuration")}</div>
 					</div>
 					<div className="flashcard-stats-summary-divider" />
 					<div className="flashcard-stats-summary-item fc-lift">
-						<div className="flashcard-stats-summary-value">
-							{totals.cards}
-						</div>
-						<div className="flashcard-summary-label">
-							{t("stats.totalCards")}
-						</div>
+						<div className="flashcard-stats-summary-value">{totals.cards}</div>
+						<div className="flashcard-summary-label">{t("stats.totalCards")}</div>
 					</div>
 				</div>
 			</div>
@@ -159,23 +144,13 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 							<Sprout size={48} />
 						</div>
 						<p>{t("stats.noRecords")}</p>
-						<p className="flashcard-empty-hint">
-							{t("stats.noRecordsHint")}
-						</p>
+						<p className="flashcard-empty-hint">{t("stats.noRecordsHint")}</p>
 					</div>
 				) : (
 					<div className="flashcard-stats-days">
 						{grouped.map(
-							({
-								date,
-								entries,
-								totalDuration: dayDur,
-								totalCards: dayCards,
-							}) => (
-								<div
-									key={date}
-									className="flashcard-stats-day fc-lift"
-								>
+							({ date, entries, totalDuration: dayDur, totalCards: dayCards }) => (
+								<div key={date} className="flashcard-stats-day fc-lift">
 									<div className="flashcard-stats-day-header">
 										<span className="flashcard-stats-day-date">
 											{formatDate(date, language, t)}
@@ -184,11 +159,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 											{t("stats.records", {
 												count: entries.length,
 											})}{" "}
-											·{" "}
-											{formatCompactDuration(
-												language,
-												dayDur,
-											)}
+											· {formatCompactDuration(language, dayDur)}
 											{dayCards > 0 &&
 												` · ${t("stats.cards", {
 													count: dayCards,
@@ -203,10 +174,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 												className={`flashcard-stats-session ${MODE_CONFIG[entry.mode].cls} fc-lift`}
 											>
 												<span className="flashcard-stats-session-mode">
-													{t(
-														MODE_CONFIG[entry.mode]
-															.labelKey,
-													)}
+													{t(MODE_CONFIG[entry.mode].labelKey)}
 												</span>
 												<span className="flashcard-stats-session-deck">
 													{entry.deckName}
@@ -215,8 +183,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ dataStore, onBack }) => {
 													{entry.cardCount > 0 && (
 														<span className="flashcard-stats-session-cards">
 															{t("stats.cards", {
-																count:
-																	entry.cardCount,
+																count: entry.cardCount,
 															})}
 														</span>
 													)}

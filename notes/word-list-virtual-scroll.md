@@ -128,10 +128,7 @@ function getVirtualWordRows(
 因为 `rows` 已经按 `top` 从小到大排好，可以用二分查找，不需要每次滚动都遍历整个列表。
 
 ```ts
-const startIndex = findFirstVisibleIndex(
-	virtualRows.rows,
-	viewport.scrollTop - overscanPixels,
-);
+const startIndex = findFirstVisibleIndex(virtualRows.rows, viewport.scrollTop - overscanPixels);
 
 const endIndex = findLastVisibleIndex(
 	virtualRows.rows,
@@ -142,8 +139,7 @@ const endIndex = findLastVisibleIndex(
 `overscanPixels` 是缓冲区高度：
 
 ```ts
-const overscanPixels =
-	(DEFAULT_WORD_ROW_HEIGHT + rowGap) * WORD_LIST_OVERSCAN_ROWS;
+const overscanPixels = (DEFAULT_WORD_ROW_HEIGHT + rowGap) * WORD_LIST_OVERSCAN_ROWS;
 ```
 
 如果没有 overscan，用户快速滚动时，新行可能来不及渲染，容易看到短暂空白。多渲染一点视口外的行，可以让滚动更稳定。
@@ -213,10 +209,7 @@ const measuredHeight = element.getBoundingClientRect().height;
 ```ts
 setRowHeights((prev) => {
 	const currentHeight = prev.get(itemId);
-	if (
-		currentHeight !== undefined &&
-		Math.abs(currentHeight - measuredHeight) <= 1
-	) {
+	if (currentHeight !== undefined && Math.abs(currentHeight - measuredHeight) <= 1) {
 		return prev;
 	}
 	const next = new Map(prev);

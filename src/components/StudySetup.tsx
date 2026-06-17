@@ -1,13 +1,5 @@
 import React, { memo, useCallback, useMemo, useState } from "react";
-import {
-	CircleCheck,
-	Target,
-	Lock,
-	Brain,
-	Dices,
-	AudioWaveform,
-	Repeat2,
-} from "lucide-react";
+import { CircleCheck, Target, Lock, Brain, Dices, AudioWaveform, Repeat2 } from "lucide-react";
 import { CardDirection, Deck, StudyDayInfo } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
@@ -19,10 +11,7 @@ interface StudySetupProps {
 	todayReviewCount: number;
 	dayList: StudyDayInfo[];
 	defaultStudyOrder: "sequential" | "random";
-	onStart: (
-		studyOrder: "sequential" | "random",
-		direction: CardDirection,
-	) => void;
+	onStart: (studyOrder: "sequential" | "random", direction: CardDirection) => void;
 	onStartDay: (
 		dayIndex: number,
 		studyOrder: "sequential" | "random",
@@ -56,11 +45,7 @@ const StudyDayRow = memo(function StudyDayRow({
 	return (
 		<div
 			className={`flashcard-study-day-item fc-lift ${
-				day.isCompleted
-					? "completed"
-					: day.isCurrent
-						? "current"
-						: "locked"
+				day.isCompleted ? "completed" : day.isCurrent ? "current" : "locked"
 			}`}
 		>
 			<div className="flashcard-study-day-info">
@@ -76,9 +61,7 @@ const StudyDayRow = memo(function StudyDayRow({
 				<span className="flashcard-study-day-name">
 					{t("study.day", { day: day.dayIndex + 1 })}
 					{day.isCurrent && (
-						<span className="flashcard-study-day-today-badge">
-							{t("study.today")}
-						</span>
+						<span className="flashcard-study-day-today-badge">{t("study.today")}</span>
 					)}
 				</span>
 			</div>
@@ -110,18 +93,12 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	onBack,
 }) => {
 	const { t } = useI18n();
-	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(
-		defaultStudyOrder,
-	);
+	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(defaultStudyOrder);
 	const [direction, setDirection] = useState<CardDirection>("normal");
 
 	const currentDay = dayList.find((d) => d.isCurrent);
 	const completedDays = useMemo(
-		() =>
-			dayList.reduce(
-				(total, day) => total + (day.isCompleted ? 1 : 0),
-				0,
-			),
+		() => dayList.reduce((total, day) => total + (day.isCompleted ? 1 : 0), 0),
 		[dayList],
 	);
 	const allCompleted = dayList.length > 0 && completedDays === dayList.length;
@@ -164,9 +141,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 								{allCompleted
 									? t("study.reviewStage")
 									: t("study.day", {
-											day:
-												(currentDay?.dayIndex ?? 0) +
-												1,
+											day: (currentDay?.dayIndex ?? 0) + 1,
 										})}
 							</strong>
 						</div>
@@ -182,46 +157,26 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 				{/* Today's session stats */}
 				<div className="flashcard-today-stats">
 					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">
-							{t("study.newContent")}
-						</span>
-						<span className="flashcard-stat-value green">
-							{todayNewCount}
-						</span>
-						<span className="flashcard-stat-label">
-							{t("study.todayNew")}
-						</span>
+						<span className="flashcard-stat-caption">{t("study.newContent")}</span>
+						<span className="flashcard-stat-value green">{todayNewCount}</span>
+						<span className="flashcard-stat-label">{t("study.todayNew")}</span>
 					</div>
 					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">
-							{t("study.consolidation")}
-						</span>
-						<span className="flashcard-stat-value purple">
-							{todayReviewCount}
-						</span>
-						<span className="flashcard-stat-label">
-							{t("study.dueReview")}
-						</span>
+						<span className="flashcard-stat-caption">{t("study.consolidation")}</span>
+						<span className="flashcard-stat-value purple">{todayReviewCount}</span>
+						<span className="flashcard-stat-label">{t("study.dueReview")}</span>
 					</div>
 					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">
-							{t("study.progress")}
-						</span>
-						<span className="flashcard-stat-value blue">
-							{completedDays}
-						</span>
-						<span className="flashcard-stat-label">
-							{t("study.completedDays")}
-						</span>
+						<span className="flashcard-stat-caption">{t("study.progress")}</span>
+						<span className="flashcard-stat-value blue">{completedDays}</span>
+						<span className="flashcard-stat-label">{t("study.completedDays")}</span>
 					</div>
 				</div>
 
 				{/* Study order selector */}
 				<div className="flashcard-study-panel flashcard-study-order-section fc-lift">
 					<div className="flashcard-study-panel-heading">
-						<div className="flashcard-study-order-label">
-							{t("study.studyOrder")}
-						</div>
+						<div className="flashcard-study-order-label">{t("study.studyOrder")}</div>
 						<div className="flashcard-study-panel-note">
 							{studyOrder === "random"
 								? t("study.randomNote")
@@ -234,8 +189,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 							active={studyOrder === "sequential"}
 							onClick={() => setStudyOrder("sequential")}
 						>
-							<AudioWaveform size={16} />{" "}
-							{t("study.sequentialOrder")}
+							<AudioWaveform size={16} /> {t("study.sequentialOrder")}
 						</FlashcardButton>
 						<FlashcardButton
 							className="flashcard-study-order-btn"
@@ -249,13 +203,9 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 
 				<div className="flashcard-study-panel flashcard-direction-section fc-lift">
 					<div className="flashcard-study-panel-heading">
-						<div className="flashcard-study-order-label">
-							{t("mode.direction")}
-						</div>
+						<div className="flashcard-study-order-label">{t("mode.direction")}</div>
 						<div className="flashcard-study-panel-note">
-							{direction === "normal"
-								? t("mode.normalNote")
-								: t("mode.reversedNote")}
+							{direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")}
 						</div>
 					</div>
 					<div className="flashcard-direction-options">
@@ -311,9 +261,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 								? t("study.startReviewStage")
 								: hasAnythingToStudy
 									? t("study.readyToStart", {
-											count:
-												todayNewCount +
-												todayReviewCount,
+											count: todayNewCount + todayReviewCount,
 										})
 									: t("study.tasksCompleted")}
 						</div>

@@ -9,10 +9,7 @@ import {
 	IPreview,
 } from "ts-fsrs";
 import { FlashcardSettings, Language, RatingButton } from "./types";
-import {
-	formatReviewInterval,
-	getLocalizedRatingButtons,
-} from "./i18n";
+import { formatReviewInterval, getLocalizedRatingButtons } from "./i18n";
 
 /**
  * FSRS Scheduler - handles spaced repetition scheduling using FSRS algorithm
@@ -41,10 +38,7 @@ export class FSRSScheduler {
 	 * @param rating The user's rating (1-4)
 	 * @returns Updated card and whether it should repeat in this session
 	 */
-	rateCard(
-		card: Card,
-		rating: Rating,
-	): { card: Card; repeatInSession: boolean } {
+	rateCard(card: Card, rating: Rating): { card: Card; repeatInSession: boolean } {
 		const now = new Date();
 		const result = this.f.repeat(card, now);
 
@@ -111,11 +105,7 @@ export class FSRSScheduler {
 	/**
 	 * Calculate next review interval description
 	 */
-	getIntervalDescription(
-		card: Card,
-		rating: Rating,
-		language: Language = "zh",
-	): string {
+	getIntervalDescription(card: Card, rating: Rating, language: Language = "zh"): string {
 		const options = this.getSchedulingOptions(card);
 
 		let result: RecordLogItem | undefined;
@@ -194,8 +184,6 @@ export function toFSRSRating(rating: 1 | 2 | 3 | 4): Rating {
 /**
  * Get rating buttons configuration
  */
-export function getRatingButtons(
-	language: Language = "zh",
-): RatingButton[] {
+export function getRatingButtons(language: Language = "zh"): RatingButton[] {
 	return getLocalizedRatingButtons(language);
 }

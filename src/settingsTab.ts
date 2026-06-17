@@ -1,10 +1,4 @@
-import {
-	App,
-	Notice,
-	PluginSettingTab,
-	Setting,
-	type SettingDefinitionItem,
-} from "obsidian";
+import { App, Notice, PluginSettingTab, Setting, type SettingDefinitionItem } from "obsidian";
 import type FlashcardPlugin from "./main";
 import { findAllFlashcardTags } from "./parser";
 import type { Language } from "./types";
@@ -163,8 +157,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 								dropdown
 									.setValue(this.getSelectedLanguage())
 									.onChange(async (value: string) => {
-										this.plugin.settings.language =
-											this.parseLanguage(value);
+										this.plugin.settings.language = this.parseLanguage(value);
 										await this.saveSettings(true);
 									});
 							});
@@ -187,12 +180,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 							setting.addSlider((slider) =>
 								slider
 									.setLimits(1, 200, 1)
-									.setValue(
-										this.plugin.settings.dailyNewCards,
-									)
+									.setValue(this.plugin.settings.dailyNewCards)
 									.onChange(async (value) => {
-										this.plugin.settings.dailyNewCards =
-											value;
+										this.plugin.settings.dailyNewCards = value;
 										await this.saveSettings();
 									}),
 							);
@@ -205,12 +195,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 							setting.addSlider((slider) =>
 								slider
 									.setLimits(1, 500, 10)
-									.setValue(
-										this.plugin.settings.dailyReviewCards,
-									)
+									.setValue(this.plugin.settings.dailyReviewCards)
 									.onChange(async (value) => {
-										this.plugin.settings.dailyReviewCards =
-											value;
+										this.plugin.settings.dailyReviewCards = value;
 										await this.saveSettings();
 									}),
 							);
@@ -222,15 +209,13 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						render: (setting: Setting) => {
 							setting.addDropdown((dropdown) =>
 								dropdown
-									.addOption(
-										"sequential",
-										t("order.sequential"),
-									)
+									.addOption("sequential", t("order.sequential"))
 									.addOption("random", t("order.random"))
 									.setValue(this.plugin.settings.studyOrder)
 									.onChange(async (value) => {
-										this.plugin.settings.studyOrder =
-											value as "sequential" | "random";
+										this.plugin.settings.studyOrder = value as
+											| "sequential"
+											| "random";
 										await this.saveSettings();
 									}),
 							);
@@ -249,10 +234,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 							setting.addSlider((slider) =>
 								slider
 									.setLimits(0.7, 0.99, 0.01)
-									.setValue(
-										this.plugin.settings.fsrsParameters
-											.requestRetention,
-									)
+									.setValue(this.plugin.settings.fsrsParameters.requestRetention)
 									.onChange(async (value) => {
 										this.plugin.settings.fsrsParameters.requestRetention =
 											value;
@@ -269,18 +251,11 @@ export class FlashcardSettingTab extends PluginSettingTab {
 								text
 									.setPlaceholder("365")
 									.setValue(
-										String(
-											this.plugin.settings.fsrsParameters
-												.maximumInterval,
-										),
+										String(this.plugin.settings.fsrsParameters.maximumInterval),
 									)
 									.onChange(async (value) => {
 										const num = parseInt(value, 10);
-										if (
-											!isNaN(num) &&
-											num >= 30 &&
-											num <= 3650
-										) {
+										if (!isNaN(num) && num >= 30 && num <= 3650) {
 											this.plugin.settings.fsrsParameters.maximumInterval =
 												num;
 											await this.saveSettings();
@@ -341,14 +316,10 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	private getUnusedTags(): string[] {
 		const configuredTags = this.plugin.settings.flashcardTags;
-		return this.availableTags.filter(
-			(tag) => !configuredTags.includes(tag),
-		);
+		return this.availableTags.filter((tag) => !configuredTags.includes(tag));
 	}
 
-	private async refreshAvailableTags(options: {
-		cleanConfiguredTags: boolean;
-	}): Promise<void> {
+	private async refreshAvailableTags(options: { cleanConfiguredTags: boolean }): Promise<void> {
 		if (this.isLoadingTags) {
 			return;
 		}
@@ -364,9 +335,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 			let removedCount = 0;
 			if (options.cleanConfiguredTags) {
-				removedCount = this.removeMissingConfiguredTags(
-					this.availableTags,
-				);
+				removedCount = this.removeMissingConfiguredTags(this.availableTags);
 				await this.plugin.saveSettings();
 			}
 
@@ -387,16 +356,11 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	private removeMissingConfiguredTags(availableTags: string[]): number {
-		const availableTagSet = new Set(
-			availableTags.map((tag) => tag.trim().toLowerCase()),
-		);
+		const availableTagSet = new Set(availableTags.map((tag) => tag.trim().toLowerCase()));
 		const originalTags = this.plugin.settings.flashcardTags;
 		const cleanedTags = originalTags.filter((tag) => {
 			const normalizedTag = tag.trim();
-			return (
-				normalizedTag.length === 0 ||
-				availableTagSet.has(normalizedTag.toLowerCase())
-			);
+			return normalizedTag.length === 0 || availableTagSet.has(normalizedTag.toLowerCase());
 		});
 
 		this.plugin.settings.flashcardTags = cleanedTags;
@@ -432,9 +396,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 			if (this.isGroupDefinition(definition)) {
 				if (definition.heading) {
-					new Setting(containerEl)
-						.setName(definition.heading)
-						.setHeading();
+					new Setting(containerEl).setName(definition.heading).setHeading();
 				}
 
 				for (const item of definition.items ?? []) {
@@ -453,10 +415,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		return "type" in definition && definition.type === "group";
 	}
 
-	private renderSettingDefinition(
-		parentEl: HTMLElement,
-		definition: unknown,
-	): void {
+	private renderSettingDefinition(parentEl: HTMLElement, definition: unknown): void {
 		if (!this.isImperativeSettingDefinition(definition)) {
 			return;
 		}
@@ -567,9 +526,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		helpDiv.createEl("p", { text: t("settings.cardFormatTitle") });
 
 		const codeBlock = helpDiv.createEl("pre");
-		codeBlock.createEl("code").textContent = t(
-			"settings.cardFormatExample",
-		);
+		codeBlock.createEl("code").textContent = t("settings.cardFormatExample");
 
 		helpDiv.createEl("p", { text: t("settings.shortcutsTitle") });
 

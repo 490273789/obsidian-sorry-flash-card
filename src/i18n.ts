@@ -118,8 +118,7 @@ const translations = {
 		"settings.languageZh": "中文",
 		"settings.languageEn": "English",
 		"settings.flashcardTagsName": "闪卡标签",
-		"settings.flashcardTagsDesc":
-			"每个标签代表一个题库，插件会扫描所有带有这些标签的文件",
+		"settings.flashcardTagsDesc": "每个标签代表一个题库，插件会扫描所有带有这些标签的文件",
 		"settings.flashcardTagPlaceholder": "#标签名",
 		"settings.addTag": "+ 添加标签",
 		"settings.refreshTags": "刷新",
@@ -134,8 +133,7 @@ const translations = {
 		"settings.tagsRefreshFailed": "刷新闪卡标签失败，请查看控制台",
 		"settings.delete": "删除",
 		"settings.scopeName": "作用范围",
-		"settings.scopeDesc":
-			"以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。",
+		"settings.scopeDesc": "以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。",
 		"settings.dailyNewName": "每日新卡数量",
 		"settings.dailyNewDesc": "每天学习的新卡片最大数量",
 		"settings.dailyReviewName": "每日复习数量",
@@ -189,12 +187,10 @@ const translations = {
 		"cardEditor.deckRequired": "请选择牌组",
 		"cardEditor.frontRequired": "正面不能为空",
 		"cardEditor.backRequired": "背面不能为空",
-		"cardEditor.markerReserved":
-			"内容中不能单独一行使用 ??、:: 或 ;;，这些是卡片结构标记",
+		"cardEditor.markerReserved": "内容中不能单独一行使用 ??、:: 或 ;;，这些是卡片结构标记",
 		"cardEditor.frontPlaceholder": "输入正面内容，支持 Markdown",
 		"cardEditor.backPlaceholder": "输入背面内容，支持 Markdown",
-		"cardEditor.explanationPlaceholder":
-			"输入解释内容，支持 Markdown；可以留空",
+		"cardEditor.explanationPlaceholder": "输入解释内容，支持 Markdown；可以留空",
 		"cardEditor.saveEdit": "保存修改",
 		"cardEditor.saveCreate": "保存题目",
 		"cardEditor.saving": "保存中...",
@@ -210,16 +206,14 @@ const translations = {
 		"deckSettings.usingGlobal": "使用全局默认设置",
 		"deckSettings.subtitle": "{totalCards} 张卡片，{mode}",
 		"deckSettings.useCustom": "使用自定义学习设置",
-		"deckSettings.useCustomCopy":
-			"为这个题库单独调整新卡节奏、复习容量和记忆目标。",
+		"deckSettings.useCustomCopy": "为这个题库单独调整新卡节奏、复习容量和记忆目标。",
 		"deckSettings.globalHint":
 			"当前使用全局默认设置：每日新卡 {dailyNewCards} 张，每日复习 {dailyReviewCards} 张，{studyOrder}。",
 		"deckSettings.estimatedDays": "预计完成时间 {days} 天。",
 		"deckSettings.completionPace": "预计完成节奏 - ",
 		"deckSettings.days": "{count} 天",
 		"deckSettings.daysUnit": "天",
-		"deckSettings.dailySummary":
-			"每日新卡 {dailyNewCards}，每日复习 {dailyReviewCards}",
+		"deckSettings.dailySummary": "每日新卡 {dailyNewCards}，每日复习 {dailyReviewCards}",
 		"deckSettings.dailyNewCards": "每日新卡数量",
 		"deckSettings.estimatedDaysLabel": "预计完成天数",
 		"deckSettings.totalCardsHint": "（共 {totalCards} 张卡片）",
@@ -258,8 +252,7 @@ const translations = {
 		"study.startReviewStage": "开始复习阶段",
 		"study.readyToStart": "准备开始 {count} 张卡片",
 		"study.tasksCompleted": "今日任务已完成",
-		"study.reviewStageSubtitle":
-			"已完成全部学习天数，可继续复习巩固。",
+		"study.reviewStageSubtitle": "已完成全部学习天数，可继续复习巩固。",
 		"study.readySubtitle": "保持节奏，先完成当前日程再切换新模式。",
 		"study.completedSubtitle": "可以稍后回来复习，系统会保留当前进度。",
 		"study.startReview": "开始复习",
@@ -278,8 +271,7 @@ const translations = {
 		"practice.currentSelection": "当前选择",
 		"practice.scanRange": "本轮扫描范围",
 		"practice.chooseCount": "选择刷题次数",
-		"practice.chooseCountNote":
-			"建议先从接近整轮题量开始，方便快速感知整体状态",
+		"practice.chooseCountNote": "建议先从接近整轮题量开始，方便快速感知整体状态",
 		"practice.customCount": "自定义数量:",
 		"practice.rules": "本轮规则",
 		"practice.rulesNote": "开始后直接进入答题流，结果页统一收口本轮表现",
@@ -287,8 +279,7 @@ const translations = {
 		"practice.statsAfter": "完成后查看刷题正确率统计",
 		"practice.reviewMisses": "查看错题列表",
 		"practice.challenge": "{count} 题刷题挑战",
-		"practice.actionSubtitle":
-			"系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。",
+		"practice.actionSubtitle": "系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。",
 		"practice.startQuestions": "开始 · {count} 题",
 		"practice.practicing": "刷题中",
 		"practice.exitTitle": "退出刷题",
@@ -299,8 +290,7 @@ const translations = {
 		"practice.completeFallback": "刷题完成！",
 		"practice.completePerfect": "本轮全对，状态很好",
 		"practice.completeWithErrors": "本轮完成，错题已整理好",
-		"practice.summaryDeck":
-			"{deckName} · 共 {totalQuestions} 题 · 用时 {time}",
+		"practice.summaryDeck": "{deckName} · 共 {totalQuestions} 题 · 用时 {time}",
 		"practice.accuracy": "正确率",
 		"practice.totalQuestions": "总题数: ",
 		"practice.correct": "正确: ",
@@ -426,8 +416,7 @@ const translations = {
 		"settings.tagsRefreshed": "Flashcard tags refreshed",
 		"settings.tagsRefreshedAndCleaned":
 			"Flashcard tags refreshed. Removed {count} invalid tags",
-		"settings.tagsRefreshFailed":
-			"Failed to refresh flashcard tags. Check the console",
+		"settings.tagsRefreshFailed": "Failed to refresh flashcard tags. Check the console",
 		"settings.delete": "Delete",
 		"settings.scopeName": "Scope",
 		"settings.scopeDesc":
@@ -489,8 +478,7 @@ const translations = {
 			"Content cannot contain ??, ::, or ;; on a line by itself because those are card structure markers",
 		"cardEditor.frontPlaceholder": "Enter the front, Markdown supported",
 		"cardEditor.backPlaceholder": "Enter the back, Markdown supported",
-		"cardEditor.explanationPlaceholder":
-			"Enter explanation, Markdown supported; optional",
+		"cardEditor.explanationPlaceholder": "Enter explanation, Markdown supported; optional",
 		"cardEditor.saveEdit": "Save changes",
 		"cardEditor.saveCreate": "Save card",
 		"cardEditor.saving": "Saving...",
@@ -498,8 +486,7 @@ const translations = {
 		"cardEditor.editCurrentTitle": "Edit current card",
 		"cardEditor.addCardTitle": "Add card",
 		"cardEditor.deleteCurrentTitle": "Delete current card",
-		"cardEditor.deleteConfirm":
-			"Delete the current card? This will update the source file.",
+		"cardEditor.deleteConfirm": "Delete the current card? This will update the source file.",
 		"cardEditor.deleteFailed": "Delete failed",
 		"deckSettings.kicker": "Personalized learning pace",
 		"deckSettings.title": "{deckName} · Study Settings",
@@ -530,8 +517,7 @@ const translations = {
 		"study.complete": "Study complete!",
 		"study.duration": "Session duration: ",
 		"study.backToDeck": "Back to Deck",
-		"study.exitConfirm":
-			"Exit this study session? Completed progress will be kept.",
+		"study.exitConfirm": "Exit this study session? Completed progress will be kept.",
 		"study.totalCards": "Total {count} cards",
 		"study.totalDays": "Total Days",
 		"study.currentStage": "Current Stage",
@@ -556,12 +542,10 @@ const translations = {
 		"study.startReviewStage": "Start Review Stage",
 		"study.readyToStart": "Ready to start {count} cards",
 		"study.tasksCompleted": "Today's tasks completed",
-		"study.reviewStageSubtitle":
-			"All study days are complete. Keep reviewing to consolidate.",
+		"study.reviewStageSubtitle": "All study days are complete. Keep reviewing to consolidate.",
 		"study.readySubtitle":
 			"Keep the pace and finish the current schedule before switching modes.",
-		"study.completedSubtitle":
-			"You can return later; the system keeps your progress.",
+		"study.completedSubtitle": "You can return later; the system keeps your progress.",
 		"study.startReview": "Start Review",
 		"study.startCards": "Start ({count} Cards)",
 		"study.tasksCompletedButton": "Today's tasks completed 🎉",
@@ -578,8 +562,7 @@ const translations = {
 		"practice.currentSelection": "Current selection",
 		"practice.scanRange": "Round coverage",
 		"practice.chooseCount": "Choose practice count",
-		"practice.chooseCountNote":
-			"Start near a full round to quickly read the overall state",
+		"practice.chooseCountNote": "Start near a full round to quickly read the overall state",
 		"practice.customCount": "Custom count:",
 		"practice.rules": "Round rules",
 		"practice.rulesNote":
@@ -600,8 +583,7 @@ const translations = {
 		"practice.completeFallback": "Practice complete!",
 		"practice.completePerfect": "Perfect round. Nicely done.",
 		"practice.completeWithErrors": "Round complete. Review the missed cards.",
-		"practice.summaryDeck":
-			"{deckName} · {totalQuestions} questions · {time}",
+		"practice.summaryDeck": "{deckName} · {totalQuestions} questions · {time}",
 		"practice.accuracy": "Accuracy",
 		"practice.totalQuestions": "Total questions: ",
 		"practice.correct": "Correct: ",
@@ -635,8 +617,7 @@ const translations = {
 		"stats.totalDuration": "Total Duration",
 		"stats.totalCards": "Total Cards",
 		"stats.noRecords": "No study records",
-		"stats.noRecordsHint":
-			"After completing a study session, the data will be displayed here",
+		"stats.noRecordsHint": "After completing a study session, the data will be displayed here",
 		"stats.today": "today",
 		"stats.yesterday": "yesterday",
 		"stats.monthDay": "{month}/{day}",
@@ -654,9 +635,7 @@ export type TranslationKey = keyof typeof translations.zh;
 type TranslationVars = Record<string, string | number>;
 
 export function normalizeLanguage(language: unknown): Language {
-	return language === "en" || language === "zh"
-		? language
-		: DEFAULT_LANGUAGE;
+	return language === "en" || language === "zh" ? language : DEFAULT_LANGUAGE;
 }
 
 export function translate(
@@ -673,8 +652,7 @@ export function translate(
 }
 
 export function createTranslator(language: Language) {
-	return (key: TranslationKey, vars?: TranslationVars) =>
-		translate(language, key, vars);
+	return (key: TranslationKey, vars?: TranslationVars) => translate(language, key, vars);
 }
 
 export function getDefaultPracticeMessages(language: Language): {
@@ -688,10 +666,7 @@ export function getDefaultPracticeMessages(language: Language): {
 	};
 }
 
-export function formatCompactDuration(
-	language: Language,
-	seconds: number,
-): string {
+export function formatCompactDuration(language: Language, seconds: number): string {
 	const t = createTranslator(language);
 	if (seconds < 60) return t("time.seconds", { count: seconds });
 	const minutes = Math.floor(seconds / 60);
@@ -730,9 +705,7 @@ export function formatReviewInterval(
 	}
 }
 
-export function getLocalizedRatingButtons(
-	language: Language,
-): RatingButton[] {
+export function getLocalizedRatingButtons(language: Language): RatingButton[] {
 	const t = createTranslator(language);
 	return [
 		{
@@ -768,10 +741,7 @@ export function getLocalizedRatingButtons(
 	];
 }
 
-export function formatStudyOrder(
-	language: Language,
-	studyOrder: "sequential" | "random",
-): string {
+export function formatStudyOrder(language: Language, studyOrder: "sequential" | "random"): string {
 	const t = createTranslator(language);
 	return studyOrder === "random" ? t("order.random") : t("order.sequential");
 }

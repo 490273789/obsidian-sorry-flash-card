@@ -5,13 +5,7 @@ import type { LucideIcon } from "lucide-react";
  * Visual variant for the button.
  * Maps directly to CSS classes: `flashcard-btn-{variant}`
  */
-export type ButtonVariant =
-	| "green"
-	| "blue"
-	| "purple"
-	| "orange"
-	| "red"
-	| "gray";
+export type ButtonVariant = "green" | "blue" | "purple" | "orange" | "red" | "gray";
 
 /**
  * Special button presets that override the default shape / behavior.
@@ -114,8 +108,7 @@ export const FlashcardButton: React.FC<FlashcardButtonProps> = ({
 	}
 
 	// Resolve icon size
-	const resolvedIconSize =
-		iconSize ?? (preset === "icon" || preset === "prev" ? 16 : 18);
+	const resolvedIconSize = iconSize ?? (preset === "icon" || preset === "prev" ? 16 : 18);
 
 	return (
 		<button className={classes.join(" ")} {...rest}>

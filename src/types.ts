@@ -1,8 +1,5 @@
 import type { Card } from "ts-fsrs";
-import {
-	DEFAULT_LANGUAGE,
-	DEFAULT_PRACTICE_MESSAGES,
-} from "./i18n";
+import { DEFAULT_LANGUAGE, DEFAULT_PRACTICE_MESSAGES } from "./i18n";
 
 export type Language = "zh" | "en";
 

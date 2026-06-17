@@ -19,9 +19,7 @@ export const SessionTimer = memo(function SessionTimer({
 	startTime,
 	className,
 }: SessionTimerProps) {
-	const [elapsedTime, setElapsedTime] = useState(() =>
-		getElapsedSeconds(startTime),
-	);
+	const [elapsedTime, setElapsedTime] = useState(() => getElapsedSeconds(startTime));
 
 	useEffect(() => {
 		setElapsedTime(getElapsedSeconds(startTime));

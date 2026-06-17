@@ -1,13 +1,5 @@
 import React, { memo, useMemo } from "react";
-import {
-	FileText,
-	Check,
-	X,
-	Timer,
-	CircleX,
-	RotateCw,
-	House,
-} from "lucide-react";
+import { FileText, Check, X, Timer, CircleX, RotateCw, House } from "lucide-react";
 import { Deck, FlashCard, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
@@ -68,17 +60,12 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	return (
 		<div className="flashcard-practice-summary">
 			<div className="flashcard-practice-summary-header">
-				<div className="flashcard-practice-summary-title">
-					{completionMessage}
-				</div>
+				<div className="flashcard-practice-summary-title">{completionMessage}</div>
 				<div className="flashcard-practice-summary-deck">
 					{t("practice.summaryDeck", {
 						deckName: deck.name,
 						totalQuestions: result.totalQuestions,
-						time: formatCompactDuration(
-							language,
-							result.timeSpent,
-						),
+						time: formatCompactDuration(language, result.timeSpent),
 					})}
 				</div>
 			</div>
@@ -91,9 +78,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					>
 						{result.accuracy.toFixed(1)}%
 					</div>
-					<div className="flashcard-practice-stat-label">
-						{t("practice.accuracy")}
-					</div>
+					<div className="flashcard-practice-stat-label">{t("practice.accuracy")}</div>
 				</div>
 
 				<div className="flashcard-practice-stat-row">
@@ -130,12 +115,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 						</span>
 						<span className="flashcard-practice-stat-text">
 							{t("practice.timeSpent")}
-							<strong>
-								{formatCompactDuration(
-									language,
-									result.timeSpent,
-								)}
-							</strong>
+							<strong>{formatCompactDuration(language, result.timeSpent)}</strong>
 						</span>
 					</div>
 				</div>
@@ -164,12 +144,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 			)}
 
 			<div className="flashcard-practice-summary-actions">
-				<FlashcardButton
-					variant="green"
-					icon={RotateCw}
-					iconSize={14}
-					onClick={onRestart}
-				>
+				<FlashcardButton variant="green" icon={RotateCw} iconSize={14} onClick={onRestart}>
 					{t("practice.restart")}
 				</FlashcardButton>
 				{result.incorrectCount > 0 && (
@@ -184,12 +159,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 						})}
 					</FlashcardButton>
 				)}
-				<FlashcardButton
-					variant="blue"
-					icon={House}
-					iconSize={14}
-					onClick={onHome}
-				>
+				<FlashcardButton variant="blue" icon={House} iconSize={14} onClick={onHome}>
 					{t("practice.home")}
 				</FlashcardButton>
 			</div>
