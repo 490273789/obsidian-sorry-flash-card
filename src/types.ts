@@ -227,6 +227,8 @@ export interface PracticeSession {
 	totalQuestions: number;
 	/** Record of user answers: cardId -> isCorrect */
 	answers: Record<string, boolean>;
+	/** Answered-card history for the previous-card function */
+	history: string[];
 }
 
 /**

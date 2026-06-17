@@ -5,14 +5,13 @@ import React, {
 	useRef,
 	useState,
 } from "react";
-import { Target, X, Check, Pencil } from "lucide-react";
+import { RotateCcw, Target, X, Check } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 import { getDisplayCardContent } from "../cardDisplay";
 import { FlashcardButton } from "./FlashcardButton";
-import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
-import { SessionTimer } from "./SessionTimer";
+import { SessionToolbar } from "./SessionToolbar";
 import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
 
@@ -23,9 +22,34 @@ interface PracticeViewProps {
 	contentVersion: number;
 	onSessionUpdate: (session: PracticeSession) => void;
 	onEditCard: (deckId: string, cardId: string) => void;
+	onDeleteCard: (deckId: string, cardId: string) => void;
 	onComplete: (result: PracticeResult) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
+}
+
+function normalizeStringArray(value: unknown): string[] {
+	return Array.isArray(value)
+		? value.filter((item): item is string => typeof item === "string")
+		: [];
+}
+
+function normalizeAnswerMap(value: unknown): Record<string, boolean> {
+	if (!value || typeof value !== "object") return {};
+
+	const answers: Record<string, boolean> = {};
+	for (const [cardId, answer] of Object.entries(value)) {
+		if (typeof answer === "boolean") {
+			answers[cardId] = answer;
+		}
+	}
+	return answers;
+}
+
+function normalizeDirection(
+	value: unknown,
+): PracticeSession["direction"] {
+	return value === "reversed" ? "reversed" : "normal";
 }
 
 export const PracticeView: React.FC<PracticeViewProps> = ({
@@ -35,6 +59,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	contentVersion,
 	onSessionUpdate,
 	onEditCard,
+	onDeleteCard,
 	onComplete,
 	onClose,
 	markdownRenderer,
@@ -54,12 +79,13 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		dataStore,
 		deck.id,
 	]);
+	const direction = normalizeDirection(session.direction);
 	const displayContent = useMemo(
 		() =>
 			currentCard
-				? getDisplayCardContent(currentCard, session.direction)
+				? getDisplayCardContent(currentCard, direction)
 				: null,
-		[currentCard, session.direction],
+		[currentCard, direction],
 	);
 
 	useEffect(() => {
@@ -76,12 +102,18 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
+		const cardQueue = normalizeStringArray(session.cardQueue);
+		const history = normalizeStringArray(session.history);
+		const answers = normalizeAnswerMap(session.answers);
+
 		// Update session with answer
 		const newSession: PracticeSession = {
 			...session,
-			cardQueue: [...session.cardQueue],
+			direction,
+			cardQueue: cardQueue.slice(),
+			history: history.concat(currentCard.id),
 			answers: {
-				...session.answers,
+				...answers,
 				[currentCard.id]: isCorrect,
 			},
 		};
@@ -110,7 +142,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 					: 0;
 
 			const result: PracticeResult = {
-				direction: session.direction,
+				direction,
 				totalQuestions: newSession.totalQuestions,
 				correctCount,
 				incorrectCount,
@@ -123,7 +155,40 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				onComplete(result);
 			}, 300);
 		}
-	}, [currentCard, onComplete, onSessionUpdate, session]);
+	}, [currentCard, direction, onComplete, onSessionUpdate, session]);
+
+	const handlePrevious = useCallback(() => {
+		if (session.currentIndex === 0 || isAnimatingRef.current) return;
+
+		isAnimatingRef.current = true;
+		setIsAnimating(true);
+
+		const cardQueue = normalizeStringArray(session.cardQueue);
+		const history = normalizeStringArray(session.history);
+		const previousIndex = session.currentIndex - 1;
+		const previousCardId = cardQueue[previousIndex];
+		const nextAnswers = normalizeAnswerMap(session.answers);
+		if (previousCardId) {
+			delete nextAnswers[previousCardId];
+		}
+
+		const nextHistory = history.slice();
+		nextHistory.pop();
+
+		const newSession: PracticeSession = {
+			...session,
+			direction,
+			currentIndex: previousIndex,
+			answers: nextAnswers,
+			history: nextHistory,
+		};
+
+		window.setTimeout(() => {
+			onSessionUpdate(newSession);
+			isAnimatingRef.current = false;
+			setIsAnimating(false);
+		}, 200);
+	}, [direction, onSessionUpdate, session]);
 
 	useWindowKeyDown((e) => {
 		if (
@@ -155,6 +220,11 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				e.preventDefault();
 				handleAnswer(true);
 				break;
+			case "Digit6":
+			case "Numpad6":
+				e.preventDefault();
+				handlePrevious();
+				break;
 		}
 	});
 
@@ -171,58 +241,27 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	const progressPercent =
 		((session.currentIndex + 1) / session.totalQuestions) * 100;
 	const directionLabel =
-		session.direction === "normal"
+		direction === "normal"
 			? t("mode.normalShort")
 			: t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
-			<FlashcardHeader
-				left={
-					<>
-						<span className="flashcard-deck-title">
-							{deck.name}
-						</span>
-						<span className="flashcard-progress">{progress}</span>
-					</>
-				}
-				title={
-					<span className="flashcard-badge">
-						<Target size={14} /> {t("practice.practicing")} ·{" "}
-						{directionLabel}
-					</span>
-				}
-				right={
-					<>
-						<SessionTimer
-							startTime={session.startTime}
-							className="flashcard-timer"
-						/>
-						<FlashcardButton
-							preset="icon"
-							icon={Pencil}
-							onClick={() => onEditCard(deck.id, currentCard.id)}
-							title={t("cardEditor.editCurrentTitle")}
-							aria-label={t("cardEditor.editCurrentTitle")}
-						/>
-						<FlashcardButton
-							preset="icon"
-							icon={X}
-							onClick={onClose}
-							title={t("practice.exitTitle")}
-						/>
-					</>
-				}
+			<SessionToolbar
+				deckName={deck.name}
+				statusIcon={Target}
+				statusLabel={`${t("practice.practicing")} · ${directionLabel}`}
+				progress={progress}
+				progressPercent={progressPercent}
+				startTime={session.startTime}
+				onEdit={() => onEditCard(deck.id, currentCard.id)}
+				onDelete={() => onDeleteCard(deck.id, currentCard.id)}
+				onClose={onClose}
+				editTitle={t("cardEditor.editCurrentTitle")}
+				deleteTitle={t("cardEditor.deleteCurrentTitle")}
+				closeTitle={t("practice.exitTitle")}
 			/>
-
-			{/* Progress Bar */}
-			<div className="flashcard-practice-progress-bar">
-				<div
-					className="flashcard-practice-progress-fill"
-					style={{ width: `${progressPercent}%` }}
-				/>
-			</div>
 
 			{/* Content */}
 			<div
@@ -278,35 +317,45 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						</span>
 					</FlashcardButton>
 				) : (
-					<div className="flashcard-practice-answer-buttons">
+					<div className="flashcard-practice-response-controls">
 						<FlashcardButton
-							preset="practice-wrong"
-							onClick={() => handleAnswer(false)}
-						>
-							<span className="flashcard-practice-btn-icon">
-								<X size={18} />
-							</span>
-							<span className="flashcard-practice-btn-label">
-								{t("practice.bad")}
-							</span>
-							<span className="flashcard-shortcut">
-								{t("practice.badShortcut")}
-							</span>
-						</FlashcardButton>
-						<FlashcardButton
-							preset="practice-correct"
-							onClick={() => handleAnswer(true)}
-						>
-							<span className="flashcard-practice-btn-icon">
-								<Check size={18} />
-							</span>
-							<span className="flashcard-practice-btn-label">
-								{t("practice.good")}
-							</span>
-							<span className="flashcard-shortcut">
-								{t("practice.goodShortcut")}
-							</span>
-						</FlashcardButton>
+							preset="prev"
+							icon={RotateCcw}
+							iconSize={24}
+							onClick={handlePrevious}
+							disabled={session.currentIndex === 0}
+							title={`${t("common.undo")} (6)`}
+						/>
+						<div className="flashcard-practice-answer-buttons">
+							<FlashcardButton
+								preset="practice-wrong"
+								onClick={() => handleAnswer(false)}
+							>
+								<span className="flashcard-practice-btn-icon">
+									<X size={18} />
+								</span>
+								<span className="flashcard-practice-btn-label">
+									{t("practice.bad")}
+								</span>
+								<span className="flashcard-shortcut">
+									{t("practice.badShortcut")}
+								</span>
+							</FlashcardButton>
+							<FlashcardButton
+								preset="practice-correct"
+								onClick={() => handleAnswer(true)}
+							>
+								<span className="flashcard-practice-btn-icon">
+									<Check size={18} />
+								</span>
+								<span className="flashcard-practice-btn-label">
+									{t("practice.good")}
+								</span>
+								<span className="flashcard-shortcut">
+									{t("practice.goodShortcut")}
+								</span>
+							</FlashcardButton>
+						</div>
 					</div>
 				)}
 			</div>

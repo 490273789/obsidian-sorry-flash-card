@@ -1,4 +1,5 @@
 import React from "react";
+import { ArrowLeft, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { FlashcardButton } from "./FlashcardButton";
 import { useI18n } from "./I18nContext";
@@ -47,14 +48,34 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 	onBack,
 }) => {
 	const { t } = useI18n();
+	const desktopBackButton = (
+		<FlashcardButton
+			preset="back"
+			icon={X}
+			iconSize={18}
+			onClick={onBack}
+			title={t("common.back")}
+			aria-label={t("common.back")}
+		/>
+	);
+	const mobileBackButton = (
+		<FlashcardButton
+			preset="back"
+			icon={ArrowLeft}
+			iconSize={20}
+			onClick={onBack}
+			title={t("common.back")}
+			aria-label={t("common.back")}
+		/>
+	);
 
 	return (
-		<div className="flashcard-common-header">
+		<div className="flashcard-common-header flashcard-navigation-header">
 			<div className="flashcard-header-left">
 				{onBack && (
-					<FlashcardButton preset="back" onClick={onBack}>
-						← {t("common.back")}
-					</FlashcardButton>
+					<span className="flashcard-header-back-mobile">
+						{mobileBackButton}
+					</span>
 				)}
 				{left}
 			</div>
@@ -62,7 +83,14 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 				{Icon && <Icon size={18} />}
 				{title}
 			</div>
-			<div className="flashcard-header-right">{right}</div>
+			<div className="flashcard-header-right">
+				{right}
+				{onBack && (
+					<span className="flashcard-header-back-desktop">
+						{desktopBackButton}
+					</span>
+				)}
+			</div>
 		</div>
 	);
 };

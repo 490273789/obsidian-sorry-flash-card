@@ -5,15 +5,15 @@ import React, {
 	useRef,
 	useState,
 } from "react";
-import { Brain, PartyPopper, Pencil, RotateCcw, X } from "lucide-react";
+import { Brain, PartyPopper, RotateCcw } from "lucide-react";
 import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
 import { toFSRSRating, getRatingButtons } from "../scheduler";
 import { getDisplayCardContent } from "../cardDisplay";
 import { FlashcardButton } from "./FlashcardButton";
-import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
+import { SessionToolbar } from "./SessionToolbar";
 import { SessionTimer } from "./SessionTimer";
 import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
@@ -25,6 +25,7 @@ interface CardViewProps {
 	contentVersion: number;
 	onSessionUpdate: (session: StudySession) => void;
 	onEditCard: (deckId: string, cardId: string) => void;
+	onDeleteCard: (deckId: string, cardId: string) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
@@ -36,6 +37,7 @@ export const CardView: React.FC<CardViewProps> = ({
 	contentVersion,
 	onSessionUpdate,
 	onEditCard,
+	onDeleteCard,
 	onClose,
 	markdownRenderer,
 }) => {
@@ -249,7 +251,9 @@ export const CardView: React.FC<CardViewProps> = ({
 		);
 	}
 
-	const progress = `${session.currentIndex + 1} / ${session.cardQueue.length}`;
+	const progress = `${session.currentIndex + 1}/${session.cardQueue.length}`;
+	const progressPercent =
+		((session.currentIndex + 1) / session.cardQueue.length) * 100;
 	const directionLabel =
 		session.direction === "normal"
 			? t("mode.normalShort")
@@ -258,40 +262,19 @@ export const CardView: React.FC<CardViewProps> = ({
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
-			<FlashcardHeader
-				left={
-					<>
-						<div className="flashcard-deck-title">{deck.name}</div>
-						<div className="flashcard-progress">{progress}</div>
-					</>
-				}
-				title={
-					<div className="flashcard-badge">
-						<Brain size={18} /> {t("study.studying")} ·{" "}
-						{directionLabel}
-					</div>
-				}
-				right={
-					<>
-						<SessionTimer
-							startTime={session.startTime}
-							className="flashcard-timer"
-						/>
-						<FlashcardButton
-							preset="icon"
-							icon={Pencil}
-							onClick={() => onEditCard(deck.id, currentCard.id)}
-							title={t("cardEditor.editCurrentTitle")}
-							aria-label={t("cardEditor.editCurrentTitle")}
-						/>
-						<FlashcardButton
-							preset="icon"
-							icon={X}
-							onClick={onClose}
-							title={t("common.close")}
-						/>
-					</>
-				}
+			<SessionToolbar
+				deckName={deck.name}
+				statusIcon={Brain}
+				statusLabel={`${t("study.studying")} · ${directionLabel}`}
+				progress={progress}
+				progressPercent={progressPercent}
+				startTime={session.startTime}
+				onEdit={() => onEditCard(deck.id, currentCard.id)}
+				onDelete={() => onDeleteCard(deck.id, currentCard.id)}
+				onClose={onClose}
+				editTitle={t("cardEditor.editCurrentTitle")}
+				deleteTitle={t("cardEditor.deleteCurrentTitle")}
+				closeTitle={t("common.close")}
 			/>
 
 			{/* Content */}

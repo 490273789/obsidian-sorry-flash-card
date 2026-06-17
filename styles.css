@@ -258,7 +258,6 @@
 }
 
 .fc-lift:hover {
-	transform: translateY(-2px);
 	border-color: rgba(var(--fc-cyan-rgb), 0.38);
 	box-shadow: var(--fc-glow-cyan);
 }
@@ -328,7 +327,6 @@
 
 .flashcard-btn:hover:not(:disabled),
 .flashcard-btn:focus-visible {
-	transform: translateY(-1px);
 	border-color: rgba(var(--fc-cyan-rgb), 0.52);
 	box-shadow: var(--fc-glow-cyan);
 	outline: none;
@@ -368,7 +366,8 @@
 }
 
 .flashcard-root button.flashcard-btn-icon,
-.flashcard-root button.flashcard-btn-prev {
+.flashcard-root button.flashcard-btn-prev,
+.flashcard-root button.flashcard-btn-back {
 	border-color: rgba(var(--fc-cyan-rgb), 0.34);
 	background:
 		linear-gradient(
@@ -380,9 +379,31 @@
 	color: var(--fc-text);
 }
 
+.flashcard-root button.flashcard-btn-danger {
+	border-color: rgba(var(--fc-red-rgb), 0.38);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-red-rgb), 0.14),
+			rgba(var(--fc-magenta-rgb), 0.08)
+		),
+		rgba(10, 15, 28, 0.92);
+	color: var(--fc-red);
+}
+
 .flashcard-btn-back {
-	color: var(--fc-cyan);
-	background: rgba(var(--fc-cyan-rgb), 0.08);
+	width: 38px;
+	height: 38px;
+	min-width: 38px;
+	min-height: 38px;
+	padding: 0;
+	flex: 0 0 auto;
+	border-radius: var(--fc-radius-sm);
+}
+
+.flashcard-btn-back svg {
+	width: 16px;
+	height: 16px;
 }
 
 .flashcard-btn-green {
@@ -589,6 +610,14 @@
 
 .flashcard-header-right {
 	justify-content: flex-end;
+}
+
+.flashcard-header-back-mobile {
+	display: none;
+}
+
+.flashcard-header-back-desktop {
+	display: inline-flex;
 }
 
 .flashcard-header-center {
@@ -1301,6 +1330,163 @@
 	background: rgba(var(--fc-magenta-rgb), 0.08);
 }
 
+.flashcard-session-shell {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-2);
+}
+
+.flashcard-session-header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--fc-space-3);
+}
+
+.flashcard-session-identity,
+.flashcard-session-metrics,
+.flashcard-session-actions {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.flashcard-session-identity {
+	gap: var(--fc-space-3);
+}
+
+.flashcard-session-back {
+	flex: 0 0 auto;
+	justify-content: center;
+}
+
+.flashcard-session-back-mobile {
+	display: none;
+}
+
+.flashcard-session-back-desktop {
+	display: inline-flex;
+}
+
+.flashcard-session-toolbar {
+	display: grid;
+	grid-template-columns: auto minmax(180px, 1fr) auto;
+	align-items: stretch;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-2);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 45%),
+		rgba(7, 11, 22, 0.72);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+		0 12px 30px rgba(0, 0, 0, 0.16);
+}
+
+.flashcard-session-metrics {
+	gap: var(--fc-space-2);
+}
+
+.flashcard-session-actions {
+	justify-content: flex-end;
+	gap: var(--fc-space-2);
+}
+
+.flashcard-session-timer {
+	position: relative;
+	min-height: 40px;
+	min-width: 88px;
+	padding: 7px 12px 7px 28px;
+	border-color: rgba(var(--fc-violet-rgb), 0.34);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-violet-rgb), 0.14), transparent),
+		rgba(16, 21, 33, 0.82);
+	color: var(--fc-text);
+	font-size: var(--fc-font-sm);
+	letter-spacing: 0.02em;
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+		0 0 18px rgba(var(--fc-violet-rgb), 0.08);
+}
+
+.flashcard-session-timer::before {
+	content: "";
+	position: absolute;
+	left: 12px;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--fc-lime);
+	box-shadow: 0 0 14px rgba(var(--fc-lime-rgb), 0.42);
+}
+
+.flashcard-session-progress {
+	display: inline-grid;
+	grid-template-columns: auto minmax(120px, 1fr);
+	align-items: center;
+	gap: var(--fc-space-2);
+	min-height: 40px;
+	padding: 7px 12px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.26);
+	border-radius: var(--fc-radius-sm);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 60%),
+		rgba(16, 21, 33, 0.82);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+		0 0 20px rgba(var(--fc-cyan-rgb), 0.08);
+}
+
+.flashcard-session-progress-text {
+	color: var(--fc-text);
+	font-family: var(--fc-font-data);
+	font-size: var(--fc-font-sm);
+	font-weight: 900;
+	white-space: nowrap;
+}
+
+.flashcard-session-progress-track {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	height: 8px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.15);
+	border-radius: var(--fc-radius-pill);
+	background: rgba(7, 11, 22, 0.82);
+	box-shadow: inset 0 0 12px rgba(var(--fc-black-rgb), 0.46);
+}
+
+.flashcard-session-progress-fill {
+	position: absolute;
+	inset: 0 auto 0 0;
+	border-radius: inherit;
+	background: linear-gradient(
+		90deg,
+		var(--fc-cyan),
+		var(--fc-magenta),
+		var(--fc-lime)
+	);
+	box-shadow:
+		0 0 18px rgba(var(--fc-cyan-rgb), 0.26),
+		0 0 28px rgba(var(--fc-magenta-rgb), 0.12);
+	transition: var(--fc-transition-progress);
+}
+
+.flashcard-session-progress-fill::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.42),
+		transparent
+	);
+	animation: var(--fc-motion-progress-scan);
+}
+
 .flashcard-content {
 	min-height: 0;
 	flex: 1;
@@ -1445,12 +1631,18 @@
 }
 
 .flashcard-response-controls,
+.flashcard-practice-response-controls,
 .flashcard-practice-answer-buttons {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: var(--fc-space-2);
 	width: 100%;
+}
+
+.flashcard-practice-response-controls {
+	display: grid;
+	grid-template-columns: 42px minmax(0, 1fr);
 }
 
 .flashcard-rating-grid {
@@ -2215,7 +2407,6 @@
 
 .flashcard-modal-close:hover,
 .flashcard-modal-close:focus-visible {
-	transform: translateY(-1px);
 	border-color: rgba(var(--fc-red-rgb), 0.48);
 	box-shadow: 0 0 18px rgba(var(--fc-red-rgb), 0.12);
 	outline: none;
@@ -2347,6 +2538,24 @@
 	color: var(--fc-red);
 	font-size: var(--fc-font-sm);
 	font-weight: 800;
+}
+
+.flashcard-confirm-modal {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-4, 16px);
+}
+
+.flashcard-confirm-modal p {
+	margin: 0;
+	color: var(--text-normal);
+	line-height: 1.6;
+}
+
+.flashcard-confirm-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
 }
 
 .flashcard-add-card-fab {
@@ -2686,6 +2895,21 @@
 	color: var(--fc-magenta);
 }
 
+.theme-light .flashcard-session-progress {
+	border-color: rgba(var(--fc-cyan-rgb), 0.28);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 60%),
+		rgba(255, 255, 255, 0.76);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+		0 12px 24px rgba(var(--fc-cyan-rgb), 0.1);
+}
+
+.theme-light .flashcard-session-progress-track {
+	border-color: rgba(var(--fc-cyan-rgb), 0.18);
+	background: rgba(220, 238, 243, 0.82);
+}
+
 .theme-light .flashcard-root button.flashcard-btn,
 .theme-light .flashcard-root .flashcard-btn {
 	border-color: rgba(33, 55, 83, 0.18);
@@ -2709,6 +2933,7 @@
 
 .theme-light .flashcard-root button.flashcard-btn-icon,
 .theme-light .flashcard-root button.flashcard-btn-prev,
+.theme-light .flashcard-root button.flashcard-btn-back,
 .theme-light .flashcard-root button.flashcard-btn-gray {
 	border-color: rgba(var(--fc-cyan-rgb), 0.28);
 	background:
@@ -2719,6 +2944,18 @@
 		),
 		rgba(255, 255, 255, 0.88);
 	color: var(--fc-text);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-danger {
+	border-color: rgba(var(--fc-red-rgb), 0.28);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-red-rgb), 0.1),
+			rgba(var(--fc-magenta-rgb), 0.055)
+		),
+		rgba(255, 255, 255, 0.88);
+	color: var(--fc-red);
 }
 
 .theme-light .flashcard-root button.flashcard-btn-green {
@@ -3157,6 +3394,15 @@
 	.flashcard-stats-session-right {
 		justify-content: space-between;
 	}
+
+	.flashcard-session-toolbar {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-session-progress {
+		flex: 1 1 auto;
+		grid-template-columns: auto minmax(80px, 1fr);
+	}
 }
 
 @media (max-width: 640px) {
@@ -3185,7 +3431,7 @@
 
 	.flashcard-common-header {
 		display: grid;
-		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-columns: 40px minmax(0, 1fr) 40px;
 		align-items: center;
 		gap: var(--fc-space-2);
 	}
@@ -3198,16 +3444,73 @@
 	}
 
 	.flashcard-header-left {
+		grid-column: 1;
+		grid-row: 1;
 		justify-content: flex-start;
 	}
 
 	.flashcard-header-center {
+		grid-column: 2;
+		grid-row: 1;
 		min-width: 0;
 		justify-content: center;
 	}
 
 	.flashcard-header-right {
+		grid-column: 3;
+		grid-row: 1;
 		justify-content: flex-end;
+	}
+
+	.flashcard-navigation-header {
+		position: relative;
+	}
+
+	.flashcard-navigation-header .flashcard-header-center {
+		grid-column: 1 / -1;
+		grid-row: 1;
+		justify-self: center;
+		width: fit-content;
+		max-width: calc(100% - 96px);
+		overflow: hidden;
+		pointer-events: none;
+		z-index: 0;
+	}
+
+	.flashcard-navigation-header .flashcard-header-left,
+	.flashcard-navigation-header .flashcard-header-right {
+		position: relative;
+		z-index: 1;
+	}
+
+	.flashcard-header-back-mobile {
+		display: inline-flex;
+	}
+
+	.flashcard-header-back-desktop {
+		display: none;
+	}
+
+	.flashcard-btn-back {
+		width: 36px;
+		height: 36px;
+		min-width: 36px;
+		min-height: 36px;
+		padding: 0;
+		border-radius: var(--fc-radius-sm);
+	}
+
+	.flashcard-btn-back svg {
+		width: 18px;
+		height: 18px;
+	}
+
+	.flashcard-session-back-desktop {
+		display: none;
+	}
+
+	.flashcard-session-back-mobile {
+		display: inline-flex;
 	}
 
 	.flashcard-header,
@@ -3301,11 +3604,34 @@
 
 	.flashcard-study .flashcard-common-header {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+		grid-template-columns: 40px minmax(0, 1fr) 40px;
 		grid-template-areas: "left center right";
 		align-items: center;
 		gap: 6px;
 		padding: 8px;
+	}
+
+	.flashcard-study .flashcard-session-header {
+		display: grid;
+		grid-template-columns: 40px minmax(0, 1fr);
+		grid-template-areas: "back identity";
+		gap: 8px;
+		padding: 8px;
+	}
+
+	.flashcard-study .flashcard-session-identity {
+		grid-area: identity;
+		justify-content: flex-start;
+		gap: 8px;
+	}
+
+	.flashcard-study .flashcard-session-back {
+		grid-area: back;
+		width: 36px;
+		min-width: 36px;
+		height: 36px;
+		min-height: 36px;
+		padding: 0;
 	}
 
 	.flashcard-study .flashcard-header-left {
@@ -3331,7 +3657,7 @@
 	}
 
 	.flashcard-study .flashcard-deck-title {
-		max-width: 5ch;
+		max-width: 12ch;
 		font-size: var(--fc-font-md);
 	}
 
@@ -3341,6 +3667,48 @@
 		min-height: 28px;
 		padding: 3px 7px;
 		font-size: 11px;
+	}
+
+	.flashcard-study .flashcard-session-toolbar {
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-areas:
+			"progress actions"
+			"timer actions";
+		gap: 8px;
+		padding: 8px;
+	}
+
+	.flashcard-study .flashcard-session-metrics {
+		grid-area: timer;
+	}
+
+	.flashcard-study .flashcard-session-progress {
+		grid-area: progress;
+		min-height: 32px;
+		padding: 4px 8px;
+		grid-template-columns: auto minmax(54px, 1fr);
+	}
+
+	.flashcard-study .flashcard-session-progress-text {
+		font-size: 12px;
+	}
+
+	.flashcard-study .flashcard-session-progress-track {
+		height: 7px;
+	}
+
+	.flashcard-study .flashcard-session-actions {
+		grid-area: actions;
+		align-self: stretch;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.flashcard-study .flashcard-session-timer {
+		min-height: 32px;
+		min-width: 88px;
+		padding-top: 4px;
+		padding-bottom: 4px;
 	}
 
 	.flashcard-study .flashcard-btn-icon {
@@ -3387,6 +3755,11 @@
 		align-items: start;
 	}
 
+	.flashcard-study .flashcard-practice-response-controls {
+		grid-template-columns: 40px minmax(0, 1fr);
+		align-items: start;
+	}
+
 	.flashcard-study .flashcard-rating-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
@@ -3406,13 +3779,34 @@
 	}
 
 	.flashcard-modal-backdrop {
-		align-items: flex-end;
-		padding: var(--fc-space-2);
+		align-items: center;
+		justify-content: center;
+		padding:
+			max(env(safe-area-inset-top, 0px), var(--fc-space-2))
+			var(--fc-space-2)
+			max(env(safe-area-inset-bottom, 0px), var(--fc-space-2));
+		overflow: hidden;
 	}
 
 	.flashcard-modal {
+		max-height: calc(100svh - 16px);
 		max-height: calc(100dvh - 16px);
-		border-radius: var(--fc-radius-md) var(--fc-radius-md) 0 0;
+		border-radius: var(--fc-radius-md);
+	}
+
+	.flashcard-card-editor-modal {
+		width: min(100%, 680px);
+		height: min(680px, calc(100svh - 16px));
+		height: min(680px, calc(100dvh - 16px));
+	}
+
+	.flashcard-card-editor-body {
+		overscroll-behavior: contain;
+	}
+
+	.flashcard-card-editor-modal .flashcard-modal-header,
+	.flashcard-card-editor-modal .flashcard-modal-footer {
+		flex: 0 0 auto;
 	}
 
 	.flashcard-settings-tab .setting-item {

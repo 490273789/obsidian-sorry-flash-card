@@ -692,6 +692,52 @@ export class DataStore {
 		return this.refreshDeckFromSource(file, deck, nextContent);
 	}
 
+	/**
+	 * Delete a card from an existing deck's source Markdown file.
+	 */
+	async deleteCardFromDeck(deckId: string, cardId: string): Promise<void> {
+		const deck = this.decks.get(deckId);
+		if (!deck) throw new Error("Deck not found");
+
+		const card = deck.cards.find((c) => c.id === cardId);
+		if (!card) throw new Error("Card not found");
+
+		const file = this.getDeckSourceFile(deck);
+		const content = await this.plugin.app.vault.cachedRead(file);
+		const nextContent = this.deleteCardBlock(content, card.indexInFile);
+		if (nextContent === null) {
+			throw new Error("Card block not found in source file");
+		}
+
+		const survivingCards = deck.cards
+			.filter((item) => item.id !== cardId)
+			.sort((a, b) => a.indexInFile - b.indexInFile)
+			.map((item, index) => ({
+				...item,
+				id: `${file.path}::${index}`,
+				indexInFile: index,
+			}));
+		const remappedExistingDeck: Deck = {
+			...deck,
+			cards: survivingCards,
+		};
+
+		await this.plugin.app.vault.modify(file, nextContent);
+
+		const nextDeck = await parseFileIntoDeck(
+			file,
+			this.plugin.app.vault,
+			remappedExistingDeck,
+			nextContent,
+		);
+		if (nextDeck) {
+			this.decks.set(nextDeck.id, nextDeck);
+		} else {
+			this.decks.delete(deck.id);
+		}
+		await this.save();
+	}
+
 	private getDeckSourceFile(deck: Deck): TFile {
 		const file = this.plugin.app.vault.getAbstractFileByPath(
 			deck.filePath,
@@ -744,6 +790,37 @@ export class DataStore {
 		return nextLines.join("\n");
 	}
 
+	private deleteCardBlock(
+		content: string,
+		indexInFile: number,
+	): string | null {
+		const lines = content.split(/\r?\n/);
+		const ranges = this.findCardBlockRanges(lines);
+		const currentRange = ranges[indexInFile];
+		if (
+			indexInFile < 0 ||
+			currentRange === undefined
+		) {
+			return null;
+		}
+
+		const currentBlock = lines
+			.slice(currentRange.start, currentRange.end)
+			.join("\n");
+		const replacement =
+			indexInFile === 0
+				? this.extractPreservedPrefix(currentBlock).trimEnd()
+				: "";
+		const replacementLines =
+			replacement.length > 0 ? replacement.split("\n") : [];
+		const nextLines = [
+			...lines.slice(0, currentRange.start),
+			...replacementLines,
+			...lines.slice(currentRange.end + 1),
+		];
+		return nextLines.join("\n");
+	}
+
 	private findCardBlockRanges(lines: string[]): Array<{
 		start: number;
 		end: number;
@@ -770,15 +847,21 @@ export class DataStore {
 		const cardBlock = formatCardBlock(front, back, explanation);
 		if (indexInFile !== 0) return cardBlock;
 
-		const tagMatch = currentBlock.match(FIRST_TAG_LINE_PATTERN);
-		if (!tagMatch || tagMatch.index === undefined) return cardBlock;
+		const prefix = this.extractPreservedPrefix(currentBlock);
+		if (!prefix) return cardBlock;
 
-		const prefix = currentBlock.slice(
+		const separator = prefix.endsWith("\n") ? "" : "\n";
+		return `${prefix}${separator}${cardBlock}`;
+	}
+
+	private extractPreservedPrefix(currentBlock: string): string {
+		const tagMatch = currentBlock.match(FIRST_TAG_LINE_PATTERN);
+		if (!tagMatch || tagMatch.index === undefined) return "";
+
+		return currentBlock.slice(
 			0,
 			tagMatch.index + tagMatch[0].length,
 		);
-		const separator = prefix.endsWith("\n") ? "" : "\n";
-		return `${prefix}${separator}${cardBlock}`;
 	}
 
 	private appendCardBlock(

@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useRef, useMemo } from "react";
-import { App, Component, MarkdownRenderer, Notice, TFile } from "obsidian";
+import {
+	App,
+	ButtonComponent,
+	Component,
+	MarkdownRenderer,
+	Modal,
+	Notice,
+	TFile,
+} from "obsidian";
 import {
 	ViewState,
 	FlashcardSettings,
@@ -209,13 +217,57 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			startTime: Date.now(),
 			totalQuestions: cardIds.length,
 			answers: {},
+			history: [],
 		};
 		setPracticeSession(session);
 		setPracticeResult(null);
 		setViewState({ type: "practice", deckId });
 	}, [dataStore]);
 
-	const handleCloseStudy = useCallback(() => {
+	const confirmAction = useCallback((
+		title: string,
+		message: string,
+		confirmText: string,
+	): Promise<boolean> => {
+		return new Promise((resolve) => {
+			let isResolved = false;
+			const modal = new Modal(app);
+
+			const finish = (confirmed: boolean) => {
+				if (isResolved) return;
+				isResolved = true;
+				modal.close();
+				resolve(confirmed);
+			};
+
+			modal.titleEl.setText(title);
+			const body = modal.contentEl.createDiv({
+				cls: "flashcard-confirm-modal",
+			});
+			body.createEl("p", { text: message });
+			const actions = body.createDiv({
+				cls: "flashcard-confirm-actions",
+			});
+			new ButtonComponent(actions)
+				.setButtonText(t("common.cancel"))
+				.onClick(() => finish(false));
+			new ButtonComponent(actions)
+				.setButtonText(confirmText)
+				.setCta()
+				.onClick(() => finish(true));
+			modal.onClose = () => finish(false);
+			modal.open();
+		});
+	}, [app, t]);
+
+	const handleCloseStudy = useCallback(async () => {
+		const confirmed = await confirmAction(
+			t("study.exitTitle"),
+			t("study.exitConfirm"),
+			t("common.confirm"),
+		);
+		if (!confirmed) return;
+
 		// Record Study session before clearing state
 		if (studySession && studySession.currentIndex > 0) {
 			const deck = dataStore.getDeck(studySession.deckId);
@@ -232,7 +284,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		}
 		setStudySession(null);
 		setViewState({ type: "home" });
-	}, [dataStore, studySession]);
+	}, [confirmAction, dataStore, studySession, t]);
+
+	const handleCloseStudyRequest = useCallback(() => {
+		void handleCloseStudy();
+	}, [handleCloseStudy]);
 
 	const handleSessionUpdate = useCallback((session: StudySession) => {
 		setStudySession(session);
@@ -292,6 +348,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			startTime: Date.now(),
 			totalQuestions: shuffledCards.length,
 			answers: {},
+			history: [],
 		};
 
 		setPracticeSession(session);
@@ -352,6 +409,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				startTime: Date.now(),
 				totalQuestions: shuffledIncorrect.length,
 				answers: {},
+				history: [],
 			};
 
 			setPracticeSession(session);
@@ -365,6 +423,165 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setPracticeResult(null);
 		setViewState({ type: "home" });
 	}, []);
+
+	const remapCardIdAfterDelete = useCallback((
+		deckId: string,
+		deletedCardId: string,
+		cardId: string,
+	): string | null => {
+		const prefix = `${deckId}::`;
+		if (!deletedCardId.startsWith(prefix) || !cardId.startsWith(prefix)) {
+			return cardId === deletedCardId ? null : cardId;
+		}
+
+		const deletedIndex = Number(deletedCardId.slice(prefix.length));
+		const cardIndex = Number(cardId.slice(prefix.length));
+		if (!Number.isInteger(deletedIndex) || !Number.isInteger(cardIndex)) {
+			return cardId === deletedCardId ? null : cardId;
+		}
+		if (cardIndex === deletedIndex) return null;
+		if (cardIndex < deletedIndex) return cardId;
+		return `${prefix}${cardIndex - 1}`;
+	}, []);
+
+	const remapQueueAfterDelete = useCallback((
+		deckId: string,
+		deletedCardId: string,
+		cardIds: string[],
+	): string[] => {
+		return cardIds.flatMap((cardId) => {
+			const nextCardId = remapCardIdAfterDelete(
+				deckId,
+				deletedCardId,
+				cardId,
+			);
+			return nextCardId ? [nextCardId] : [];
+		});
+	}, [remapCardIdAfterDelete]);
+
+	const remapPracticeAnswersAfterDelete = useCallback((
+		deckId: string,
+		deletedCardId: string,
+		answers: Record<string, boolean>,
+	): Record<string, boolean> => {
+		const nextAnswers: Record<string, boolean> = {};
+		for (const [cardId, answer] of Object.entries(answers)) {
+			const nextCardId = remapCardIdAfterDelete(
+				deckId,
+				deletedCardId,
+				cardId,
+			);
+			if (nextCardId) {
+				nextAnswers[nextCardId] = answer;
+			}
+		}
+		return nextAnswers;
+	}, [remapCardIdAfterDelete]);
+
+	const handleDeleteCard = useCallback(async (
+		deckId: string,
+		cardId: string,
+	) => {
+		const confirmed = await confirmAction(
+			t("cardEditor.deleteCurrentTitle"),
+			t("cardEditor.deleteConfirm"),
+			t("settings.delete"),
+		);
+		if (!confirmed) return;
+
+		try {
+			await dataStore.deleteCardFromDeck(deckId, cardId);
+			setContentVersion((version) => version + 1);
+			new Notice(t("notice.cardDeleted"));
+
+			setStudySession((currentSession) => {
+				if (!currentSession || currentSession.deckId !== deckId) {
+					return currentSession;
+				}
+				const cardQueue = remapQueueAfterDelete(
+					deckId,
+					cardId,
+					currentSession.cardQueue,
+				);
+				if (cardQueue.length === 0) {
+					setViewState({ type: "home" });
+					return null;
+				}
+				const currentIndex = Math.min(
+					currentSession.currentIndex,
+					cardQueue.length - 1,
+				);
+				return {
+					...currentSession,
+					cardQueue,
+					currentIndex,
+					repeatQueue: remapQueueAfterDelete(
+						deckId,
+						cardId,
+						currentSession.repeatQueue,
+					),
+					history: remapQueueAfterDelete(
+						deckId,
+						cardId,
+						currentSession.history,
+					),
+				};
+			});
+
+			setPracticeSession((currentSession) => {
+				if (!currentSession || currentSession.deckId !== deckId) {
+					return currentSession;
+				}
+				const cardQueue = remapQueueAfterDelete(
+					deckId,
+					cardId,
+					currentSession.cardQueue,
+				);
+				if (cardQueue.length === 0) {
+					setViewState({ type: "home" });
+					setPracticeResult(null);
+					return null;
+				}
+				const currentIndex = Math.min(
+					currentSession.currentIndex,
+					cardQueue.length - 1,
+				);
+				return {
+					...currentSession,
+					cardQueue,
+					currentIndex,
+					totalQuestions: cardQueue.length,
+					answers: remapPracticeAnswersAfterDelete(
+						deckId,
+						cardId,
+						currentSession.answers,
+					),
+					history: remapQueueAfterDelete(
+						deckId,
+						cardId,
+						currentSession.history,
+					),
+				};
+			});
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : t("cardEditor.deleteFailed");
+			new Notice(t("notice.cardDeleteFailed", { message }));
+		}
+	}, [
+		dataStore,
+		confirmAction,
+		remapPracticeAnswersAfterDelete,
+		remapQueueAfterDelete,
+		t,
+	]);
+
+	const handleDeleteCardRequest = useCallback((
+		deckId: string,
+		cardId: string,
+	) => {
+		void handleDeleteCard(deckId, cardId);
+	}, [handleDeleteCard]);
 
 	const handleOpenSourceFile = useCallback((filePath: string) => {
 		const file = app.vault.getAbstractFileByPath(filePath);
@@ -469,7 +686,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					contentVersion={contentVersion}
 					onSessionUpdate={handleSessionUpdate}
 					onEditCard={handleOpenEditCard}
-					onClose={handleCloseStudy}
+					onDeleteCard={handleDeleteCardRequest}
+					onClose={handleCloseStudyRequest}
 					markdownRenderer={renderMarkdown}
 				/>
 			);
@@ -514,6 +732,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					contentVersion={contentVersion}
 					onSessionUpdate={handlePracticeSessionUpdate}
 					onEditCard={handleOpenEditCard}
+					onDeleteCard={handleDeleteCardRequest}
 					onComplete={handlePracticeComplete}
 					onClose={handlePracticeClose}
 					markdownRenderer={renderMarkdown}
