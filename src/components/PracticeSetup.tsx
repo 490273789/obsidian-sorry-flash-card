@@ -5,8 +5,9 @@ import {
 	ChartBar,
 	CircleX,
 	SlidersHorizontal,
+	Repeat2,
 } from "lucide-react";
-import { Deck } from "../types";
+import { CardDirection, Deck } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
@@ -15,12 +16,17 @@ const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
 interface PracticeSetupProps {
 	deck: Deck;
-	onStartPractice: (questionCount: number) => void;
+	defaultDirection: CardDirection;
+	onStartPractice: (
+		questionCount: number,
+		direction: CardDirection,
+	) => void;
 	onBack: () => void;
 }
 
 export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	deck,
+	defaultDirection,
 	onStartPractice,
 	onBack,
 }) => {
@@ -34,6 +40,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	const [inputValue, setInputValue] = useState(
 		Math.min(50, maxQuestions).toString(),
 	);
+	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
@@ -60,7 +67,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 	const handleStart = () => {
 		if (questionCount >= 1 && questionCount <= maxQuestions) {
-			onStartPractice(questionCount);
+			onStartPractice(questionCount, direction);
 		}
 	};
 
@@ -206,6 +213,35 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						<span className="flashcard-practice-input-hint">
 							(1 - {maxQuestions})
 						</span>
+					</div>
+				</div>
+
+				<div className="flashcard-study-panel flashcard-direction-section">
+					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
+						<div className="flashcard-practice-panel-title">
+							<Repeat2 size={16} /> {t("mode.direction")}
+						</div>
+						<div className="flashcard-study-panel-note">
+							{direction === "normal"
+								? t("mode.normalNote")
+								: t("mode.reversedNote")}
+						</div>
+					</div>
+					<div className="flashcard-direction-options">
+						<FlashcardButton
+							className="flashcard-direction-btn"
+							active={direction === "normal"}
+							onClick={() => setDirection("normal")}
+						>
+							<Target size={16} /> {t("mode.normal")}
+						</FlashcardButton>
+						<FlashcardButton
+							className="flashcard-direction-btn"
+							active={direction === "reversed"}
+							onClick={() => setDirection("reversed")}
+						>
+							<Repeat2 size={16} /> {t("mode.reversed")}
+						</FlashcardButton>
 					</div>
 				</div>
 

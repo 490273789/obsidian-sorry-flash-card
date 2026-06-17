@@ -6,8 +6,9 @@ import {
 	Brain,
 	Dices,
 	AudioWaveform,
+	Repeat2,
 } from "lucide-react";
-import { Deck, StudyDayInfo } from "../types";
+import { CardDirection, Deck, StudyDayInfo } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
@@ -18,26 +19,39 @@ interface StudySetupProps {
 	todayReviewCount: number;
 	dayList: StudyDayInfo[];
 	defaultStudyOrder: "sequential" | "random";
-	onStart: (studyOrder: "sequential" | "random") => void;
-	onStartDay: (dayIndex: number, studyOrder: "sequential" | "random") => void;
+	onStart: (
+		studyOrder: "sequential" | "random",
+		direction: CardDirection,
+	) => void;
+	onStartDay: (
+		dayIndex: number,
+		studyOrder: "sequential" | "random",
+		direction: CardDirection,
+	) => void;
 	onBack: () => void;
 }
 
 interface StudyDayRowProps {
 	day: StudyDayInfo;
 	studyOrder: "sequential" | "random";
-	onStartDay: (dayIndex: number, studyOrder: "sequential" | "random") => void;
+	direction: CardDirection;
+	onStartDay: (
+		dayIndex: number,
+		studyOrder: "sequential" | "random",
+		direction: CardDirection,
+	) => void;
 }
 
 const StudyDayRow = memo(function StudyDayRow({
 	day,
 	studyOrder,
+	direction,
 	onStartDay,
 }: StudyDayRowProps) {
 	const { t } = useI18n();
 	const handleReview = useCallback(() => {
-		onStartDay(day.dayIndex, studyOrder);
-	}, [day.dayIndex, onStartDay, studyOrder]);
+		onStartDay(day.dayIndex, studyOrder, direction);
+	}, [day.dayIndex, direction, onStartDay, studyOrder]);
 
 	return (
 		<div
@@ -99,6 +113,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(
 		defaultStudyOrder,
 	);
+	const [direction, setDirection] = useState<CardDirection>("normal");
 
 	const currentDay = dayList.find((d) => d.isCurrent);
 	const completedDays = useMemo(
@@ -114,8 +129,8 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	const todayTotal = todayNewCount + todayReviewCount;
 
 	const handleMainStart = useCallback(() => {
-		onStart(studyOrder);
-	}, [onStart, studyOrder]);
+		onStart(studyOrder, direction);
+	}, [direction, onStart, studyOrder]);
 
 	return (
 		<div className="flashcard-practice-setup">
@@ -232,6 +247,35 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 					</div>
 				</div>
 
+				<div className="flashcard-study-panel flashcard-direction-section fc-lift">
+					<div className="flashcard-study-panel-heading">
+						<div className="flashcard-study-order-label">
+							{t("mode.direction")}
+						</div>
+						<div className="flashcard-study-panel-note">
+							{direction === "normal"
+								? t("mode.normalNote")
+								: t("mode.reversedNote")}
+						</div>
+					</div>
+					<div className="flashcard-direction-options">
+						<FlashcardButton
+							className="flashcard-direction-btn"
+							active={direction === "normal"}
+							onClick={() => setDirection("normal")}
+						>
+							<Brain size={16} /> {t("mode.normal")}
+						</FlashcardButton>
+						<FlashcardButton
+							className="flashcard-direction-btn"
+							active={direction === "reversed"}
+							onClick={() => setDirection("reversed")}
+						>
+							<Repeat2 size={16} /> {t("mode.reversed")}
+						</FlashcardButton>
+					</div>
+				</div>
+
 				{/* Day list */}
 				{dayList.length > 0 && (
 					<div className="flashcard-study-panel flashcard-study-day-section fc-lift">
@@ -252,6 +296,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 									key={day.dayIndex}
 									day={day}
 									studyOrder={studyOrder}
+									direction={direction}
 									onStartDay={onStartDay}
 								/>
 							))}

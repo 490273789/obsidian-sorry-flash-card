@@ -8,6 +8,7 @@ import React, {
 import { Target, X, Check, Pencil } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
+import { getDisplayCardContent } from "../cardDisplay";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
@@ -53,6 +54,13 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		dataStore,
 		deck.id,
 	]);
+	const displayContent = useMemo(
+		() =>
+			currentCard
+				? getDisplayCardContent(currentCard, session.direction)
+				: null,
+		[currentCard, session.direction],
+	);
 
 	useEffect(() => {
 		setShowAnswer(false);
@@ -102,6 +110,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 					: 0;
 
 			const result: PracticeResult = {
+				direction: session.direction,
 				totalQuestions: newSession.totalQuestions,
 				correctCount,
 				incorrectCount,
@@ -161,6 +170,10 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	const progress = `${session.currentIndex + 1}/${session.totalQuestions}`;
 	const progressPercent =
 		((session.currentIndex + 1) / session.totalQuestions) * 100;
+	const directionLabel =
+		session.direction === "normal"
+			? t("mode.normalShort")
+			: t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
@@ -176,7 +189,8 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				}
 				title={
 					<span className="flashcard-badge">
-						<Target size={14} /> {t("practice.practicing")}
+						<Target size={14} /> {t("practice.practicing")} ·{" "}
+						{directionLabel}
 					</span>
 				}
 				right={
@@ -219,7 +233,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						{t("common.question")}
 					</div>
 					<MarkdownContent
-						content={currentCard.question}
+						content={displayContent?.prompt ?? ""}
 						className="flashcard-markdown"
 						markdownRenderer={markdownRenderer}
 					/>
@@ -233,11 +247,23 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								{t("common.answer")}
 							</div>
 							<MarkdownContent
-								content={currentCard.answer}
+								content={displayContent?.answer ?? ""}
 								className="flashcard-markdown"
 								markdownRenderer={markdownRenderer}
 							/>
 						</div>
+						{displayContent?.explanation && (
+							<div className="flashcard-explanation">
+								<div className="flashcard-label flashcard-label-explanation">
+									{t("common.explanation")}
+								</div>
+								<MarkdownContent
+									content={displayContent.explanation}
+									className="flashcard-markdown"
+									markdownRenderer={markdownRenderer}
+								/>
+							</div>
+						)}
 					</div>
 				)}
 			</div>

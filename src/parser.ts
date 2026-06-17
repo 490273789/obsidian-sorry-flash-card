@@ -1,6 +1,14 @@
 import { TFile, Vault } from "obsidian";
 import { createEmptyCard } from "ts-fsrs";
 import { FlashCard, Deck } from "./types";
+import {
+	EXPLANATION_SEPARATOR,
+	FIRST_TAG_LINE_PATTERN,
+	FRONT_BACK_SEPARATOR,
+	CARD_END_SEPARATOR,
+	hasFlashcardSyntax,
+	isMarkerLine,
+} from "./cardFormat";
 
 /**
  * Generate a unique ID for cards
@@ -21,8 +29,9 @@ export function extractFirstTag(content: string): string | null {
 /**
  * Parse flashcards from markdown content
  * Format:
- * - Cards separated by "<->"
- * - Question and answer separated by "---div---"
+ * - Front/back separated by "??" on its own line
+ * - Optional explanation separated by "::" on its own line
+ * - Cards ended by ";;" on its own line
  */
 export function parseFlashcards(
 	content: string,
@@ -32,43 +41,70 @@ export function parseFlashcards(
 	const cards: FlashCard[] = [];
 
 	// Remove the tag line from content for parsing
-	const contentWithoutTag = content.replace(
-		/(?:^|\n)\s*#[\w\u4e00-\u9fa5]+\s*\n?/,
-		"\n",
-	);
+	const contentWithoutTag = content.replace(FIRST_TAG_LINE_PATTERN, "\n");
+	const lines = contentWithoutTag.split(/\r?\n/);
+	let currentBlock: string[] = [];
 
-	// Split by card separator
-	const cardBlocks = contentWithoutTag.split("<->");
+	for (const line of lines) {
+		if (!isMarkerLine(line, CARD_END_SEPARATOR)) {
+			currentBlock.push(line);
+			continue;
+		}
 
-	cardBlocks.forEach((block, index) => {
-		const trimmedBlock = block.trim();
-		if (!trimmedBlock) return;
+		const parsed = parseCardBlock(currentBlock);
+		currentBlock = [];
+		if (!parsed) continue;
 
-		// Split by question/answer separator
-		const parts = trimmedBlock.split("---div---");
-		if (parts.length < 2) return;
-
-		const question = parts[0]?.trim() || "";
-		const answer = parts.slice(1).join("---div---").trim(); // Join back if multiple separators
-
-		if (!question || !answer) return;
-
-		const cardId = generateCardId(filePath, index);
+		const cardId = generateCardId(filePath, cards.length);
 
 		// Preserve existing FSRS state if card exists
 		const existingCard = existingCards?.get(cardId);
 
 		cards.push({
 			id: cardId,
-			question,
-			answer,
+			front: parsed.front,
+			back: parsed.back,
+			explanation: parsed.explanation,
 			fsrsCard: existingCard?.fsrsCard || createEmptyCard(),
 			sourceFile: filePath,
-			indexInFile: index,
+			indexInFile: cards.length,
 		});
-	});
+	}
 
 	return cards;
+}
+
+function parseCardBlock(
+	blockLines: string[],
+): Pick<FlashCard, "front" | "back" | "explanation"> | null {
+	const frontBackIndex = blockLines.findIndex((line) =>
+		isMarkerLine(line, FRONT_BACK_SEPARATOR),
+	);
+	if (frontBackIndex === -1) return null;
+
+	const explanationIndex = blockLines.findIndex(
+		(line, index) =>
+			index > frontBackIndex && isMarkerLine(line, EXPLANATION_SEPARATOR),
+	);
+
+	const front = blockLines.slice(0, frontBackIndex).join("\n").trim();
+	const backLines =
+		explanationIndex === -1
+			? blockLines.slice(frontBackIndex + 1)
+			: blockLines.slice(frontBackIndex + 1, explanationIndex);
+	const back = backLines.join("\n").trim();
+	const explanation =
+		explanationIndex === -1
+			? ""
+			: blockLines.slice(explanationIndex + 1).join("\n").trim();
+
+	if (!front || !back) return null;
+
+	return {
+		front,
+		back,
+		explanation: explanation || undefined,
+	};
 }
 
 /**
@@ -158,7 +194,7 @@ export async function findAllFlashcardTags(vault: Vault): Promise<string[]> {
 			const tag = extractFirstTag(content);
 
 			// Check if file contains flashcard separators
-			if (tag && content.includes("---div---")) {
+			if (tag && hasFlashcardSyntax(content)) {
 				tags.add(tag);
 			}
 		} catch (error) {

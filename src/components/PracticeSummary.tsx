@@ -14,6 +14,7 @@ import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { useI18n } from "./I18nContext";
 import { formatCompactDuration } from "../i18n";
+import { getDisplayCardContent } from "../cardDisplay";
 
 interface PracticeSummaryProps {
 	deck: Deck;
@@ -150,10 +151,11 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					</h3>
 					<div className="flashcard-practice-incorrect-list">
 						{incorrectCards.map((card, index) => (
-					<IncorrectCardItem
+							<IncorrectCardItem
 								key={card.id}
 								card={card}
 								index={index + 1}
+								direction={result.direction}
 								markdownRenderer={markdownRenderer}
 							/>
 						))}
@@ -198,15 +200,18 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 interface IncorrectCardItemProps {
 	card: FlashCard;
 	index: number;
+	direction: PracticeResult["direction"];
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
 
 const IncorrectCardItem = memo(function IncorrectCardItem({
 	card,
 	index,
+	direction,
 	markdownRenderer,
 }: IncorrectCardItemProps) {
 	const { t } = useI18n();
+	const displayContent = getDisplayCardContent(card, direction);
 
 	return (
 		<div className="flashcard-practice-incorrect-item fc-lift">
@@ -217,7 +222,7 @@ const IncorrectCardItem = memo(function IncorrectCardItem({
 						{t("practice.questionLabel")}
 					</span>
 					<MarkdownContent
-						content={card.question}
+						content={displayContent.prompt}
 						className="flashcard-practice-incorrect-text"
 						markdownRenderer={markdownRenderer}
 					/>
@@ -227,11 +232,23 @@ const IncorrectCardItem = memo(function IncorrectCardItem({
 						{t("practice.answerLabel")}
 					</span>
 					<MarkdownContent
-						content={card.answer}
+						content={displayContent.answer}
 						className="flashcard-practice-incorrect-text"
 						markdownRenderer={markdownRenderer}
 					/>
 				</div>
+				{displayContent.explanation && (
+					<div className="flashcard-practice-incorrect-explanation">
+						<span className="flashcard-practice-incorrect-label">
+							{t("common.explanation")}:
+						</span>
+						<MarkdownContent
+							content={displayContent.explanation}
+							className="flashcard-practice-incorrect-text"
+							markdownRenderer={markdownRenderer}
+						/>
+					</div>
+				)}
 			</div>
 		</div>
 	);

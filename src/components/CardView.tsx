@@ -10,6 +10,7 @@ import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
 import { toFSRSRating, getRatingButtons } from "../scheduler";
+import { getDisplayCardContent } from "../cardDisplay";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
@@ -58,6 +59,13 @@ export const CardView: React.FC<CardViewProps> = ({
 	const ratingButtons = useMemo(
 		() => getRatingButtons(language),
 		[language],
+	);
+	const displayContent = useMemo(
+		() =>
+			currentCard
+				? getDisplayCardContent(currentCard, session.direction)
+				: null,
+		[currentCard, session.direction],
 	);
 
 	useEffect(() => {
@@ -242,6 +250,10 @@ export const CardView: React.FC<CardViewProps> = ({
 	}
 
 	const progress = `${session.currentIndex + 1} / ${session.cardQueue.length}`;
+	const directionLabel =
+		session.direction === "normal"
+			? t("mode.normalShort")
+			: t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
@@ -255,7 +267,8 @@ export const CardView: React.FC<CardViewProps> = ({
 				}
 				title={
 					<div className="flashcard-badge">
-						<Brain size={18} /> {t("study.studying")}
+						<Brain size={18} /> {t("study.studying")} ·{" "}
+						{directionLabel}
 					</div>
 				}
 				right={
@@ -290,7 +303,7 @@ export const CardView: React.FC<CardViewProps> = ({
 						{t("common.question")}
 					</div>
 					<MarkdownContent
-						content={currentCard.question}
+						content={displayContent?.prompt ?? ""}
 						className="flashcard-markdown"
 						markdownRenderer={markdownRenderer}
 					/>
@@ -304,11 +317,23 @@ export const CardView: React.FC<CardViewProps> = ({
 								{t("common.answer")}
 							</div>
 							<MarkdownContent
-								content={currentCard.answer}
+								content={displayContent?.answer ?? ""}
 								className="flashcard-markdown"
 								markdownRenderer={markdownRenderer}
 							/>
 						</div>
+						{displayContent?.explanation && (
+							<div className="flashcard-explanation fc-lift">
+								<div className="flashcard-label flashcard-label-explanation">
+									{t("common.explanation")}
+								</div>
+								<MarkdownContent
+									content={displayContent.explanation}
+									className="flashcard-markdown"
+									markdownRenderer={markdownRenderer}
+								/>
+							</div>
+						)}
 					</div>
 				)}
 			</div>

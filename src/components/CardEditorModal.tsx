@@ -2,6 +2,7 @@ import React, { memo, useCallback, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { FilePlus2, Pencil, Sparkles, X } from "lucide-react";
 import type { Deck } from "../types";
+import { containsReservedMarkerLine } from "../cardFormat";
 import { FlashcardButton } from "./FlashcardButton";
 import { useI18n } from "./I18nContext";
 
@@ -9,16 +10,18 @@ export type CardEditorMode = "create" | "edit";
 
 export interface CardEditorSavePayload {
 	deckId: string;
-	question: string;
-	answer: string;
+	front: string;
+	back: string;
+	explanation?: string;
 }
 
 interface CardEditorModalProps {
 	mode: CardEditorMode;
 	decks: Deck[];
 	initialDeckId: string | null;
-	initialQuestion: string;
-	initialAnswer: string;
+	initialFront: string;
+	initialBack: string;
+	initialExplanation: string;
 	onSave: (payload: CardEditorSavePayload) => Promise<void>;
 	onClose: () => void;
 }
@@ -27,16 +30,18 @@ export const CardEditorModal = memo(function CardEditorModal({
 	mode,
 	decks,
 	initialDeckId,
-	initialQuestion,
-	initialAnswer,
+	initialFront,
+	initialBack,
+	initialExplanation,
 	onSave,
 	onClose,
 }: CardEditorModalProps) {
 	const { t } = useI18n();
 	const defaultDeckId = initialDeckId ?? decks[0]?.id ?? "";
 	const [deckId, setDeckId] = useState(defaultDeckId);
-	const [question, setQuestion] = useState(initialQuestion);
-	const [answer, setAnswer] = useState(initialAnswer);
+	const [front, setFront] = useState(initialFront);
+	const [back, setBack] = useState(initialBack);
+	const [explanation, setExplanation] = useState(initialExplanation);
 	const [error, setError] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
 
@@ -58,19 +63,28 @@ export const CardEditorModal = memo(function CardEditorModal({
 
 	const handleSave = useCallback(async () => {
 		const trimmedDeckId = deckId.trim();
-		const trimmedQuestion = question.trim();
-		const trimmedAnswer = answer.trim();
+		const trimmedFront = front.trim();
+		const trimmedBack = back.trim();
+		const trimmedExplanation = explanation.trim();
 
 		if (!trimmedDeckId) {
 			setError(t("cardEditor.deckRequired"));
 			return;
 		}
-		if (!trimmedQuestion) {
-			setError(t("cardEditor.questionRequired"));
+		if (!trimmedFront) {
+			setError(t("cardEditor.frontRequired"));
 			return;
 		}
-		if (!trimmedAnswer) {
-			setError(t("cardEditor.answerRequired"));
+		if (!trimmedBack) {
+			setError(t("cardEditor.backRequired"));
+			return;
+		}
+		if (
+			[trimmedFront, trimmedBack, trimmedExplanation].some(
+				containsReservedMarkerLine,
+			)
+		) {
+			setError(t("cardEditor.markerReserved"));
 			return;
 		}
 
@@ -79,8 +93,9 @@ export const CardEditorModal = memo(function CardEditorModal({
 		try {
 			await onSave({
 				deckId: trimmedDeckId,
-				question: trimmedQuestion,
-				answer: trimmedAnswer,
+				front: trimmedFront,
+				back: trimmedBack,
+				explanation: trimmedExplanation || undefined,
 			});
 		} catch (saveError) {
 			setError(
@@ -91,7 +106,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 		} finally {
 			setIsSaving(false);
 		}
-	}, [answer, deckId, onSave, question, t]);
+	}, [back, deckId, explanation, front, onSave, t]);
 
 	const modal = (
 		<div className="flashcard-modal-backdrop" onClick={handleBackdropClick}>
@@ -141,24 +156,35 @@ export const CardEditorModal = memo(function CardEditorModal({
 					)}
 
 					<label className="flashcard-card-editor-field">
-						<span>{t("common.question")}</span>
+						<span>{t("common.cardFront")}</span>
 						<textarea
-							value={question}
-							onChange={(e) => setQuestion(e.target.value)}
-							placeholder={t("cardEditor.questionPlaceholder")}
+							value={front}
+							onChange={(e) => setFront(e.target.value)}
+							placeholder={t("cardEditor.frontPlaceholder")}
 							disabled={isSaving}
 							rows={7}
 						/>
 					</label>
 
 					<label className="flashcard-card-editor-field">
-						<span>{t("common.answer")}</span>
+						<span>{t("common.cardBack")}</span>
 						<textarea
-							value={answer}
-							onChange={(e) => setAnswer(e.target.value)}
-							placeholder={t("cardEditor.answerPlaceholder")}
+							value={back}
+							onChange={(e) => setBack(e.target.value)}
+							placeholder={t("cardEditor.backPlaceholder")}
 							disabled={isSaving}
 							rows={7}
+						/>
+					</label>
+
+					<label className="flashcard-card-editor-field">
+						<span>{t("common.explanationOptional")}</span>
+						<textarea
+							value={explanation}
+							onChange={(e) => setExplanation(e.target.value)}
+							placeholder={t("cardEditor.explanationPlaceholder")}
+							disabled={isSaving}
+							rows={5}
 						/>
 					</label>
 

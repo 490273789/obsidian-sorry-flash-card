@@ -7,6 +7,7 @@ import {
 	StudySession,
 	PracticeSession,
 	PracticeResult,
+	CardDirection,
 } from "../types";
 import { DataStore } from "../dataStore";
 import { shuffleArray } from "../utils";
@@ -42,8 +43,9 @@ type CardEditorState =
 			mode: "edit";
 			deckId: string;
 			cardId: string;
-			question: string;
-			answer: string;
+			front: string;
+			back: string;
+			explanation: string;
 	  };
 
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
@@ -113,8 +115,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			mode: "edit",
 			deckId,
 			cardId,
-			question: card.question,
-			answer: card.answer,
+			front: card.front,
+			back: card.back,
+			explanation: card.explanation ?? "",
 		});
 	}, [dataStore, t]);
 
@@ -124,8 +127,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handleSaveCardEditor = useCallback(async ({
 		deckId,
-		question,
-		answer,
+		front,
+		back,
+		explanation,
 	}: CardEditorSavePayload) => {
 		if (!cardEditor) return;
 
@@ -134,12 +138,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				await dataStore.updateCardContent(
 					cardEditor.deckId,
 					cardEditor.cardId,
-					question,
-					answer,
+					front,
+					back,
+					explanation,
 				);
 				new Notice(t("notice.cardSaved"));
 			} else {
-				await dataStore.addCardToDeck(deckId, question, answer);
+				await dataStore.addCardToDeck(
+					deckId,
+					front,
+					back,
+					explanation,
+				);
 				new Notice(t("notice.cardAdded"));
 			}
 			setContentVersion((version) => version + 1);
@@ -164,8 +174,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleStartStudyFromSetup = useCallback((
 		deckId: string,
 		studyOrder: "sequential" | "random",
+		direction: CardDirection,
 	) => {
-		const session = dataStore.createStudySession(deckId, studyOrder);
+		const session = dataStore.createStudySession(
+			deckId,
+			studyOrder,
+			direction,
+		);
 		if (session && session.cardQueue.length > 0) {
 			setStudySession(session);
 			setViewState({ type: "study", deckId });
@@ -178,6 +193,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		deckId: string,
 		dayIndex: number,
 		studyOrder: "sequential" | "random",
+		direction: CardDirection,
 	) => {
 		const cards = dataStore.getCardsForDay(deckId, dayIndex);
 		if (cards.length === 0) return;
@@ -187,6 +203,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		}
 		const session: PracticeSession = {
 			deckId,
+			direction,
 			cardQueue: cardIds,
 			currentIndex: 0,
 			startTime: Date.now(),
@@ -256,7 +273,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		}
 	}, [dataStore, t]);
 
-	const handleStartPractice = useCallback((deckId: string, questionCount: number) => {
+	const handleStartPractice = useCallback((
+		deckId: string,
+		questionCount: number,
+		direction: CardDirection,
+	) => {
 		const deck = dataStore.getDeck(deckId);
 		if (!deck) return;
 
@@ -265,6 +286,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 		const session: PracticeSession = {
 			deckId,
+			direction,
 			cardQueue: shuffledCards.map((c) => c.id),
 			currentIndex: 0,
 			startTime: Date.now(),
@@ -324,6 +346,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 			const session: PracticeSession = {
 				deckId: practiceSession.deckId,
+				direction: practiceSession.direction,
 				cardQueue: shuffledIncorrect,
 				currentIndex: 0,
 				startTime: Date.now(),
@@ -409,11 +432,20 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					todayNewCount={newCount}
 					todayReviewCount={reviewCount}
 					defaultStudyOrder={effectiveSettings.studyOrder}
-					onStart={(order) =>
-						handleStartStudyFromSetup(viewState.deckId, order)
+					onStart={(order, direction) =>
+						handleStartStudyFromSetup(
+							viewState.deckId,
+							order,
+							direction,
+						)
 					}
-					onStartDay={(dayIndex, order) =>
-						handleStudyDay(viewState.deckId, dayIndex, order)
+					onStartDay={(dayIndex, order, direction) =>
+						handleStudyDay(
+							viewState.deckId,
+							dayIndex,
+							order,
+							direction,
+						)
 					}
 					onBack={handleBackHome}
 				/>
@@ -452,8 +484,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				<PracticeSetup
 					key={deck.id}
 					deck={deck}
-					onStartPractice={(count) =>
-						handleStartPractice(viewState.deckId, count)
+					defaultDirection={
+						practiceSession?.deckId === viewState.deckId
+							? practiceSession.direction
+							: "normal"
+					}
+					onStartPractice={(count, direction) =>
+						handleStartPractice(viewState.deckId, count, direction)
 					}
 					onBack={handleBackHome}
 				/>
@@ -542,11 +579,16 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					mode={cardEditor.mode}
 					decks={decks}
 					initialDeckId={cardEditor.deckId}
-					initialQuestion={
-						cardEditor.mode === "edit" ? cardEditor.question : ""
+					initialFront={
+						cardEditor.mode === "edit" ? cardEditor.front : ""
 					}
-					initialAnswer={
-						cardEditor.mode === "edit" ? cardEditor.answer : ""
+					initialBack={
+						cardEditor.mode === "edit" ? cardEditor.back : ""
+					}
+					initialExplanation={
+						cardEditor.mode === "edit"
+							? cardEditor.explanation
+							: ""
 					}
 					onSave={handleSaveCardEditor}
 					onClose={handleCloseCardEditor}

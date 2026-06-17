@@ -1104,13 +1104,15 @@
 }
 
 .flashcard-study-order-options,
+.flashcard-direction-options,
 .flashcard-practice-quick-buttons {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: var(--fc-space-2);
 }
 
-.flashcard-study-order-section {
+.flashcard-study-order-section,
+.flashcard-direction-section {
 	min-width: 0;
 }
 
@@ -1118,7 +1120,8 @@
 	grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
 }
 
-.flashcard-study-order-btn {
+.flashcard-study-order-btn,
+.flashcard-direction-btn {
 	min-height: 46px;
 }
 
@@ -1323,7 +1326,8 @@
 }
 
 .flashcard-question,
-.flashcard-answer {
+.flashcard-answer,
+.flashcard-explanation {
 	position: relative;
 	flex: 0 0 auto;
 	overflow: hidden;
@@ -1348,6 +1352,18 @@
 	box-shadow: 0 0 24px rgba(var(--fc-magenta-rgb), 0.08);
 }
 
+.flashcard-explanation {
+	border-color: rgba(var(--fc-amber-rgb), 0.22);
+	background:
+		linear-gradient(
+			90deg,
+			rgba(var(--fc-amber-rgb), 0.08),
+			transparent 42%
+		),
+		rgba(16, 21, 33, 0.78);
+	box-shadow: 0 0 20px rgba(var(--fc-amber-rgb), 0.07);
+}
+
 .flashcard-label {
 	margin-bottom: var(--fc-space-3);
 	color: var(--fc-faint);
@@ -1361,6 +1377,10 @@
 
 .flashcard-label-answer {
 	color: var(--fc-magenta);
+}
+
+.flashcard-label-explanation {
+	color: var(--fc-amber);
 }
 
 .flashcard-markdown {
@@ -1697,7 +1717,6 @@
 
 .flashcard-word-cell:hover,
 .flashcard-word-cell:focus-visible {
-	transform: translateY(-1px);
 	border-color: rgba(var(--fc-cyan-rgb), 0.46);
 	box-shadow: var(--fc-glow-cyan);
 	outline: none;
@@ -1726,6 +1745,14 @@
 	word-break: break-word;
 	font-size: var(--fc-font-md);
 	line-height: 1.65;
+}
+
+.flashcard-word-explanation {
+	display: block;
+	margin-top: var(--fc-space-2);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	line-height: 1.55;
 }
 
 .flashcard-word-mask-text {
@@ -1863,13 +1890,15 @@
 }
 
 .flashcard-practice-incorrect-question,
-.flashcard-practice-incorrect-answer {
+.flashcard-practice-incorrect-answer,
+.flashcard-practice-incorrect-explanation {
 	display: grid;
 	grid-template-columns: 28px minmax(0, 1fr);
 	gap: var(--fc-space-2);
 }
 
-.flashcard-practice-incorrect-question {
+.flashcard-practice-incorrect-question,
+.flashcard-practice-incorrect-answer {
 	margin-bottom: var(--fc-space-2);
 }
 
@@ -2541,6 +2570,7 @@
 
 .theme-light .flashcard-question,
 .theme-light .flashcard-answer,
+.theme-light .flashcard-explanation,
 .theme-light .flashcard-word-cell,
 .theme-light .flashcard-stat,
 .theme-light .flashcard-stat-card,
@@ -2574,6 +2604,17 @@
 		linear-gradient(
 			135deg,
 			rgba(var(--fc-magenta-rgb), 0.065),
+			transparent 45%
+		),
+		rgba(255, 255, 255, 0.88);
+}
+
+.theme-light .flashcard-explanation {
+	border-color: rgba(var(--fc-amber-rgb), 0.24);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-amber-rgb), 0.075),
 			transparent 45%
 		),
 		rgba(255, 255, 255, 0.88);
@@ -2703,7 +2744,8 @@
 }
 
 .theme-light .flashcard-root button.flashcard-btn.active,
-.theme-light .flashcard-root button.flashcard-study-order-btn.active {
+.theme-light .flashcard-root button.flashcard-study-order-btn.active,
+.theme-light .flashcard-root button.flashcard-direction-btn.active {
 	border-color: rgba(var(--fc-cyan-rgb), 0.62);
 	background:
 		linear-gradient(
@@ -2759,7 +2801,8 @@
 	color: #164d82;
 }
 
-.theme-light .flashcard-root button.flashcard-study-order-btn.active::after {
+.theme-light .flashcard-root button.flashcard-study-order-btn.active::after,
+.theme-light .flashcard-root button.flashcard-direction-btn.active::after {
 	content: "";
 	position: absolute;
 	inset: 6px;
@@ -2768,7 +2811,8 @@
 	pointer-events: none;
 }
 
-.theme-light .flashcard-root button.flashcard-study-order-btn.active svg {
+.theme-light .flashcard-root button.flashcard-study-order-btn.active svg,
+.theme-light .flashcard-root button.flashcard-direction-btn.active svg {
 	color: var(--fc-cyan);
 }
 
@@ -3159,6 +3203,7 @@
 	}
 
 	.flashcard-study-order-options,
+	.flashcard-direction-options,
 	.flashcard-practice-quick-buttons,
 	.flashcard-practice-stat-row,
 	.flashcard-practice-summary-actions {
@@ -3166,7 +3211,8 @@
 	}
 
 	.flashcard-deck-actions2,
-	.flashcard-study-order-options {
+	.flashcard-study-order-options,
+	.flashcard-direction-options {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
@@ -3189,6 +3235,7 @@
 	.flashcard-content,
 	.flashcard-question,
 	.flashcard-answer,
+	.flashcard-explanation,
 	.flashcard-study-hero,
 	.flashcard-study-panel,
 	.flashcard-practice-question-selector,
@@ -3289,7 +3336,8 @@
 	}
 
 	.flashcard-study .flashcard-question,
-	.flashcard-study .flashcard-answer {
+	.flashcard-study .flashcard-answer,
+	.flashcard-study .flashcard-explanation {
 		padding: 14px;
 	}
 

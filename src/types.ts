@@ -6,6 +6,8 @@ import {
 
 export type Language = "zh" | "en";
 
+export type CardDirection = "normal" | "reversed";
+
 /**
  * Per-deck or global study settings
  */
@@ -66,10 +68,12 @@ export const DEFAULT_SETTINGS: FlashcardSettings = {
 export interface FlashCard {
 	/** Unique identifier */
 	id: string;
-	/** Question content (markdown) */
-	question: string;
-	/** Answer content (markdown) */
-	answer: string;
+	/** Front content (markdown) */
+	front: string;
+	/** Back content (markdown) */
+	back: string;
+	/** Optional explanation content (markdown), shown with the answer side */
+	explanation?: string;
 	/** FSRS card state */
 	fsrsCard: Card;
 	/** Source file path */
@@ -104,6 +108,8 @@ export interface Deck {
 export interface StudySession {
 	/** Current deck being studied */
 	deckId: string;
+	/** Card display direction for this session */
+	direction: CardDirection;
 	/** Queue of card IDs to study */
 	cardQueue: string[];
 	/** Current card index in queue */
@@ -209,6 +215,8 @@ export interface StudyDayInfo {
 export interface PracticeSession {
 	/** Current deck being practiced */
 	deckId: string;
+	/** Card display direction for this session */
+	direction: CardDirection;
 	/** Queue of card IDs to practice (randomized) */
 	cardQueue: string[];
 	/** Current card index in queue */
@@ -225,6 +233,8 @@ export interface PracticeSession {
  * Practice result for summary display
  */
 export interface PracticeResult {
+	/** Card display direction used for this practice run */
+	direction: CardDirection;
 	/** Total questions answered */
 	totalQuestions: number;
 	/** Number of correct answers */

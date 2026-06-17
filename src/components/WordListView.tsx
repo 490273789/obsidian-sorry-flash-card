@@ -20,6 +20,7 @@ interface WordItem {
 	id: string;
 	front: string;
 	back: string;
+	explanation: string;
 	index: number;
 }
 
@@ -30,8 +31,9 @@ function stripHashSymbols(text: string): string {
 function toWordItem(card: FlashCard): WordItem {
 	return {
 		id: card.id,
-		front: stripHashSymbols(card.question),
-		back: card.answer.trim(),
+		front: stripHashSymbols(card.front),
+		back: card.back.trim(),
+		explanation: card.explanation?.trim() ?? "",
 		index: card.indexInFile,
 	};
 }
@@ -113,7 +115,14 @@ const WordRow = memo(function WordRow({
 				}
 			>
 				{showChinese ? (
-					<span className="flashcard-word-back">{item.back}</span>
+					<span className="flashcard-word-back">
+						{item.back}
+						{item.explanation && (
+							<span className="flashcard-word-explanation">
+								{item.explanation}
+							</span>
+						)}
+					</span>
 				) : (
 					<span className="flashcard-word-mask-text">
 						{t("wordList.clickToShow")}
