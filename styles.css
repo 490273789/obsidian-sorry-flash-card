@@ -1671,10 +1671,6 @@
 	border-color: rgba(var(--fc-orange-rgb), 0.52);
 }
 
-.word-column-explanation.active {
-	border-color: rgba(var(--fc-magenta-rgb), 0.52);
-}
-
 .flashcard-word-list-scroll {
 	flex: 1;
 	min-height: 0;
@@ -1682,19 +1678,29 @@
 }
 
 .flashcard-word-list-virtual {
-	display: flex;
-	flex-direction: column;
+	position: relative;
+	display: block;
 	gap: var(--fc-space-3);
 	padding-bottom: var(--fc-space-2);
+}
+
+.flashcard-word-row-frame {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	will-change: transform;
+}
+
+.flashcard-word-list-virtualized .flashcard-word-row {
+	animation: none;
 }
 
 .flashcard-word-row {
 	content-visibility: auto;
 	contain-intrinsic-size: 0 118px;
 	display: grid;
-	grid-template-columns:
-		minmax(0, 0.9fr) minmax(0, 1fr)
-		minmax(0, 1.08fr);
+	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
 	gap: var(--fc-space-3);
 	animation: var(--fc-motion-rise);
 }
@@ -1721,10 +1727,6 @@
 	border-left-color: rgba(var(--fc-orange-rgb), 0.36);
 }
 
-.flashcard-word-cell-third {
-	border-left-color: rgba(var(--fc-magenta-rgb), 0.36);
-}
-
 .flashcard-word-cell:hover,
 .flashcard-word-cell:focus-visible {
 	border-color: rgba(var(--fc-cyan-rgb), 0.46);
@@ -1749,18 +1751,12 @@
 }
 
 .flashcard-word-front,
-.flashcard-word-back,
-.flashcard-word-explanation-cell {
+.flashcard-word-back {
 	width: 100%;
 	white-space: pre-wrap;
 	word-break: break-word;
 	font-size: var(--fc-font-md);
 	line-height: 1.65;
-}
-
-.flashcard-word-explanation-cell {
-	color: var(--fc-muted);
-	font-size: var(--fc-font-sm);
 }
 
 .flashcard-word-empty {
@@ -1772,6 +1768,28 @@
 	color: var(--fc-faint);
 	font-family: var(--fc-font-data);
 	font-size: var(--fc-font-xs);
+}
+
+.flashcard-word-explanation-modal {
+	width: min(620px, 100%);
+}
+
+.flashcard-word-explanation-content {
+	white-space: pre-wrap;
+	word-break: break-word;
+	padding: var(--fc-space-4);
+	border: 1px solid rgba(var(--fc-magenta-rgb), 0.24);
+	border-radius: var(--fc-radius-sm);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.09),
+			transparent 42%
+		),
+		rgba(16, 21, 33, 0.74);
+	color: var(--fc-text);
+	font-size: var(--fc-font-md);
+	line-height: 1.7;
 }
 
 /* Practice summary */
@@ -2812,18 +2830,6 @@
 		),
 		rgba(234, 244, 255, 0.96);
 	color: #164d82;
-}
-
-.theme-light .flashcard-root button.word-column-explanation.active {
-	border-color: rgba(var(--fc-magenta-rgb), 0.46);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-magenta-rgb), 0.15),
-			rgba(var(--fc-blue-rgb), 0.08)
-		),
-		rgba(250, 238, 255, 0.96);
-	color: #6a2a78;
 }
 
 .theme-light .flashcard-root button.flashcard-study-order-btn.active::after,
