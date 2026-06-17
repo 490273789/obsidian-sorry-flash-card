@@ -24,6 +24,68 @@ interface WordItem {
 	index: number;
 }
 
+type WordColumnKey = "front" | "back" | "explanation";
+
+interface WordColumnConfig {
+	key: WordColumnKey;
+	className: string;
+	textClassName: string;
+	buttonClassName: string;
+	variant: "blue" | "orange" | "purple";
+	labelKey:
+		| "wordList.firstColumn"
+		| "wordList.secondColumn"
+		| "wordList.thirdColumn";
+	maskKey:
+		| "wordList.maskFirstColumn"
+		| "wordList.maskSecondColumn"
+		| "wordList.maskThirdColumn";
+	unmaskKey:
+		| "wordList.unmaskFirstColumn"
+		| "wordList.unmaskSecondColumn"
+		| "wordList.unmaskThirdColumn";
+	toggleKey:
+		| "wordList.toggleFirstColumn"
+		| "wordList.toggleSecondColumn"
+		| "wordList.toggleThirdColumn";
+}
+
+const WORD_COLUMNS: readonly WordColumnConfig[] = [
+	{
+		key: "front",
+		className: "flashcard-word-cell-first",
+		textClassName: "flashcard-word-front",
+		buttonClassName: "word-column-front",
+		variant: "blue",
+		labelKey: "wordList.firstColumn",
+		maskKey: "wordList.maskFirstColumn",
+		unmaskKey: "wordList.unmaskFirstColumn",
+		toggleKey: "wordList.toggleFirstColumn",
+	},
+	{
+		key: "back",
+		className: "flashcard-word-cell-second",
+		textClassName: "flashcard-word-back",
+		buttonClassName: "word-column-back",
+		variant: "orange",
+		labelKey: "wordList.secondColumn",
+		maskKey: "wordList.maskSecondColumn",
+		unmaskKey: "wordList.unmaskSecondColumn",
+		toggleKey: "wordList.toggleSecondColumn",
+	},
+	{
+		key: "explanation",
+		className: "flashcard-word-cell-third",
+		textClassName: "flashcard-word-explanation-cell",
+		buttonClassName: "word-column-explanation",
+		variant: "purple",
+		labelKey: "wordList.thirdColumn",
+		maskKey: "wordList.maskThirdColumn",
+		unmaskKey: "wordList.unmaskThirdColumn",
+		toggleKey: "wordList.toggleThirdColumn",
+	},
+];
+
 function stripHashSymbols(text: string): string {
 	return text.replace(/#/g, "").trim();
 }
@@ -50,85 +112,60 @@ function activateOnKey(
 
 interface WordRowProps {
 	item: WordItem;
-	showChinese: boolean;
-	showEnglish: boolean;
-	isMaskChinese: boolean;
-	isMaskEnglish: boolean;
-	onRevealChinese: (itemId: string) => void;
-	onRevealEnglish: (itemId: string) => void;
+	maskedColumns: ReadonlySet<WordColumnKey>;
+	revealedIdsByColumn: Record<WordColumnKey, ReadonlySet<string>>;
+	onReveal: (columnKey: WordColumnKey, itemId: string) => void;
 }
 
 const WordRow = memo(function WordRow({
 	item,
-	showChinese,
-	showEnglish,
-	isMaskChinese,
-	isMaskEnglish,
-	onRevealChinese,
-	onRevealEnglish,
+	maskedColumns,
+	revealedIdsByColumn,
+	onReveal,
 }: WordRowProps) {
 	const { t } = useI18n();
-	const handleRevealEnglish = useCallback(() => {
-		onRevealEnglish(item.id);
-	}, [item.id, onRevealEnglish]);
-
-	const handleRevealChinese = useCallback(() => {
-		onRevealChinese(item.id);
-	}, [item.id, onRevealChinese]);
 
 	return (
 		<div className="flashcard-word-row">
-			<div
-				role="button"
-				tabIndex={0}
-				className={`flashcard-word-cell flashcard-word-cell-left ${
-					!showEnglish ? "masked" : ""
-				}`}
-				onClick={handleRevealEnglish}
-				onKeyDown={(e) => activateOnKey(e, handleRevealEnglish)}
-				title={
-					isMaskEnglish
-						? t("wordList.toggleEnglish")
-						: t("wordList.englishColumn")
-				}
-			>
-				{showEnglish ? (
-					<span className="flashcard-word-front">{item.front}</span>
-				) : (
-					<span className="flashcard-word-mask-text">
-						{t("wordList.clickToShow")}
-					</span>
-				)}
-			</div>
-			<div
-				role="button"
-				tabIndex={0}
-				className={`flashcard-word-cell flashcard-word-cell-right ${
-					!showChinese ? "masked" : ""
-				}`}
-				onClick={handleRevealChinese}
-				onKeyDown={(e) => activateOnKey(e, handleRevealChinese)}
-				title={
-					isMaskChinese
-						? t("wordList.toggleChinese")
-						: t("wordList.chineseColumn")
-				}
-			>
-				{showChinese ? (
-					<span className="flashcard-word-back">
-						{item.back}
-						{item.explanation && (
-							<span className="flashcard-word-explanation">
-								{item.explanation}
+			{WORD_COLUMNS.map((column) => {
+				const isMasked = maskedColumns.has(column.key);
+				const isRevealed = revealedIdsByColumn[column.key].has(item.id);
+				const showContent = !isMasked || isRevealed;
+				const value = item[column.key];
+				const handleReveal = () => onReveal(column.key, item.id);
+
+				return (
+					<div
+						key={column.key}
+						role="button"
+						tabIndex={0}
+						className={`flashcard-word-cell ${column.className} ${
+							!showContent ? "masked" : ""
+						}`}
+						onClick={handleReveal}
+						onKeyDown={(e) => activateOnKey(e, handleReveal)}
+						title={
+							isMasked ? t(column.toggleKey) : t(column.labelKey)
+						}
+					>
+						{showContent ? (
+							<span
+								className={
+									value
+										? column.textClassName
+										: "flashcard-word-empty"
+								}
+							>
+								{value || t("wordList.emptyColumn")}
+							</span>
+						) : (
+							<span className="flashcard-word-mask-text">
+								{t("wordList.clickToShow")}
 							</span>
 						)}
-					</span>
-				) : (
-					<span className="flashcard-word-mask-text">
-						{t("wordList.clickToShow")}
-					</span>
-				)}
-			</div>
+					</div>
+				);
+			})}
 		</div>
 	);
 });
@@ -142,25 +179,30 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 				.map(toWordItem),
 		[deck.cards],
 	);
-	const [isMaskChinese, setIsMaskChinese] = useState(false);
-	const [isMaskEnglish, setIsMaskEnglish] = useState(false);
+	const [maskedColumns, setMaskedColumns] = useState<Set<WordColumnKey>>(
+		new Set(),
+	);
 	const [shuffledItems, setShuffledItems] = useState<WordItem[] | null>(
 		null,
 	);
-	const [revealedChineseIds, setRevealedChineseIds] = useState<Set<string>>(
-		new Set(),
-	);
-	const [revealedEnglishIds, setRevealedEnglishIds] = useState<Set<string>>(
-		new Set(),
-	);
+	const [revealedIdsByColumn, setRevealedIdsByColumn] = useState<
+		Record<WordColumnKey, Set<string>>
+	>({
+		front: new Set(),
+		back: new Set(),
+		explanation: new Set(),
+	});
 
 	const isShuffled = shuffledItems !== null;
 	const items = shuffledItems ?? sourceItems;
 
 	useEffect(() => {
 		setShuffledItems(null);
-		setRevealedChineseIds(new Set());
-		setRevealedEnglishIds(new Set());
+		setRevealedIdsByColumn({
+			front: new Set(),
+			back: new Set(),
+			explanation: new Set(),
+		});
 	}, [sourceItems]);
 
 	const handleShuffleToggle = useCallback(() => {
@@ -169,40 +211,39 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		);
 	}, [sourceItems]);
 
-	const handleRevealChinese = useCallback((itemId: string) => {
-		if (!isMaskChinese) return;
-		setRevealedChineseIds((prev) => {
+	const handleReveal = useCallback(
+		(columnKey: WordColumnKey, itemId: string) => {
+			if (!maskedColumns.has(columnKey)) return;
+			setRevealedIdsByColumn((prev) => {
+				const columnIds = new Set(prev[columnKey]);
+				if (columnIds.has(itemId)) {
+					columnIds.delete(itemId);
+				} else {
+					columnIds.add(itemId);
+				}
+				return {
+					...prev,
+					[columnKey]: columnIds,
+				};
+			});
+		},
+		[maskedColumns],
+	);
+
+	const handleToggleColumnMask = useCallback((columnKey: WordColumnKey) => {
+		setMaskedColumns((prev) => {
 			const next = new Set(prev);
-			if (next.has(itemId)) {
-				next.delete(itemId);
+			if (next.has(columnKey)) {
+				next.delete(columnKey);
 			} else {
-				next.add(itemId);
+				next.add(columnKey);
 			}
 			return next;
 		});
-	}, [isMaskChinese]);
-
-	const handleRevealEnglish = useCallback((itemId: string) => {
-		if (!isMaskEnglish) return;
-		setRevealedEnglishIds((prev) => {
-			const next = new Set(prev);
-			if (next.has(itemId)) {
-				next.delete(itemId);
-			} else {
-				next.add(itemId);
-			}
-			return next;
-		});
-	}, [isMaskEnglish]);
-
-	const handleToggleEnglishMask = useCallback(() => {
-		setIsMaskEnglish((value) => !value);
-		setRevealedEnglishIds(new Set());
-	}, []);
-
-	const handleToggleChineseMask = useCallback(() => {
-		setIsMaskChinese((value) => !value);
-		setRevealedChineseIds(new Set());
+		setRevealedIdsByColumn((prev) => ({
+			...prev,
+			[columnKey]: new Set(),
+		}));
 	}, []);
 
 	return (
@@ -238,50 +279,38 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 							? t("wordList.restoreOrder")
 							: t("wordList.shuffle")}
 					</FlashcardButton>
-					<FlashcardButton
-						variant="blue"
-						className="english"
-						active={isMaskEnglish}
-						onClick={handleToggleEnglishMask}
-					>
-						{isMaskEnglish
-							? t("wordList.unmaskEnglish")
-							: t("wordList.maskEnglish")}
-					</FlashcardButton>
-					<FlashcardButton
-						variant="orange"
-						className="chinese"
-						active={isMaskChinese}
-						onClick={handleToggleChineseMask}
-					>
-						{isMaskChinese
-							? t("wordList.unmaskChinese")
-							: t("wordList.maskChinese")}
-					</FlashcardButton>
+					{WORD_COLUMNS.map((column) => {
+						const isMasked = maskedColumns.has(column.key);
+						return (
+							<FlashcardButton
+								key={column.key}
+								variant={column.variant}
+								className={column.buttonClassName}
+								active={isMasked}
+								onClick={() =>
+									handleToggleColumnMask(column.key)
+								}
+							>
+								{isMasked
+									? t(column.unmaskKey)
+									: t(column.maskKey)}
+							</FlashcardButton>
+						);
+					})}
 				</div>
 			</div>
 
 			<div className="flashcard-word-list-scroll">
 				<div className="flashcard-word-list-virtual">
-					{items.map((item) => {
-						const showChinese =
-							!isMaskChinese || revealedChineseIds.has(item.id);
-						const showEnglish =
-							!isMaskEnglish || revealedEnglishIds.has(item.id);
-
-						return (
-							<WordRow
-								key={item.id}
-								item={item}
-								showChinese={showChinese}
-								showEnglish={showEnglish}
-								isMaskChinese={isMaskChinese}
-								isMaskEnglish={isMaskEnglish}
-								onRevealChinese={handleRevealChinese}
-								onRevealEnglish={handleRevealEnglish}
-							/>
-						);
-					})}
+					{items.map((item) => (
+						<WordRow
+							key={item.id}
+							item={item}
+							maskedColumns={maskedColumns}
+							revealedIdsByColumn={revealedIdsByColumn}
+							onReveal={handleReveal}
+						/>
+					))}
 				</div>
 			</div>
 		</div>

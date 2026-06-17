@@ -1663,12 +1663,16 @@
 	border-color: rgba(var(--fc-lime-rgb), 0.52);
 }
 
-.english.active {
+.word-column-front.active {
 	border-color: rgba(var(--fc-blue-rgb), 0.52);
 }
 
-.chinese.active {
+.word-column-back.active {
 	border-color: rgba(var(--fc-orange-rgb), 0.52);
+}
+
+.word-column-explanation.active {
+	border-color: rgba(var(--fc-magenta-rgb), 0.52);
 }
 
 .flashcard-word-list-scroll {
@@ -1688,7 +1692,9 @@
 	content-visibility: auto;
 	contain-intrinsic-size: 0 118px;
 	display: grid;
-	grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+	grid-template-columns:
+		minmax(0, 0.9fr) minmax(0, 1fr)
+		minmax(0, 1.08fr);
 	gap: var(--fc-space-3);
 	animation: var(--fc-motion-rise);
 }
@@ -1707,11 +1713,15 @@
 	transition: var(--fc-transition-word-cell);
 }
 
-.flashcard-word-cell-left {
+.flashcard-word-cell-first {
 	border-left-color: rgba(var(--fc-blue-rgb), 0.36);
 }
 
-.flashcard-word-cell-right {
+.flashcard-word-cell-second {
+	border-left-color: rgba(var(--fc-orange-rgb), 0.36);
+}
+
+.flashcard-word-cell-third {
 	border-left-color: rgba(var(--fc-magenta-rgb), 0.36);
 }
 
@@ -1739,7 +1749,8 @@
 }
 
 .flashcard-word-front,
-.flashcard-word-back {
+.flashcard-word-back,
+.flashcard-word-explanation-cell {
 	width: 100%;
 	white-space: pre-wrap;
 	word-break: break-word;
@@ -1747,12 +1758,14 @@
 	line-height: 1.65;
 }
 
-.flashcard-word-explanation {
-	display: block;
-	margin-top: var(--fc-space-2);
+.flashcard-word-explanation-cell {
 	color: var(--fc-muted);
 	font-size: var(--fc-font-sm);
-	line-height: 1.55;
+}
+
+.flashcard-word-empty {
+	color: var(--fc-faint);
+	font-size: var(--fc-font-sm);
 }
 
 .flashcard-word-mask-text {
@@ -2762,7 +2775,7 @@
 }
 
 .theme-light .flashcard-root button.flashcard-active-orang.active,
-.theme-light .flashcard-root button.chinese.active {
+.theme-light .flashcard-root button.word-column-back.active {
 	border-color: rgba(var(--fc-orange-rgb), 0.48);
 	background:
 		linear-gradient(
@@ -2789,7 +2802,7 @@
 	color: #164f32;
 }
 
-.theme-light .flashcard-root button.english.active {
+.theme-light .flashcard-root button.word-column-front.active {
 	border-color: rgba(var(--fc-blue-rgb), 0.46);
 	background:
 		linear-gradient(
@@ -2799,6 +2812,18 @@
 		),
 		rgba(234, 244, 255, 0.96);
 	color: #164d82;
+}
+
+.theme-light .flashcard-root button.word-column-explanation.active {
+	border-color: rgba(var(--fc-magenta-rgb), 0.46);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.15),
+			rgba(var(--fc-blue-rgb), 0.08)
+		),
+		rgba(250, 238, 255, 0.96);
+	color: #6a2a78;
 }
 
 .theme-light .flashcard-root button.flashcard-study-order-btn.active::after,
