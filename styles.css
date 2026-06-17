@@ -2386,6 +2386,12 @@
 	padding: 7px 10px;
 }
 
+.flashcard-tags-empty {
+	margin-top: var(--fc-space-3);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+}
+
 .fc-btn-remove {
 	width: 34px;
 	flex: 0 0 34px;

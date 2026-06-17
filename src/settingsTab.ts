@@ -1,5 +1,6 @@
 import {
 	App,
+	Notice,
 	PluginSettingTab,
 	Setting,
 	type SettingDefinitionItem,
@@ -48,6 +49,21 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				name: t("settings.flashcardTagsName"),
 				desc: t("settings.flashcardTagsDesc"),
 				render: (setting: Setting) => {
+					setting.addButton((button) => {
+						button
+							.setButtonText(
+								this.isLoadingTags
+									? t("settings.refreshingTags")
+									: t("settings.refreshAndCleanTags"),
+							)
+							.setDisabled(this.isLoadingTags)
+							.onClick(() => {
+								void this.refreshAvailableTags({
+									cleanConfiguredTags: true,
+								});
+							});
+					});
+
 					this.renderEditableTextList(setting.descEl, {
 						values: this.plugin.settings.flashcardTags,
 						listClass: "flashcard-tags-list-settings",
@@ -76,11 +92,26 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		];
 
 		const unusedTags = this.getUnusedTags();
-		if (unusedTags.length > 0) {
-			flashcardItems.push({
-				name: t("settings.discoveredTagsName"),
-				desc: t("settings.discoveredTagsDesc"),
-				render: (setting: Setting) => {
+		flashcardItems.push({
+			name: t("settings.discoveredTagsName"),
+			desc: t("settings.discoveredTagsDesc"),
+			render: (setting: Setting) => {
+				setting.addButton((button) => {
+					button
+						.setButtonText(
+							this.isLoadingTags
+								? t("settings.refreshingTags")
+								: t("settings.refreshTags"),
+						)
+						.setDisabled(this.isLoadingTags)
+						.onClick(() => {
+							void this.refreshAvailableTags({
+								cleanConfiguredTags: false,
+							});
+						});
+				});
+
+				if (unusedTags.length > 0) {
 					const tagsContainer = setting.descEl.createDiv({
 						cls: "flashcard-tags-container",
 					});
@@ -94,9 +125,17 @@ export class FlashcardSettingTab extends PluginSettingTab {
 							void this.saveSettings(true);
 						});
 					}
-				},
-			});
-		}
+					return;
+				}
+
+				setting.descEl.createDiv({
+					text: this.hasLoadedTags
+						? t("settings.noDiscoveredTags")
+						: t("settings.discoveredTagsNotLoaded"),
+					cls: "flashcard-tags-empty",
+				});
+			},
+		});
 
 		const definitions: FlashcardSettingItem[] = [
 			{
@@ -404,6 +443,63 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		return this.availableTags.filter(
 			(tag) => !configuredTags.includes(tag),
 		);
+	}
+
+	private async refreshAvailableTags(options: {
+		cleanConfiguredTags: boolean;
+	}): Promise<void> {
+		if (this.isLoadingTags) {
+			return;
+		}
+
+		const t = createTranslator(this.getSelectedLanguage());
+		this.isLoadingTags = true;
+		this.refreshDefinitions();
+
+		try {
+			await this.plugin.dataStore.syncFromVault();
+			this.availableTags = this.plugin.dataStore.getAvailableTags();
+			this.hasLoadedTags = true;
+
+			let removedCount = 0;
+			if (options.cleanConfiguredTags) {
+				removedCount = this.removeMissingConfiguredTags(
+					this.availableTags,
+				);
+				await this.plugin.saveSettings();
+			}
+
+			new Notice(
+				options.cleanConfiguredTags
+					? t("settings.tagsRefreshedAndCleaned", {
+							count: String(removedCount),
+						})
+					: t("settings.tagsRefreshed"),
+			);
+		} catch (error) {
+			console.error("Failed to refresh flashcard tags:", error);
+			new Notice(t("settings.tagsRefreshFailed"));
+		} finally {
+			this.isLoadingTags = false;
+			this.refreshDefinitions();
+		}
+	}
+
+	private removeMissingConfiguredTags(availableTags: string[]): number {
+		const availableTagSet = new Set(
+			availableTags.map((tag) => tag.trim().toLowerCase()),
+		);
+		const originalTags = this.plugin.settings.flashcardTags;
+		const cleanedTags = originalTags.filter((tag) => {
+			const normalizedTag = tag.trim();
+			return (
+				normalizedTag.length === 0 ||
+				availableTagSet.has(normalizedTag.toLowerCase())
+			);
+		});
+
+		this.plugin.settings.flashcardTags = cleanedTags;
+		return originalTags.length - cleanedTags.length;
 	}
 
 	private async saveSettings(refreshDefinitions = false): Promise<void> {
