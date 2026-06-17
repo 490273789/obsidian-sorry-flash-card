@@ -652,58 +652,60 @@ export const DeckList: React.FC<DeckListProps> = ({
 	);
 
 	return (
-		<div className="flashcard-home">
-			<div className="flashcard-home-hero">
-				<div className="flashcard-header">
-					<div className="flashcard-title">
-						<BookOpen size={22} /> {t("home.title")}
+		<>
+			<div className="flashcard-home">
+				<div className="flashcard-home-hero">
+					<div className="flashcard-header">
+						<div className="flashcard-title">
+							<BookOpen size={22} /> {t("home.title")}
+						</div>
+						<div className="flashcard-header-actions">
+							<FlashcardButton
+								preset="icon"
+								icon={ChartSpline}
+								onClick={onOpenStats}
+								title={t("home.statsTitle")}
+							/>
+							<FlashcardButton
+								preset="icon"
+								icon={RefreshCcw}
+								onClick={() => void handleRefresh()}
+								disabled={isLoading}
+								title={t("home.refreshTitle")}
+								iconClassName={isLoading ? "spinning" : ""}
+							/>
+						</div>
 					</div>
-					<div className="flashcard-header-actions">
-						<FlashcardButton
-							preset="icon"
-							icon={ChartSpline}
-							onClick={onOpenStats}
-							title={t("home.statsTitle")}
-						/>
-						<FlashcardButton
-							preset="icon"
-							icon={RefreshCcw}
-							onClick={() => void handleRefresh()}
-							disabled={isLoading}
-							title={t("home.refreshTitle")}
-							iconClassName={isLoading ? "spinning" : ""}
-						/>
-					</div>
+					<HomeStatsBar deckCount={decks.length} totals={totals} />
 				</div>
-				<HomeStatsBar deckCount={decks.length} totals={totals} />
-			</div>
 
-			{decks.length === 0 ? (
-				<div className="flashcard-empty">
-					<div className="flashcard-empty-icon">
-						<Inbox size={48} />
+				{decks.length === 0 ? (
+					<div className="flashcard-empty">
+						<div className="flashcard-empty-icon">
+							<Inbox size={48} />
+						</div>
+						<p>{t("home.emptyTitle")}</p>
+						<p className="flashcard-empty-hint">
+							{t("home.emptyHint", { tag: "#wordTag" })}
+						</p>
 					</div>
-					<p>{t("home.emptyTitle")}</p>
-					<p className="flashcard-empty-hint">
-						{t("home.emptyHint", { tag: "#wordTag" })}
-					</p>
-				</div>
-			) : (
-				<div className="flashcard-deck-list">
-					{decks.map((deck) => (
-						<DeckCard
-							key={deck.id}
-							deck={deck}
-							deckStats={deckStatsById.get(deck.id)}
-							onSelectDeck={onSelectDeck}
-							onOpenWordList={onOpenWordList}
-							onStartPractice={onStartPractice}
-							onOpenSourceFile={onOpenSourceFile}
-							onOpenSettings={setModalDeckId}
-						/>
-					))}
-				</div>
-			)}
+				) : (
+					<div className="flashcard-deck-list">
+						{decks.map((deck) => (
+							<DeckCard
+								key={deck.id}
+								deck={deck}
+								deckStats={deckStatsById.get(deck.id)}
+								onSelectDeck={onSelectDeck}
+								onOpenWordList={onOpenWordList}
+								onStartPractice={onStartPractice}
+								onOpenSourceFile={onOpenSourceFile}
+								onOpenSettings={setModalDeckId}
+							/>
+						))}
+					</div>
+				)}
+			</div>
 
 			{modalDeckId !== null && modalDeck && (
 				<DeckSettingsModal
@@ -725,6 +727,6 @@ export const DeckList: React.FC<DeckListProps> = ({
 				title={t("cardEditor.addCardTitle")}
 				aria-label={t("cardEditor.addCardTitle")}
 			/>
-		</div>
+		</>
 	);
 };

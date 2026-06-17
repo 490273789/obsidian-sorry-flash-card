@@ -527,6 +527,10 @@
 	overflow-y: auto;
 }
 
+.flashcard-home {
+	padding-bottom: calc(54px + var(--fc-space-6));
+}
+
 .flashcard-header,
 .flashcard-common-header,
 .flashcard-home-hero,
@@ -2286,10 +2290,10 @@
 }
 
 .flashcard-add-card-fab {
-	position: fixed;
-	right: var(--fc-space-5);
-	bottom: var(--fc-space-5);
-	z-index: 20;
+	position: absolute;
+	right: calc(env(safe-area-inset-right, 0px) + var(--fc-space-5));
+	bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-space-5));
+	z-index: 30;
 	width: 54px;
 	height: 54px;
 	min-width: 54px;
