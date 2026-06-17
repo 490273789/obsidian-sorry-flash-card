@@ -498,7 +498,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					deck={deck}
 					dataStore={dataStore}
 					result={practiceResult}
-					settings={settings}
 					onRestart={handlePracticeRestart}
 					onPracticeIncorrect={handlePracticeIncorrect}
 					onHome={handlePracticeClose}

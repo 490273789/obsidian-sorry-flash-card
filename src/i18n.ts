@@ -118,15 +118,6 @@ const translations = {
 		"settings.tagsRefreshed": "已刷新闪卡标签",
 		"settings.tagsRefreshedAndCleaned": "已刷新闪卡标签，清理 {count} 个无效标签",
 		"settings.tagsRefreshFailed": "刷新闪卡标签失败，请查看控制台",
-		"settings.perfectMessagesName": "刷题全对文案",
-		"settings.perfectMessagesDesc":
-			"刷题全部答对时随机显示的文案，一行一个",
-		"settings.perfectMessagesPlaceholder": "输入全对时的文案",
-		"settings.errorMessagesName": "刷题有错文案",
-		"settings.errorMessagesDesc":
-			"刷题有错题时随机显示的文案，一行一个",
-		"settings.errorMessagesPlaceholder": "输入有错题时的文案",
-		"settings.addMessage": "+ 添加文案",
 		"settings.delete": "删除",
 		"settings.scopeName": "作用范围",
 		"settings.scopeDesc":
@@ -283,6 +274,8 @@ const translations = {
 		"practice.badShortcut": "（1 或 X）",
 		"practice.goodShortcut": "（2 或 O）",
 		"practice.completeFallback": "刷题完成！",
+		"practice.completePerfect": "本轮全对，状态很好",
+		"practice.completeWithErrors": "本轮完成，错题已整理好",
 		"practice.summaryDeck":
 			"{deckName} · 共 {totalQuestions} 题 · 用时 {time}",
 		"practice.accuracy": "正确率",
@@ -394,17 +387,6 @@ const translations = {
 			"Flashcard tags refreshed. Removed {count} invalid tags",
 		"settings.tagsRefreshFailed":
 			"Failed to refresh flashcard tags. Check the console",
-		"settings.perfectMessagesName": "Perfect practice messages",
-		"settings.perfectMessagesDesc":
-			"Random messages shown when every practice answer is correct, one per line",
-		"settings.perfectMessagesPlaceholder":
-			"Enter a message for perfect practice",
-		"settings.errorMessagesName": "Practice-with-errors messages",
-		"settings.errorMessagesDesc":
-			"Random messages shown when practice has mistakes, one per line",
-		"settings.errorMessagesPlaceholder":
-			"Enter a message for practice with mistakes",
-		"settings.addMessage": "+ Add message",
 		"settings.delete": "Delete",
 		"settings.scopeName": "Scope",
 		"settings.scopeDesc":
@@ -564,6 +546,8 @@ const translations = {
 		"practice.badShortcut": "(1 or X)",
 		"practice.goodShortcut": "(2 or O)",
 		"practice.completeFallback": "Practice complete!",
+		"practice.completePerfect": "Perfect round. Nicely done.",
+		"practice.completeWithErrors": "Round complete. Review the missed cards.",
 		"practice.summaryDeck":
 			"{deckName} · {totalQuestions} questions · {time}",
 		"practice.accuracy": "Accuracy",

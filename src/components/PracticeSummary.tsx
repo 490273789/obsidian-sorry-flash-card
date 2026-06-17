@@ -8,7 +8,7 @@ import {
 	RotateCw,
 	House,
 } from "lucide-react";
-import { Deck, FlashCard, PracticeResult, FlashcardSettings } from "../types";
+import { Deck, FlashCard, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
@@ -19,17 +19,10 @@ interface PracticeSummaryProps {
 	deck: Deck;
 	dataStore: DataStore;
 	result: PracticeResult;
-	settings: FlashcardSettings;
 	onRestart: () => void;
 	onPracticeIncorrect: () => void;
 	onHome: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
-}
-
-function getRandomMessage(messages: string[], fallback: string): string {
-	if (messages.length === 0) return fallback;
-	const randomIndex = Math.floor(Math.random() * messages.length);
-	return messages[randomIndex] || fallback;
 }
 
 function getAccuracyColor(accuracy: number): string {
@@ -43,7 +36,6 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	deck,
 	dataStore,
 	result,
-	settings,
 	onRestart,
 	onPracticeIncorrect,
 	onHome,
@@ -52,24 +44,11 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	const { t, language } = useI18n();
 	const completionMessage = useMemo(() => {
 		if (result.incorrectCount === 0) {
-			// 全对，使用全对文案
-			return getRandomMessage(
-				settings.practicePerfectMessages,
-				t("practice.completeFallback"),
-			);
+			return t("practice.completePerfect");
 		}
 
-		// 有错题，使用错题文案
-		return getRandomMessage(
-			settings.practiceErrorMessages,
-			t("practice.completeFallback"),
-		);
-	}, [
-		result.incorrectCount,
-		settings.practiceErrorMessages,
-		settings.practicePerfectMessages,
-		t,
-	]);
+		return t("practice.completeWithErrors");
+	}, [result.incorrectCount, t]);
 
 	const cardById = useMemo(
 		() => new Map(deck.cards.map((card) => [card.id, card])),

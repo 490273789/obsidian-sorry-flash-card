@@ -8,7 +8,7 @@ import {
 import type FlashcardPlugin from "./main";
 import { findAllFlashcardTags } from "./parser";
 import type { Language } from "./types";
-import { createTranslator, getDefaultPracticeMessages } from "./i18n";
+import { createTranslator } from "./i18n";
 
 type VisibleDefinition = { visible?: boolean | (() => boolean) };
 type FlashcardSettingDefinition = VisibleDefinition & {
@@ -165,95 +165,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 									.onChange(async (value: string) => {
 										this.plugin.settings.language =
 											this.parseLanguage(value);
-										this.applyLocalizedDefaultPracticeMessages();
 										await this.saveSettings(true);
 									});
-							});
-						},
-					},
-					{
-						name: t("settings.perfectMessagesName"),
-						desc: t("settings.perfectMessagesDesc"),
-						render: (setting: Setting) => {
-							this.renderEditableTextList(setting.descEl, {
-								values: this.plugin.settings
-									.practicePerfectMessages,
-								listClass: "flashcard-messages-list-settings",
-								itemClass: "flashcard-message-item-settings",
-								inputClass: "flashcard-message-input",
-								removeButtonClass:
-									"flashcard-message-remove-btn",
-								addButtonClass: "flashcard-message-add-btn",
-								placeholder: t(
-									"settings.perfectMessagesPlaceholder",
-								),
-								addLabel: t("settings.addMessage"),
-								removeAriaLabel: t("settings.delete"),
-								onChange: (index, value) => {
-									this.plugin.settings.practiceMessagesCustomized = true;
-									this.plugin.settings.practicePerfectMessages[
-										index
-									] = value;
-									void this.saveSettings();
-								},
-								onAdd: () => {
-									this.plugin.settings.practiceMessagesCustomized = true;
-									this.plugin.settings.practicePerfectMessages.push(
-										"",
-									);
-									void this.saveSettings(true);
-								},
-								onRemove: (index) => {
-									this.plugin.settings.practiceMessagesCustomized = true;
-									this.plugin.settings.practicePerfectMessages.splice(
-										index,
-										1,
-									);
-									void this.saveSettings(true);
-								},
-							});
-						},
-					},
-					{
-						name: t("settings.errorMessagesName"),
-						desc: t("settings.errorMessagesDesc"),
-						render: (setting: Setting) => {
-							this.renderEditableTextList(setting.descEl, {
-								values: this.plugin.settings
-									.practiceErrorMessages,
-								listClass: "flashcard-messages-list-settings",
-								itemClass: "flashcard-message-item-settings",
-								inputClass: "flashcard-message-input",
-								removeButtonClass:
-									"flashcard-message-remove-btn",
-								addButtonClass: "flashcard-message-add-btn",
-								placeholder: t(
-									"settings.errorMessagesPlaceholder",
-								),
-								addLabel: t("settings.addMessage"),
-								removeAriaLabel: t("settings.delete"),
-								onChange: (index, value) => {
-									this.plugin.settings.practiceMessagesCustomized = true;
-									this.plugin.settings.practiceErrorMessages[
-										index
-									] = value;
-									void this.saveSettings();
-								},
-								onAdd: () => {
-									this.plugin.settings.practiceMessagesCustomized = true;
-									this.plugin.settings.practiceErrorMessages.push(
-										"",
-									);
-									void this.saveSettings(true);
-								},
-								onRemove: (index) => {
-									this.plugin.settings.practiceMessagesCustomized = true;
-									this.plugin.settings.practiceErrorMessages.splice(
-										index,
-										1,
-									);
-									void this.saveSettings(true);
-								},
 							});
 						},
 					},
@@ -398,18 +311,6 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	private parseLanguage(value: unknown): Language {
 		return value === "en" ? "en" : "zh";
-	}
-
-	private applyLocalizedDefaultPracticeMessages(): void {
-		if (this.plugin.settings.practiceMessagesCustomized) {
-			return;
-		}
-
-		const messages = getDefaultPracticeMessages(
-			this.plugin.settings.language,
-		);
-		this.plugin.settings.practicePerfectMessages = messages.perfect;
-		this.plugin.settings.practiceErrorMessages = messages.error;
 	}
 
 	private ensureAvailableTagsLoaded(): void {
