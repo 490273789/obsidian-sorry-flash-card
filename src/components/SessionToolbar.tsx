@@ -66,20 +66,25 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 				/>
 			</div>
 			<div className="flashcard-session-toolbar">
-				<div className="flashcard-session-metrics">
-					<SessionTimer
-						startTime={startTime}
-						className="flashcard-timer flashcard-session-timer"
-					/>
-				</div>
-				<div className="flashcard-session-progress" aria-label={t("study.progress")}>
-					<span className="flashcard-session-progress-text">{progress}</span>
+				<div
+					className="flashcard-session-progress"
+					aria-label={t("study.progress")}
+				>
+					<span className="flashcard-session-progress-text">
+						{progress}
+					</span>
 					<span className="flashcard-session-progress-track">
 						<span
 							className="flashcard-session-progress-fill"
 							style={{ width: `${normalizedProgress}%` }}
 						/>
 					</span>
+				</div>
+				<div className="flashcard-session-metrics">
+					<SessionTimer
+						startTime={startTime}
+						className="flashcard-timer flashcard-session-timer"
+					/>
 				</div>
 				<div className="flashcard-session-actions">
 					<FlashcardButton
