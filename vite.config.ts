@@ -59,6 +59,9 @@ export default defineConfig(({ mode }) => {
 			sourcemap: isProduction ? false : "inline",
 			target: "es2018",
 		},
+		define: {
+			"process.env.NODE_ENV": JSON.stringify(isProduction ? "production" : "development"),
+		},
 		esbuild: {
 			jsx: "automatic",
 		},
