@@ -2821,6 +2821,7 @@
 .theme-light .flashcard-practice-incorrect-item,
 .theme-light .flashcard-study-day-item,
 .theme-light .flashcard-practice-info-item,
+.theme-light .flashcard-card-editor-field,
 .theme-light .flashcard-help {
 	border-color: rgba(33, 55, 83, 0.15);
 	background:
@@ -2831,6 +2832,32 @@
 		),
 		var(--fc-bg-panel);
 	color: var(--fc-text);
+}
+
+.theme-light .flashcard-deck-review-chip {
+	border-color: rgba(var(--fc-cyan-rgb), 0.24);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.075),
+			rgba(var(--fc-blue-rgb), 0.045)
+		),
+		rgba(255, 255, 255, 0.82);
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-deck-review-chip.has-due {
+	border-color: rgba(var(--fc-red-rgb), 0.34);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-red-rgb), 0.11),
+			rgba(var(--fc-violet-rgb), 0.055)
+		),
+		rgba(255, 255, 255, 0.84);
+	color: var(--fc-text);
+	box-shadow: 0 8px 18px rgba(var(--fc-red-rgb), 0.08);
 }
 
 .theme-light .flashcard-answer {
@@ -2889,6 +2916,27 @@
 	color: var(--fc-magenta);
 }
 
+.theme-light .flashcard-session-toolbar {
+	border-color: rgba(var(--fc-cyan-rgb), 0.24);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 48%),
+		rgba(255, 255, 255, 0.78);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+		0 12px 26px rgba(35, 49, 68, 0.1);
+}
+
+.theme-light .flashcard-session-timer {
+	border-color: rgba(var(--fc-violet-rgb), 0.24);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-violet-rgb), 0.08), transparent),
+		rgba(255, 255, 255, 0.78);
+	color: var(--fc-text);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+		0 10px 20px rgba(var(--fc-violet-rgb), 0.08);
+}
+
 .theme-light .flashcard-session-progress {
 	border-color: rgba(var(--fc-cyan-rgb), 0.28);
 	background:
@@ -2902,6 +2950,7 @@
 .theme-light .flashcard-session-progress-track {
 	border-color: rgba(var(--fc-cyan-rgb), 0.18);
 	background: rgba(220, 238, 243, 0.82);
+	box-shadow: inset 0 0 10px rgba(33, 55, 83, 0.08);
 }
 
 .theme-light .flashcard-root button.flashcard-btn,
@@ -3131,10 +3180,34 @@
 
 .theme-light .fc-settings-input,
 .theme-light .flashcard-practice-input,
+.theme-light .flashcard-card-editor-field select,
+.theme-light .flashcard-card-editor-field textarea,
 .theme-light .flashcard-deck-settings-field input[type="number"],
 .theme-light .flashcard-deck-settings-field select {
 	border-color: rgba(33, 55, 83, 0.18);
 	background: rgba(255, 255, 255, 0.86);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-card-editor-field select:disabled,
+.theme-light .flashcard-card-editor-field textarea:disabled {
+	background: rgba(239, 244, 249, 0.86);
+	color: var(--fc-muted);
+}
+
+.theme-light .flashcard-card-editor-field textarea::placeholder {
+	color: rgba(88, 103, 122, 0.72);
+}
+
+.theme-light .flashcard-word-explanation-content {
+	border-color: rgba(var(--fc-magenta-rgb), 0.24);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.065),
+			transparent 44%
+		),
+		rgba(255, 255, 255, 0.88);
 	color: var(--fc-text);
 }
 
