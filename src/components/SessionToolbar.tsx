@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, X, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, X, ChevronDown, Pencil, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { FlashcardButton } from "./FlashcardButton";
 import { SessionTimer } from "./SessionTimer";
@@ -35,7 +35,25 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 	closeTitle,
 }) => {
 	const { t } = useI18n();
+	const [areActionsOpen, setAreActionsOpen] = React.useState(false);
 	const normalizedProgress = Math.min(Math.max(progressPercent, 0), 100);
+	const actionMenuTitle = areActionsOpen
+		? t("cardEditor.hideActions")
+		: t("cardEditor.showActions");
+
+	const handleToggleActions = React.useCallback(() => {
+		setAreActionsOpen((isOpen) => !isOpen);
+	}, []);
+
+	const handleEdit = React.useCallback(() => {
+		setAreActionsOpen(false);
+		onEdit();
+	}, [onEdit]);
+
+	const handleDelete = React.useCallback(() => {
+		setAreActionsOpen(false);
+		onDelete();
+	}, [onDelete]);
 
 	return (
 		<div className="flashcard-session-shell">
@@ -86,19 +104,35 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 						className="flashcard-timer flashcard-session-timer"
 					/>
 				</div>
-				<div className="flashcard-session-actions">
+				<div
+					className={`flashcard-session-actions${
+						areActionsOpen ? " is-open" : ""
+					}`}
+				>
+					<FlashcardButton
+						preset="icon"
+						icon={ChevronDown}
+						onClick={handleToggleActions}
+						className="flashcard-session-actions-toggle"
+						iconClassName="flashcard-session-actions-toggle-icon"
+						title={actionMenuTitle}
+						aria-label={actionMenuTitle}
+						aria-expanded={areActionsOpen}
+						active={areActionsOpen}
+					/>
 					<FlashcardButton
 						preset="icon"
 						icon={Pencil}
-						onClick={onEdit}
+						onClick={handleEdit}
+						className="flashcard-session-action-item"
 						title={editTitle}
 						aria-label={editTitle}
 					/>
 					<FlashcardButton
 						preset="icon"
 						icon={Trash2}
-						onClick={onDelete}
-						className="flashcard-btn-danger"
+						onClick={handleDelete}
+						className="flashcard-session-action-item flashcard-btn-danger"
 						title={deleteTitle}
 						aria-label={deleteTitle}
 					/>

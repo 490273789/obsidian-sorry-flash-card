@@ -1381,6 +1381,14 @@
 	gap: var(--fc-space-2);
 }
 
+.flashcard-session-actions-toggle {
+	display: none;
+}
+
+.flashcard-session-actions-toggle-icon {
+	transition: transform var(--fc-transition-fast);
+}
+
 .flashcard-session-timer {
 	position: relative;
 	min-height: 40px;
@@ -3667,10 +3675,8 @@
 	}
 
 	.flashcard-study .flashcard-session-toolbar {
-		grid-template-columns: minmax(0, 1fr) auto;
-		grid-template-areas:
-			"progress timer"
-			"actions actions";
+		grid-template-columns: minmax(0, 1fr) auto auto;
+		grid-template-areas: "progress timer actions";
 		gap: 8px;
 		padding: 8px;
 	}
@@ -3696,9 +3702,28 @@
 
 	.flashcard-study .flashcard-session-actions {
 		grid-area: actions;
-		/* align-self: stretch;
-		flex-direction: column;
-		justify-content: center; */
+		align-self: stretch;
+		align-items: center;
+	}
+
+	.flashcard-study .flashcard-session-actions-toggle {
+		display: inline-flex;
+		order: 2;
+	}
+
+	.flashcard-study .flashcard-session-actions.is-open
+		.flashcard-session-actions-toggle-icon {
+		transform: rotate(180deg);
+	}
+
+	.flashcard-study .flashcard-session-action-item {
+		display: none;
+		order: 1;
+	}
+
+	.flashcard-study .flashcard-session-actions.is-open
+		.flashcard-session-action-item {
+		display: inline-flex;
 	}
 
 	.flashcard-study .flashcard-session-timer {
@@ -3743,31 +3768,70 @@
 	}
 
 	.flashcard-study .flashcard-footer {
-		padding: 10px;
+		padding: 8px;
 	}
 
 	.flashcard-study .flashcard-response-controls {
 		display: grid;
-		grid-template-columns: 40px minmax(0, 1fr);
-		align-items: start;
+		grid-template-columns: 36px minmax(0, 1fr);
+		align-items: stretch;
+		gap: 6px;
 	}
 
 	.flashcard-study .flashcard-practice-response-controls {
-		grid-template-columns: 40px minmax(0, 1fr);
-		align-items: start;
+		grid-template-columns: 36px minmax(0, 1fr);
+		align-items: stretch;
+		gap: 6px;
 	}
 
 	.flashcard-study .flashcard-rating-grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		gap: 5px;
+	}
+
+	.flashcard-study .flashcard-rating-btn {
+		min-height: 40px;
+		padding: 5px 3px;
+		justify-content: center;
 	}
 
 	.flashcard-study .flashcard-rating-label {
-		font-size: 14px;
+		font-size: 13px;
+		line-height: 1.15;
+		white-space: nowrap;
+	}
+
+	.flashcard-study .flashcard-rating-1 {
+		grid-column: 1 / span 3;
+	}
+
+	.flashcard-study .flashcard-rating-2 {
+		grid-column: 4 / span 3;
+	}
+
+	.flashcard-study .flashcard-rating-3 {
+		grid-column: 1 / span 2;
+	}
+
+	.flashcard-study .flashcard-rating-4 {
+		grid-column: 3 / span 2;
+	}
+
+	.flashcard-study .flashcard-rating-5 {
+		grid-column: 5 / span 2;
 	}
 
 	.flashcard-footer .flashcard-shortcut,
 	.flashcard-footer .flashcard-rating-interval {
 		display: none;
+	}
+
+	.flashcard-study .flashcard-btn-prev {
+		width: 36px;
+		min-width: 36px;
+		height: 42px;
+		min-height: 42px;
+		padding: 0;
 	}
 
 	.flashcard-study .flashcard-practice-answer-buttons {
