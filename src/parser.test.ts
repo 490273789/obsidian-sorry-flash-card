@@ -1,7 +1,13 @@
 import { createEmptyCard } from "ts-fsrs";
-import { describe, expect, it } from "vitest";
-import { extractFirstTag, parseFlashcards } from "./parser";
-import type { FlashCard } from "./types";
+import { describe, expect, it, vi } from "vitest";
+import {
+	extractFirstTag,
+	findAllFlashcardTags,
+	parseFileIntoDeck,
+	parseFlashcards,
+	scanFilesWithTag,
+} from "./parser";
+import type { Deck, FlashCard } from "./types";
 
 function getOnlyCard(cards: FlashCard[]): FlashCard {
 	expect(cards).toHaveLength(1);
@@ -19,6 +25,12 @@ describe("extractFirstTag", () => {
 		const tag = extractFirstTag("\n  #单词\n#other\ncontent");
 
 		expect(tag).toBe("#单词");
+	});
+
+	it("ignores inline hash text that is not a line tag", () => {
+		const tag = extractFirstTag("front text #单词\n内容");
+
+		expect(tag).toBeNull();
 	});
 });
 
@@ -85,5 +97,200 @@ new answer
 		expect(card.fsrsCard).toBe(fsrsCard);
 		expect(card.front).toBe("新问题");
 		expect(card.back).toBe("new answer");
+	});
+
+	it("requires markers to be on their own lines and keeps inline marker text", () => {
+		const card = getOnlyCard(
+			parseFlashcards(
+				`#单词
+What does ?? mean inline?
+??
+Use :: inline as plain answer text.
+;;
+`,
+				"notes/markers.md",
+			),
+		);
+
+		expect(card.front).toBe("What does ?? mean inline?");
+		expect(card.back).toBe("Use :: inline as plain answer text.");
+	});
+
+	it("skips incomplete blocks and assigns ids by valid card order", () => {
+		const cards = parseFlashcards(
+			`#单词
+missing back
+??
+;;
+
+valid front
+??
+valid back
+;;`,
+			"notes/mixed.md",
+		);
+
+		expect(cards).toHaveLength(1);
+		expect(cards[0]).toMatchObject({
+			id: "notes/mixed.md::0",
+			indexInFile: 0,
+			front: "valid front",
+			back: "valid back",
+		});
+	});
+});
+
+describe("parseFileIntoDeck", () => {
+	it("builds a deck from preloaded content without reading the vault again", async () => {
+		const vault = {
+			cachedRead: vi.fn(),
+		};
+		const file = {
+			path: "notes/vocab.md",
+			basename: "vocab",
+		};
+
+		const deck = await parseFileIntoDeck(
+			file as never,
+			vault as never,
+			{
+				id: file.path,
+				name: "old name",
+				filePath: file.path,
+				tag: "#单词",
+				cards: [],
+				studyCount: 7,
+				lastStudied: "2026-06-01T00:00:00.000Z",
+			},
+			`#单词
+苹果
+??
+apple
+;;`,
+		);
+
+		expect(vault.cachedRead).not.toHaveBeenCalled();
+		expect(deck).toMatchObject({
+			id: "notes/vocab.md",
+			name: "vocab",
+			filePath: "notes/vocab.md",
+			tag: "#单词",
+			studyCount: 7,
+			lastStudied: "2026-06-01T00:00:00.000Z",
+		});
+		expect(deck?.cards).toHaveLength(1);
+	});
+
+	it("returns null for files without valid cards", async () => {
+		const vault = {
+			cachedRead: vi.fn().mockResolvedValue("#单词\n只有标签"),
+		};
+		const file = {
+			path: "notes/empty.md",
+			basename: "empty",
+		};
+
+		await expect(parseFileIntoDeck(file as never, vault as never)).resolves.toBeNull();
+	});
+});
+
+describe("scanFilesWithTag", () => {
+	it("matches tags case-insensitively and preserves existing card state", async () => {
+		const existingFsrsCard = createEmptyCard();
+		const existingDeck: Deck = {
+			id: "notes/one.md",
+			name: "one",
+			filePath: "notes/one.md",
+			tag: "#Word",
+			cards: [
+				{
+					id: "notes/one.md::0",
+					front: "old",
+					back: "old",
+					fsrsCard: existingFsrsCard,
+					sourceFile: "notes/one.md",
+					indexInFile: 0,
+				},
+			],
+			studyCount: 3,
+			lastStudied: null,
+		};
+		const files = [
+			{ path: "notes/one.md", basename: "one" },
+			{ path: "notes/two.md", basename: "two" },
+		];
+		const contentByPath = new Map([
+			[
+				"notes/one.md",
+				`#Word
+front
+??
+back
+;;`,
+			],
+			[
+				"notes/two.md",
+				`#other
+front
+??
+back
+;;`,
+			],
+		]);
+		const vault = {
+			getMarkdownFiles: () => files,
+			cachedRead: vi.fn((file: { path: string }) =>
+				Promise.resolve(contentByPath.get(file.path)),
+			),
+		};
+
+		const decks = await scanFilesWithTag(
+			vault as never,
+			"#word",
+			new Map([[existingDeck.id, existingDeck]]),
+		);
+
+		expect(decks).toHaveLength(1);
+		expect(decks[0]?.cards[0]?.fsrsCard).toBe(existingFsrsCard);
+		expect(decks[0]?.studyCount).toBe(3);
+	});
+});
+
+describe("findAllFlashcardTags", () => {
+	it("returns unique tags only for files with flashcard syntax", async () => {
+		const files = [
+			{ path: "notes/one.md" },
+			{ path: "notes/two.md" },
+			{ path: "notes/three.md" },
+		];
+		const contentByPath = new Map([
+			[
+				"notes/one.md",
+				`#单词
+front
+??
+back
+;;`,
+			],
+			["notes/two.md", "#单词\n只有普通笔记"],
+			[
+				"notes/three.md",
+				`#短语
+front
+??
+back
+;;`,
+			],
+		]);
+		const vault = {
+			getMarkdownFiles: () => files,
+			cachedRead: vi.fn((file: { path: string }) =>
+				Promise.resolve(contentByPath.get(file.path)),
+			),
+		};
+
+		const tags = await findAllFlashcardTags(vault as never);
+
+		expect(tags).toEqual(["#单词", "#短语"]);
 	});
 });
