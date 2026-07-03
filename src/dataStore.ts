@@ -11,12 +11,13 @@ import {
 	StudyHistoryEntry,
 	DEFAULT_SETTINGS,
 	CardDirection,
+	CardIdMap,
 } from "./types";
 import { FSRSScheduler } from "./scheduler";
 import { extractFirstTag, parseFileIntoDeck } from "./parser";
 import { shuffleArray } from "./utils";
 import { hasFlashcardSyntax } from "./cardFormat";
-import { editDeckSource, type CardIdMap } from "./deckSourceEditor";
+import { editDeckSource } from "./deckSourceEditor";
 import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "./i18n";
 
 /**

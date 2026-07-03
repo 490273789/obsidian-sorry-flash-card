@@ -11,6 +11,11 @@ import {
 } from "../types";
 import { DataStore } from "../dataStore";
 import { shuffleArray } from "../utils";
+import {
+	createPracticeSession,
+	remapPracticeSessionCards,
+	remapStudySessionCards,
+} from "../sessionEngine";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
 import { PracticeSetup } from "./PracticeSetup";
@@ -44,8 +49,6 @@ type CardEditorState =
 			back: string;
 			explanation: string;
 	  };
-
-type CardIdMap = Record<string, string | null>;
 
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	app,
@@ -185,16 +188,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (studyOrder === "random") {
 				cardIds = shuffleArray(cardIds);
 			}
-			const session: PracticeSession = {
+			const session = createPracticeSession({
 				deckId,
 				direction,
-				cardQueue: cardIds,
-				currentIndex: 0,
+				cardIds,
 				startTime: Date.now(),
-				totalQuestions: cardIds.length,
-				answers: {},
-				history: [],
-			};
+			});
 			setPracticeSession(session);
 			setPracticeResult(null);
 			setViewState({ type: "practice", deckId });
@@ -316,16 +315,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			// Shuffle and select cards
 			const shuffledCards = shuffleArray(deck.cards).slice(0, questionCount);
 
-			const session: PracticeSession = {
+			const session = createPracticeSession({
 				deckId,
 				direction,
-				cardQueue: shuffledCards.map((c) => c.id),
-				currentIndex: 0,
+				cardIds: shuffledCards.map((c) => c.id),
 				startTime: Date.now(),
-				totalQuestions: shuffledCards.length,
-				answers: {},
-				history: [],
-			};
+			});
 
 			setPracticeSession(session);
 			setPracticeResult(null);
@@ -376,16 +371,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			// Shuffle incorrect cards
 			const shuffledIncorrect = shuffleArray(practiceResult.incorrectCardIds);
 
-			const session: PracticeSession = {
+			const session = createPracticeSession({
 				deckId: practiceSession.deckId,
 				direction: practiceSession.direction,
-				cardQueue: shuffledIncorrect,
-				currentIndex: 0,
+				cardIds: shuffledIncorrect,
 				startTime: Date.now(),
-				totalQuestions: shuffledIncorrect.length,
-				answers: {},
-				history: [],
-			};
+			});
 
 			setPracticeSession(session);
 			setPracticeResult(null);
@@ -398,35 +389,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setPracticeResult(null);
 		setViewState({ type: "home" });
 	}, []);
-
-	const remapCardId = useCallback((cardId: string, idMap: CardIdMap): string | null => {
-		const nextCardId = idMap[cardId];
-		return nextCardId === undefined ? cardId : nextCardId;
-	}, []);
-
-	const remapCardIds = useCallback(
-		(cardIds: string[], idMap: CardIdMap): string[] => {
-			return cardIds.flatMap((cardId) => {
-				const nextCardId = remapCardId(cardId, idMap);
-				return nextCardId ? [nextCardId] : [];
-			});
-		},
-		[remapCardId],
-	);
-
-	const remapPracticeAnswersAfterDelete = useCallback(
-		(answers: Record<string, boolean>, idMap: CardIdMap): Record<string, boolean> => {
-			const nextAnswers: Record<string, boolean> = {};
-			for (const [cardId, answer] of Object.entries(answers)) {
-				const nextCardId = remapCardId(cardId, idMap);
-				if (nextCardId) {
-					nextAnswers[nextCardId] = answer;
-				}
-			}
-			return nextAnswers;
-		},
-		[remapCardId],
-	);
 
 	const handleDeleteCard = useCallback(
 		async (deckId: string, cardId: string) => {
@@ -446,46 +408,25 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					if (!currentSession || currentSession.deckId !== deckId) {
 						return currentSession;
 					}
-					const cardQueue = remapCardIds(currentSession.cardQueue, idMap);
-					if (cardQueue.length === 0) {
+					const nextSession = remapStudySessionCards(currentSession, idMap);
+					if (!nextSession) {
 						setViewState({ type: "home" });
 						return null;
 					}
-					const currentIndex = Math.min(
-						currentSession.currentIndex,
-						cardQueue.length - 1,
-					);
-					return {
-						...currentSession,
-						cardQueue,
-						currentIndex,
-						repeatQueue: remapCardIds(currentSession.repeatQueue, idMap),
-						history: remapCardIds(currentSession.history, idMap),
-					};
+					return nextSession;
 				});
 
 				setPracticeSession((currentSession) => {
 					if (!currentSession || currentSession.deckId !== deckId) {
 						return currentSession;
 					}
-					const cardQueue = remapCardIds(currentSession.cardQueue, idMap);
-					if (cardQueue.length === 0) {
+					const nextSession = remapPracticeSessionCards(currentSession, idMap);
+					if (!nextSession) {
 						setViewState({ type: "home" });
 						setPracticeResult(null);
 						return null;
 					}
-					const currentIndex = Math.min(
-						currentSession.currentIndex,
-						cardQueue.length - 1,
-					);
-					return {
-						...currentSession,
-						cardQueue,
-						currentIndex,
-						totalQuestions: cardQueue.length,
-						answers: remapPracticeAnswersAfterDelete(currentSession.answers, idMap),
-						history: remapCardIds(currentSession.history, idMap),
-					};
+					return nextSession;
 				});
 			} catch (error) {
 				const message =
@@ -493,7 +434,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[dataStore, confirmAction, remapCardIds, remapPracticeAnswersAfterDelete, t],
+		[dataStore, confirmAction, t],
 	);
 
 	const handleDeleteCardRequest = useCallback(

@@ -5,6 +5,8 @@ export type Language = "zh" | "en";
 
 export type CardDirection = "normal" | "reversed";
 
+export type CardIdMap = Record<string, string | null>;
+
 /**
  * Per-deck or global study settings
  */

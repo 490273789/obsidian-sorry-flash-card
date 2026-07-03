@@ -19,3 +19,11 @@ _Avoid_: 卡组, deck cache
 **题库源文档**:
 The user-owned Markdown note that is the authority for a 题库's card content.
 _Avoid_: deck file, source cache, parsed deck
+
+**学习会话**:
+A run through cards that updates the learner's spaced-repetition state.
+_Avoid_: study component state, review UI state
+
+**刷题会话**:
+A self-test run through cards that records answers and produces a result without changing spaced-repetition state.
+_Avoid_: practice component state, quiz UI state

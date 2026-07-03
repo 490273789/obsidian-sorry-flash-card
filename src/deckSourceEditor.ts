@@ -1,4 +1,4 @@
-import type { Deck, FlashCard } from "./types";
+import type { CardIdMap, Deck, FlashCard } from "./types";
 import {
 	CARD_END_SEPARATOR,
 	EXPLANATION_SEPARATOR,
@@ -12,8 +12,6 @@ type ReservedMarker =
 	| typeof FRONT_BACK_SEPARATOR
 	| typeof EXPLANATION_SEPARATOR
 	| typeof CARD_END_SEPARATOR;
-
-export type CardIdMap = Record<string, string | null>;
 
 export type DeckSourceEditError =
 	| { type: "missing-front" }

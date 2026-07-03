@@ -1,16 +1,11 @@
-import React, {
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Brain, PartyPopper, RotateCcw } from "lucide-react";
 import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
 import { toFSRSRating, getRatingButtons } from "../scheduler";
 import { getDisplayCardContent } from "../cardDisplay";
+import { answerStudyCard, previousStudyCard } from "../sessionEngine";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -51,19 +46,10 @@ export const CardView: React.FC<CardViewProps> = ({
 	const currentCard = useMemo<FlashCard | null>(() => {
 		const cardId = session.cardQueue[session.currentIndex];
 		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
-	}, [
-		contentVersion,
-		session.currentIndex,
-		session.cardQueue,
-		dataStore,
-		deck.id,
-	]);
+	}, [contentVersion, session.currentIndex, session.cardQueue, dataStore, deck.id]);
 	const ratingButtons = useMemo(() => getRatingButtons(language), [language]);
 	const displayContent = useMemo(
-		() =>
-			currentCard
-				? getDisplayCardContent(currentCard, session.direction)
-				: null,
+		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
 		[currentCard, session.direction],
 	);
 
@@ -90,10 +76,7 @@ export const CardView: React.FC<CardViewProps> = ({
 				// Custom "garbage" rating - 21 days
 				updatedCard = scheduler.rateAsGarbage(currentCard.fsrsCard);
 			} else {
-				const result = scheduler.rateCard(
-					currentCard.fsrsCard,
-					toFSRSRating(rating),
-				);
+				const result = scheduler.rateCard(currentCard.fsrsCard, toFSRSRating(rating));
 				updatedCard = result.card;
 				repeatInSession = result.repeatInSession;
 			}
@@ -101,35 +84,13 @@ export const CardView: React.FC<CardViewProps> = ({
 			// Save updated card
 			await dataStore.updateCard(deck.id, currentCard.id, updatedCard);
 
-			// Update session
-			const newSession: StudySession = {
-				...session,
-				cardQueue: [...session.cardQueue],
-				repeatQueue: [...session.repeatQueue],
-				history: [...session.history, currentCard.id],
-			};
+			const step = answerStudyCard({
+				session,
+				cardId: currentCard.id,
+				repeatInSession,
+			});
 
-			if (repeatInSession) {
-				// Add to repeat queue for later in this session
-				newSession.repeatQueue = [
-					...newSession.repeatQueue,
-					currentCard.id,
-				];
-			}
-
-			// Move to next card
-			if (newSession.currentIndex < newSession.cardQueue.length - 1) {
-				newSession.currentIndex++;
-			} else if (newSession.repeatQueue.length > 0) {
-				// Process repeat queue
-				newSession.cardQueue = [
-					...newSession.cardQueue,
-					...newSession.repeatQueue,
-				];
-				newSession.repeatQueue = [];
-				newSession.currentIndex++;
-			} else {
-				// Session complete
+			if (step.type === "complete") {
 				await dataStore.incrementStudyCount(deck.id);
 				window.setTimeout(() => {
 					onClose();
@@ -138,7 +99,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			}
 
 			window.setTimeout(() => {
-				onSessionUpdate(newSession);
+				onSessionUpdate(step.session);
 				isAnimatingRef.current = false;
 				setIsAnimating(false);
 			}, 200);
@@ -152,24 +113,12 @@ export const CardView: React.FC<CardViewProps> = ({
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
-		const newHistory = [...session.history];
-		const previousCardId = newHistory.pop();
-
-		if (!previousCardId) {
+		const newSession = previousStudyCard(session);
+		if (!newSession) {
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 			return;
 		}
-
-		const newSession: StudySession = {
-			...session,
-			history: newHistory,
-			cardQueue: [
-				...session.cardQueue.slice(0, session.currentIndex),
-				previousCardId,
-				...session.cardQueue.slice(session.currentIndex),
-			],
-		};
 
 		window.setTimeout(() => {
 			onSessionUpdate(newSession);
@@ -180,10 +129,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
 	useWindowKeyDown((e) => {
 		// Ignore if in input field
-		if (
-			e.target instanceof HTMLInputElement ||
-			e.target instanceof HTMLTextAreaElement
-		) {
+		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
 			return;
 		}
 
@@ -252,12 +198,9 @@ export const CardView: React.FC<CardViewProps> = ({
 	}
 
 	const progress = `${session.currentIndex + 1}/${session.cardQueue.length}`;
-	const progressPercent =
-		((session.currentIndex + 1) / session.cardQueue.length) * 100;
+	const progressPercent = ((session.currentIndex + 1) / session.cardQueue.length) * 100;
 	const directionLabel =
-		session.direction === "normal"
-			? t("mode.normalShort")
-			: t("mode.reversedShort");
+		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
@@ -278,9 +221,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			/>
 
 			{/* Content */}
-			<div
-				className={`flashcard-content ${isAnimating ? "animating" : ""}`}
-			>
+			<div className={`flashcard-content ${isAnimating ? "animating" : ""}`}>
 				<div className="flashcard-question fc-lift">
 					<div className="flashcard-label flashcard-label-question">
 						{t("common.question")}
@@ -326,9 +267,7 @@ export const CardView: React.FC<CardViewProps> = ({
 				{!showAnswer ? (
 					<FlashcardButton preset="show" onClick={handleShowAnswer}>
 						{t("common.showAnswer")}
-						<span className="flashcard-shortcut">
-							({t("common.space")})
-						</span>
+						<span className="flashcard-shortcut">({t("common.space")})</span>
 					</FlashcardButton>
 				) : (
 					<div className="flashcard-response-controls">
@@ -346,9 +285,7 @@ export const CardView: React.FC<CardViewProps> = ({
 									key={btn.rating}
 									preset="rating"
 									className={`flashcard-rating-${btn.rating}`}
-									onClick={() =>
-										void handleRating(btn.rating)
-									}
+									onClick={() => void handleRating(btn.rating)}
 								>
 									<span className="flashcard-rating-label">
 										{btn.label}-{btn.intervalDesc}
