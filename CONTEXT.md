@@ -27,3 +27,11 @@ _Avoid_: study component state, review UI state
 **刷题会话**:
 A self-test run through cards that records answers and produces a result without changing spaced-repetition state.
 _Avoid_: practice component state, quiz UI state
+
+**设置视图模型**:
+The pure settings-page definition tree that describes labels, controls, visible state, help content, and semantic actions before Obsidian renders them.
+_Avoid_: settings DOM, Obsidian Setting adapter
+
+**题库索引**:
+The derived set of parsed 题库 objects and discovered flashcard tags built from Markdown file snapshots during a vault sync.
+_Avoid_: vault scan loop, saved plugin data
