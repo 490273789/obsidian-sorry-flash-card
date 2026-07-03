@@ -1,4 +1,5 @@
 allowBuilds:
-    esbuild: true
+  esbuild: true
 minimumReleaseAgeExclude:
-    - obsidian@1.13.1
+  - obsidian@1.13.1
+  - vite@8.1.3
