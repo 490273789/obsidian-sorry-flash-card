@@ -1,4 +1,4 @@
-import { TFile, Vault } from "obsidian";
+import type { TFile, Vault } from "obsidian";
 import { createEmptyCard } from "ts-fsrs";
 import { FlashCard, Deck } from "./types";
 import {
