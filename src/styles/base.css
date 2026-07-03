@@ -1,0 +1,296 @@
+/*
+ * WSR Flash Card cyber UI
+ * Scope all styles to the plugin root/settings tab to avoid leaking into Obsidian.
+ */
+
+.flashcard-root,
+.flashcard-settings-tab {
+	--fc-font-xs: 12px;
+	--fc-font-sm: 13px;
+	--fc-font-md: 15px;
+	--fc-font-lg: 18px;
+	--fc-font-xl: 24px;
+	--fc-font-display: 32px;
+
+	--fc-radius-xs: 4px;
+	--fc-radius-sm: 6px;
+	--fc-radius-md: 8px;
+	--fc-radius-pill: 999px;
+
+	--fc-space-1: 4px;
+	--fc-space-2: 8px;
+	--fc-space-3: 12px;
+	--fc-space-4: 16px;
+	--fc-space-5: 20px;
+	--fc-space-6: 24px;
+
+	--fc-bg: #05070d;
+	--fc-bg-elevated: #0a0f1c;
+	--fc-bg-panel: #101521;
+	--fc-bg-panel-soft: #141b2a;
+	--fc-grid: rgba(117, 255, 238, 0.075);
+	--fc-line: rgba(139, 159, 181, 0.2);
+	--fc-line-strong: rgba(99, 252, 241, 0.42);
+	--fc-text: #edf7ff;
+	--fc-muted: #a2b3c7;
+	--fc-faint: #71839a;
+	--fc-cyan: #63fcf1;
+	--fc-blue: #4fa7ff;
+	--fc-magenta: #ff4fd8;
+	--fc-violet: #9c6cff;
+	--fc-lime: #89ff9a;
+	--fc-amber: #ffd166;
+	--fc-red: #ff5d73;
+	--fc-orange: #ff9d5c;
+
+	--fc-cyan-rgb: 99, 252, 241;
+	--fc-blue-rgb: 79, 167, 255;
+	--fc-magenta-rgb: 255, 79, 216;
+	--fc-violet-rgb: 156, 108, 255;
+	--fc-lime-rgb: 137, 255, 154;
+	--fc-amber-rgb: 255, 209, 102;
+	--fc-red-rgb: 255, 93, 115;
+	--fc-orange-rgb: 255, 157, 92;
+	--fc-black-rgb: 5, 7, 13;
+
+	--fc-font-ui:
+		Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+		"Segoe UI", sans-serif;
+	--fc-font-data:
+		"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+	--fc-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+	--fc-glow-cyan:
+		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.28),
+		0 0 22px rgba(var(--fc-cyan-rgb), 0.14);
+	--fc-glow-magenta:
+		0 0 0 1px rgba(var(--fc-magenta-rgb), 0.24),
+		0 0 22px rgba(var(--fc-magenta-rgb), 0.12);
+	--fc-motion-quick: 160ms;
+	--fc-motion-base: 220ms;
+	--fc-motion-page: 340ms;
+	--fc-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+	--fc-ease-snap: cubic-bezier(0.2, 0.8, 0.2, 1);
+	--fc-transition-lift:
+		transform var(--fc-motion-base) var(--fc-ease-out),
+		border-color var(--fc-motion-base) ease,
+		box-shadow var(--fc-motion-base) ease,
+		background var(--fc-motion-base) ease;
+	--fc-transition-button:
+		transform var(--fc-motion-quick) var(--fc-ease-snap),
+		box-shadow var(--fc-motion-quick) ease,
+		border-color var(--fc-motion-quick) ease,
+		background var(--fc-motion-quick) ease,
+		color var(--fc-motion-quick) ease;
+	--fc-transition-card-switch:
+		opacity var(--fc-motion-base) ease,
+		transform var(--fc-motion-base) var(--fc-ease-snap),
+		filter var(--fc-motion-base) ease,
+		border-color var(--fc-motion-base) ease,
+		box-shadow var(--fc-motion-base) ease;
+	--fc-transition-progress:
+		width var(--fc-motion-page) var(--fc-ease-out),
+		box-shadow var(--fc-motion-base) ease;
+	--fc-transition-word-cell:
+		transform var(--fc-motion-quick) var(--fc-ease-out),
+		border-color var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease,
+		background var(--fc-motion-quick) ease;
+	--fc-transition-modal-control:
+		transform var(--fc-motion-quick) var(--fc-ease-out),
+		border-color var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+	--fc-motion-page-enter: fc-enter var(--fc-motion-page) var(--fc-ease-out)
+		both;
+	--fc-motion-rise: fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both;
+	--fc-motion-current-day:
+		fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both 1,
+		fc-soft-pulse 2.6s ease-in-out infinite;
+	--fc-motion-answer: fc-answer-reveal 300ms var(--fc-ease-out) both;
+	--fc-motion-divider: fc-divider-scan 820ms var(--fc-ease-out) both;
+	--fc-motion-active-glow: fc-active-glow var(--fc-motion-page)
+		var(--fc-ease-out) both;
+	--fc-motion-choice-pulse: fc-choice-pulse 300ms var(--fc-ease-out) both;
+	--fc-motion-progress-scan: fc-progress-scan 1.2s linear infinite;
+	--fc-motion-complete-pop: fc-complete-pop 420ms var(--fc-ease-out) both;
+	--fc-motion-soft-pulse: fc-soft-pulse 1.4s ease-out 1;
+	--fc-motion-fade-in: fc-fade-in var(--fc-motion-quick) ease-out both;
+	--fc-motion-modal-in: fc-modal-in 240ms var(--fc-ease-out) both;
+	--fc-motion-sheen: fc-sheen 5s ease-in-out infinite;
+	--fc-motion-spin: fc-spin 1s linear infinite;
+
+	font-family: var(--fc-font-ui);
+	color: var(--fc-text);
+}
+
+.flashcard-root {
+	position: relative;
+	box-sizing: border-box;
+	height: 100%;
+	min-height: 100%;
+	/* overflow: hidden; */
+	display: flex;
+	flex-direction: column;
+	padding: var(--fc-space-4);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.16);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(
+			120deg,
+			transparent 0 34%,
+			rgba(var(--fc-magenta-rgb), 0.09) 34% 35%,
+			transparent 35% 100%
+		),
+		linear-gradient(
+			180deg,
+			rgba(var(--fc-cyan-rgb), 0.08),
+			transparent 28%
+		),
+		linear-gradient(var(--fc-grid) 1px, transparent 1px),
+		linear-gradient(90deg, var(--fc-grid) 1px, transparent 1px),
+		var(--fc-bg);
+	background-size:
+		auto,
+		auto,
+		32px 32px,
+		32px 32px,
+		auto;
+	scrollbar-gutter: stable;
+}
+
+.flashcard-root::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 22%),
+		repeating-linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.032) 0,
+			rgba(255, 255, 255, 0.032) 1px,
+			transparent 1px,
+			transparent 7px
+		);
+	mix-blend-mode: screen;
+	opacity: 0.62;
+}
+
+.flashcard-root > * {
+	position: relative;
+	z-index: 1;
+}
+
+.flashcard-container {
+	height: 100%;
+	overflow: hidden;
+	padding: 0;
+}
+
+/* Shared utilities */
+.blue {
+	color: var(--fc-blue) !important;
+}
+
+.green {
+	color: var(--fc-lime) !important;
+}
+
+.purple {
+	color: var(--fc-violet) !important;
+}
+
+.orange {
+	color: var(--fc-orange) !important;
+}
+
+.red {
+	color: var(--fc-red) !important;
+}
+
+.fc-row {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-3);
+}
+
+.fc-col {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+}
+
+.fc-pill,
+.fc-kicker {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	border-radius: var(--fc-radius-xs);
+	white-space: nowrap;
+}
+
+.fc-pill {
+	padding: 6px 10px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.2);
+	background: rgba(var(--fc-cyan-rgb), 0.075);
+	color: var(--fc-text);
+	font-size: var(--fc-font-xs);
+	font-weight: 700;
+}
+
+.fc-kicker {
+	padding: 5px 9px;
+	border: 1px solid rgba(var(--fc-magenta-rgb), 0.28);
+	background: rgba(var(--fc-magenta-rgb), 0.08);
+	color: var(--fc-magenta);
+	font-size: var(--fc-font-xs);
+	font-weight: 800;
+	text-transform: uppercase;
+}
+
+.fc-truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.fc-lift {
+	transition: var(--fc-transition-lift);
+}
+
+.fc-lift:hover {
+	border-color: rgba(var(--fc-cyan-rgb), 0.38);
+	box-shadow: var(--fc-glow-cyan);
+}
+
+.fc-surface-card,
+.fc-ghost-card {
+	border: 1px solid var(--fc-line);
+	background: rgba(10, 15, 28, 0.86);
+	box-shadow: var(--fc-shadow);
+}
+
+/* Motion system utilities */
+.fc-motion-page-enter {
+	animation: var(--fc-motion-page-enter);
+}
+
+.fc-motion-rise {
+	animation: var(--fc-motion-rise);
+}
+
+.fc-motion-pop {
+	animation: var(--fc-motion-complete-pop);
+}
+
+.fc-motion-pulse {
+	animation: var(--fc-motion-soft-pulse);
+}
+
+.fc-motion-lift {
+	transition: var(--fc-transition-lift);
+}
+
+.fc-motion-button {
+	transition: var(--fc-transition-button);
+}
+

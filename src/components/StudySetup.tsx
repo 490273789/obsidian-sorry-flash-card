@@ -22,7 +22,6 @@ interface StudySetupProps {
 
 interface StudyDayRowProps {
 	day: StudyDayInfo;
-	studyOrder: "sequential" | "random";
 	direction: CardDirection;
 	onStartDay: (
 		dayIndex: number,
@@ -33,14 +32,13 @@ interface StudyDayRowProps {
 
 const StudyDayRow = memo(function StudyDayRow({
 	day,
-	studyOrder,
 	direction,
 	onStartDay,
 }: StudyDayRowProps) {
 	const { t } = useI18n();
 	const handleReview = useCallback(() => {
-		onStartDay(day.dayIndex, studyOrder, direction);
-	}, [day.dayIndex, direction, onStartDay, studyOrder]);
+		onStartDay(day.dayIndex, "random", direction);
+	}, [day.dayIndex, direction, onStartDay]);
 
 	return (
 		<div
@@ -106,8 +104,8 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	const todayTotal = todayNewCount + todayReviewCount;
 
 	const handleMainStart = useCallback(() => {
-		onStart(studyOrder, direction);
-	}, [direction, onStart, studyOrder]);
+		onStart(allCompleted ? "random" : studyOrder, direction);
+	}, [allCompleted, direction, onStart, studyOrder]);
 
 	return (
 		<div className="flashcard-practice-setup">
@@ -245,7 +243,6 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 								<StudyDayRow
 									key={day.dayIndex}
 									day={day}
-									studyOrder={studyOrder}
 									direction={direction}
 									onStartDay={onStartDay}
 								/>

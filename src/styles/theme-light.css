@@ -1,0 +1,517 @@
+/* Light theme: tuned to sit closer to Obsidian's native light surfaces. */
+.theme-light .flashcard-root,
+.theme-light .flashcard-settings-tab {
+	--fc-bg: #f6f8fb;
+	--fc-bg-elevated: #ffffff;
+	--fc-bg-panel: #f8fbff;
+	--fc-bg-panel-soft: #eef4fb;
+	--fc-grid: rgba(22, 124, 141, 0.105);
+	--fc-line: rgba(33, 55, 83, 0.16);
+	--fc-line-strong: rgba(20, 135, 151, 0.34);
+	--fc-text: #172033;
+	--fc-muted: #58677a;
+	--fc-faint: #8794a5;
+	--fc-cyan: #0f8797;
+	--fc-blue: #256fba;
+	--fc-magenta: #b23a92;
+	--fc-violet: #7656c7;
+	--fc-lime: #258f56;
+	--fc-amber: #a46e00;
+	--fc-red: #c33b54;
+	--fc-orange: #b85d1f;
+	--fc-cyan-rgb: 15, 135, 151;
+	--fc-blue-rgb: 37, 111, 186;
+	--fc-magenta-rgb: 178, 58, 146;
+	--fc-violet-rgb: 118, 86, 199;
+	--fc-lime-rgb: 37, 143, 86;
+	--fc-amber-rgb: 164, 110, 0;
+	--fc-red-rgb: 195, 59, 84;
+	--fc-orange-rgb: 184, 93, 31;
+	--fc-shadow: 0 14px 34px rgba(35, 49, 68, 0.11);
+	--fc-glow-cyan:
+		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.2),
+		0 10px 24px rgba(var(--fc-cyan-rgb), 0.08);
+	--fc-glow-magenta:
+		0 0 0 1px rgba(var(--fc-magenta-rgb), 0.18),
+		0 10px 24px rgba(var(--fc-magenta-rgb), 0.08);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-root {
+	border-color: rgba(var(--fc-cyan-rgb), 0.2);
+	background:
+		linear-gradient(
+			120deg,
+			transparent 0 34%,
+			rgba(var(--fc-magenta-rgb), 0.055) 34% 35%,
+			transparent 35% 100%
+		),
+		linear-gradient(
+			180deg,
+			rgba(var(--fc-cyan-rgb), 0.08),
+			transparent 34%
+		),
+		linear-gradient(var(--fc-grid) 1px, transparent 1px),
+		linear-gradient(90deg, var(--fc-grid) 1px, transparent 1px),
+		var(--fc-bg);
+}
+
+.theme-light .flashcard-root::before {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 26%),
+		repeating-linear-gradient(
+			180deg,
+			rgba(23, 32, 51, 0.025) 0,
+			rgba(23, 32, 51, 0.025) 1px,
+			transparent 1px,
+			transparent 7px
+		);
+	mix-blend-mode: normal;
+	opacity: 0.55;
+}
+
+.theme-light .flashcard-header,
+.theme-light .flashcard-common-header,
+.theme-light .flashcard-home-hero,
+.theme-light .flashcard-word-list-sticky-top,
+.theme-light .flashcard-stats-top,
+.theme-light .flashcard-deck-item,
+.theme-light .flashcard-study-hero,
+.theme-light .flashcard-study-panel,
+.theme-light .flashcard-practice-question-selector,
+.theme-light .flashcard-practice-info,
+.theme-light .flashcard-study-action-bar,
+.theme-light .flashcard-practice-summary-stats,
+.theme-light .flashcard-practice-incorrect-section,
+.theme-light .flashcard-stats-day,
+.theme-light .flashcard-content,
+.theme-light .flashcard-footer,
+.theme-light .flashcard-empty,
+.theme-light .flashcard-complete,
+.theme-light .flashcard-modal,
+.theme-light .flashcard-practice-summary-header {
+	border-color: var(--fc-line);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.055),
+			transparent 46%
+		),
+		rgba(255, 255, 255, 0.86);
+	box-shadow: var(--fc-shadow);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-question,
+.theme-light .flashcard-answer,
+.theme-light .flashcard-explanation,
+.theme-light .flashcard-word-cell,
+.theme-light .flashcard-stat,
+.theme-light .flashcard-stat-card,
+.theme-light .flashcard-stats-summary-item,
+.theme-light .flashcard-practice-stat-item,
+.theme-light .flashcard-practice-stat-card,
+.theme-light .flashcard-study-hero-pill,
+.theme-light .flashcard-stats-session,
+.theme-light .flashcard-deck-settings-card,
+.theme-light .flashcard-deck-settings-summary,
+.theme-light .flashcard-deck-settings-field,
+.theme-light .flashcard-practice-input-group,
+.theme-light .flashcard-practice-incorrect-item,
+.theme-light .flashcard-study-day-item,
+.theme-light .flashcard-practice-info-item,
+.theme-light .flashcard-card-editor-field,
+.theme-light .flashcard-help {
+	border-color: rgba(33, 55, 83, 0.15);
+	background:
+		linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.72),
+			rgba(246, 248, 251, 0.78)
+		),
+		var(--fc-bg-panel);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-deck-review-chip {
+	border-color: rgba(var(--fc-cyan-rgb), 0.24);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.075),
+			rgba(var(--fc-blue-rgb), 0.045)
+		),
+		rgba(255, 255, 255, 0.82);
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-deck-review-chip.has-due {
+	border-color: rgba(var(--fc-red-rgb), 0.34);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-red-rgb), 0.11),
+			rgba(var(--fc-violet-rgb), 0.055)
+		),
+		rgba(255, 255, 255, 0.84);
+	color: var(--fc-text);
+	box-shadow: 0 8px 18px rgba(var(--fc-red-rgb), 0.08);
+}
+
+.theme-light .flashcard-answer {
+	border-color: rgba(var(--fc-magenta-rgb), 0.2);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.065),
+			transparent 45%
+		),
+		rgba(255, 255, 255, 0.88);
+}
+
+.theme-light .flashcard-explanation {
+	border-color: rgba(var(--fc-amber-rgb), 0.24);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-amber-rgb), 0.075),
+			transparent 45%
+		),
+		rgba(255, 255, 255, 0.88);
+}
+
+.theme-light .flashcard-question {
+	border-color: rgba(var(--fc-cyan-rgb), 0.22);
+}
+
+.theme-light .flashcard-markdown,
+.theme-light .flashcard-deck-name,
+.theme-light .flashcard-deck-title,
+.theme-light .flashcard-header-title,
+.theme-light .flashcard-study-action-title,
+.theme-light .flashcard-practice-summary-title,
+.theme-light .flashcard-stats-day-date,
+.theme-light .flashcard-stats-session-deck {
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-progress,
+.theme-light .flashcard-timer,
+.theme-light .flashcard-badge,
+.theme-light .flashcard-stats-range,
+.theme-light .flashcard-deck-tag,
+.theme-light .fc-pill,
+.theme-light .fc-kicker {
+	background: rgba(255, 255, 255, 0.72);
+	border-color: rgba(var(--fc-cyan-rgb), 0.26);
+	color: var(--fc-cyan);
+}
+
+.theme-light .flashcard-badge,
+.theme-light .fc-kicker {
+	border-color: rgba(var(--fc-magenta-rgb), 0.28);
+	background: rgba(var(--fc-magenta-rgb), 0.07);
+	color: var(--fc-magenta);
+}
+
+.theme-light .flashcard-session-toolbar {
+	border-color: rgba(var(--fc-cyan-rgb), 0.24);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 48%),
+		rgba(255, 255, 255, 0.78);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.58),
+		0 12px 26px rgba(35, 49, 68, 0.1);
+}
+
+.theme-light .flashcard-session-timer {
+	border-color: rgba(var(--fc-violet-rgb), 0.24);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-violet-rgb), 0.08), transparent),
+		rgba(255, 255, 255, 0.78);
+	color: var(--fc-text);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+		0 10px 20px rgba(var(--fc-violet-rgb), 0.08);
+}
+
+.theme-light .flashcard-session-progress {
+	border-color: rgba(var(--fc-cyan-rgb), 0.28);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 60%),
+		rgba(255, 255, 255, 0.76);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.52),
+		0 12px 24px rgba(var(--fc-cyan-rgb), 0.1);
+}
+
+.theme-light .flashcard-session-progress-track {
+	border-color: rgba(var(--fc-cyan-rgb), 0.18);
+	background: rgba(220, 238, 243, 0.82);
+	box-shadow: inset 0 0 10px rgba(33, 55, 83, 0.08);
+}
+
+.theme-light .flashcard-root button.flashcard-btn,
+.theme-light .flashcard-root .flashcard-btn {
+	border-color: rgba(33, 55, 83, 0.18);
+	background:
+		linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.92),
+			rgba(236, 242, 249, 0.92)
+		),
+		var(--fc-bg-panel);
+	color: var(--fc-text);
+	box-shadow: 0 8px 18px rgba(35, 49, 68, 0.08);
+}
+
+.theme-light .flashcard-root button.flashcard-btn:hover:not(:disabled),
+.theme-light .flashcard-root .flashcard-btn:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-btn:focus-visible {
+	border-color: rgba(var(--fc-cyan-rgb), 0.42);
+	box-shadow: var(--fc-glow-cyan);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-icon,
+.theme-light .flashcard-root button.flashcard-btn-prev,
+.theme-light .flashcard-root button.flashcard-btn-back,
+.theme-light .flashcard-root button.flashcard-btn-gray {
+	border-color: rgba(var(--fc-cyan-rgb), 0.28);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.08),
+			rgba(var(--fc-blue-rgb), 0.06)
+		),
+		rgba(255, 255, 255, 0.88);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-danger {
+	border-color: rgba(var(--fc-red-rgb), 0.28);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-red-rgb), 0.1),
+			rgba(var(--fc-magenta-rgb), 0.055)
+		),
+		rgba(255, 255, 255, 0.88);
+	color: var(--fc-red);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-green {
+	border-color: rgba(var(--fc-lime-rgb), 0.28);
+	background: linear-gradient(
+		135deg,
+		rgba(210, 244, 224, 0.96),
+		rgba(188, 233, 219, 0.96)
+	);
+	color: #164f32;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-blue {
+	border-color: rgba(var(--fc-blue-rgb), 0.3);
+	background: linear-gradient(
+		135deg,
+		rgba(217, 235, 255, 0.98),
+		rgba(193, 226, 242, 0.98)
+	);
+	color: #164d82;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-purple {
+	border-color: rgba(var(--fc-violet-rgb), 0.3);
+	background: linear-gradient(
+		135deg,
+		rgba(232, 224, 255, 0.98),
+		rgba(239, 217, 244, 0.98)
+	);
+	color: #503890;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-orange {
+	border-color: rgba(var(--fc-orange-rgb), 0.32);
+	background: linear-gradient(
+		135deg,
+		rgba(255, 234, 213, 0.98),
+		rgba(249, 219, 205, 0.98)
+	);
+	color: #7f3f18;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-red,
+.theme-light .flashcard-root button.flashcard-practice-btn-wrong {
+	border-color: rgba(var(--fc-red-rgb), 0.34);
+	background: rgba(var(--fc-red-rgb), 0.075);
+	color: var(--fc-red);
+}
+
+.theme-light .flashcard-root button.flashcard-practice-btn-correct {
+	border-color: rgba(var(--fc-lime-rgb), 0.34);
+	background: rgba(var(--fc-lime-rgb), 0.075);
+	color: var(--fc-lime);
+}
+
+.theme-light .flashcard-root button.flashcard-btn.active,
+.theme-light .flashcard-root button.flashcard-study-order-btn.active,
+.theme-light .flashcard-root button.flashcard-direction-btn.active {
+	border-color: rgba(var(--fc-cyan-rgb), 0.62);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.18),
+			rgba(var(--fc-blue-rgb), 0.1)
+		),
+		rgba(232, 248, 250, 0.96);
+	color: #0d6070;
+	box-shadow:
+		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.18),
+		0 0 0 3px rgba(var(--fc-cyan-rgb), 0.11),
+		0 12px 24px rgba(var(--fc-cyan-rgb), 0.12);
+}
+
+.theme-light .flashcard-root button.flashcard-active-orang.active,
+.theme-light .flashcard-root button.word-column-back.active {
+	border-color: rgba(var(--fc-orange-rgb), 0.48);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-orange-rgb), 0.17),
+			rgba(var(--fc-amber-rgb), 0.1)
+		),
+		rgba(255, 244, 234, 0.96);
+	color: #7f3f18;
+	box-shadow:
+		inset 0 0 0 1px rgba(var(--fc-orange-rgb), 0.14),
+		0 0 0 3px rgba(var(--fc-orange-rgb), 0.1);
+}
+
+.theme-light .flashcard-root button.shuffle.active {
+	border-color: rgba(var(--fc-lime-rgb), 0.45);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-lime-rgb), 0.16),
+			rgba(var(--fc-cyan-rgb), 0.08)
+		),
+		rgba(237, 250, 241, 0.96);
+	color: #164f32;
+}
+
+.theme-light .flashcard-root button.word-column-front.active {
+	border-color: rgba(var(--fc-blue-rgb), 0.46);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-blue-rgb), 0.16),
+			rgba(var(--fc-cyan-rgb), 0.08)
+		),
+		rgba(234, 244, 255, 0.96);
+	color: #164d82;
+}
+
+.theme-light .flashcard-root button.flashcard-study-order-btn.active::after,
+.theme-light .flashcard-root button.flashcard-direction-btn.active::after {
+	content: "";
+	position: absolute;
+	inset: 6px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.24);
+	border-radius: calc(var(--fc-radius-sm) - 2px);
+	pointer-events: none;
+}
+
+.theme-light .flashcard-root button.flashcard-study-order-btn.active svg,
+.theme-light .flashcard-root button.flashcard-direction-btn.active svg {
+	color: var(--fc-cyan);
+}
+
+.theme-light .flashcard-root button.flashcard-rating-btn {
+	background: rgba(255, 255, 255, 0.78);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-stats-session-cards,
+.theme-light .flashcard-stats-session-dur {
+	border-color: rgba(33, 55, 83, 0.12);
+	background: rgba(255, 255, 255, 0.68);
+}
+
+.theme-light .flashcard-word-cell.masked {
+	background:
+		repeating-linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.055) 0 8px,
+			transparent 8px 16px
+		),
+		rgba(255, 255, 255, 0.76);
+	color: var(--fc-faint);
+}
+
+.theme-light .flashcard-modal-backdrop {
+	background: rgba(232, 239, 248, 0.72);
+}
+
+.theme-light .flashcard-modal-header,
+.theme-light .flashcard-modal-footer,
+.theme-light .flashcard-word-list-toolbar,
+.theme-light .flashcard-stats-summary {
+	background: rgba(246, 248, 251, 0.78);
+	border-color: var(--fc-line);
+}
+
+.theme-light .flashcard-settings-tab {
+	--background-primary: #f6f8fb;
+	--background-secondary: #ffffff;
+	--background-secondary-alt: #eef4fb;
+	--text-normal: var(--fc-text);
+	--text-muted: var(--fc-muted);
+	--text-faint: var(--fc-faint);
+	--text-accent: var(--fc-cyan);
+}
+
+.theme-light .flashcard-settings-tab .setting-item-heading {
+	border-color: rgba(var(--fc-cyan-rgb), 0.18);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 48%),
+		rgba(255, 255, 255, 0.82);
+}
+
+.theme-light .fc-settings-input,
+.theme-light .flashcard-practice-input,
+.theme-light .flashcard-card-editor-field select,
+.theme-light .flashcard-card-editor-field textarea,
+.theme-light .flashcard-deck-settings-field input[type="number"],
+.theme-light .flashcard-deck-settings-field select {
+	border-color: rgba(33, 55, 83, 0.18);
+	background: rgba(255, 255, 255, 0.86);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-card-editor-field select:disabled,
+.theme-light .flashcard-card-editor-field textarea:disabled {
+	background: rgba(239, 244, 249, 0.86);
+	color: var(--fc-muted);
+}
+
+.theme-light .flashcard-card-editor-field textarea::placeholder {
+	color: rgba(88, 103, 122, 0.72);
+}
+
+.theme-light .flashcard-word-explanation-content {
+	border-color: rgba(var(--fc-magenta-rgb), 0.24);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.065),
+			transparent 44%
+		),
+		rgba(255, 255, 255, 0.88);
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-help pre {
+	border-color: rgba(var(--fc-cyan-rgb), 0.16);
+	background: rgba(246, 248, 251, 0.92);
+}
+

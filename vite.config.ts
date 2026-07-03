@@ -7,6 +7,7 @@ import { defineConfig } from "vite";
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
 const outDir = resolve(projectRoot, "dist");
 const bundledFileName = "main.js";
+const bundledStyleFileName = "styles.css";
 const externalPackages = new Set([
 	"obsidian",
 	"electron",
@@ -29,7 +30,13 @@ function copyBundleToPluginRoot() {
 	return {
 		name: "copy-bundle-to-plugin-root",
 		closeBundle: async () => {
-			await copyFile(resolve(outDir, bundledFileName), resolve(projectRoot, bundledFileName));
+			await Promise.all([
+				copyFile(resolve(outDir, bundledFileName), resolve(projectRoot, bundledFileName)),
+				copyFile(
+					resolve(outDir, bundledStyleFileName),
+					resolve(projectRoot, bundledStyleFileName),
+				),
+			]);
 			await rm(outDir, { force: true, recursive: true });
 		},
 	};
@@ -44,8 +51,11 @@ export default defineConfig(({ mode }) => {
 			lib: {
 				entry: resolve(projectRoot, "src/main.ts"),
 				formats: ["cjs"],
+				cssFileName: "styles",
 				fileName: () => bundledFileName,
 			},
+			cssCodeSplit: false,
+			cssMinify: false,
 			minify: isProduction,
 			outDir,
 			rolldownOptions: {

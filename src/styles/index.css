@@ -1,0 +1,15 @@
+/*
+ * Source CSS entry for the Obsidian plugin.
+ * Vite bundles these imports into the root styles.css artifact.
+ */
+@import "./base.css";
+@import "./buttons.css";
+@import "./home.css";
+@import "./study.css";
+@import "./word-list.css";
+@import "./practice-summary.css";
+@import "./stats.css";
+@import "./overlays-settings.css";
+@import "./theme-light.css";
+@import "./motion.css";
+@import "./responsive.css";

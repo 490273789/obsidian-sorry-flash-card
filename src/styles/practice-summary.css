@@ -1,0 +1,157 @@
+/* Practice summary */
+.flashcard-practice-summary {
+	padding: var(--fc-space-1);
+}
+
+.flashcard-practice-summary-header {
+	position: relative;
+	overflow: hidden;
+	padding: var(--fc-space-6);
+	border: 1px solid rgba(var(--fc-magenta-rgb), 0.2);
+	border-radius: var(--fc-radius-md);
+	background: rgba(10, 15, 28, 0.9);
+	text-align: center;
+	box-shadow: var(--fc-shadow);
+	animation: var(--fc-motion-complete-pop);
+}
+
+.flashcard-practice-summary-title,
+.flashcard-practice-summary-deck {
+	position: relative;
+	z-index: 1;
+}
+
+.flashcard-practice-summary-title {
+	color: var(--fc-text);
+	font-size: var(--fc-font-xl);
+	font-weight: 900;
+}
+
+.flashcard-practice-summary-deck {
+	margin-top: var(--fc-space-2);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+}
+
+.flashcard-practice-summary-stats,
+.flashcard-practice-incorrect-section {
+	width: min(720px, 100%);
+	margin: 0 auto;
+	padding: var(--fc-space-4);
+}
+
+.flashcard-practice-stat-card {
+	align-items: center;
+	margin-bottom: var(--fc-space-3);
+	padding: var(--fc-space-4);
+	text-align: center;
+	animation: var(--fc-motion-rise);
+}
+
+.flashcard-practice-stat-accuracy {
+	border-color: rgba(var(--fc-cyan-rgb), 0.26);
+	box-shadow: inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.08);
+}
+
+.flashcard-practice-stat-card .flashcard-practice-stat-value {
+	font-size: var(--fc-font-display);
+}
+
+.flashcard-practice-stat-row {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.flashcard-practice-stat-item {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-3);
+	animation: var(--fc-motion-rise);
+}
+
+.flashcard-practice-stat-text,
+.flashcard-practice-incorrect-label {
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+}
+
+.flashcard-practice-stat-text strong {
+	color: var(--fc-text);
+}
+
+.flashcard-practice-stat-correct .flashcard-practice-stat-icon {
+	color: var(--fc-lime);
+}
+
+.flashcard-practice-stat-wrong .flashcard-practice-stat-icon {
+	color: var(--fc-red);
+}
+
+.flashcard-practice-incorrect-title {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	margin: 0 0 var(--fc-space-3);
+	color: var(--fc-text);
+	font-size: var(--fc-font-lg);
+}
+
+.flashcard-practice-incorrect-item {
+	content-visibility: auto;
+	contain-intrinsic-size: 0 96px;
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr);
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-3);
+	border: 1px solid rgba(var(--fc-red-rgb), 0.22);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(16, 21, 33, 0.78);
+	animation: var(--fc-motion-rise);
+}
+
+.flashcard-practice-incorrect-index {
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid rgba(var(--fc-red-rgb), 0.4);
+	border-radius: var(--fc-radius-pill);
+	color: var(--fc-red);
+	font-family: var(--fc-font-data);
+	font-weight: 900;
+}
+
+.flashcard-practice-incorrect-content {
+	min-width: 0;
+}
+
+.flashcard-practice-incorrect-question,
+.flashcard-practice-incorrect-answer,
+.flashcard-practice-incorrect-explanation {
+	display: grid;
+	grid-template-columns: 28px minmax(0, 1fr);
+	gap: var(--fc-space-2);
+}
+
+.flashcard-practice-incorrect-question,
+.flashcard-practice-incorrect-answer {
+	margin-bottom: var(--fc-space-2);
+}
+
+.flashcard-practice-incorrect-text {
+	color: var(--fc-text);
+	font-size: var(--fc-font-sm);
+	line-height: 1.55;
+}
+
+.flashcard-practice-incorrect-text p {
+	margin: 0;
+}
+
+.flashcard-practice-summary-actions {
+	width: min(560px, 100%);
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	margin: 0 auto var(--fc-space-2);
+}
+

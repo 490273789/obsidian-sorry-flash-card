@@ -1,0 +1,227 @@
+/* Buttons */
+.flashcard-btn {
+	appearance: none;
+	position: relative;
+	min-width: 0;
+	min-height: 38px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--fc-space-2);
+	padding: 9px 13px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.22);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(16, 21, 33, 0.9);
+	color: var(--fc-text);
+	font: 700 var(--fc-font-sm) / 1.2 var(--fc-font-ui);
+	text-align: center;
+	cursor: pointer;
+	transition: var(--fc-transition-button);
+}
+
+.flashcard-btn > span {
+	min-width: 0;
+}
+
+.flashcard-root button.flashcard-btn,
+.flashcard-root .flashcard-btn {
+	background-color: rgba(16, 21, 33, 0.9);
+	color: var(--fc-text);
+}
+
+.flashcard-btn:hover:not(:disabled),
+.flashcard-btn:focus-visible {
+	border-color: rgba(var(--fc-cyan-rgb), 0.52);
+	box-shadow: var(--fc-glow-cyan);
+	outline: none;
+}
+
+.flashcard-btn:active:not(:disabled) {
+	transform: translateY(0) scale(0.965);
+	box-shadow:
+		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.3),
+		0 0 20px rgba(var(--fc-cyan-rgb), 0.16);
+}
+
+.flashcard-btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.flashcard-btn-icon,
+.flashcard-btn-prev {
+	width: 38px;
+	height: 38px;
+	min-width: 38px;
+	min-height: 38px;
+	padding: 0;
+	flex: 0 0 auto;
+}
+
+.flashcard-btn-icon svg,
+.flashcard-btn-prev svg {
+	display: block;
+	width: 16px;
+	height: 16px;
+	flex: 0 0 auto;
+	stroke: currentColor;
+}
+
+.flashcard-root button.flashcard-btn-icon,
+.flashcard-root button.flashcard-btn-prev,
+.flashcard-root button.flashcard-btn-back {
+	border-color: rgba(var(--fc-cyan-rgb), 0.34);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.12),
+			rgba(var(--fc-blue-rgb), 0.08)
+		),
+		rgba(10, 15, 28, 0.92);
+	color: var(--fc-text);
+}
+
+.flashcard-root button.flashcard-btn-danger {
+	border-color: rgba(var(--fc-red-rgb), 0.38);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-red-rgb), 0.14),
+			rgba(var(--fc-magenta-rgb), 0.08)
+		),
+		rgba(10, 15, 28, 0.92);
+	color: var(--fc-red);
+}
+
+.flashcard-btn-back {
+	min-width: 38px;
+	padding: 0;
+	flex: 0 0 auto;
+	border-radius: var(--fc-radius-sm);
+}
+
+.flashcard-btn-back svg {
+	width: 16px;
+	height: 16px;
+}
+
+.flashcard-btn-green {
+	border-color: rgba(var(--fc-lime-rgb), 0.42);
+	background: linear-gradient(
+		135deg,
+		rgba(25, 74, 49, 0.95),
+		rgba(9, 112, 94, 0.95)
+	);
+	color: #effff4;
+}
+
+.flashcard-btn-blue {
+	border-color: rgba(var(--fc-blue-rgb), 0.45);
+	background: linear-gradient(
+		135deg,
+		rgba(22, 54, 109, 0.95),
+		rgba(11, 105, 137, 0.92)
+	);
+	color: #eef8ff;
+}
+
+.flashcard-btn-purple {
+	border-color: rgba(var(--fc-violet-rgb), 0.46);
+	background: linear-gradient(
+		135deg,
+		rgba(70, 36, 126, 0.95),
+		rgba(121, 45, 136, 0.9)
+	);
+	color: #f8f2ff;
+}
+
+.flashcard-btn-orange {
+	border-color: rgba(var(--fc-orange-rgb), 0.5);
+	background: linear-gradient(
+		135deg,
+		rgba(112, 55, 16, 0.95),
+		rgba(133, 43, 55, 0.9)
+	);
+	color: #fff8ef;
+}
+
+.flashcard-btn-red {
+	border-color: rgba(var(--fc-red-rgb), 0.5);
+	background: linear-gradient(
+		135deg,
+		rgba(122, 26, 48, 0.95),
+		rgba(100, 26, 82, 0.88)
+	);
+	color: #fff0f4;
+}
+
+.flashcard-btn-gray {
+	border-color: rgba(var(--fc-cyan-rgb), 0.28);
+	color: var(--fc-text);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.1),
+			rgba(var(--fc-violet-rgb), 0.08)
+		),
+		rgba(10, 15, 28, 0.88);
+}
+
+.flashcard-root button.flashcard-btn-gray {
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.1),
+			rgba(var(--fc-violet-rgb), 0.08)
+		),
+		rgba(10, 15, 28, 0.88);
+	color: var(--fc-text);
+}
+
+.flashcard-btn.active,
+.flashcard-active-orang.active {
+	border-color: rgba(var(--fc-magenta-rgb), 0.58);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.28),
+			rgba(var(--fc-cyan-rgb), 0.16)
+		),
+		var(--fc-bg-panel);
+	color: var(--fc-text);
+	box-shadow: var(--fc-glow-magenta);
+	animation: var(--fc-motion-active-glow);
+}
+
+.flashcard-btn-show {
+	width: 100%;
+	min-height: 50px;
+	overflow: hidden;
+	font-size: var(--fc-font-md);
+	letter-spacing: 0.02em;
+}
+
+.flashcard-btn-show::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		110deg,
+		transparent 0 40%,
+		rgba(255, 255, 255, 0.32) 50%,
+		transparent 60% 100%
+	);
+	transform: translateX(-120%);
+	animation: var(--fc-motion-sheen);
+	pointer-events: none;
+}
+
+.flashcard-shortcut,
+.flashcard-rating-interval {
+	color: var(--fc-faint);
+	font-size: var(--fc-font-xs);
+	font-family: var(--fc-font-data);
+}
+

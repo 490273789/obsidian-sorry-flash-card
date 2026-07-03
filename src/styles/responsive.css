@@ -1,0 +1,530 @@
+/* Tablet and narrow panes */
+@media (max-width: 900px) {
+	.flashcard-root {
+		padding: var(--fc-space-3);
+		background-size:
+			auto,
+			auto,
+			24px 24px,
+			24px 24px,
+			auto;
+	}
+
+	.flashcard-deck-item,
+	.flashcard-study-hero {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-rating-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.flashcard-today-stats,
+	.flashcard-stats-summary {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-stats-session {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-stats-session-right {
+		justify-content: space-between;
+	}
+
+	.flashcard-session-toolbar {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-session-progress {
+		flex: 1 1 auto;
+		grid-template-columns: auto minmax(80px, 1fr);
+	}
+}
+
+@media (max-width: 640px) {
+	.flashcard-root {
+		padding: var(--fc-space-2);
+		border-radius: 0;
+		padding-bottom: calc(
+			env(safe-area-inset-bottom, var(--fc-space-6)) + 15px
+		);
+	}
+
+	.flashcard-home,
+	.flashcard-study,
+	.flashcard-practice-setup,
+	.flashcard-practice-summary,
+	.flashcard-stats-view,
+	.flashcard-word-list-view {
+		gap: var(--fc-space-2);
+	}
+
+	.flashcard-header,
+	.flashcard-common-header,
+	.flashcard-home-hero {
+		padding: var(--fc-space-3);
+	}
+
+	.flashcard-common-header {
+		display: grid;
+		grid-template-columns: 40px minmax(0, 1fr) 40px;
+		align-items: center;
+		gap: var(--fc-space-2);
+	}
+
+	.flashcard-header-left,
+	.flashcard-header-center,
+	.flashcard-header-right {
+		width: auto;
+		flex-wrap: nowrap;
+	}
+
+	.flashcard-header-left {
+		grid-column: 1;
+		grid-row: 1;
+		justify-content: flex-start;
+	}
+
+	.flashcard-header-center {
+		grid-column: 2;
+		grid-row: 1;
+		min-width: 0;
+		justify-content: center;
+	}
+
+	.flashcard-header-right {
+		grid-column: 3;
+		grid-row: 1;
+		justify-content: flex-end;
+	}
+
+	.flashcard-navigation-header {
+		position: sticky;
+		top: 0;
+		z-index: 24;
+	}
+
+	.flashcard-navigation-header .flashcard-header-center {
+		grid-column: 1 / -1;
+		grid-row: 1;
+		justify-self: center;
+		width: fit-content;
+		max-width: calc(100% - 96px);
+		overflow: hidden;
+		pointer-events: none;
+		z-index: 0;
+	}
+
+	.flashcard-navigation-header .flashcard-header-left,
+	.flashcard-navigation-header .flashcard-header-right {
+		position: relative;
+		z-index: 1;
+	}
+
+	.flashcard-header-back-mobile {
+		display: inline-flex;
+	}
+
+	.flashcard-header-back-desktop {
+		display: none;
+	}
+	.flashcard-btn {
+		min-height: 34px;
+	}
+	.flashcard-btn-back {
+		width: 34px;
+		height: 34px;
+		min-width: 34px;
+		min-height: 34px;
+		padding: 0;
+		border-radius: var(--fc-radius-sm);
+	}
+	.flashcard-btn-icon,
+	.flashcard-btn-prev {
+		width: 34px;
+		height: 34px;
+		min-width: 34px;
+		min-height: 34px;
+		padding: 0;
+		flex: 0 0 auto;
+	}
+
+	.flashcard-btn-back svg {
+		width: 18px;
+		height: 18px;
+	}
+
+	.flashcard-session-back-desktop {
+		display: none;
+	}
+
+	.flashcard-session-back-mobile {
+		display: inline-flex;
+	}
+
+	.flashcard-header,
+	.flashcard-study-action-bar,
+	.flashcard-practice-answer-buttons,
+	.flashcard-response-controls,
+	.flashcard-modal-footer {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.flashcard-title {
+		font-size: var(--fc-font-lg);
+	}
+
+	.flashcard-title::after {
+		display: none;
+	}
+
+	.flashcard-home-pills,
+	.flashcard-word-list-toolbar {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.flashcard-study-order-options,
+	.flashcard-direction-options,
+	.flashcard-practice-quick-buttons,
+	.flashcard-practice-stat-row,
+	.flashcard-practice-summary-actions {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-deck-actions2,
+	.flashcard-study-order-options,
+	.flashcard-direction-options {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.flashcard-deck-actions3 {
+		justify-content: flex-start;
+	}
+
+	.flashcard-practice-quick-buttons {
+		grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+	}
+
+	.flashcard-word-row {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-word-cell {
+		min-height: 92px;
+	}
+
+	.flashcard-content,
+	.flashcard-question,
+	.flashcard-answer,
+	.flashcard-explanation,
+	.flashcard-study-hero,
+	.flashcard-study-panel,
+	.flashcard-practice-question-selector,
+	.flashcard-practice-info,
+	.flashcard-practice-summary-stats,
+	.flashcard-practice-incorrect-section,
+	.flashcard-stats-day {
+		padding: var(--fc-space-3);
+	}
+
+	.flashcard-markdown {
+		font-size: var(--fc-font-md);
+		line-height: 1.65;
+	}
+
+	.flashcard-rating-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.flashcard-practice-input-group {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.flashcard-practice-input {
+		width: 100%;
+	}
+
+	.flashcard-study {
+		overflow: hidden;
+	}
+
+	.flashcard-study .flashcard-session-shell {
+		position: sticky;
+		top: 0;
+		z-index: 24;
+	}
+
+	.flashcard-study .flashcard-common-header {
+		display: grid;
+		grid-template-columns: 40px minmax(0, 1fr) 40px;
+		grid-template-areas: "left center right";
+		align-items: center;
+		gap: 6px;
+		padding: 8px;
+	}
+
+	.flashcard-study .flashcard-session-header {
+		display: grid;
+		grid-template-columns: 40px minmax(0, 1fr);
+		grid-template-areas: "back identity";
+		gap: 8px;
+		padding: 8px;
+	}
+
+	.flashcard-study .flashcard-session-identity {
+		grid-area: identity;
+		justify-content: flex-start;
+		gap: 8px;
+	}
+
+	.flashcard-study .flashcard-session-back {
+		grid-area: back;
+		width: 34px;
+		min-width: 34px;
+		height: 34px;
+		min-height: 34px;
+		padding: 0;
+	}
+
+	.flashcard-study .flashcard-header-left {
+		grid-area: left;
+		width: auto;
+		justify-content: flex-start;
+		flex-wrap: nowrap;
+	}
+
+	.flashcard-study .flashcard-header-center {
+		grid-area: center;
+		width: auto;
+		min-width: 0;
+		justify-content: center;
+	}
+
+	.flashcard-study .flashcard-header-right {
+		grid-area: right;
+		width: auto;
+		min-width: max-content;
+		justify-content: flex-end;
+		flex-wrap: nowrap;
+	}
+
+	.flashcard-study .flashcard-deck-title {
+		max-width: 12ch;
+		font-size: var(--fc-font-md);
+	}
+
+	.flashcard-study .flashcard-progress,
+	.flashcard-study .flashcard-timer,
+	.flashcard-study .flashcard-badge {
+		min-height: 28px;
+		padding: 3px 7px;
+		font-size: 11px;
+	}
+
+	.flashcard-study .flashcard-session-toolbar {
+		grid-template-columns: minmax(0, 1fr) auto auto;
+		grid-template-areas: "progress timer actions";
+		gap: 8px;
+		padding: 8px;
+	}
+
+	.flashcard-study .flashcard-session-metrics {
+		grid-area: timer;
+	}
+
+	.flashcard-study .flashcard-session-progress {
+		grid-area: progress;
+		min-height: 32px;
+		padding: 4px 8px;
+		grid-template-columns: auto minmax(54px, 1fr);
+	}
+
+	.flashcard-study .flashcard-session-progress-text {
+		font-size: 12px;
+	}
+
+	.flashcard-study .flashcard-session-progress-track {
+		height: 7px;
+	}
+
+	.flashcard-study .flashcard-session-actions {
+		grid-area: actions;
+		align-self: stretch;
+		align-items: center;
+	}
+
+	.flashcard-study .flashcard-session-actions-toggle {
+		display: inline-flex;
+		order: 2;
+	}
+
+	.flashcard-study .flashcard-session-actions.is-open
+		.flashcard-session-actions-toggle-icon {
+		transform: rotate(180deg);
+	}
+
+	.flashcard-study .flashcard-session-action-item {
+		display: none;
+		order: 1;
+	}
+
+	.flashcard-study .flashcard-session-actions.is-open
+		.flashcard-session-action-item {
+		display: inline-flex;
+	}
+
+	.flashcard-study .flashcard-session-timer {
+		min-height: 32px;
+		min-width: 88px;
+		padding-top: 4px;
+		padding-bottom: 4px;
+	}
+
+	.flashcard-study .flashcard-btn-icon {
+		width: 32px;
+		height: 32px;
+	}
+
+	.flashcard-add-card-fab {
+		right: var(--fc-space-3);
+		bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-space-3));
+		width: 48px;
+		height: 48px;
+		min-width: 48px;
+		min-height: 48px;
+	}
+
+	.flashcard-card-editor-field textarea {
+		min-height: 126px;
+	}
+
+	.flashcard-study .flashcard-content {
+		gap: 10px;
+		padding: 10px;
+	}
+
+	.flashcard-study .flashcard-question,
+	.flashcard-study .flashcard-answer,
+	.flashcard-study .flashcard-explanation {
+		padding: 14px;
+	}
+
+	.flashcard-study .flashcard-markdown {
+		font-size: 16px;
+		line-height: 1.55;
+	}
+
+	.flashcard-study .flashcard-footer {
+		padding: 8px;
+	}
+
+	.flashcard-study .flashcard-response-controls {
+		display: grid;
+		grid-template-columns: 36px minmax(0, 1fr);
+		align-items: stretch;
+		gap: 6px;
+	}
+
+	.flashcard-study .flashcard-practice-response-controls {
+		grid-template-columns: 36px minmax(0, 1fr);
+		align-items: stretch;
+		gap: 6px;
+	}
+
+	.flashcard-study .flashcard-rating-grid {
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		gap: 5px;
+	}
+
+	.flashcard-study .flashcard-rating-btn {
+		min-height: 40px;
+		padding: 5px 3px;
+		justify-content: center;
+	}
+
+	.flashcard-study .flashcard-rating-label {
+		font-size: 13px;
+		line-height: 1.15;
+		white-space: nowrap;
+	}
+
+	.flashcard-study .flashcard-rating-1 {
+		grid-column: 1 / span 3;
+	}
+
+	.flashcard-study .flashcard-rating-2 {
+		grid-column: 4 / span 3;
+	}
+
+	.flashcard-study .flashcard-rating-3 {
+		grid-column: 1 / span 2;
+	}
+
+	.flashcard-study .flashcard-rating-4 {
+		grid-column: 3 / span 2;
+	}
+
+	.flashcard-study .flashcard-rating-5 {
+		grid-column: 5 / span 2;
+	}
+
+	.flashcard-footer .flashcard-shortcut,
+	.flashcard-footer .flashcard-rating-interval {
+		display: none;
+	}
+
+	.flashcard-study .flashcard-btn-prev {
+		width: 36px;
+		min-width: 36px;
+		height: 42px;
+		min-height: 42px;
+		padding: 0;
+	}
+
+	.flashcard-study .flashcard-practice-answer-buttons {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.flashcard-modal-backdrop {
+		align-items: center;
+		justify-content: center;
+		padding: max(env(safe-area-inset-top, 0px), var(--fc-space-2))
+			var(--fc-space-2)
+			max(env(safe-area-inset-bottom, 0px), var(--fc-space-2));
+		overflow: hidden;
+	}
+
+	.flashcard-modal {
+		max-height: calc(100svh - 16px);
+		max-height: calc(100dvh - 16px);
+		border-radius: var(--fc-radius-md);
+	}
+
+	.flashcard-card-editor-modal {
+		width: min(100%, 680px);
+		height: min(680px, calc(100svh - 16px));
+		height: min(680px, calc(100dvh - 16px));
+	}
+
+	.flashcard-card-editor-body {
+		overscroll-behavior: contain;
+	}
+
+	.flashcard-card-editor-modal .flashcard-modal-header,
+	.flashcard-card-editor-modal .flashcard-modal-footer {
+		flex: 0 0 auto;
+	}
+
+	.flashcard-settings-tab .setting-item {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.setting-item-info {
+		width: 100%;
+	}
+}

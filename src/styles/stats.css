@@ -1,0 +1,126 @@
+/* Stats */
+.flashcard-stats-view {
+	overflow: hidden;
+}
+
+.flashcard-stats-top {
+	position: relative;
+	top: auto;
+	z-index: 20;
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.flashcard-stats-summary {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	min-height: 76px;
+	padding: var(--fc-space-3);
+	border-top: 1px solid var(--fc-line);
+	background: rgba(5, 7, 13, 0.45);
+}
+
+.flashcard-stats-top .flashcard-common-header {
+	position: relative;
+	top: auto;
+	min-height: 58px;
+	overflow: visible;
+}
+
+.flashcard-stats-summary-divider {
+	display: none;
+}
+
+.flashcard-stats-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	padding-top: var(--fc-space-1);
+}
+
+.flashcard-stats-day {
+	padding: var(--fc-space-4);
+	animation: var(--fc-motion-rise);
+}
+
+.flashcard-stats-day-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--fc-space-3);
+	margin-bottom: var(--fc-space-3);
+}
+
+.flashcard-stats-day-date {
+	color: var(--fc-text);
+	font-weight: 850;
+}
+
+.flashcard-stats-day-meta {
+	color: var(--fc-muted);
+	font-size: var(--fc-font-xs);
+}
+
+.flashcard-stats-session {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	gap: var(--fc-space-3);
+	align-items: center;
+	padding: var(--fc-space-3);
+	border: 1px solid rgba(139, 159, 181, 0.18);
+	border-left-width: 3px;
+	border-radius: var(--fc-radius-sm);
+	background: rgba(16, 21, 33, 0.74);
+	animation: var(--fc-motion-rise);
+	transition: var(--fc-transition-lift);
+}
+
+.stats-mode-study {
+	border-left-color: var(--fc-blue);
+}
+
+.stats-mode-practice {
+	border-left-color: var(--fc-orange);
+}
+
+.stats-mode-list {
+	border-left-color: var(--fc-cyan);
+}
+
+.flashcard-stats-session-mode {
+	color: var(--fc-cyan);
+	font-family: var(--fc-font-data);
+	font-size: var(--fc-font-xs);
+	font-weight: 850;
+	white-space: nowrap;
+}
+
+.flashcard-stats-session-deck {
+	overflow: hidden;
+	color: var(--fc-text);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.flashcard-stats-session-right {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-xs);
+	white-space: nowrap;
+}
+
+.flashcard-stats-session-cards,
+.flashcard-stats-session-dur {
+	display: inline-flex;
+	align-items: center;
+	min-height: 24px;
+	padding: 3px 7px;
+	border: 1px solid rgba(139, 159, 181, 0.16);
+	border-radius: var(--fc-radius-pill);
+	background: rgba(16, 21, 33, 0.56);
+}
+
