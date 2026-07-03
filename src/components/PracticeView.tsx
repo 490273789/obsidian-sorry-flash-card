@@ -3,6 +3,7 @@ import { RotateCcw, Target, X, Check } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../types";
 import { DataStore } from "../dataStore";
 import { getDisplayCardContent } from "../cardDisplay";
+import { answerPracticeCard, previousPracticeCard } from "../sessionEngine";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -20,28 +21,6 @@ interface PracticeViewProps {
 	onComplete: (result: PracticeResult) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
-}
-
-function normalizeStringArray(value: unknown): string[] {
-	return Array.isArray(value)
-		? value.filter((item): item is string => typeof item === "string")
-		: [];
-}
-
-function normalizeAnswerMap(value: unknown): Record<string, boolean> {
-	if (!value || typeof value !== "object") return {};
-
-	const answers: Record<string, boolean> = {};
-	for (const [cardId, answer] of Object.entries(value)) {
-		if (typeof answer === "boolean") {
-			answers[cardId] = answer;
-		}
-	}
-	return answers;
-}
-
-function normalizeDirection(value: unknown): PracticeSession["direction"] {
-	return value === "reversed" ? "reversed" : "normal";
 }
 
 export const PracticeView: React.FC<PracticeViewProps> = ({
@@ -65,10 +44,9 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		const cardId = session.cardQueue[session.currentIndex];
 		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
 	}, [contentVersion, session.currentIndex, session.cardQueue, dataStore, deck.id]);
-	const direction = normalizeDirection(session.direction);
 	const displayContent = useMemo(
-		() => (currentCard ? getDisplayCardContent(currentCard, direction) : null),
-		[currentCard, direction],
+		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
+		[currentCard, session.direction],
 	);
 
 	useEffect(() => {
@@ -86,59 +64,26 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
 
-			const cardQueue = normalizeStringArray(session.cardQueue);
-			const history = normalizeStringArray(session.history);
-			const answers = normalizeAnswerMap(session.answers);
+			const step = answerPracticeCard({
+				session,
+				cardId: currentCard.id,
+				isCorrect,
+				now: Date.now(),
+			});
 
-			// Update session with answer
-			const newSession: PracticeSession = {
-				...session,
-				direction,
-				cardQueue: cardQueue.slice(),
-				history: history.concat(currentCard.id),
-				answers: {
-					...answers,
-					[currentCard.id]: isCorrect,
-				},
-			};
-
-			// Move to next card
-			if (newSession.currentIndex < newSession.cardQueue.length - 1) {
-				newSession.currentIndex++;
+			if (step.type === "continue") {
 				window.setTimeout(() => {
-					onSessionUpdate(newSession);
+					onSessionUpdate(step.session);
 					isAnimatingRef.current = false;
 					setIsAnimating(false);
 				}, 200);
 			} else {
-				// Practice complete - calculate results
-				const incorrectCardIds = Object.entries(newSession.answers)
-					.filter(([, correct]) => !correct)
-					.map(([cardId]) => cardId);
-
-				const correctCount = Object.values(newSession.answers).filter((v) => v).length;
-				const incorrectCount = newSession.totalQuestions - correctCount;
-				const accuracy =
-					newSession.totalQuestions > 0
-						? (correctCount / newSession.totalQuestions) * 100
-						: 0;
-
-				const result: PracticeResult = {
-					direction,
-					totalQuestions: newSession.totalQuestions,
-					correctCount,
-					incorrectCount,
-					accuracy,
-					incorrectCardIds,
-					timeSpent: Math.floor((Date.now() - session.startTime) / 1000),
-				};
-
 				window.setTimeout(() => {
-					onComplete(result);
+					onComplete(step.result);
 				}, 300);
 			}
 		},
-		[currentCard, direction, onComplete, onSessionUpdate, session],
+		[currentCard, onComplete, onSessionUpdate, session],
 	);
 
 	const handlePrevious = useCallback(() => {
@@ -147,32 +92,19 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
-		const cardQueue = normalizeStringArray(session.cardQueue);
-		const history = normalizeStringArray(session.history);
-		const previousIndex = session.currentIndex - 1;
-		const previousCardId = cardQueue[previousIndex];
-		const nextAnswers = normalizeAnswerMap(session.answers);
-		if (previousCardId) {
-			delete nextAnswers[previousCardId];
+		const newSession = previousPracticeCard(session);
+		if (!newSession) {
+			isAnimatingRef.current = false;
+			setIsAnimating(false);
+			return;
 		}
-
-		const nextHistory = history.slice();
-		nextHistory.pop();
-
-		const newSession: PracticeSession = {
-			...session,
-			direction,
-			currentIndex: previousIndex,
-			answers: nextAnswers,
-			history: nextHistory,
-		};
 
 		window.setTimeout(() => {
 			onSessionUpdate(newSession);
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
-	}, [direction, onSessionUpdate, session]);
+	}, [onSessionUpdate, session]);
 
 	useWindowKeyDown((e) => {
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -220,7 +152,8 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 
 	const progress = `${session.currentIndex + 1}/${session.totalQuestions}`;
 	const progressPercent = ((session.currentIndex + 1) / session.totalQuestions) * 100;
-	const directionLabel = direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
+	const directionLabel =
+		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
