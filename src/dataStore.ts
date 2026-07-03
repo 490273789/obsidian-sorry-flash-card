@@ -18,6 +18,7 @@ import { extractFirstTag, parseFileIntoDeck } from "./parser";
 import { shuffleArray } from "./utils";
 import { hasFlashcardSyntax } from "./cardFormat";
 import { editDeckSource } from "./deckSourceEditor";
+import { buildDeckIndex, type DeckIndexSourceFile } from "./deckIndexBuilder";
 import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "./i18n";
 
 /**
@@ -336,38 +337,32 @@ export class DataStore {
 	 */
 	async syncFromVault(): Promise<void> {
 		const vault = this.plugin.app.vault;
-		const newDecksMap = new Map<string, Deck>();
-		const allFoundTags = new Set<string>();
-		const configuredTagsLower = new Set(
-			this.settings.flashcardTags.map((t) => t.toLowerCase()),
-		);
+		const files: DeckIndexSourceFile[] = [];
 
 		for (const file of vault.getMarkdownFiles()) {
 			try {
-				// Read each file only once
 				const content = await vault.cachedRead(file);
-				const tag = extractFirstTag(content);
-				if (!tag) continue;
-
-				// Track every tag that has flashcard content
-				if (hasFlashcardSyntax(content)) {
-					allFoundTags.add(tag);
-				}
-
-				// Build a deck only for configured tags
-				if (configuredTagsLower.has(tag.toLowerCase())) {
-					const existingDeck = this.decks.get(file.path);
-					// Pass pre-read content to avoid reading the file again
-					const deck = await parseFileIntoDeck(file, vault, existingDeck, content);
-					if (deck) newDecksMap.set(deck.id, deck);
-				}
+				files.push({
+					path: file.path,
+					basename: file.basename,
+					content,
+					existingDeck: this.decks.get(file.path),
+				});
 			} catch (error) {
 				console.error(`Error parsing file ${file.path}:`, error);
 			}
 		}
 
-		this.decks = newDecksMap;
-		this.availableTags = Array.from(allFoundTags);
+		const result = buildDeckIndex({
+			files,
+			configuredTags: this.settings.flashcardTags,
+		});
+		for (const { filePath, error } of result.errors) {
+			console.error(`Error parsing file ${filePath}:`, error);
+		}
+
+		this.decks = result.decks;
+		this.availableTags = result.availableTags;
 		await this.save();
 	}
 

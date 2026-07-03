@@ -1,8 +1,22 @@
 import { App, Notice, PluginSettingTab, Setting, type SettingDefinitionItem } from "obsidian";
+import { createTranslator } from "./i18n";
 import type FlashcardPlugin from "./main";
 import { findAllFlashcardTags } from "./parser";
+import {
+	buildSettingsViewModel,
+	type SettingsButtonControl,
+	type SettingsEditableTextListControl,
+	type SettingsHelpModel,
+	type SettingsIntegerTextControl,
+	type SettingsSelectControl,
+	type SettingsSliderControl,
+	type SettingsTagButtonsControl,
+	type SettingsViewModelActions,
+	type SettingsViewModelControl,
+	type SettingsViewModelDefinition,
+	type SettingsViewModelSetting,
+} from "./settingsViewModel";
 import type { Language } from "./types";
-import { createTranslator } from "./i18n";
 
 type VisibleDefinition = { visible?: boolean | (() => boolean) };
 type FlashcardSettingDefinition = VisibleDefinition & {
@@ -16,7 +30,6 @@ type FlashcardSettingGroup = VisibleDefinition & {
 	items: FlashcardSettingDefinition[];
 };
 type FlashcardSettingItem = FlashcardSettingDefinition | FlashcardSettingGroup;
-const LANGUAGE_OPTIONS: readonly Language[] = ["zh", "en"];
 
 export class FlashcardSettingTab extends PluginSettingTab {
 	plugin: FlashcardPlugin;
@@ -36,248 +49,66 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	getSettingDefinitions(): SettingDefinitionItem[] {
 		this.ensureAvailableTagsLoaded();
-		const t = createTranslator(this.getSelectedLanguage());
+		return this.getRenderableDefinitions() as SettingDefinitionItem[];
+	}
 
-		const flashcardItems: FlashcardSettingDefinition[] = [
+	private getRenderableDefinitions(): FlashcardSettingItem[] {
+		return buildSettingsViewModel(
 			{
-				name: t("settings.flashcardTagsName"),
-				desc: t("settings.flashcardTagsDesc"),
-				render: (setting: Setting) => {
-					setting.addButton((button) => {
-						button
-							.setButtonText(
-								this.isLoadingTags
-									? t("settings.refreshingTags")
-									: t("settings.refreshAndCleanTags"),
-							)
-							.setDisabled(this.isLoadingTags)
-							.onClick(() => {
-								void this.refreshAvailableTags({
-									cleanConfiguredTags: true,
-								});
-							});
-					});
+				settings: this.plugin.settings,
+				availableTags: this.availableTags,
+				isLoadingTags: this.isLoadingTags,
+				hasLoadedTags: this.hasLoadedTags,
+				language: this.getSelectedLanguage(),
+			},
+			this.createSettingsActions(),
+		).map((definition) => this.toRenderableDefinition(definition));
+	}
 
-					this.renderEditableTextList(setting.descEl, {
-						values: this.plugin.settings.flashcardTags,
-						listClass: "flashcard-tags-list-settings",
-						itemClass: "flashcard-tag-item-settings",
-						inputClass: "flashcard-tag-input",
-						removeButtonClass: "flashcard-tag-remove-btn",
-						addButtonClass: "flashcard-tag-add-btn",
-						placeholder: t("settings.flashcardTagPlaceholder"),
-						addLabel: t("settings.addTag"),
-						removeAriaLabel: t("settings.delete"),
-						onChange: (index, value) => {
-							this.plugin.settings.flashcardTags[index] = value;
-							void this.saveSettings(true);
-						},
-						onAdd: () => {
-							this.plugin.settings.flashcardTags.push("");
-							void this.saveSettings(true);
-						},
-						onRemove: (index) => {
-							this.plugin.settings.flashcardTags.splice(index, 1);
-							void this.saveSettings(true);
-						},
-					});
-				},
+	private createSettingsActions(): SettingsViewModelActions {
+		return {
+			refreshTags: (options) => this.refreshAvailableTags(options),
+			updateFlashcardTag: (index, value) => {
+				this.plugin.settings.flashcardTags[index] = value;
+				return this.saveSettings(true);
 			},
-		];
-
-		const unusedTags = this.getUnusedTags();
-		flashcardItems.push({
-			name: t("settings.discoveredTagsName"),
-			desc: t("settings.discoveredTagsDesc"),
-			render: (setting: Setting) => {
-				setting.addButton((button) => {
-					button
-						.setButtonText(
-							this.isLoadingTags
-								? t("settings.refreshingTags")
-								: t("settings.refreshTags"),
-						)
-						.setDisabled(this.isLoadingTags)
-						.onClick(() => {
-							void this.refreshAvailableTags({
-								cleanConfiguredTags: false,
-							});
-						});
-				});
-
-				if (unusedTags.length > 0) {
-					const tagsContainer = setting.descEl.createDiv({
-						cls: "flashcard-tags-container",
-					});
-					for (const tag of unusedTags) {
-						const tagBtn = tagsContainer.createEl("button", {
-							text: tag,
-							cls: "flashcard-tag-button",
-						});
-						tagBtn.addEventListener("click", () => {
-							this.plugin.settings.flashcardTags.push(tag);
-							void this.saveSettings(true);
-						});
-					}
-					return;
-				}
-
-				setting.descEl.createDiv({
-					text: this.hasLoadedTags
-						? t("settings.noDiscoveredTags")
-						: t("settings.discoveredTagsNotLoaded"),
-					cls: "flashcard-tags-empty",
-				});
+			addFlashcardTag: () => {
+				this.plugin.settings.flashcardTags.push("");
+				return this.saveSettings(true);
 			},
-		});
-
-		const definitions: FlashcardSettingItem[] = [
-			{
-				type: "group",
-				heading: t("settings.flashcardGroup"),
-				items: flashcardItems,
+			removeFlashcardTag: (index) => {
+				this.plugin.settings.flashcardTags.splice(index, 1);
+				return this.saveSettings(true);
 			},
-			{
-				type: "group",
-				heading: t("settings.interfaceGroup"),
-				items: [
-					{
-						name: t("settings.languageName"),
-						desc: t("settings.languageDesc"),
-						render: (setting: Setting) => {
-							setting.addDropdown((dropdown) => {
-								for (const language of LANGUAGE_OPTIONS) {
-									dropdown.addOption(
-										language,
-										language === "zh"
-											? t("settings.languageZh")
-											: t("settings.languageEn"),
-									);
-								}
-								dropdown
-									.setValue(this.getSelectedLanguage())
-									.onChange(async (value: string) => {
-										this.plugin.settings.language = this.parseLanguage(value);
-										await this.saveSettings(true);
-									});
-							});
-						},
-					},
-				],
+			addDiscoveredTag: (tag) => {
+				this.plugin.settings.flashcardTags.push(tag);
+				return this.saveSettings(true);
 			},
-			{
-				type: "group",
-				heading: t("settings.defaultStudyGroup"),
-				items: [
-					{
-						name: t("settings.scopeName"),
-						desc: t("settings.scopeDesc"),
-					},
-					{
-						name: t("settings.dailyNewName"),
-						desc: t("settings.dailyNewDesc"),
-						render: (setting: Setting) => {
-							setting.addSlider((slider) =>
-								slider
-									.setLimits(1, 200, 1)
-									.setValue(this.plugin.settings.dailyNewCards)
-									.onChange(async (value) => {
-										this.plugin.settings.dailyNewCards = value;
-										await this.saveSettings();
-									}),
-							);
-						},
-					},
-					{
-						name: t("settings.dailyReviewName"),
-						desc: t("settings.dailyReviewDesc"),
-						render: (setting: Setting) => {
-							setting.addSlider((slider) =>
-								slider
-									.setLimits(1, 500, 10)
-									.setValue(this.plugin.settings.dailyReviewCards)
-									.onChange(async (value) => {
-										this.plugin.settings.dailyReviewCards = value;
-										await this.saveSettings();
-									}),
-							);
-						},
-					},
-					{
-						name: t("settings.studyOrderName"),
-						desc: t("settings.studyOrderDesc"),
-						render: (setting: Setting) => {
-							setting.addDropdown((dropdown) =>
-								dropdown
-									.addOption("sequential", t("order.sequential"))
-									.addOption("random", t("order.random"))
-									.setValue(this.plugin.settings.studyOrder)
-									.onChange(async (value) => {
-										this.plugin.settings.studyOrder = value as
-											| "sequential"
-											| "random";
-										await this.saveSettings();
-									}),
-							);
-						},
-					},
-				],
+			setLanguage: (language) => {
+				this.plugin.settings.language = language;
+				return this.saveSettings(true);
 			},
-			{
-				type: "group",
-				heading: t("settings.fsrsGroup"),
-				items: [
-					{
-						name: t("settings.retentionName"),
-						desc: t("settings.retentionDesc"),
-						render: (setting: Setting) => {
-							setting.addSlider((slider) =>
-								slider
-									.setLimits(0.7, 0.99, 0.01)
-									.setValue(this.plugin.settings.fsrsParameters.requestRetention)
-									.onChange(async (value) => {
-										this.plugin.settings.fsrsParameters.requestRetention =
-											value;
-										await this.saveSettings();
-									}),
-							);
-						},
-					},
-					{
-						name: t("settings.maxIntervalName"),
-						desc: t("settings.maxIntervalDesc"),
-						render: (setting: Setting) => {
-							setting.addText((text) =>
-								text
-									.setPlaceholder("365")
-									.setValue(
-										String(this.plugin.settings.fsrsParameters.maximumInterval),
-									)
-									.onChange(async (value) => {
-										const num = parseInt(value, 10);
-										if (!isNaN(num) && num >= 30 && num <= 3650) {
-											this.plugin.settings.fsrsParameters.maximumInterval =
-												num;
-											await this.saveSettings();
-										}
-									}),
-							);
-						},
-					},
-				],
+			setDailyNewCards: (value) => {
+				this.plugin.settings.dailyNewCards = value;
+				return this.saveSettings();
 			},
-			{
-				type: "group",
-				heading: t("settings.helpGroup"),
-				items: [
-					{
-						name: t("settings.helpName"),
-						desc: this.createHelpDescription(),
-					},
-				],
+			setDailyReviewCards: (value) => {
+				this.plugin.settings.dailyReviewCards = value;
+				return this.saveSettings();
 			},
-		];
-		return definitions as SettingDefinitionItem[];
+			setStudyOrder: (value) => {
+				this.plugin.settings.studyOrder = value;
+				return this.saveSettings();
+			},
+			setRequestRetention: (value) => {
+				this.plugin.settings.fsrsParameters.requestRetention = value;
+				return this.saveSettings();
+			},
+			setMaximumInterval: (value) => {
+				this.plugin.settings.fsrsParameters.maximumInterval = value;
+				return this.saveSettings();
+			},
+		};
 	}
 
 	private getSelectedLanguage(): Language {
@@ -312,11 +143,6 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			.finally(() => {
 				this.isLoadingTags = false;
 			});
-	}
-
-	private getUnusedTags(): string[] {
-		const configuredTags = this.plugin.settings.flashcardTags;
-		return this.availableTags.filter((tag) => !configuredTags.includes(tag));
 	}
 
 	private async refreshAvailableTags(options: { cleanConfiguredTags: boolean }): Promise<void> {
@@ -386,10 +212,11 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	private renderSettings(): void {
 		const { containerEl } = this;
+		this.ensureAvailableTagsLoaded();
 		containerEl.empty();
 		containerEl.addClass("flashcard-settings-tab");
 
-		for (const definition of this.getSettingDefinitions() as FlashcardSettingItem[]) {
+		for (const definition of this.getRenderableDefinitions()) {
 			if (!this.isVisible(definition.visible)) {
 				continue;
 			}
@@ -407,6 +234,150 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 			this.renderSettingDefinition(containerEl, definition);
 		}
+	}
+
+	private toRenderableDefinition(definition: SettingsViewModelDefinition): FlashcardSettingGroup {
+		return {
+			type: "group",
+			heading: definition.heading,
+			visible: definition.visible,
+			items: definition.items.map((item) => this.toRenderableSetting(item)),
+		};
+	}
+
+	private toRenderableSetting(model: SettingsViewModelSetting): FlashcardSettingDefinition {
+		return {
+			name: model.name,
+			desc: model.help ? this.createHelpDescription(model.help) : model.desc,
+			visible: model.visible,
+			render:
+				model.controls && model.controls.length > 0
+					? (setting) => {
+							for (const control of model.controls ?? []) {
+								this.renderControl(setting, control);
+							}
+						}
+					: undefined,
+		};
+	}
+
+	private renderControl(setting: Setting, control: SettingsViewModelControl): void {
+		switch (control.type) {
+			case "button":
+				this.renderButtonControl(setting, control);
+				break;
+			case "editableTextList":
+				this.renderEditableTextListControl(setting, control);
+				break;
+			case "tagButtons":
+				this.renderTagButtonsControl(setting, control);
+				break;
+			case "select":
+				this.renderSelectControl(setting, control);
+				break;
+			case "slider":
+				this.renderSliderControl(setting, control);
+				break;
+			case "integerText":
+				this.renderIntegerTextControl(setting, control);
+				break;
+		}
+	}
+
+	private renderButtonControl(setting: Setting, control: SettingsButtonControl): void {
+		setting.addButton((button) => {
+			button
+				.setButtonText(control.label)
+				.setDisabled(control.disabled)
+				.onClick(() => {
+					void control.onClick();
+				});
+		});
+	}
+
+	private renderEditableTextListControl(
+		setting: Setting,
+		control: SettingsEditableTextListControl,
+	): void {
+		this.renderEditableTextList(setting.descEl, {
+			values: control.values,
+			listClass: "flashcard-tags-list-settings",
+			itemClass: "flashcard-tag-item-settings",
+			inputClass: "flashcard-tag-input",
+			removeButtonClass: "flashcard-tag-remove-btn",
+			addButtonClass: "flashcard-tag-add-btn",
+			placeholder: control.placeholder,
+			addLabel: control.addLabel,
+			removeAriaLabel: control.removeAriaLabel,
+			onChange: (index, value) => {
+				void control.onChange(index, value);
+			},
+			onAdd: () => {
+				void control.onAdd();
+			},
+			onRemove: (index) => {
+				void control.onRemove(index);
+			},
+		});
+	}
+
+	private renderTagButtonsControl(setting: Setting, control: SettingsTagButtonsControl): void {
+		if (control.tags.length > 0) {
+			const tagsContainer = setting.descEl.createDiv({
+				cls: "flashcard-tags-container",
+			});
+			for (const tag of control.tags) {
+				const tagBtn = tagsContainer.createEl("button", {
+					text: tag,
+					cls: "flashcard-tag-button",
+				});
+				tagBtn.addEventListener("click", () => {
+					void control.onClick(tag);
+				});
+			}
+			return;
+		}
+
+		setting.descEl.createDiv({
+			text: control.emptyText,
+			cls: "flashcard-tags-empty",
+		});
+	}
+
+	private renderSelectControl(setting: Setting, control: SettingsSelectControl): void {
+		setting.addDropdown((dropdown) => {
+			for (const option of control.options) {
+				dropdown.addOption(option.value, option.label);
+			}
+			dropdown.setValue(control.value).onChange((value) => {
+				void control.onChange(value);
+			});
+		});
+	}
+
+	private renderSliderControl(setting: Setting, control: SettingsSliderControl): void {
+		setting.addSlider((slider) =>
+			slider
+				.setLimits(control.min, control.max, control.step)
+				.setValue(control.value)
+				.onChange((value) => {
+					void control.onChange(value);
+				}),
+		);
+	}
+
+	private renderIntegerTextControl(setting: Setting, control: SettingsIntegerTextControl): void {
+		setting.addText((text) =>
+			text
+				.setPlaceholder(control.placeholder)
+				.setValue(String(control.value))
+				.onChange((value) => {
+					const num = Number.parseInt(value, 10);
+					if (!Number.isNaN(num) && num >= control.min && num <= control.max) {
+						void control.onChange(num);
+					}
+				}),
+		);
 	}
 
 	private isGroupDefinition(
@@ -518,30 +489,19 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		});
 	}
 
-	private createHelpDescription(): DocumentFragment {
-		const t = createTranslator(this.plugin.settings.language);
+	private createHelpDescription(help: SettingsHelpModel): DocumentFragment {
 		const fragment = activeDocument.createDocumentFragment();
 		const helpDiv = fragment.createDiv({ cls: "flashcard-help" });
 
-		helpDiv.createEl("p", { text: t("settings.cardFormatTitle") });
+		helpDiv.createEl("p", { text: help.cardFormatTitle });
 
 		const codeBlock = helpDiv.createEl("pre");
-		codeBlock.createEl("code").textContent = t("settings.cardFormatExample");
+		codeBlock.createEl("code").textContent = help.cardFormatExample;
 
-		helpDiv.createEl("p", { text: t("settings.shortcutsTitle") });
+		helpDiv.createEl("p", { text: help.shortcutsTitle });
 
 		const shortcutsList = helpDiv.createEl("ul");
-		const shortcuts = [
-			t("settings.shortcutSpace"),
-			t("settings.shortcutAgain"),
-			t("settings.shortcutHard"),
-			t("settings.shortcutGood"),
-			t("settings.shortcutEasy"),
-			t("settings.shortcutTrash"),
-			t("settings.shortcutPrevious"),
-		];
-
-		for (const shortcut of shortcuts) {
+		for (const shortcut of help.shortcuts) {
 			shortcutsList.createEl("li", { text: shortcut });
 		}
 
