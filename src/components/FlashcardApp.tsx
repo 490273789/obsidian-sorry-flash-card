@@ -45,6 +45,8 @@ type CardEditorState =
 			explanation: string;
 	  };
 
+type CardIdMap = Record<string, string | null>;
+
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	app,
 	dataStore,
@@ -397,51 +399,33 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setViewState({ type: "home" });
 	}, []);
 
-	const remapCardIdAfterDelete = useCallback(
-		(deckId: string, deletedCardId: string, cardId: string): string | null => {
-			const prefix = `${deckId}::`;
-			if (!deletedCardId.startsWith(prefix) || !cardId.startsWith(prefix)) {
-				return cardId === deletedCardId ? null : cardId;
-			}
+	const remapCardId = useCallback((cardId: string, idMap: CardIdMap): string | null => {
+		const nextCardId = idMap[cardId];
+		return nextCardId === undefined ? cardId : nextCardId;
+	}, []);
 
-			const deletedIndex = Number(deletedCardId.slice(prefix.length));
-			const cardIndex = Number(cardId.slice(prefix.length));
-			if (!Number.isInteger(deletedIndex) || !Number.isInteger(cardIndex)) {
-				return cardId === deletedCardId ? null : cardId;
-			}
-			if (cardIndex === deletedIndex) return null;
-			if (cardIndex < deletedIndex) return cardId;
-			return `${prefix}${cardIndex - 1}`;
-		},
-		[],
-	);
-
-	const remapQueueAfterDelete = useCallback(
-		(deckId: string, deletedCardId: string, cardIds: string[]): string[] => {
+	const remapCardIds = useCallback(
+		(cardIds: string[], idMap: CardIdMap): string[] => {
 			return cardIds.flatMap((cardId) => {
-				const nextCardId = remapCardIdAfterDelete(deckId, deletedCardId, cardId);
+				const nextCardId = remapCardId(cardId, idMap);
 				return nextCardId ? [nextCardId] : [];
 			});
 		},
-		[remapCardIdAfterDelete],
+		[remapCardId],
 	);
 
 	const remapPracticeAnswersAfterDelete = useCallback(
-		(
-			deckId: string,
-			deletedCardId: string,
-			answers: Record<string, boolean>,
-		): Record<string, boolean> => {
+		(answers: Record<string, boolean>, idMap: CardIdMap): Record<string, boolean> => {
 			const nextAnswers: Record<string, boolean> = {};
 			for (const [cardId, answer] of Object.entries(answers)) {
-				const nextCardId = remapCardIdAfterDelete(deckId, deletedCardId, cardId);
+				const nextCardId = remapCardId(cardId, idMap);
 				if (nextCardId) {
 					nextAnswers[nextCardId] = answer;
 				}
 			}
 			return nextAnswers;
 		},
-		[remapCardIdAfterDelete],
+		[remapCardId],
 	);
 
 	const handleDeleteCard = useCallback(
@@ -454,7 +438,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (!confirmed) return;
 
 			try {
-				await dataStore.deleteCardFromDeck(deckId, cardId);
+				const idMap = await dataStore.deleteCardFromDeck(deckId, cardId);
 				setContentVersion((version) => version + 1);
 				new Notice(t("notice.cardDeleted"));
 
@@ -462,11 +446,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					if (!currentSession || currentSession.deckId !== deckId) {
 						return currentSession;
 					}
-					const cardQueue = remapQueueAfterDelete(
-						deckId,
-						cardId,
-						currentSession.cardQueue,
-					);
+					const cardQueue = remapCardIds(currentSession.cardQueue, idMap);
 					if (cardQueue.length === 0) {
 						setViewState({ type: "home" });
 						return null;
@@ -479,12 +459,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						...currentSession,
 						cardQueue,
 						currentIndex,
-						repeatQueue: remapQueueAfterDelete(
-							deckId,
-							cardId,
-							currentSession.repeatQueue,
-						),
-						history: remapQueueAfterDelete(deckId, cardId, currentSession.history),
+						repeatQueue: remapCardIds(currentSession.repeatQueue, idMap),
+						history: remapCardIds(currentSession.history, idMap),
 					};
 				});
 
@@ -492,11 +468,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					if (!currentSession || currentSession.deckId !== deckId) {
 						return currentSession;
 					}
-					const cardQueue = remapQueueAfterDelete(
-						deckId,
-						cardId,
-						currentSession.cardQueue,
-					);
+					const cardQueue = remapCardIds(currentSession.cardQueue, idMap);
 					if (cardQueue.length === 0) {
 						setViewState({ type: "home" });
 						setPracticeResult(null);
@@ -511,12 +483,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						cardQueue,
 						currentIndex,
 						totalQuestions: cardQueue.length,
-						answers: remapPracticeAnswersAfterDelete(
-							deckId,
-							cardId,
-							currentSession.answers,
-						),
-						history: remapQueueAfterDelete(deckId, cardId, currentSession.history),
+						answers: remapPracticeAnswersAfterDelete(currentSession.answers, idMap),
+						history: remapCardIds(currentSession.history, idMap),
 					};
 				});
 			} catch (error) {
@@ -525,7 +493,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[dataStore, confirmAction, remapPracticeAnswersAfterDelete, remapQueueAfterDelete, t],
+		[dataStore, confirmAction, remapCardIds, remapPracticeAnswersAfterDelete, t],
 	);
 
 	const handleDeleteCardRequest = useCallback(
@@ -550,7 +518,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleUpdateDeckStudySettings = useCallback(
 		async (deckId: string, overrides: Partial<StudySettings> | null) => {
 			const newDeckStudySettings = {
-				...(settings.deckStudySettings ?? {}),
+				...settings.deckStudySettings,
 			};
 			if (overrides === null) {
 				delete newDeckStudySettings[deckId];

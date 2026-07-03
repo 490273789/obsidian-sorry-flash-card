@@ -15,14 +15,8 @@ import {
 import { FSRSScheduler } from "./scheduler";
 import { extractFirstTag, parseFileIntoDeck } from "./parser";
 import { shuffleArray } from "./utils";
-import {
-	CARD_END_SEPARATOR,
-	FIRST_TAG_LINE_PATTERN,
-	FRONT_BACK_SEPARATOR,
-	formatCardBlock,
-	hasFlashcardSyntax,
-	isMarkerLine,
-} from "./cardFormat";
+import { hasFlashcardSyntax } from "./cardFormat";
+import { editDeckSource, type CardIdMap } from "./deckSourceEditor";
 import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "./i18n";
 
 /**
@@ -181,7 +175,7 @@ export class DataStore {
 			deckStudySettings: settings.deckStudySettings ?? {},
 			fsrsParameters: {
 				...DEFAULT_SETTINGS.fsrsParameters,
-				...(settings.fsrsParameters ?? {}),
+				...settings.fsrsParameters,
 			},
 			practiceMessagesCustomized: messagesCustomized,
 			practicePerfectMessages: messagesCustomized
@@ -455,7 +449,7 @@ export class DataStore {
 			...overrides,
 			fsrsParameters: {
 				...global.fsrsParameters,
-				...(overrides.fsrsParameters ?? {}),
+				...overrides.fsrsParameters,
 			},
 		};
 	}
@@ -618,24 +612,18 @@ export class DataStore {
 		const deck = this.decks.get(deckId);
 		if (!deck) throw new Error("Deck not found");
 
-		const card = deck.cards.find((c) => c.id === cardId);
-		if (!card) throw new Error("Card not found");
-
 		const file = this.getDeckSourceFile(deck);
 		const content = await this.plugin.app.vault.cachedRead(file);
-		const nextContent = this.replaceCardBlock(
-			content,
-			card.indexInFile,
+		const editResult = editDeckSource(content, deck, {
+			type: "update",
+			cardId,
 			front,
 			back,
 			explanation,
-		);
-		if (nextContent === null) {
-			throw new Error("Card block not found in source file");
-		}
+		});
 
-		await this.plugin.app.vault.modify(file, nextContent);
-		return this.refreshDeckFromSource(file, deck, nextContent);
+		await this.plugin.app.vault.modify(file, editResult.nextContent);
+		return this.refreshDeckFromSource(file, deck, editResult.nextContent);
 	}
 
 	/**
@@ -652,49 +640,39 @@ export class DataStore {
 
 		const file = this.getDeckSourceFile(deck);
 		const content = await this.plugin.app.vault.cachedRead(file);
-		const nextContent = this.appendCardBlock(content, front, back, explanation);
+		const editResult = editDeckSource(content, deck, {
+			type: "add",
+			front,
+			back,
+			explanation,
+		});
 
-		await this.plugin.app.vault.modify(file, nextContent);
-		return this.refreshDeckFromSource(file, deck, nextContent);
+		await this.plugin.app.vault.modify(file, editResult.nextContent);
+		return this.refreshDeckFromSource(file, deck, editResult.nextContent);
 	}
 
 	/**
 	 * Delete a card from an existing deck's source Markdown file.
 	 */
-	async deleteCardFromDeck(deckId: string, cardId: string): Promise<void> {
+	async deleteCardFromDeck(deckId: string, cardId: string): Promise<CardIdMap> {
 		const deck = this.decks.get(deckId);
 		if (!deck) throw new Error("Deck not found");
 
-		const card = deck.cards.find((c) => c.id === cardId);
-		if (!card) throw new Error("Card not found");
-
 		const file = this.getDeckSourceFile(deck);
 		const content = await this.plugin.app.vault.cachedRead(file);
-		const nextContent = this.deleteCardBlock(content, card.indexInFile);
-		if (nextContent === null) {
-			throw new Error("Card block not found in source file");
-		}
+		const editResult = editDeckSource(content, deck, {
+			type: "delete",
+			cardId,
+		});
+		const remappedExistingDeck = this.remapExistingDeck(deck, editResult.idMap);
 
-		const survivingCards = deck.cards
-			.filter((item) => item.id !== cardId)
-			.sort((a, b) => a.indexInFile - b.indexInFile)
-			.map((item, index) => ({
-				...item,
-				id: `${file.path}::${index}`,
-				indexInFile: index,
-			}));
-		const remappedExistingDeck: Deck = {
-			...deck,
-			cards: survivingCards,
-		};
-
-		await this.plugin.app.vault.modify(file, nextContent);
+		await this.plugin.app.vault.modify(file, editResult.nextContent);
 
 		const nextDeck = await parseFileIntoDeck(
 			file,
 			this.plugin.app.vault,
 			remappedExistingDeck,
-			nextContent,
+			editResult.nextContent,
 		);
 		if (nextDeck) {
 			this.decks.set(nextDeck.id, nextDeck);
@@ -702,6 +680,7 @@ export class DataStore {
 			this.decks.delete(deck.id);
 		}
 		await this.save();
+		return editResult.idMap;
 	}
 
 	private getDeckSourceFile(deck: Deck): TFile {
@@ -712,114 +691,33 @@ export class DataStore {
 		return file;
 	}
 
-	private replaceCardBlock(
-		content: string,
-		indexInFile: number,
-		front: string,
-		back: string,
-		explanation?: string,
-	): string | null {
-		const lines = content.split(/\r?\n/);
-		const ranges = this.findCardBlockRanges(lines);
-		const currentRange = ranges[indexInFile];
-		if (indexInFile < 0 || currentRange === undefined) {
-			return null;
-		}
-
-		const currentBlock = lines.slice(currentRange.start, currentRange.end).join("\n");
-		if (!currentBlock.split(/\r?\n/).some((line) => isMarkerLine(line, FRONT_BACK_SEPARATOR))) {
-			return null;
-		}
-
-		const nextBlock = this.mergePreservedPrefixWithCardBlock(
-			currentBlock,
-			indexInFile,
-			front,
-			back,
-			explanation,
-		);
-		const nextLines = [
-			...lines.slice(0, currentRange.start),
-			...nextBlock.split("\n"),
-			CARD_END_SEPARATOR,
-			...lines.slice(currentRange.end + 1),
-		];
-		return nextLines.join("\n");
-	}
-
-	private deleteCardBlock(content: string, indexInFile: number): string | null {
-		const lines = content.split(/\r?\n/);
-		const ranges = this.findCardBlockRanges(lines);
-		const currentRange = ranges[indexInFile];
-		if (indexInFile < 0 || currentRange === undefined) {
-			return null;
-		}
-
-		const currentBlock = lines.slice(currentRange.start, currentRange.end).join("\n");
-		const replacement =
-			indexInFile === 0 ? this.extractPreservedPrefix(currentBlock).trimEnd() : "";
-		const replacementLines = replacement.length > 0 ? replacement.split("\n") : [];
-		const nextLines = [
-			...lines.slice(0, currentRange.start),
-			...replacementLines,
-			...lines.slice(currentRange.end + 1),
-		];
-		return nextLines.join("\n");
-	}
-
-	private findCardBlockRanges(lines: string[]): Array<{
-		start: number;
-		end: number;
-	}> {
-		const ranges: Array<{ start: number; end: number }> = [];
-		let start = 0;
-
-		lines.forEach((line, index) => {
-			if (!isMarkerLine(line, CARD_END_SEPARATOR)) return;
-			ranges.push({ start, end: index });
-			start = index + 1;
+	private remapExistingDeck(deck: Deck, idMap: CardIdMap): Deck {
+		const cards = deck.cards.flatMap((card) => {
+			const nextId = idMap[card.id];
+			if (nextId === null) return [];
+			if (nextId === undefined || nextId === card.id) return [card];
+			return [
+				{
+					...card,
+					id: nextId,
+					sourceFile: deck.filePath,
+					indexInFile: this.getIndexFromCardId(deck.filePath, nextId) ?? card.indexInFile,
+				},
+			];
 		});
 
-		return ranges;
+		return {
+			...deck,
+			cards,
+		};
 	}
 
-	private mergePreservedPrefixWithCardBlock(
-		currentBlock: string,
-		indexInFile: number,
-		front: string,
-		back: string,
-		explanation?: string,
-	): string {
-		const cardBlock = formatCardBlock(front, back, explanation);
-		if (indexInFile !== 0) return cardBlock;
+	private getIndexFromCardId(filePath: string, cardId: string): number | null {
+		const prefix = `${filePath}::`;
+		if (!cardId.startsWith(prefix)) return null;
 
-		const prefix = this.extractPreservedPrefix(currentBlock);
-		if (!prefix) return cardBlock;
-
-		const separator = prefix.endsWith("\n") ? "" : "\n";
-		return `${prefix}${separator}${cardBlock}`;
-	}
-
-	private extractPreservedPrefix(currentBlock: string): string {
-		const tagMatch = currentBlock.match(FIRST_TAG_LINE_PATTERN);
-		if (!tagMatch || tagMatch.index === undefined) return "";
-
-		return currentBlock.slice(0, tagMatch.index + tagMatch[0].length);
-	}
-
-	private appendCardBlock(
-		content: string,
-		front: string,
-		back: string,
-		explanation?: string,
-	): string {
-		const base = content.trimEnd();
-		const separator = base.length > 0 ? "\n\n" : "";
-		return `${base}${separator}${formatCardBlock(
-			front,
-			back,
-			explanation,
-		)}\n${CARD_END_SEPARATOR}\n`;
+		const index = Number(cardId.slice(prefix.length));
+		return Number.isInteger(index) ? index : null;
 	}
 
 	private async refreshDeckFromSource(
