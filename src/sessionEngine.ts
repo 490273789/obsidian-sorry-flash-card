@@ -1,4 +1,31 @@
-import type { CardDirection, CardIdMap, PracticeResult, PracticeSession } from "./types";
+import type {
+	CardDirection,
+	CardIdMap,
+	FlashCard,
+	PracticeResult,
+	PracticeSession,
+	StudySettings,
+} from "./types";
+import { shuffleArray } from "./utils";
+
+export {
+	answerStudyCard,
+	canUndoStudyAnswer,
+	createStudySession,
+	finishStudySession,
+	getCurrentStudyCardId,
+	getStudyProgress,
+	remapStudySessionCards,
+	undoStudyAnswer,
+} from "./studySessionEngine";
+export type {
+	StudyCardSchedule,
+	StudyCardScheduler,
+	StudyCardUpdateIntent,
+	StudySessionFinishIntent,
+} from "./studySessionEngine";
+
+type ShuffleCardIds = (cardIds: string[]) => string[];
 
 export type PracticeSessionStep =
 	| {
@@ -26,6 +53,63 @@ export function createPracticeSession(params: {
 		answers: {},
 		history: [],
 	};
+}
+
+export function createDayPracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cards: FlashCard[];
+	studyOrder: StudySettings["studyOrder"];
+	startTime?: number;
+	shuffle?: ShuffleCardIds;
+}): PracticeSession {
+	let cardIds = params.cards.map((card) => card.id);
+	if (params.studyOrder === "random") {
+		cardIds = (params.shuffle ?? shuffleArray)(cardIds);
+	}
+
+	return createPracticeSession({
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds,
+		startTime: params.startTime ?? Date.now(),
+	});
+}
+
+export function createRandomPracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cards: FlashCard[];
+	questionCount: number;
+	startTime?: number;
+	shuffle?: ShuffleCardIds;
+}): PracticeSession {
+	const cardIds = (params.shuffle ?? shuffleArray)(params.cards.map((card) => card.id)).slice(
+		0,
+		Math.max(0, params.questionCount),
+	);
+
+	return createPracticeSession({
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds,
+		startTime: params.startTime ?? Date.now(),
+	});
+}
+
+export function createIncorrectPracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cardIds: string[];
+	startTime?: number;
+	shuffle?: ShuffleCardIds;
+}): PracticeSession {
+	return createPracticeSession({
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds: (params.shuffle ?? shuffleArray)(params.cardIds),
+		startTime: params.startTime ?? Date.now(),
+	});
 }
 
 export function answerPracticeCard(params: {

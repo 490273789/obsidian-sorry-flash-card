@@ -11,7 +11,7 @@ import {
 	getStudyProgress,
 	undoStudyAnswer,
 	type StudySessionFinishIntent,
-} from "../studySessionEngine";
+} from "../sessionEngine";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";

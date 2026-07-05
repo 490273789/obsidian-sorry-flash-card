@@ -10,13 +10,15 @@ import {
 	CardDirection,
 } from "../types";
 import { DataStore } from "../dataStore";
-import { shuffleArray } from "../utils";
-import { createPracticeSession, remapPracticeSessionCards } from "../sessionEngine";
 import {
+	createDayPracticeSession,
+	createIncorrectPracticeSession,
+	createRandomPracticeSession,
 	finishStudySession,
 	remapStudySessionCards,
+	remapPracticeSessionCards,
 	type StudySessionFinishIntent,
-} from "../studySessionEngine";
+} from "../sessionEngine";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
 import { PracticeSetup } from "./PracticeSetup";
@@ -185,15 +187,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		) => {
 			const cards = dataStore.getCardsForDay(deckId, dayIndex);
 			if (cards.length === 0) return;
-			let cardIds = cards.map((c) => c.id);
-			if (studyOrder === "random") {
-				cardIds = shuffleArray(cardIds);
-			}
-			const session = createPracticeSession({
+			const session = createDayPracticeSession({
 				deckId,
 				direction,
-				cardIds,
-				startTime: Date.now(),
+				cards,
+				studyOrder,
 			});
 			setPracticeSession(session);
 			setPracticeResult(null);
@@ -333,14 +331,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			const deck = dataStore.getDeck(deckId);
 			if (!deck) return;
 
-			// Shuffle and select cards
-			const shuffledCards = shuffleArray(deck.cards).slice(0, questionCount);
-
-			const session = createPracticeSession({
+			const session = createRandomPracticeSession({
 				deckId,
 				direction,
-				cardIds: shuffledCards.map((c) => c.id),
-				startTime: Date.now(),
+				cards: deck.cards,
+				questionCount,
 			});
 
 			setPracticeSession(session);
@@ -389,14 +384,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handlePracticeIncorrect = useCallback(() => {
 		if (practiceResult && practiceSession && practiceResult.incorrectCardIds.length > 0) {
-			// Shuffle incorrect cards
-			const shuffledIncorrect = shuffleArray(practiceResult.incorrectCardIds);
-
-			const session = createPracticeSession({
+			const session = createIncorrectPracticeSession({
 				deckId: practiceSession.deckId,
 				direction: practiceSession.direction,
-				cardIds: shuffledIncorrect,
-				startTime: Date.now(),
+				cardIds: practiceResult.incorrectCardIds,
 			});
 
 			setPracticeSession(session);
