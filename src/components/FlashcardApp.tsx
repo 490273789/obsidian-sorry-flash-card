@@ -11,11 +11,12 @@ import {
 } from "../types";
 import { DataStore } from "../dataStore";
 import { shuffleArray } from "../utils";
+import { createPracticeSession, remapPracticeSessionCards } from "../sessionEngine";
 import {
-	createPracticeSession,
-	remapPracticeSessionCards,
+	finishStudySession,
 	remapStudySessionCards,
-} from "../sessionEngine";
+	type StudySessionFinishIntent,
+} from "../studySessionEngine";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
 import { PracticeSetup } from "./PracticeSetup";
@@ -236,6 +237,32 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[app, t],
 	);
 
+	const persistStudySessionFinish = useCallback(
+		async (intent: StudySessionFinishIntent): Promise<void> => {
+			const deck = dataStore.getDeck(intent.deckId);
+			if (intent.incrementStudyCount) {
+				await dataStore.incrementStudyCount(intent.deckId);
+			}
+			await dataStore.recordStudySession(
+				intent.deckId,
+				deck?.name ?? intent.deckId,
+				intent.mode,
+				intent.cardCount,
+				intent.duration,
+			);
+		},
+		[dataStore],
+	);
+
+	const handleStudyComplete = useCallback(
+		async (intent: StudySessionFinishIntent) => {
+			await persistStudySessionFinish(intent);
+			setStudySession(null);
+			setViewState({ type: "home" });
+		},
+		[persistStudySessionFinish],
+	);
+
 	const handleCloseStudy = useCallback(async () => {
 		const confirmed = await confirmAction(
 			t("study.exitTitle"),
@@ -244,21 +271,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		);
 		if (!confirmed) return;
 
-		// Record Study session before clearing state
-		if (studySession && studySession.currentIndex > 0) {
-			const deck = dataStore.getDeck(studySession.deckId);
-			const duration = Math.floor((Date.now() - studySession.startTime) / 1000);
-			void dataStore.recordStudySession(
-				studySession.deckId,
-				deck?.name ?? studySession.deckId,
-				"study",
-				studySession.currentIndex,
-				duration,
-			);
+		if (studySession) {
+			const finishIntent = finishStudySession(studySession, "abandoned");
+			if (finishIntent) {
+				await persistStudySessionFinish(finishIntent);
+			}
 		}
 		setStudySession(null);
 		setViewState({ type: "home" });
-	}, [confirmAction, dataStore, studySession, t]);
+	}, [confirmAction, persistStudySessionFinish, studySession, t]);
 
 	const handleCloseStudyRequest = useCallback(() => {
 		void handleCloseStudy();
@@ -536,6 +557,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						session={studySession}
 						contentVersion={contentVersion}
 						onSessionUpdate={handleSessionUpdate}
+						onComplete={handleStudyComplete}
 						onEditCard={handleOpenEditCard}
 						onDeleteCard={handleDeleteCardRequest}
 						onClose={handleCloseStudyRequest}

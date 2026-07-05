@@ -1,19 +1,4 @@
-import type {
-	CardDirection,
-	CardIdMap,
-	PracticeResult,
-	PracticeSession,
-	StudySession,
-} from "./types";
-
-export type StudySessionStep =
-	| {
-			type: "continue";
-			session: StudySession;
-	  }
-	| {
-			type: "complete";
-	  };
+import type { CardDirection, CardIdMap, PracticeResult, PracticeSession } from "./types";
 
 export type PracticeSessionStep =
 	| {
@@ -40,62 +25,6 @@ export function createPracticeSession(params: {
 		totalQuestions: params.cardIds.length,
 		answers: {},
 		history: [],
-	};
-}
-
-export function answerStudyCard(params: {
-	session: StudySession;
-	cardId: string;
-	repeatInSession: boolean;
-}): StudySessionStep {
-	const session = params.session;
-	const nextSession: StudySession = {
-		...session,
-		cardQueue: [...session.cardQueue],
-		repeatQueue: [...session.repeatQueue],
-		history: [...session.history, params.cardId],
-	};
-
-	if (params.repeatInSession) {
-		nextSession.repeatQueue.push(params.cardId);
-	}
-
-	if (nextSession.currentIndex < nextSession.cardQueue.length - 1) {
-		nextSession.currentIndex++;
-		return {
-			type: "continue",
-			session: nextSession,
-		};
-	}
-
-	if (nextSession.repeatQueue.length > 0) {
-		nextSession.cardQueue = [...nextSession.cardQueue, ...nextSession.repeatQueue];
-		nextSession.repeatQueue = [];
-		nextSession.currentIndex++;
-		return {
-			type: "continue",
-			session: nextSession,
-		};
-	}
-
-	return { type: "complete" };
-}
-
-export function previousStudyCard(session: StudySession): StudySession | null {
-	if (session.history.length === 0) return null;
-
-	const history = [...session.history];
-	const previousCardId = history.pop();
-	if (!previousCardId) return null;
-
-	return {
-		...session,
-		history,
-		cardQueue: [
-			...session.cardQueue.slice(0, session.currentIndex),
-			previousCardId,
-			...session.cardQueue.slice(session.currentIndex),
-		],
 	};
 }
 
@@ -167,22 +96,6 @@ export function previousPracticeCard(session: PracticeSession): PracticeSession 
 		currentIndex: previousIndex,
 		answers,
 		history,
-	};
-}
-
-export function remapStudySessionCards(
-	session: StudySession,
-	idMap: CardIdMap,
-): StudySession | null {
-	const cardQueue = remapCardIds(session.cardQueue, idMap);
-	if (cardQueue.length === 0) return null;
-
-	return {
-		...session,
-		cardQueue,
-		currentIndex: Math.min(session.currentIndex, cardQueue.length - 1),
-		repeatQueue: remapCardIds(session.repeatQueue, idMap),
-		history: remapCardIds(session.history, idMap),
 	};
 }
 

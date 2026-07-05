@@ -24,6 +24,14 @@ _Avoid_: deck file, source cache, parsed deck
 A run through cards that updates the learner's spaced-repetition state.
 _Avoid_: study component state, review UI state
 
+**答题事件**:
+A learner action that grades or answers one card occurrence during a 学习会话 or 刷题会话. Repeated occurrences of the same 卡片 count as separate 答题事件.
+_Avoid_: unique card count, current index
+
+**撤销答题事件**:
+Returning a 学习会话 to the state before its most recent 答题事件, including restoring the affected 卡片 scheduling state.
+_Avoid_: previous button, queue-only back
+
 **刷题会话**:
 A self-test run through cards that records answers and produces a result without changing spaced-repetition state.
 _Avoid_: practice component state, quiz UI state

@@ -1,11 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Brain, PartyPopper, RotateCcw } from "lucide-react";
-import type { Card } from "ts-fsrs";
 import { Deck, FlashCard, StudySession } from "../types";
 import { DataStore } from "../dataStore";
-import { toFSRSRating, getRatingButtons } from "../scheduler";
+import { getRatingButtons } from "../scheduler";
 import { getDisplayCardContent } from "../cardDisplay";
-import { answerStudyCard, previousStudyCard } from "../sessionEngine";
+import {
+	answerStudyCard,
+	canUndoStudyAnswer,
+	getCurrentStudyCardId,
+	getStudyProgress,
+	undoStudyAnswer,
+	type StudySessionFinishIntent,
+} from "../studySessionEngine";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -19,6 +25,7 @@ interface CardViewProps {
 	session: StudySession;
 	contentVersion: number;
 	onSessionUpdate: (session: StudySession) => void;
+	onComplete: (intent: StudySessionFinishIntent) => void | Promise<void>;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
 	onClose: () => void;
@@ -29,8 +36,8 @@ export const CardView: React.FC<CardViewProps> = ({
 	dataStore,
 	deck,
 	session,
-	contentVersion,
 	onSessionUpdate,
+	onComplete,
 	onEditCard,
 	onDeleteCard,
 	onClose,
@@ -43,10 +50,10 @@ export const CardView: React.FC<CardViewProps> = ({
 	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
 
-	const currentCard = useMemo<FlashCard | null>(() => {
-		const cardId = session.cardQueue[session.currentIndex];
-		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
-	}, [contentVersion, session.currentIndex, session.cardQueue, dataStore, deck.id]);
+	const currentCardId = getCurrentStudyCardId(session);
+	const currentCard: FlashCard | null = currentCardId
+		? (dataStore.getCard(deck.id, currentCardId) ?? null)
+		: null;
 	const ratingButtons = useMemo(() => getRatingButtons(language), [language]);
 	const displayContent = useMemo(
 		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
@@ -55,7 +62,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
 	useEffect(() => {
 		setShowAnswer(false);
-	}, [currentCard?.id]);
+	}, [currentCard?.id, session.currentIndex]);
 
 	const handleShowAnswer = useCallback(() => {
 		setShowAnswer(true);
@@ -68,32 +75,17 @@ export const CardView: React.FC<CardViewProps> = ({
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
 
-			const scheduler = dataStore.getScheduler();
-			let updatedCard: Card;
-			let repeatInSession = false;
-
-			if (rating === 5) {
-				// Custom "garbage" rating - 21 days
-				updatedCard = scheduler.rateAsGarbage(currentCard.fsrsCard);
-			} else {
-				const result = scheduler.rateCard(currentCard.fsrsCard, toFSRSRating(rating));
-				updatedCard = result.card;
-				repeatInSession = result.repeatInSession;
-			}
-
-			// Save updated card
-			await dataStore.updateCard(deck.id, currentCard.id, updatedCard);
-
 			const step = answerStudyCard({
 				session,
-				cardId: currentCard.id,
-				repeatInSession,
+				card: currentCard,
+				rating,
+				scheduler: dataStore,
 			});
+			await dataStore.updateCard(deck.id, step.cardUpdate.cardId, step.cardUpdate.fsrsCard);
 
 			if (step.type === "complete") {
-				await dataStore.incrementStudyCount(deck.id);
 				window.setTimeout(() => {
-					onClose();
+					void onComplete(step.finishIntent);
 				}, 300);
 				return;
 			}
@@ -104,28 +96,30 @@ export const CardView: React.FC<CardViewProps> = ({
 				setIsAnimating(false);
 			}, 200);
 		},
-		[currentCard, dataStore, deck.id, onClose, onSessionUpdate, session],
+		[currentCard, dataStore, deck.id, onComplete, onSessionUpdate, session],
 	);
 
-	const handlePrevious = useCallback(() => {
-		if (session.history.length === 0 || isAnimatingRef.current) return;
+	const handlePrevious = useCallback(async () => {
+		if (!canUndoStudyAnswer(session) || isAnimatingRef.current) return;
 
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
-		const newSession = previousStudyCard(session);
-		if (!newSession) {
+		const step = undoStudyAnswer(session);
+		if (!step) {
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 			return;
 		}
 
+		await dataStore.updateCard(deck.id, step.cardUpdate.cardId, step.cardUpdate.fsrsCard);
+
 		window.setTimeout(() => {
-			onSessionUpdate(newSession);
+			onSessionUpdate(step.session);
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
-	}, [onSessionUpdate, session]);
+	}, [dataStore, deck.id, onSessionUpdate, session]);
 
 	useWindowKeyDown((e) => {
 		// Ignore if in input field
@@ -173,7 +167,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			case "Digit6":
 			case "Numpad6":
 				e.preventDefault();
-				handlePrevious();
+				void handlePrevious();
 				break;
 		}
 	});
@@ -197,8 +191,7 @@ export const CardView: React.FC<CardViewProps> = ({
 		);
 	}
 
-	const progress = `${session.currentIndex + 1}/${session.cardQueue.length}`;
-	const progressPercent = ((session.currentIndex + 1) / session.cardQueue.length) * 100;
+	const progress = getStudyProgress(session);
 	const directionLabel =
 		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
 
@@ -209,8 +202,8 @@ export const CardView: React.FC<CardViewProps> = ({
 				deckName={deck.name}
 				statusIcon={Brain}
 				statusLabel={`${t("study.studying")} · ${directionLabel}`}
-				progress={progress}
-				progressPercent={progressPercent}
+				progress={progress.label}
+				progressPercent={progress.percent}
 				startTime={session.startTime}
 				onEdit={() => onEditCard(deck.id, currentCard.id)}
 				onDelete={() => onDeleteCard(deck.id, currentCard.id)}
@@ -276,7 +269,7 @@ export const CardView: React.FC<CardViewProps> = ({
 							icon={RotateCcw}
 							iconSize={24}
 							onClick={handlePrevious}
-							disabled={session.history.length === 0}
+							disabled={!canUndoStudyAnswer(session)}
 							title={`${t("common.undo")} (6)`}
 						/>
 						<div className="flashcard-rating-grid">
