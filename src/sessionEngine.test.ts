@@ -1,27 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
 	answerPracticeCard,
-	answerStudyCard,
 	createPracticeSession,
 	previousPracticeCard,
-	previousStudyCard,
 	remapPracticeSessionCards,
-	remapStudySessionCards,
 } from "./sessionEngine";
-import type { PracticeSession, StudySession } from "./types";
-
-function makeStudySession(overrides: Partial<StudySession> = {}): StudySession {
-	return {
-		deckId: "notes/deck.md",
-		direction: "normal",
-		cardQueue: ["card-1", "card-2", "card-3"],
-		currentIndex: 0,
-		startTime: 1000,
-		repeatQueue: [],
-		history: [],
-		...overrides,
-	};
-}
+import type { PracticeSession } from "./types";
 
 function makePracticeSession(overrides: Partial<PracticeSession> = {}): PracticeSession {
 	return {
@@ -36,101 +20,6 @@ function makePracticeSession(overrides: Partial<PracticeSession> = {}): Practice
 		...overrides,
 	};
 }
-
-describe("study session engine", () => {
-	it("advances study sessions and records history", () => {
-		const result = answerStudyCard({
-			session: makeStudySession(),
-			cardId: "card-1",
-			repeatInSession: false,
-		});
-
-		expect(result).toEqual({
-			type: "continue",
-			session: makeStudySession({
-				currentIndex: 1,
-				history: ["card-1"],
-			}),
-		});
-	});
-
-	it("queues Again cards for in-session repetition", () => {
-		const result = answerStudyCard({
-			session: makeStudySession({
-				currentIndex: 2,
-				repeatQueue: ["card-1"],
-				history: ["card-1", "card-2"],
-			}),
-			cardId: "card-3",
-			repeatInSession: true,
-		});
-
-		expect(result).toEqual({
-			type: "continue",
-			session: makeStudySession({
-				cardQueue: ["card-1", "card-2", "card-3", "card-1", "card-3"],
-				currentIndex: 3,
-				repeatQueue: [],
-				history: ["card-1", "card-2", "card-3"],
-			}),
-		});
-	});
-
-	it("completes study sessions when no cards remain", () => {
-		const result = answerStudyCard({
-			session: makeStudySession({
-				currentIndex: 2,
-				history: ["card-1", "card-2"],
-			}),
-			cardId: "card-3",
-			repeatInSession: false,
-		});
-
-		expect(result).toEqual({ type: "complete" });
-	});
-
-	it("returns to the previous studied card without mutating the original session", () => {
-		const session = makeStudySession({
-			cardQueue: ["card-1", "card-2", "card-3"],
-			currentIndex: 1,
-			history: ["card-1"],
-		});
-
-		expect(previousStudyCard(session)).toEqual(
-			makeStudySession({
-				cardQueue: ["card-1", "card-1", "card-2", "card-3"],
-				currentIndex: 1,
-				history: [],
-			}),
-		);
-		expect(session.history).toEqual(["card-1"]);
-	});
-
-	it("remaps all study card references after card identity changes", () => {
-		const remapped = remapStudySessionCards(
-			makeStudySession({
-				cardQueue: ["card-1", "card-2", "card-3"],
-				currentIndex: 2,
-				repeatQueue: ["card-3"],
-				history: ["card-1", "card-2"],
-			}),
-			{
-				"card-1": "card-1",
-				"card-2": null,
-				"card-3": "card-2",
-			},
-		);
-
-		expect(remapped).toEqual(
-			makeStudySession({
-				cardQueue: ["card-1", "card-2"],
-				currentIndex: 1,
-				repeatQueue: ["card-2"],
-				history: ["card-1"],
-			}),
-		);
-	});
-});
 
 describe("practice session engine", () => {
 	it("creates practice sessions from card ids", () => {

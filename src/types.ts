@@ -7,6 +7,8 @@ export type CardDirection = "normal" | "reversed";
 
 export type CardIdMap = Record<string, string | null>;
 
+export type StudyRating = 1 | 2 | 3 | 4 | 5;
+
 /**
  * Per-deck or global study settings
  */
@@ -119,6 +121,32 @@ export interface StudySession {
 	repeatQueue: string[];
 	/** History of answered cards for "previous" function */
 	history: string[];
+	/** Answer events used for statistics and true undo */
+	answerEvents: StudyAnswerEvent[];
+}
+
+/**
+ * A single answer event in a study session.
+ */
+export interface StudyAnswerEvent {
+	/** Answered card ID */
+	cardId: string;
+	/** Learner rating */
+	rating: StudyRating;
+	/** FSRS state before this answer */
+	previousFsrsCard: Card;
+	/** FSRS state after this answer */
+	nextFsrsCard: Card;
+	/** This answer requeues the card in the same session */
+	repeatInSession: boolean;
+	/** Unix timestamp (ms) when the answer happened */
+	answeredAt: number;
+	/** Current index before this answer */
+	previousCurrentIndex: number;
+	/** Card queue length before this answer */
+	previousCardQueueLength: number;
+	/** Repeat queue before this answer */
+	previousRepeatQueue: string[];
 }
 
 /**

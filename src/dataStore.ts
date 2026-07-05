@@ -12,14 +12,19 @@ import {
 	DEFAULT_SETTINGS,
 	CardDirection,
 	CardIdMap,
+	StudyRating,
 } from "./types";
-import { FSRSScheduler } from "./scheduler";
+import { FSRSScheduler, toFSRSRating } from "./scheduler";
 import { extractFirstTag, parseFileIntoDeck } from "./parser";
 import { shuffleArray } from "./utils";
 import { hasFlashcardSyntax } from "./cardFormat";
 import { editDeckSource } from "./deckSourceEditor";
 import { buildDeckIndex, type DeckIndexSourceFile } from "./deckIndexBuilder";
 import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "./i18n";
+import {
+	createStudySession as createStudySessionState,
+	type StudyCardSchedule,
+} from "./studySessionEngine";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -544,46 +549,28 @@ export class DataStore {
 		const deck = this.decks.get(deckId);
 		if (!deck) return null;
 
-		const now = new Date();
-		const {
-			dailyNewCards,
-			dailyReviewCards,
-			studyOrder: defaultOrder,
-		} = this.getEffectiveStudySettings(deckId);
-		const studyOrder = studyOrderOverride ?? defaultOrder;
-
-		// Separate new cards and due cards
-		const newCards: FlashCard[] = [];
-		const dueCards: FlashCard[] = [];
-
-		for (const card of deck.cards) {
-			if (card.fsrsCard.state === State.New) {
-				newCards.push(card);
-			} else if (card.fsrsCard.due <= now) {
-				dueCards.push(card);
-			}
-		}
-
-		// Limit by daily settings
-		const selectedNew = newCards.slice(0, dailyNewCards);
-		const selectedDue = dueCards.slice(0, dailyReviewCards);
-
-		// Combine cards
-		let cardQueue = [...selectedNew, ...selectedDue].map((c) => c.id);
-
-		// Shuffle if random order
-		if (studyOrder === "random") {
-			cardQueue = shuffleArray(cardQueue);
-		}
-
-		return {
+		return createStudySessionState({
 			deckId,
+			cards: deck.cards,
+			settings: this.getEffectiveStudySettings(deckId),
+			studyOrderOverride,
 			direction,
-			cardQueue,
-			currentIndex: 0,
-			startTime: Date.now(),
-			repeatQueue: [],
-			history: [],
+			shuffle: shuffleArray,
+		});
+	}
+
+	rateStudyCard(card: Card, rating: StudyRating): StudyCardSchedule {
+		if (rating === 5) {
+			return {
+				fsrsCard: this.scheduler.rateAsGarbage(card),
+				repeatInSession: false,
+			};
+		}
+
+		const result = this.scheduler.rateCard(card, toFSRSRating(rating));
+		return {
+			fsrsCard: result.card,
+			repeatInSession: result.repeatInSession,
 		};
 	}
 
