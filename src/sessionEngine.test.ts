@@ -4,6 +4,7 @@ import {
 	createDayPracticeSession,
 	createIncorrectPracticeSession,
 	createPracticeSession,
+	createPracticeSessionFromPlan,
 	createRandomPracticeSession,
 	previousPracticeCard,
 	remapPracticeSessionCards,
@@ -65,6 +66,28 @@ describe("practice session engine", () => {
 			answers: {},
 			history: [],
 		});
+	});
+
+	it("creates practice sessions from plans", () => {
+		expect(
+			createPracticeSessionFromPlan({
+				plan: {
+					source: "random",
+					deckId: "notes/deck.md",
+					direction: "reversed",
+					cardIds: ["card-3", "card-1"],
+					requestedQuestionCount: 10,
+				},
+				startTime: 2500,
+			}),
+		).toEqual(
+			makePracticeSession({
+				direction: "reversed",
+				cardQueue: ["card-3", "card-1"],
+				startTime: 2500,
+				totalQuestions: 2,
+			}),
+		);
 	});
 
 	it("creates day practice sessions from supplied cards and optional random order", () => {
