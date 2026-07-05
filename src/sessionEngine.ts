@@ -6,7 +6,13 @@ import type {
 	PracticeSession,
 	StudySettings,
 } from "./types";
-import { shuffleArray } from "./utils";
+import {
+	planDayPracticeSession,
+	planIncorrectPracticeSession,
+	planRandomPracticeSession,
+	type PracticeSessionPlan,
+	type ShuffleCardIds,
+} from "./practiceSessionPlanner";
 
 export {
 	answerStudyCard,
@@ -24,8 +30,16 @@ export type {
 	StudyCardUpdateIntent,
 	StudySessionFinishIntent,
 } from "./studySessionEngine";
-
-type ShuffleCardIds = (cardIds: string[]) => string[];
+export {
+	planDayPracticeSession,
+	planIncorrectPracticeSession,
+	planRandomPracticeSession,
+} from "./practiceSessionPlanner";
+export type {
+	PracticeSessionPlan,
+	PracticeSessionPlanSource,
+	ShuffleCardIds,
+} from "./practiceSessionPlanner";
 
 export type PracticeSessionStep =
 	| {
@@ -55,6 +69,18 @@ export function createPracticeSession(params: {
 	};
 }
 
+export function createPracticeSessionFromPlan(params: {
+	plan: PracticeSessionPlan;
+	startTime: number;
+}): PracticeSession {
+	return createPracticeSession({
+		deckId: params.plan.deckId,
+		direction: params.plan.direction,
+		cardIds: params.plan.cardIds,
+		startTime: params.startTime,
+	});
+}
+
 export function createDayPracticeSession(params: {
 	deckId: string;
 	direction: CardDirection;
@@ -63,15 +89,16 @@ export function createDayPracticeSession(params: {
 	startTime?: number;
 	shuffle?: ShuffleCardIds;
 }): PracticeSession {
-	let cardIds = params.cards.map((card) => card.id);
-	if (params.studyOrder === "random") {
-		cardIds = (params.shuffle ?? shuffleArray)(cardIds);
-	}
-
-	return createPracticeSession({
+	const plan = planDayPracticeSession({
 		deckId: params.deckId,
 		direction: params.direction,
-		cardIds,
+		cards: params.cards,
+		studyOrder: params.studyOrder,
+		shuffle: params.shuffle,
+	});
+
+	return createPracticeSessionFromPlan({
+		plan,
 		startTime: params.startTime ?? Date.now(),
 	});
 }
@@ -84,15 +111,16 @@ export function createRandomPracticeSession(params: {
 	startTime?: number;
 	shuffle?: ShuffleCardIds;
 }): PracticeSession {
-	const cardIds = (params.shuffle ?? shuffleArray)(params.cards.map((card) => card.id)).slice(
-		0,
-		Math.max(0, params.questionCount),
-	);
-
-	return createPracticeSession({
+	const plan = planRandomPracticeSession({
 		deckId: params.deckId,
 		direction: params.direction,
-		cardIds,
+		cards: params.cards,
+		questionCount: params.questionCount,
+		shuffle: params.shuffle,
+	});
+
+	return createPracticeSessionFromPlan({
+		plan,
 		startTime: params.startTime ?? Date.now(),
 	});
 }
@@ -104,10 +132,15 @@ export function createIncorrectPracticeSession(params: {
 	startTime?: number;
 	shuffle?: ShuffleCardIds;
 }): PracticeSession {
-	return createPracticeSession({
+	const plan = planIncorrectPracticeSession({
 		deckId: params.deckId,
 		direction: params.direction,
-		cardIds: (params.shuffle ?? shuffleArray)(params.cardIds),
+		cardIds: params.cardIds,
+		shuffle: params.shuffle,
+	});
+
+	return createPracticeSessionFromPlan({
+		plan,
 		startTime: params.startTime ?? Date.now(),
 	});
 }
