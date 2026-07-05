@@ -1,11 +1,36 @@
 import { describe, expect, it } from "vitest";
 import {
 	answerPracticeCard,
+	createDayPracticeSession,
+	createIncorrectPracticeSession,
 	createPracticeSession,
+	createRandomPracticeSession,
 	previousPracticeCard,
 	remapPracticeSessionCards,
 } from "./sessionEngine";
-import type { PracticeSession } from "./types";
+import type { FlashCard, PracticeSession } from "./types";
+
+function makeCard(id: string, indexInFile: number): FlashCard {
+	return {
+		id,
+		front: `front ${indexInFile}`,
+		back: `back ${indexInFile}`,
+		fsrsCard: {
+			due: new Date("2026-07-03T00:00:00.000Z"),
+			stability: 0,
+			difficulty: 0,
+			elapsed_days: 0,
+			scheduled_days: 0,
+			reps: 0,
+			lapses: 0,
+			state: 0,
+			last_review: undefined,
+			learning_steps: 0,
+		},
+		sourceFile: "notes/deck.md",
+		indexInFile,
+	};
+}
 
 function makePracticeSession(overrides: Partial<PracticeSession> = {}): PracticeSession {
 	return {
@@ -40,6 +65,68 @@ describe("practice session engine", () => {
 			answers: {},
 			history: [],
 		});
+	});
+
+	it("creates day practice sessions from supplied cards and optional random order", () => {
+		const session = createDayPracticeSession({
+			deckId: "notes/deck.md",
+			direction: "reversed",
+			cards: [makeCard("card-1", 0), makeCard("card-2", 1), makeCard("card-3", 2)],
+			studyOrder: "random",
+			startTime: 2000,
+			shuffle: (ids) => [...ids].reverse(),
+		});
+
+		expect(session).toEqual(
+			makePracticeSession({
+				direction: "reversed",
+				cardQueue: ["card-3", "card-2", "card-1"],
+				startTime: 2000,
+			}),
+		);
+	});
+
+	it("creates random practice sessions by shuffling and limiting supplied cards", () => {
+		const session = createRandomPracticeSession({
+			deckId: "notes/deck.md",
+			direction: "normal",
+			cards: [
+				makeCard("card-1", 0),
+				makeCard("card-2", 1),
+				makeCard("card-3", 2),
+				makeCard("card-4", 3),
+			],
+			questionCount: 2,
+			startTime: 3000,
+			shuffle: (ids) => [...ids].reverse(),
+		});
+
+		expect(session).toEqual(
+			makePracticeSession({
+				cardQueue: ["card-4", "card-3"],
+				startTime: 3000,
+				totalQuestions: 2,
+			}),
+		);
+	});
+
+	it("creates incorrect-card practice sessions from supplied card identities", () => {
+		const session = createIncorrectPracticeSession({
+			deckId: "notes/deck.md",
+			direction: "reversed",
+			cardIds: ["card-1", "card-3"],
+			startTime: 4000,
+			shuffle: (ids) => [...ids].reverse(),
+		});
+
+		expect(session).toEqual(
+			makePracticeSession({
+				direction: "reversed",
+				cardQueue: ["card-3", "card-1"],
+				startTime: 4000,
+				totalQuestions: 2,
+			}),
+		);
 	});
 
 	it("advances practice sessions and records answers", () => {

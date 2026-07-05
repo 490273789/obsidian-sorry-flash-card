@@ -16,7 +16,6 @@ import {
 } from "./types";
 import { FSRSScheduler, toFSRSRating } from "./scheduler";
 import { extractFirstTag, parseFileIntoDeck } from "./parser";
-import { shuffleArray } from "./utils";
 import { hasFlashcardSyntax } from "./cardFormat";
 import { editDeckSource } from "./deckSourceEditor";
 import { buildDeckIndex, type DeckIndexSourceFile } from "./deckIndexBuilder";
@@ -24,7 +23,7 @@ import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguag
 import {
 	createStudySession as createStudySessionState,
 	type StudyCardSchedule,
-} from "./studySessionEngine";
+} from "./sessionEngine";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -555,7 +554,6 @@ export class DataStore {
 			settings: this.getEffectiveStudySettings(deckId),
 			studyOrderOverride,
 			direction,
-			shuffle: shuffleArray,
 		});
 	}
 
