@@ -13,6 +13,7 @@ import { DataStore } from "../dataStore";
 import {
 	createDayPracticeSession,
 	createIncorrectPracticeSession,
+	createRangePracticeSession,
 	createRandomPracticeSession,
 	finishStudySession,
 	remapStudySessionCards,
@@ -21,7 +22,7 @@ import {
 } from "../sessionEngine";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
-import { PracticeSetup } from "./PracticeSetup";
+import { PracticeSetup, type PracticeStartOptions } from "./PracticeSetup";
 import { PracticeView } from "./PracticeView";
 import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
@@ -327,16 +328,25 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	);
 
 	const handleStartPractice = useCallback(
-		(deckId: string, questionCount: number, direction: CardDirection) => {
+		(deckId: string, options: PracticeStartOptions) => {
 			const deck = dataStore.getDeck(deckId);
 			if (!deck) return;
 
-			const session = createRandomPracticeSession({
-				deckId,
-				direction,
-				cards: deck.cards,
-				questionCount,
-			});
+			const session =
+				options.mode === "range"
+					? createRangePracticeSession({
+							deckId,
+							direction: options.direction,
+							cards: deck.cards,
+							startIndex: options.startIndex,
+							endIndex: options.endIndex,
+						})
+					: createRandomPracticeSession({
+							deckId,
+							direction: options.direction,
+							cards: deck.cards,
+							questionCount: options.questionCount,
+						});
 
 			setPracticeSession(session);
 			setPracticeResult(null);
@@ -571,8 +581,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 								? practiceSession.direction
 								: "normal"
 						}
-						onStartPractice={(count, direction) =>
-							handleStartPractice(viewState.deckId, count, direction)
+						onStartPractice={(options) =>
+							handleStartPractice(viewState.deckId, options)
 						}
 						onBack={handleBackHome}
 					/>

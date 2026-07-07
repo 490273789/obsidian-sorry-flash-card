@@ -9,6 +9,7 @@ import type {
 import {
 	planDayPracticeSession,
 	planIncorrectPracticeSession,
+	planRangePracticeSession,
 	planRandomPracticeSession,
 	type PracticeSessionPlan,
 	type ShuffleCardIds,
@@ -33,6 +34,7 @@ export type {
 export {
 	planDayPracticeSession,
 	planIncorrectPracticeSession,
+	planRangePracticeSession,
 	planRandomPracticeSession,
 } from "./practiceSessionPlanner";
 export type {
@@ -116,6 +118,30 @@ export function createRandomPracticeSession(params: {
 		direction: params.direction,
 		cards: params.cards,
 		questionCount: params.questionCount,
+		shuffle: params.shuffle,
+	});
+
+	return createPracticeSessionFromPlan({
+		plan,
+		startTime: params.startTime ?? Date.now(),
+	});
+}
+
+export function createRangePracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cards: FlashCard[];
+	startIndex: number;
+	endIndex: number;
+	startTime?: number;
+	shuffle?: ShuffleCardIds;
+}): PracticeSession {
+	const plan = planRangePracticeSession({
+		deckId: params.deckId,
+		direction: params.direction,
+		cards: params.cards,
+		startIndex: params.startIndex,
+		endIndex: params.endIndex,
 		shuffle: params.shuffle,
 	});
 

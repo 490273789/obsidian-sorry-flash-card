@@ -1006,6 +1006,7 @@
 }
 .flashcard-study-order-options,
 .flashcard-direction-options,
+.flashcard-practice-mode-options,
 .flashcard-practice-quick-buttons {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1019,7 +1020,8 @@
 	grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
 }
 .flashcard-study-order-btn,
-.flashcard-direction-btn {
+.flashcard-direction-btn,
+.flashcard-practice-mode-btn {
 	min-height: 46px;
 }
 .flashcard-practice-quick-btn {
@@ -1118,6 +1120,22 @@
 	border: 1px solid rgba(139, 159, 181, 0.18);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(16, 21, 33, 0.74);
+}
+.flashcard-practice-range-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-2);
+}
+.flashcard-practice-range-inputs {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--fc-space-2);
+}
+.flashcard-practice-range-summary {
+	padding: 0 var(--fc-space-1);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	line-height: 1.5;
 }
 .flashcard-practice-input-label,
 .flashcard-practice-input-hint {
@@ -3229,6 +3247,8 @@
 
 	.flashcard-study-order-options,
 	.flashcard-direction-options,
+	.flashcard-practice-mode-options,
+	.flashcard-practice-range-inputs,
 	.flashcard-practice-quick-buttons,
 	.flashcard-practice-stat-row,
 	.flashcard-practice-summary-actions {

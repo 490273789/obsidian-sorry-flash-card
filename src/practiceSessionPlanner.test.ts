@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	planDayPracticeSession,
 	planIncorrectPracticeSession,
+	planRangePracticeSession,
 	planRandomPracticeSession,
 } from "./practiceSessionPlanner";
 import type { FlashCard } from "./types";
@@ -103,6 +104,68 @@ describe("practice session planner", () => {
 			direction: "normal",
 			cardIds: [],
 			requestedQuestionCount: -3,
+		});
+	});
+
+	it("plans range practice from 1-based inclusive indexes before shuffling", () => {
+		const plan = planRangePracticeSession({
+			deckId: "notes/deck.md",
+			direction: "normal",
+			cards: [
+				makeCard("card-1", 0),
+				makeCard("card-2", 1),
+				makeCard("card-3", 2),
+				makeCard("card-4", 3),
+				makeCard("card-5", 4),
+			],
+			startIndex: 2,
+			endIndex: 4,
+			shuffle: (ids) => [...ids].reverse(),
+		});
+
+		expect(plan).toEqual({
+			source: "range",
+			deckId: "notes/deck.md",
+			direction: "normal",
+			cardIds: ["card-4", "card-3", "card-2"],
+			requestedCardRange: {
+				startIndex: 2,
+				endIndex: 4,
+			},
+		});
+	});
+
+	it("clamps range practice to available cards", () => {
+		const plan = planRangePracticeSession({
+			deckId: "notes/deck.md",
+			direction: "reversed",
+			cards: [makeCard("card-1", 0), makeCard("card-2", 1), makeCard("card-3", 2)],
+			startIndex: 0,
+			endIndex: 99,
+			shuffle: (ids) => [...ids],
+		});
+
+		expect(plan.cardIds).toEqual(["card-1", "card-2", "card-3"]);
+		expect(plan.requestedCardRange).toEqual({
+			startIndex: 0,
+			endIndex: 99,
+		});
+	});
+
+	it("returns an empty range practice plan when the normalized range is invalid", () => {
+		const plan = planRangePracticeSession({
+			deckId: "notes/deck.md",
+			direction: "normal",
+			cards: [makeCard("card-1", 0), makeCard("card-2", 1)],
+			startIndex: 3,
+			endIndex: 1,
+			shuffle: (ids) => [...ids].reverse(),
+		});
+
+		expect(plan.cardIds).toEqual([]);
+		expect(plan.requestedCardRange).toEqual({
+			startIndex: 3,
+			endIndex: 1,
 		});
 	});
 
