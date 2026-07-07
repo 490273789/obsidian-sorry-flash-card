@@ -1,6 +1,6 @@
 # CSS Structure
 
-`index.css` is the only CSS entry imported by `src/main.ts`. Vite follows these imports and emits the root `styles.css` artifact that Obsidian loads.
+`index.css` is the only CSS entry imported by `src/obsidian/main.ts`. Vite follows these imports and emits the root `styles.css` artifact that Obsidian loads.
 
 Keep the import order stable:
 

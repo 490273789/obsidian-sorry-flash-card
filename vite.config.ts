@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => {
 		build: {
 			copyPublicDir: false,
 			lib: {
-				entry: resolve(projectRoot, "src/main.ts"),
+				entry: resolve(projectRoot, "src/obsidian/main.ts"),
 				formats: ["cjs"],
 				cssFileName: "styles",
 				fileName: () => bundledFileName,
