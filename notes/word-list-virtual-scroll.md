@@ -1,6 +1,6 @@
 # 单词列表虚拟滚动实现说明
 
-本文档记录 `src/components/WordListView.tsx` 中单词列表虚拟滚动的实现逻辑，方便后续维护和学习。
+本文档记录 `src/ui/components/WordListView.tsx` 中单词列表虚拟滚动的实现逻辑，方便后续维护和学习。
 
 ## 背景问题
 
