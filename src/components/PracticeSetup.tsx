@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { Target, Shuffle, ChartBar, CircleX, SlidersHorizontal, Repeat2 } from "lucide-react";
+import {
+	Target,
+	Shuffle,
+	ChartBar,
+	CircleX,
+	SlidersHorizontal,
+	Repeat2,
+	ListOrdered,
+} from "lucide-react";
 import { CardDirection, Deck } from "../types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
@@ -7,10 +15,25 @@ import { useI18n } from "./I18nContext";
 
 const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
+type PracticeSelectionMode = "random-count" | "range";
+
+export type PracticeStartOptions =
+	| {
+			mode: "random-count";
+			questionCount: number;
+			direction: CardDirection;
+	  }
+	| {
+			mode: "range";
+			startIndex: number;
+			endIndex: number;
+			direction: CardDirection;
+	  };
+
 interface PracticeSetupProps {
 	deck: Deck;
 	defaultDirection: CardDirection;
-	onStartPractice: (questionCount: number, direction: CardDirection) => void;
+	onStartPractice: (options: PracticeStartOptions) => void;
 	onBack: () => void;
 }
 
@@ -22,10 +45,18 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 }) => {
 	const { t } = useI18n();
 	const maxQuestions = deck.cards.length;
-	const [questionCount, setQuestionCount] = useState(Math.min(50, maxQuestions));
-	const coverage = maxQuestions > 0 ? Math.round((questionCount / maxQuestions) * 100) : 0;
-	const [inputValue, setInputValue] = useState(Math.min(50, maxQuestions).toString());
+	const defaultQuestionCount = Math.min(50, maxQuestions);
+	const [selectionMode, setSelectionMode] = useState<PracticeSelectionMode>("random-count");
+	const [questionCount, setQuestionCount] = useState(defaultQuestionCount);
+	const [inputValue, setInputValue] = useState(defaultQuestionCount.toString());
+	const [rangeStart, setRangeStart] = useState(1);
+	const [rangeEnd, setRangeEnd] = useState(defaultQuestionCount);
+	const [rangeStartInput, setRangeStartInput] = useState("1");
+	const [rangeEndInput, setRangeEndInput] = useState(defaultQuestionCount.toString());
 	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
+	const rangeQuestionCount = Math.max(0, rangeEnd - rangeStart + 1);
+	const currentQuestionCount = selectionMode === "range" ? rangeQuestionCount : questionCount;
+	const coverage = maxQuestions > 0 ? Math.round((currentQuestionCount / maxQuestions) * 100) : 0;
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
@@ -51,8 +82,24 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	};
 
 	const handleStart = () => {
+		if (selectionMode === "range") {
+			if (rangeQuestionCount >= 1 && rangeEnd <= maxQuestions) {
+				onStartPractice({
+					mode: "range",
+					startIndex: rangeStart,
+					endIndex: rangeEnd,
+					direction,
+				});
+			}
+			return;
+		}
+
 		if (questionCount >= 1 && questionCount <= maxQuestions) {
-			onStartPractice(questionCount, direction);
+			onStartPractice({
+				mode: "random-count",
+				questionCount,
+				direction,
+			});
 		}
 	};
 
@@ -60,6 +107,50 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 		const actualCount = Math.min(count, maxQuestions);
 		setQuestionCount(actualCount);
 		setInputValue(actualCount.toString());
+	};
+
+	const syncRange = (start: number, end: number) => {
+		setRangeStart(start);
+		setRangeEnd(end);
+		setRangeStartInput(start.toString());
+		setRangeEndInput(end.toString());
+	};
+
+	const handleRangeStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		setRangeStartInput(value);
+
+		const num = parseInt(value, 10);
+		if (!isNaN(num) && num >= 1) {
+			const normalizedStart = Math.min(num, maxQuestions);
+			const normalizedEnd = Math.max(rangeEnd, normalizedStart);
+			syncRange(normalizedStart, normalizedEnd);
+		}
+	};
+
+	const handleRangeEndChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value;
+		setRangeEndInput(value);
+
+		const num = parseInt(value, 10);
+		if (!isNaN(num) && num >= 1) {
+			const normalizedEnd = Math.min(Math.max(num, rangeStart), maxQuestions);
+			syncRange(rangeStart, normalizedEnd);
+		}
+	};
+
+	const handleRangeBlur = () => {
+		const parsedStart = parseInt(rangeStartInput, 10);
+		const parsedEnd = parseInt(rangeEndInput, 10);
+		const normalizedStart =
+			isNaN(parsedStart) || parsedStart < 1
+				? rangeStart
+				: Math.min(parsedStart, maxQuestions);
+		const normalizedEnd =
+			isNaN(parsedEnd) || parsedEnd < normalizedStart
+				? normalizedStart
+				: Math.min(parsedEnd, maxQuestions);
+		syncRange(normalizedStart, normalizedEnd);
 	};
 
 	return (
@@ -85,14 +176,18 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							<span className="flashcard-study-hero-pill-label">
 								{t("practice.pickMethod")}
 							</span>
-							<strong>{t("practice.randomPick")}</strong>
+							<strong>
+								{selectionMode === "range"
+									? t("practice.rangePick")
+									: t("practice.randomPick")}
+							</strong>
 						</div>
 						<div className="flashcard-study-hero-pill">
 							<span className="flashcard-study-hero-pill-label">
 								{t("practice.currentCount")}
 							</span>
 							<strong>
-								{questionCount} {t("common.questions")}
+								{currentQuestionCount} {t("common.questions")}
 							</strong>
 						</div>
 						<div className="flashcard-study-hero-pill">
@@ -114,7 +209,7 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					</div>
 					<div className=" flashcard-stat-card">
 						<span className="flashcard-stat-caption">{t("practice.currentCount")}</span>
-						<span className="flashcard-stat-value blue">{questionCount}</span>
+						<span className="flashcard-stat-value blue">{currentQuestionCount}</span>
 						<span className="flashcard-stat-label">
 							{t("practice.currentSelection")}
 						</span>
@@ -135,43 +230,105 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 							{t("practice.chooseCountNote")}
 						</div>
 					</div>
-					{/* flashcard-practice-quick-btn */}
-					<div className="flashcard-practice-quick-buttons">
-						{QUICK_QUESTION_COUNTS.map((count) => (
-							<FlashcardButton
-								key={count}
-								className="flashcard-active-orang"
-								active={questionCount === Math.min(count, maxQuestions)}
-								onClick={() => handleQuickSelect(count)}
-								disabled={count > maxQuestions && count !== maxQuestions}
-							>
-								{count > maxQuestions ? maxQuestions : count}
-							</FlashcardButton>
-						))}
+					<div className="flashcard-practice-mode-options">
 						<FlashcardButton
-							className="flashcard-practice-quick-btn"
-							active={questionCount === maxQuestions}
-							onClick={() => handleQuickSelect(maxQuestions)}
+							className="flashcard-practice-mode-btn"
+							active={selectionMode === "random-count"}
+							onClick={() => setSelectionMode("random-count")}
 						>
-							{t("common.all")}
+							<Shuffle size={16} /> {t("practice.modeRandomCount")}
+						</FlashcardButton>
+						<FlashcardButton
+							className="flashcard-practice-mode-btn"
+							active={selectionMode === "range"}
+							onClick={() => setSelectionMode("range")}
+						>
+							<ListOrdered size={16} /> {t("practice.modeRange")}
 						</FlashcardButton>
 					</div>
+					{/* flashcard-practice-quick-btn */}
+					{selectionMode === "random-count" ? (
+						<>
+							<div className="flashcard-practice-quick-buttons">
+								{QUICK_QUESTION_COUNTS.map((count) => (
+									<FlashcardButton
+										key={count}
+										className="flashcard-active-orang"
+										active={questionCount === Math.min(count, maxQuestions)}
+										onClick={() => handleQuickSelect(count)}
+										disabled={count > maxQuestions && count !== maxQuestions}
+									>
+										{count > maxQuestions ? maxQuestions : count}
+									</FlashcardButton>
+								))}
+								<FlashcardButton
+									className="flashcard-practice-quick-btn"
+									active={questionCount === maxQuestions}
+									onClick={() => handleQuickSelect(maxQuestions)}
+								>
+									{t("common.all")}
+								</FlashcardButton>
+							</div>
 
-					<div className="flashcard-practice-input-group">
-						<span className="flashcard-practice-input-label">
-							{t("practice.customCount")}
-						</span>
-						<input
-							type="number"
-							className="flashcard-practice-input"
-							value={inputValue}
-							onChange={handleInputChange}
-							onBlur={handleInputBlur}
-							min={1}
-							max={maxQuestions}
-						/>
-						<span className="flashcard-practice-input-hint">(1 - {maxQuestions})</span>
-					</div>
+							<div className="flashcard-practice-input-group">
+								<span className="flashcard-practice-input-label">
+									{t("practice.customCount")}
+								</span>
+								<input
+									type="number"
+									className="flashcard-practice-input"
+									value={inputValue}
+									onChange={handleInputChange}
+									onBlur={handleInputBlur}
+									min={1}
+									max={maxQuestions}
+								/>
+								<span className="flashcard-practice-input-hint">
+									(1 - {maxQuestions})
+								</span>
+							</div>
+						</>
+					) : (
+						<div className="flashcard-practice-range-group">
+							<div className="flashcard-practice-range-inputs">
+								<label className="flashcard-practice-input-group">
+									<span className="flashcard-practice-input-label">
+										{t("practice.rangeStart")}
+									</span>
+									<input
+										type="number"
+										className="flashcard-practice-input"
+										value={rangeStartInput}
+										onChange={handleRangeStartChange}
+										onBlur={handleRangeBlur}
+										min={1}
+										max={maxQuestions}
+									/>
+								</label>
+								<label className="flashcard-practice-input-group">
+									<span className="flashcard-practice-input-label">
+										{t("practice.rangeEnd")}
+									</span>
+									<input
+										type="number"
+										className="flashcard-practice-input"
+										value={rangeEndInput}
+										onChange={handleRangeEndChange}
+										onBlur={handleRangeBlur}
+										min={rangeStart}
+										max={maxQuestions}
+									/>
+								</label>
+							</div>
+							<div className="flashcard-practice-range-summary">
+								{t("practice.rangeSummary", {
+									start: rangeStart,
+									end: rangeEnd,
+									count: rangeQuestionCount,
+								})}
+							</div>
+						</div>
+					)}
 				</div>
 
 				<div className="flashcard-study-panel flashcard-direction-section">
@@ -232,20 +389,25 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					<div>
 						<div className="flashcard-study-action-title">
 							{t("practice.challenge", {
-								count: questionCount,
+								count: currentQuestionCount,
 							})}
 						</div>
 						<div className="flashcard-study-action-subtitle">
-							{t("practice.actionSubtitle")}
+							{selectionMode === "range"
+								? t("practice.rangeActionSubtitle", {
+										start: rangeStart,
+										end: rangeEnd,
+									})
+								: t("practice.actionSubtitle")}
 						</div>
 					</div>
 					<FlashcardButton
 						variant="green"
 						onClick={handleStart}
-						disabled={maxQuestions === 0}
+						disabled={maxQuestions === 0 || currentQuestionCount < 1}
 					>
 						{t("practice.startQuestions", {
-							count: questionCount,
+							count: currentQuestionCount,
 						})}
 					</FlashcardButton>
 				</div>

@@ -1,7 +1,7 @@
 import type { CardDirection, FlashCard, StudySettings } from "./types";
 import { shuffleArray } from "./utils";
 
-export type PracticeSessionPlanSource = "study-day" | "random" | "incorrect-retry";
+export type PracticeSessionPlanSource = "study-day" | "random" | "range" | "incorrect-retry";
 
 export type ShuffleCardIds = (cardIds: string[]) => string[];
 
@@ -11,6 +11,10 @@ export interface PracticeSessionPlan {
 	direction: CardDirection;
 	cardIds: string[];
 	requestedQuestionCount?: number;
+	requestedCardRange?: {
+		startIndex: number;
+		endIndex: number;
+	};
 	studyOrder?: StudySettings["studyOrder"];
 }
 
@@ -55,6 +59,30 @@ export function planRandomPracticeSession(params: {
 	};
 }
 
+export function planRangePracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cards: FlashCard[];
+	startIndex: number;
+	endIndex: number;
+	shuffle?: ShuffleCardIds;
+}): PracticeSessionPlan {
+	const range = normalizeCardRange(params.startIndex, params.endIndex, params.cards.length);
+	const rangedCards = range ? params.cards.slice(range.startIndex - 1, range.endIndex) : [];
+	const cardIds = (params.shuffle ?? shuffleArray)(getCardIds(rangedCards));
+
+	return {
+		source: "range",
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds,
+		requestedCardRange: {
+			startIndex: params.startIndex,
+			endIndex: params.endIndex,
+		},
+	};
+}
+
 export function planIncorrectPracticeSession(params: {
 	deckId: string;
 	direction: CardDirection;
@@ -76,4 +104,28 @@ function getCardIds(cards: FlashCard[]): string[] {
 function normalizeQuestionLimit(questionCount: number): number {
 	if (!Number.isFinite(questionCount)) return 0;
 	return Math.max(0, Math.floor(questionCount));
+}
+
+function normalizeCardRange(
+	startIndex: number,
+	endIndex: number,
+	cardCount: number,
+): { startIndex: number; endIndex: number } | null {
+	if (
+		!Number.isFinite(startIndex) ||
+		!Number.isFinite(endIndex) ||
+		!Number.isFinite(cardCount) ||
+		cardCount < 1
+	) {
+		return null;
+	}
+
+	const normalizedStart = Math.max(1, Math.floor(startIndex));
+	const normalizedEnd = Math.min(cardCount, Math.floor(endIndex));
+	if (normalizedStart > normalizedEnd) return null;
+
+	return {
+		startIndex: normalizedStart,
+		endIndex: normalizedEnd,
+	};
 }

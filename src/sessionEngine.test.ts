@@ -5,6 +5,7 @@ import {
 	createIncorrectPracticeSession,
 	createPracticeSession,
 	createPracticeSessionFromPlan,
+	createRangePracticeSession,
 	createRandomPracticeSession,
 	previousPracticeCard,
 	remapPracticeSessionCards,
@@ -129,6 +130,31 @@ describe("practice session engine", () => {
 				cardQueue: ["card-4", "card-3"],
 				startTime: 3000,
 				totalQuestions: 2,
+			}),
+		);
+	});
+
+	it("creates range practice sessions from a 1-based inclusive card range", () => {
+		const session = createRangePracticeSession({
+			deckId: "notes/deck.md",
+			direction: "normal",
+			cards: [
+				makeCard("card-1", 0),
+				makeCard("card-2", 1),
+				makeCard("card-3", 2),
+				makeCard("card-4", 3),
+			],
+			startIndex: 2,
+			endIndex: 4,
+			startTime: 3500,
+			shuffle: (ids) => [...ids].reverse(),
+		});
+
+		expect(session).toEqual(
+			makePracticeSession({
+				cardQueue: ["card-4", "card-3", "card-2"],
+				startTime: 3500,
+				totalQuestions: 3,
 			}),
 		);
 	});
