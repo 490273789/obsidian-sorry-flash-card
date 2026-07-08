@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw, Target, X, Check } from "lucide-react";
 import { Deck, FlashCard, PracticeSession, PracticeResult } from "../../shared/types";
-import { DataStore } from "../../storage/dataStore";
 import { getDisplayCardContent } from "../../cards/cardDisplay";
-import { answerPracticeCard, previousPracticeCard } from "../../sessions/sessionEngine";
+import type { PracticeSessionRuntime } from "../../sessions/practiceSessionRuntime";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -11,10 +10,9 @@ import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
 
 interface PracticeViewProps {
-	dataStore: DataStore;
+	practiceRuntime: PracticeSessionRuntime;
 	deck: Deck;
 	session: PracticeSession;
-	contentVersion: number;
 	onSessionUpdate: (session: PracticeSession) => void;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
@@ -24,10 +22,9 @@ interface PracticeViewProps {
 }
 
 export const PracticeView: React.FC<PracticeViewProps> = ({
-	dataStore,
+	practiceRuntime,
 	deck,
 	session,
-	contentVersion,
 	onSessionUpdate,
 	onEditCard,
 	onDeleteCard,
@@ -40,10 +37,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
 
-	const currentCard = useMemo<FlashCard | null>(() => {
-		const cardId = session.cardQueue[session.currentIndex];
-		return cardId ? (dataStore.getCard(deck.id, cardId) ?? null) : null;
-	}, [contentVersion, session.currentIndex, session.cardQueue, dataStore, deck.id]);
+	const currentCard: FlashCard | null = practiceRuntime.getCurrentCard(session);
 	const displayContent = useMemo(
 		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
 		[currentCard, session.direction],
@@ -58,18 +52,18 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	}, []);
 
 	const handleAnswer = useCallback(
-		(isCorrect: boolean) => {
+		async (isCorrect: boolean) => {
 			if (!currentCard || isAnimatingRef.current) return;
 
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
 
-			const step = answerPracticeCard({
-				session,
-				cardId: currentCard.id,
-				isCorrect,
-				now: Date.now(),
-			});
+			const step = await practiceRuntime.answer(session, isCorrect);
+			if (!step) {
+				isAnimatingRef.current = false;
+				setIsAnimating(false);
+				return;
+			}
 
 			if (step.type === "continue") {
 				window.setTimeout(() => {
@@ -83,7 +77,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 				}, 300);
 			}
 		},
-		[currentCard, onComplete, onSessionUpdate, session],
+		[currentCard, onComplete, onSessionUpdate, practiceRuntime, session],
 	);
 
 	const handlePrevious = useCallback(() => {
@@ -92,7 +86,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
-		const newSession = previousPracticeCard(session);
+		const newSession = practiceRuntime.previous(session);
 		if (!newSession) {
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
@@ -104,7 +98,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
-	}, [onSessionUpdate, session]);
+	}, [onSessionUpdate, practiceRuntime, session]);
 
 	useWindowKeyDown((e) => {
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -124,14 +118,14 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			case "Numpad1":
 			case "KeyX":
 				e.preventDefault();
-				handleAnswer(false);
+				void handleAnswer(false);
 				break;
 			case "Digit2":
 			case "Numpad2":
 			case "KeyO":
 			case "Space":
 				e.preventDefault();
-				handleAnswer(true);
+				void handleAnswer(true);
 				break;
 			case "Digit6":
 			case "Numpad6":
@@ -235,7 +229,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						<div className="flashcard-practice-answer-buttons">
 							<FlashcardButton
 								preset="practice-wrong"
-								onClick={() => handleAnswer(false)}
+								onClick={() => void handleAnswer(false)}
 							>
 								<span className="flashcard-practice-btn-icon">
 									<X size={18} />
@@ -249,7 +243,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 							</FlashcardButton>
 							<FlashcardButton
 								preset="practice-correct"
-								onClick={() => handleAnswer(true)}
+								onClick={() => void handleAnswer(true)}
 							>
 								<span className="flashcard-practice-btn-icon">
 									<Check size={18} />

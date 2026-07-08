@@ -9,6 +9,7 @@ import {
 	ListOrdered,
 } from "lucide-react";
 import { CardDirection, Deck } from "../../shared/types";
+import type { PracticeSessionStartOptions } from "../../sessions/practiceSessionRuntime";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
@@ -17,23 +18,10 @@ const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
 type PracticeSelectionMode = "random-count" | "range";
 
-export type PracticeStartOptions =
-	| {
-			mode: "random-count";
-			questionCount: number;
-			direction: CardDirection;
-	  }
-	| {
-			mode: "range";
-			startIndex: number;
-			endIndex: number;
-			direction: CardDirection;
-	  };
-
 interface PracticeSetupProps {
 	deck: Deck;
 	defaultDirection: CardDirection;
-	onStartPractice: (options: PracticeStartOptions) => void;
+	onStartPractice: (options: PracticeSessionStartOptions) => void;
 	onBack: () => void;
 }
 

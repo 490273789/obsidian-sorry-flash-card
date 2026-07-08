@@ -11,16 +11,13 @@ import {
 } from "../../shared/types";
 import { DataStore } from "../../storage/dataStore";
 import {
-	createDayPracticeSession,
-	createIncorrectPracticeSession,
-	createRangePracticeSession,
-	createRandomPracticeSession,
-	remapPracticeSessionCards,
-} from "../../sessions/sessionEngine";
+	createPracticeSessionRuntime,
+	type PracticeSessionStartOptions,
+} from "../../sessions/practiceSessionRuntime";
 import { createStudySessionRuntime } from "../../sessions/studySessionRuntime";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
-import { PracticeSetup, type PracticeStartOptions } from "./PracticeSetup";
+import { PracticeSetup } from "./PracticeSetup";
 import { PracticeView } from "./PracticeView";
 import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
@@ -71,6 +68,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const decks = dataStore.getAllDecks();
 	const studyRuntime = useMemo(() => createStudySessionRuntime(dataStore), [dataStore]);
+	const practiceRuntime = useMemo(() => createPracticeSessionRuntime(dataStore), [dataStore]);
 
 	// Markdown renderer function
 	const renderMarkdown = useCallback(
@@ -185,19 +183,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			studyOrder: "sequential" | "random",
 			direction: CardDirection,
 		) => {
-			const cards = dataStore.getCardsForDay(deckId, dayIndex);
-			if (cards.length === 0) return;
-			const session = createDayPracticeSession({
+			const session = practiceRuntime.createDaySession({
 				deckId,
+				dayIndex,
 				direction,
-				cards,
 				studyOrder,
 			});
+			if (!session) return;
 			setPracticeSession(session);
 			setPracticeResult(null);
 			setViewState({ type: "practice", deckId });
 		},
-		[dataStore],
+		[practiceRuntime],
 	);
 
 	const confirmAction = useCallback(
@@ -303,31 +300,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	);
 
 	const handleStartPractice = useCallback(
-		(deckId: string, options: PracticeStartOptions) => {
-			const deck = dataStore.getDeck(deckId);
-			if (!deck) return;
-
-			const session =
-				options.mode === "range"
-					? createRangePracticeSession({
-							deckId,
-							direction: options.direction,
-							cards: deck.cards,
-							startIndex: options.startIndex,
-							endIndex: options.endIndex,
-						})
-					: createRandomPracticeSession({
-							deckId,
-							direction: options.direction,
-							cards: deck.cards,
-							questionCount: options.questionCount,
-						});
+		(deckId: string, options: PracticeSessionStartOptions) => {
+			const session = practiceRuntime.createSession(deckId, options);
+			if (!session) return;
 
 			setPracticeSession(session);
 			setPracticeResult(null);
 			setViewState({ type: "practice", deckId });
 		},
-		[dataStore],
+		[practiceRuntime],
 	);
 
 	const handlePracticeSessionUpdate = useCallback((session: PracticeSession) => {
@@ -336,17 +317,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handlePracticeComplete = useCallback(
 		(result: PracticeResult) => {
-			// Record Practice session
-			if (practiceSession) {
-				const deck = dataStore.getDeck(practiceSession.deckId);
-				void dataStore.recordStudySession(
-					practiceSession.deckId,
-					deck?.name ?? practiceSession.deckId,
-					"practice",
-					result.totalQuestions,
-					result.timeSpent,
-				);
-			}
 			setPracticeResult(result);
 			if (practiceSession) {
 				setViewState({
@@ -355,7 +325,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				});
 			}
 		},
-		[dataStore, practiceSession],
+		[practiceSession],
 	);
 
 	const handlePracticeRestart = useCallback(() => {
@@ -369,17 +339,14 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handlePracticeIncorrect = useCallback(() => {
 		if (practiceResult && practiceSession && practiceResult.incorrectCardIds.length > 0) {
-			const session = createIncorrectPracticeSession({
-				deckId: practiceSession.deckId,
-				direction: practiceSession.direction,
-				cardIds: practiceResult.incorrectCardIds,
-			});
+			const session = practiceRuntime.createIncorrectSession(practiceSession, practiceResult);
+			if (!session) return;
 
 			setPracticeSession(session);
 			setPracticeResult(null);
 			setViewState({ type: "practice", deckId: practiceSession.deckId });
 		}
-	}, [practiceResult, practiceSession]);
+	}, [practiceResult, practiceRuntime, practiceSession]);
 
 	const handlePracticeClose = useCallback(() => {
 		setPracticeSession(null);
@@ -417,7 +384,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					if (!currentSession || currentSession.deckId !== deckId) {
 						return currentSession;
 					}
-					const nextSession = remapPracticeSessionCards(currentSession, idMap);
+					const nextSession = practiceRuntime.remapSessionCards(currentSession, idMap);
 					if (!nextSession) {
 						setViewState({ type: "home" });
 						setPracticeResult(null);
@@ -431,7 +398,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[dataStore, confirmAction, studyRuntime, t],
+		[dataStore, confirmAction, practiceRuntime, studyRuntime, t],
 	);
 
 	const handleDeleteCardRequest = useCallback(
@@ -574,10 +541,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				return (
 					<PracticeView
 						key={deck.id}
-						dataStore={dataStore}
+						practiceRuntime={practiceRuntime}
 						deck={deck}
 						session={practiceSession}
-						contentVersion={contentVersion}
 						onSessionUpdate={handlePracticeSessionUpdate}
 						onEditCard={handleOpenEditCard}
 						onDeleteCard={handleDeleteCardRequest}
@@ -600,7 +566,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					<PracticeSummary
 						key={deck.id}
 						deck={deck}
-						dataStore={dataStore}
+						practiceRuntime={practiceRuntime}
 						result={practiceResult}
 						onRestart={handlePracticeRestart}
 						onPracticeIncorrect={handlePracticeIncorrect}
