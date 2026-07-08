@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
+import React, { memo, useCallback, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import {
 	BookOpen,
@@ -18,7 +18,7 @@ import {
 	Target,
 } from "lucide-react";
 import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../../shared/types";
-import { DataStore } from "../../storage/dataStore";
+import type { DeckHomeSnapshot, DeckHomeTotals } from "../../decks/deckHomeRuntime";
 import { FlashcardButton } from "./FlashcardButton";
 import { useI18n } from "./I18nContext";
 import { formatStudyOrder } from "../../i18n";
@@ -297,16 +297,9 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 	return ReactDOM.createPortal(modal, container);
 });
 
-interface HomeTotals {
-	totalCards: number;
-	newCards: number;
-	dueCards: number;
-	studyCount: number;
-}
-
 interface HomeStatsBarProps {
 	deckCount: number;
-	totals: HomeTotals;
+	totals: DeckHomeTotals;
 }
 
 const HomeStatsBar = memo(function HomeStatsBar({ deckCount, totals }: HomeStatsBarProps) {
@@ -471,9 +464,8 @@ const DeckCard = memo(function DeckCard({
 // ── DeckList ─────────────────────────────────────────────────────────────────
 
 interface DeckListProps {
-	dataStore: DataStore;
+	snapshot: DeckHomeSnapshot;
 	settings: FlashcardSettings;
-	refreshKey: number;
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
@@ -488,9 +480,8 @@ interface DeckListProps {
 }
 
 export const DeckList: React.FC<DeckListProps> = ({
-	dataStore,
+	snapshot,
 	settings,
-	refreshKey,
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
@@ -501,50 +492,17 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onOpenAddCard,
 }) => {
 	const { t } = useI18n();
-	const [decks, setDecks] = useState<Deck[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [modalDeckId, setModalDeckId] = useState<string | null>(null);
-
-	const loadDecks = useCallback(() => {
-		const allDecks = dataStore.getAllDecks();
-		setDecks(allDecks);
-	}, [dataStore]);
-
-	useEffect(() => {
-		loadDecks();
-	}, [loadDecks, refreshKey]);
-
-	const deckStatsById = useMemo(() => {
-		const nextStats = new Map<string, DeckStats>();
-		for (const deck of decks) {
-			nextStats.set(deck.id, dataStore.getDeckStats(deck));
-		}
-		return nextStats;
-	}, [dataStore, decks]);
-
-	const totals = useMemo<HomeTotals>(() => {
-		return decks.reduce(
-			(accumulator, deck) => {
-				const deckStats = deckStatsById.get(deck.id);
-				accumulator.totalCards += deckStats?.totalCards ?? 0;
-				accumulator.newCards += deckStats?.newCards ?? 0;
-				accumulator.dueCards += deckStats?.dueCards ?? 0;
-				accumulator.studyCount += deck.studyCount;
-				return accumulator;
-			},
-			{ totalCards: 0, newCards: 0, dueCards: 0, studyCount: 0 },
-		);
-	}, [decks, deckStatsById]);
 
 	const handleRefresh = useCallback(async () => {
 		setIsLoading(true);
 		try {
 			await onRefresh();
-			loadDecks();
 		} finally {
 			setIsLoading(false);
 		}
-	}, [loadDecks, onRefresh]);
+	}, [onRefresh]);
 
 	const handleCloseModal = useCallback(() => {
 		setModalDeckId(null);
@@ -559,8 +517,8 @@ export const DeckList: React.FC<DeckListProps> = ({
 	);
 
 	const modalDeck = useMemo(
-		() => decks.find((deck) => deck.id === modalDeckId),
-		[decks, modalDeckId],
+		() => snapshot.decks.find((deck) => deck.id === modalDeckId),
+		[modalDeckId, snapshot.decks],
 	);
 
 	return (
@@ -588,10 +546,10 @@ export const DeckList: React.FC<DeckListProps> = ({
 							/>
 						</div>
 					</div>
-					<HomeStatsBar deckCount={decks.length} totals={totals} />
+					<HomeStatsBar deckCount={snapshot.decks.length} totals={snapshot.totals} />
 				</div>
 
-				{decks.length === 0 ? (
+				{snapshot.decks.length === 0 ? (
 					<div className="flashcard-empty">
 						<div className="flashcard-empty-icon">
 							<Inbox size={48} />
@@ -603,11 +561,11 @@ export const DeckList: React.FC<DeckListProps> = ({
 					</div>
 				) : (
 					<div className="flashcard-deck-list">
-						{decks.map((deck) => (
+						{snapshot.decks.map((deck) => (
 							<DeckCard
 								key={deck.id}
 								deck={deck}
-								deckStats={deckStatsById.get(deck.id)}
+								deckStats={snapshot.statsByDeckId.get(deck.id)}
 								onSelectDeck={onSelectDeck}
 								onOpenWordList={onOpenWordList}
 								onStartPractice={onStartPractice}

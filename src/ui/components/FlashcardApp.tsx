@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from "react";
+import React, { useState, useCallback, useRef, useMemo, useReducer } from "react";
 import { App, ButtonComponent, Component, MarkdownRenderer, Modal, Notice, TFile } from "obsidian";
 import {
 	ViewState,
@@ -10,6 +10,7 @@ import {
 	CardDirection,
 } from "../../shared/types";
 import { DataStore } from "../../storage/dataStore";
+import { createDeckHomeRuntime } from "../../decks/deckHomeRuntime";
 import {
 	createPracticeSessionRuntime,
 	type PracticeSessionStartOptions,
@@ -61,12 +62,14 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const [studySession, setStudySession] = useState<StudySession | null>(null);
 	const [practiceSession, setPracticeSession] = useState<PracticeSession | null>(null);
 	const [practiceResult, setPracticeResult] = useState<PracticeResult | null>(null);
-	const [contentVersion, setContentVersion] = useState(0);
+	const [, bumpSnapshotVersion] = useReducer((version: number) => version + 1, 0);
 	const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
 	// Track when word-list view was opened for duration recording
 	const wordListStartTime = useRef<number | null>(null);
 
 	const decks = dataStore.getAllDecks();
+	const deckHomeRuntime = useMemo(() => createDeckHomeRuntime(dataStore), [dataStore]);
+	const deckHomeSnapshot = deckHomeRuntime.getSnapshot();
 	const studyRuntime = useMemo(() => createStudySessionRuntime(dataStore), [dataStore]);
 	const practiceRuntime = useMemo(() => createPracticeSessionRuntime(dataStore), [dataStore]);
 
@@ -140,7 +143,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					await dataStore.addCardToDeck(deckId, front, back, explanation);
 					new Notice(t("notice.cardAdded"));
 				}
-				setContentVersion((version) => version + 1);
+				bumpSnapshotVersion();
 				setCardEditor(null);
 			} catch (error) {
 				const message = error instanceof Error ? error.message : t("cardEditor.saveFailed");
@@ -365,7 +368,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 			try {
 				const idMap = await dataStore.deleteCardFromDeck(deckId, cardId);
-				setContentVersion((version) => version + 1);
+				bumpSnapshotVersion();
 				new Notice(t("notice.cardDeleted"));
 
 				setStudySession((currentSession) => {
@@ -440,13 +443,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const renderHome = () => (
 		<DeckList
-			dataStore={dataStore}
+			snapshot={deckHomeSnapshot}
 			settings={settings}
-			refreshKey={contentVersion}
 			onSelectDeck={handleSelectDeck}
 			onOpenWordList={handleOpenWordList}
 			onStartPractice={handleStartPracticeSetup}
-			onRefresh={onRefresh}
+			onRefresh={async () => {
+				await onRefresh();
+				bumpSnapshotVersion();
+			}}
 			onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
 			onOpenSourceFile={handleOpenSourceFile}
 			onOpenStats={handleOpenStats}
