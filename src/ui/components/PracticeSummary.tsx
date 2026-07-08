@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from "react";
 import { FileText, Check, X, Timer, CircleX, RotateCw, House } from "lucide-react";
 import { Deck, FlashCard, PracticeResult } from "../../shared/types";
-import { DataStore } from "../../storage/dataStore";
+import type { PracticeSessionRuntime } from "../../sessions/practiceSessionRuntime";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { useI18n } from "./I18nContext";
@@ -10,7 +10,7 @@ import { getDisplayCardContent } from "../../cards/cardDisplay";
 
 interface PracticeSummaryProps {
 	deck: Deck;
-	dataStore: DataStore;
+	practiceRuntime: PracticeSessionRuntime;
 	result: PracticeResult;
 	onRestart: () => void;
 	onPracticeIncorrect: () => void;
@@ -27,7 +27,7 @@ function getAccuracyColor(accuracy: number): string {
 
 export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 	deck,
-	dataStore,
+	practiceRuntime,
 	result,
 	onRestart,
 	onPracticeIncorrect,
@@ -43,19 +43,9 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 		return t("practice.completeWithErrors");
 	}, [result.incorrectCount, t]);
 
-	const cardById = useMemo(
-		() => new Map(deck.cards.map((card) => [card.id, card])),
-		[deck.cards],
-	);
-
 	const incorrectCards: FlashCard[] = useMemo(() => {
-		const cards: FlashCard[] = [];
-		for (const id of result.incorrectCardIds) {
-			const card = cardById.get(id) ?? dataStore.getCard(deck.id, id);
-			if (card) cards.push(card);
-		}
-		return cards;
-	}, [cardById, dataStore, deck.id, result.incorrectCardIds]);
+		return practiceRuntime.getCards(deck.id, result.incorrectCardIds);
+	}, [deck.id, practiceRuntime, result.incorrectCardIds]);
 
 	return (
 		<div className="flashcard-practice-summary">
