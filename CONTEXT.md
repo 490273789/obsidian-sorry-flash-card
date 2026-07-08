@@ -36,6 +36,14 @@ _Avoid_: previous button, queue-only back
 A self-test run through cards that records answers and produces a result without changing spaced-repetition state.
 _Avoid_: practice component state, quiz UI state
 
+**学习记录**:
+A saved summary of completed learning activity for a 题库 on a local date.
+_Avoid_: stats row, history UI item
+
+**单词表**:
+A browsable presentation of the 卡片 in one 题库 for checking front, back, and explanation content without changing learning state.
+_Avoid_: word list component, deck preview
+
 **设置视图模型**:
 The pure settings-page definition tree that describes labels, controls, visible state, help content, and semantic actions before Obsidian renders them.
 _Avoid_: settings DOM, Obsidian Setting adapter

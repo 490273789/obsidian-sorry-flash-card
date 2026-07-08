@@ -9,8 +9,18 @@ import React, {
 } from "react";
 import ReactDOM from "react-dom";
 import { BookOpenText, X } from "lucide-react";
-import type { Deck, FlashCard } from "../../shared/types";
+import type { Deck } from "../../shared/types";
 import { shuffleArray } from "../../shared/utils";
+import {
+	buildVirtualWordRows,
+	buildWordListItems,
+	DEFAULT_WORD_ROW_GAP,
+	DEFAULT_WORD_ROW_HEIGHT,
+	selectVisibleWordRows,
+	type VisibleWordColumnKey,
+	VISIBLE_WORD_COLUMNS,
+	type WordListItem,
+} from "../../wordList/wordListPresentationModel";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
@@ -20,83 +30,6 @@ interface WordListViewProps {
 	onBack: () => void;
 }
 
-interface WordItem {
-	id: string;
-	front: string;
-	back: string;
-	explanation: string;
-	index: number;
-}
-
-type VisibleWordColumnKey = "front" | "back";
-
-const DEFAULT_WORD_ROW_HEIGHT = 118;
-const DEFAULT_WORD_ROW_GAP = 12;
-const WORD_LIST_OVERSCAN_ROWS = 8;
-
-interface WordColumnConfig {
-	key: VisibleWordColumnKey;
-	className: string;
-	textClassName: string;
-	buttonClassName: string;
-	variant: "blue" | "orange";
-	labelKey: "wordList.firstColumn" | "wordList.secondColumn";
-	maskKey: "wordList.maskFirstColumn" | "wordList.maskSecondColumn";
-	unmaskKey: "wordList.unmaskFirstColumn" | "wordList.unmaskSecondColumn";
-	toggleKey: "wordList.toggleFirstColumn" | "wordList.toggleSecondColumn";
-}
-
-const VISIBLE_WORD_COLUMNS: readonly WordColumnConfig[] = [
-	{
-		key: "front",
-		className: "flashcard-word-cell-first",
-		textClassName: "flashcard-word-front",
-		buttonClassName: "word-column-front",
-		variant: "blue",
-		labelKey: "wordList.firstColumn",
-		maskKey: "wordList.maskFirstColumn",
-		unmaskKey: "wordList.unmaskFirstColumn",
-		toggleKey: "wordList.toggleFirstColumn",
-	},
-	{
-		key: "back",
-		className: "flashcard-word-cell-second",
-		textClassName: "flashcard-word-back",
-		buttonClassName: "word-column-back",
-		variant: "orange",
-		labelKey: "wordList.secondColumn",
-		maskKey: "wordList.maskSecondColumn",
-		unmaskKey: "wordList.unmaskSecondColumn",
-		toggleKey: "wordList.toggleSecondColumn",
-	},
-];
-
-interface WordRowLayout {
-	item: WordItem;
-	index: number;
-	top: number;
-	height: number;
-}
-
-interface VirtualWordRows {
-	rows: WordRowLayout[];
-	totalHeight: number;
-}
-
-function stripHashSymbols(text: string): string {
-	return text.replace(/#/g, "").trim();
-}
-
-function toWordItem(card: FlashCard): WordItem {
-	return {
-		id: card.id,
-		front: stripHashSymbols(card.front),
-		back: card.back.trim(),
-		explanation: card.explanation?.trim() ?? "",
-		index: card.indexInFile,
-	};
-}
-
 function activateOnKey(e: React.KeyboardEvent<HTMLDivElement>, action: () => void): void {
 	if (e.key === "Enter" || e.key === " ") {
 		e.preventDefault();
@@ -104,76 +37,12 @@ function activateOnKey(e: React.KeyboardEvent<HTMLDivElement>, action: () => voi
 	}
 }
 
-function getVirtualWordRows(
-	items: WordItem[],
-	rowHeights: ReadonlyMap<string, number>,
-	rowGap: number,
-): VirtualWordRows {
-	let offsetTop = 0;
-	const rows = items.map((item, index) => {
-		const height = rowHeights.get(item.id) ?? DEFAULT_WORD_ROW_HEIGHT;
-		const row = {
-			item,
-			index,
-			top: offsetTop,
-			height,
-		};
-		offsetTop += height + rowGap;
-		return row;
-	});
-
-	return {
-		rows,
-		totalHeight: Math.max(0, offsetTop - rowGap),
-	};
-}
-
-function findFirstVisibleIndex(rows: readonly WordRowLayout[], targetTop: number): number {
-	let low = 0;
-	let high = rows.length - 1;
-	let result = rows.length;
-
-	while (low <= high) {
-		const middle = Math.floor((low + high) / 2);
-		const row = rows[middle];
-		if (!row) break;
-		if (row.top + row.height >= targetTop) {
-			result = middle;
-			high = middle - 1;
-		} else {
-			low = middle + 1;
-		}
-	}
-
-	return result;
-}
-
-function findLastVisibleIndex(rows: readonly WordRowLayout[], targetBottom: number): number {
-	let low = 0;
-	let high = rows.length - 1;
-	let result = -1;
-
-	while (low <= high) {
-		const middle = Math.floor((low + high) / 2);
-		const row = rows[middle];
-		if (!row) break;
-		if (row.top <= targetBottom) {
-			result = middle;
-			low = middle + 1;
-		} else {
-			high = middle - 1;
-		}
-	}
-
-	return result;
-}
-
 interface WordRowProps {
-	item: WordItem;
+	item: WordListItem;
 	maskedColumns: ReadonlySet<VisibleWordColumnKey>;
 	revealedIdsByColumn: Record<VisibleWordColumnKey, ReadonlySet<string>>;
 	onReveal: (columnKey: VisibleWordColumnKey, itemId: string) => void;
-	onShowExplanation: (item: WordItem) => void;
+	onShowExplanation: (item: WordListItem) => void;
 }
 
 const WordRow = memo(function WordRow({
@@ -254,7 +123,7 @@ const WordRow = memo(function WordRow({
 });
 
 interface WordExplanationModalProps {
-	item: WordItem;
+	item: WordListItem;
 	onClose: () => void;
 }
 
@@ -317,19 +186,16 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	const { t } = useI18n();
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 	const listRef = useRef<HTMLDivElement | null>(null);
-	const sourceItems = useMemo(
-		() => [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile).map(toWordItem),
-		[deck.cards],
-	);
+	const sourceItems = useMemo(() => buildWordListItems(deck.cards), [deck.cards]);
 	const [maskedColumns, setMaskedColumns] = useState<Set<VisibleWordColumnKey>>(new Set());
-	const [shuffledItems, setShuffledItems] = useState<WordItem[] | null>(null);
+	const [shuffledItems, setShuffledItems] = useState<WordListItem[] | null>(null);
 	const [revealedIdsByColumn, setRevealedIdsByColumn] = useState<
 		Record<VisibleWordColumnKey, Set<string>>
 	>({
 		front: new Set(),
 		back: new Set(),
 	});
-	const [activeExplanationItem, setActiveExplanationItem] = useState<WordItem | null>(null);
+	const [activeExplanationItem, setActiveExplanationItem] = useState<WordListItem | null>(null);
 	const [rowHeights, setRowHeights] = useState<Map<string, number>>(new Map());
 	const [rowGap, setRowGap] = useState(DEFAULT_WORD_ROW_GAP);
 	const [viewport, setViewport] = useState({
@@ -341,27 +207,16 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	const isShuffled = shuffledItems !== null;
 	const items = shuffledItems ?? sourceItems;
 	const virtualRows = useMemo(
-		() => getVirtualWordRows(items, rowHeights, rowGap),
+		() => buildVirtualWordRows(items, rowHeights, rowGap),
 		[items, rowGap, rowHeights],
 	);
 	const visibleRows = useMemo(() => {
-		if (virtualRows.rows.length === 0) return [];
-
-		const overscanPixels = (DEFAULT_WORD_ROW_HEIGHT + rowGap) * WORD_LIST_OVERSCAN_ROWS;
-		const startIndex = Math.max(
-			0,
-			findFirstVisibleIndex(virtualRows.rows, viewport.scrollTop - overscanPixels),
-		);
-		const endIndex = Math.min(
-			virtualRows.rows.length - 1,
-			findLastVisibleIndex(
-				virtualRows.rows,
-				viewport.scrollTop + viewport.height + overscanPixels,
-			),
-		);
-
-		if (endIndex < startIndex) return [];
-		return virtualRows.rows.slice(startIndex, endIndex + 1);
+		return selectVisibleWordRows({
+			rows: virtualRows.rows,
+			scrollTop: viewport.scrollTop,
+			viewportHeight: viewport.height,
+			rowGap,
+		});
 	}, [rowGap, viewport.height, viewport.scrollTop, virtualRows.rows]);
 
 	useEffect(() => {
@@ -465,7 +320,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		}));
 	}, []);
 
-	const handleShowExplanation = useCallback((item: WordItem) => {
+	const handleShowExplanation = useCallback((item: WordListItem) => {
 		setActiveExplanationItem(item);
 	}, []);
 
