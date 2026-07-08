@@ -596,7 +596,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			}
 
 			case "stats":
-				return <StatsView dataStore={dataStore} onBack={handleBackHome} />;
+				return <StatsView history={dataStore.getStudyHistory()} onBack={handleBackHome} />;
 
 			case "home":
 			default:
