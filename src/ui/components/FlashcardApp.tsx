@@ -15,11 +15,9 @@ import {
 	createIncorrectPracticeSession,
 	createRangePracticeSession,
 	createRandomPracticeSession,
-	finishStudySession,
-	remapStudySessionCards,
 	remapPracticeSessionCards,
-	type StudySessionFinishIntent,
 } from "../../sessions/sessionEngine";
+import { createStudySessionRuntime } from "../../sessions/studySessionRuntime";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
 import { PracticeSetup, type PracticeStartOptions } from "./PracticeSetup";
@@ -71,7 +69,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	// Track when word-list view was opened for duration recording
 	const wordListStartTime = useRef<number | null>(null);
 
-	const decks = useMemo(() => dataStore.getAllDecks(), [dataStore, contentVersion]);
+	const decks = dataStore.getAllDecks();
+	const studyRuntime = useMemo(() => createStudySessionRuntime(dataStore), [dataStore]);
 
 	// Markdown renderer function
 	const renderMarkdown = useCallback(
@@ -236,31 +235,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[app, t],
 	);
 
-	const persistStudySessionFinish = useCallback(
-		async (intent: StudySessionFinishIntent): Promise<void> => {
-			const deck = dataStore.getDeck(intent.deckId);
-			if (intent.incrementStudyCount) {
-				await dataStore.incrementStudyCount(intent.deckId);
-			}
-			await dataStore.recordStudySession(
-				intent.deckId,
-				deck?.name ?? intent.deckId,
-				intent.mode,
-				intent.cardCount,
-				intent.duration,
-			);
-		},
-		[dataStore],
-	);
-
-	const handleStudyComplete = useCallback(
-		async (intent: StudySessionFinishIntent) => {
-			await persistStudySessionFinish(intent);
-			setStudySession(null);
-			setViewState({ type: "home" });
-		},
-		[persistStudySessionFinish],
-	);
+	const handleStudyComplete = useCallback(() => {
+		setStudySession(null);
+		setViewState({ type: "home" });
+	}, []);
 
 	const handleCloseStudy = useCallback(async () => {
 		const confirmed = await confirmAction(
@@ -271,14 +249,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (!confirmed) return;
 
 		if (studySession) {
-			const finishIntent = finishStudySession(studySession, "abandoned");
-			if (finishIntent) {
-				await persistStudySessionFinish(finishIntent);
-			}
+			await studyRuntime.finish(studySession, "abandoned");
 		}
 		setStudySession(null);
 		setViewState({ type: "home" });
-	}, [confirmAction, persistStudySessionFinish, studySession, t]);
+	}, [confirmAction, studyRuntime, studySession, t]);
 
 	const handleCloseStudyRequest = useCallback(() => {
 		void handleCloseStudy();
@@ -430,7 +405,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					if (!currentSession || currentSession.deckId !== deckId) {
 						return currentSession;
 					}
-					const nextSession = remapStudySessionCards(currentSession, idMap);
+					const nextSession = studyRuntime.remapSessionCards(currentSession, idMap);
 					if (!nextSession) {
 						setViewState({ type: "home" });
 						return null;
@@ -456,7 +431,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[dataStore, confirmAction, t],
+		[dataStore, confirmAction, studyRuntime, t],
 	);
 
 	const handleDeleteCardRequest = useCallback(
@@ -553,10 +528,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				return (
 					<CardView
 						key={deck.id}
-						dataStore={dataStore}
+						studyRuntime={studyRuntime}
 						deck={deck}
 						session={studySession}
-						contentVersion={contentVersion}
 						onSessionUpdate={handleSessionUpdate}
 						onComplete={handleStudyComplete}
 						onEditCard={handleOpenEditCard}

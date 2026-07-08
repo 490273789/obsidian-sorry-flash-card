@@ -1,17 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Brain, PartyPopper, RotateCcw } from "lucide-react";
-import { Deck, FlashCard, StudySession } from "../../shared/types";
-import { DataStore } from "../../storage/dataStore";
+import { Deck, FlashCard, StudyRating, StudySession } from "../../shared/types";
 import { getRatingButtons } from "../../sessions/scheduler";
 import { getDisplayCardContent } from "../../cards/cardDisplay";
-import {
-	answerStudyCard,
-	canUndoStudyAnswer,
-	getCurrentStudyCardId,
-	getStudyProgress,
-	undoStudyAnswer,
-	type StudySessionFinishIntent,
-} from "../../sessions/sessionEngine";
+import { canUndoStudyAnswer, getStudyProgress } from "../../sessions/sessionEngine";
+import type { StudySessionRuntime } from "../../sessions/studySessionRuntime";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -20,12 +13,11 @@ import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
 
 interface CardViewProps {
-	dataStore: DataStore;
+	studyRuntime: StudySessionRuntime;
 	deck: Deck;
 	session: StudySession;
-	contentVersion: number;
 	onSessionUpdate: (session: StudySession) => void;
-	onComplete: (intent: StudySessionFinishIntent) => void | Promise<void>;
+	onComplete: () => void | Promise<void>;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
 	onClose: () => void;
@@ -33,7 +25,7 @@ interface CardViewProps {
 }
 
 export const CardView: React.FC<CardViewProps> = ({
-	dataStore,
+	studyRuntime,
 	deck,
 	session,
 	onSessionUpdate,
@@ -50,10 +42,7 @@ export const CardView: React.FC<CardViewProps> = ({
 	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
 
-	const currentCardId = getCurrentStudyCardId(session);
-	const currentCard: FlashCard | null = currentCardId
-		? (dataStore.getCard(deck.id, currentCardId) ?? null)
-		: null;
+	const currentCard: FlashCard | null = studyRuntime.getCurrentCard(session);
 	const ratingButtons = useMemo(() => getRatingButtons(language), [language]);
 	const displayContent = useMemo(
 		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
@@ -69,23 +58,22 @@ export const CardView: React.FC<CardViewProps> = ({
 	}, []);
 
 	const handleRating = useCallback(
-		async (rating: 1 | 2 | 3 | 4 | 5) => {
+		async (rating: StudyRating) => {
 			if (!currentCard || isAnimatingRef.current) return;
 
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
 
-			const step = answerStudyCard({
-				session,
-				card: currentCard,
-				rating,
-				scheduler: dataStore,
-			});
-			await dataStore.updateCard(deck.id, step.cardUpdate.cardId, step.cardUpdate.fsrsCard);
+			const step = await studyRuntime.answer(session, rating);
+			if (!step) {
+				isAnimatingRef.current = false;
+				setIsAnimating(false);
+				return;
+			}
 
 			if (step.type === "complete") {
 				window.setTimeout(() => {
-					void onComplete(step.finishIntent);
+					void onComplete();
 				}, 300);
 				return;
 			}
@@ -96,7 +84,7 @@ export const CardView: React.FC<CardViewProps> = ({
 				setIsAnimating(false);
 			}, 200);
 		},
-		[currentCard, dataStore, deck.id, onComplete, onSessionUpdate, session],
+		[currentCard, onComplete, onSessionUpdate, session, studyRuntime],
 	);
 
 	const handlePrevious = useCallback(async () => {
@@ -105,21 +93,19 @@ export const CardView: React.FC<CardViewProps> = ({
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
 
-		const step = undoStudyAnswer(session);
+		const step = await studyRuntime.undo(session);
 		if (!step) {
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 			return;
 		}
 
-		await dataStore.updateCard(deck.id, step.cardUpdate.cardId, step.cardUpdate.fsrsCard);
-
 		window.setTimeout(() => {
 			onSessionUpdate(step.session);
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
-	}, [dataStore, deck.id, onSessionUpdate, session]);
+	}, [onSessionUpdate, session, studyRuntime]);
 
 	useWindowKeyDown((e) => {
 		// Ignore if in input field
