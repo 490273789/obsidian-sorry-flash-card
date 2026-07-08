@@ -19,6 +19,13 @@ import {
 } from "lucide-react";
 import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../../shared/types";
 import type { DeckHomeSnapshot, DeckHomeTotals } from "../../decks/deckHomeRuntime";
+import {
+	applyDailyNewCardsToDeckSettingsDraft,
+	applyDaysToCompleteToDeckSettingsDraft,
+	buildDeckSettingsSavePayload,
+	calculateDaysToComplete,
+	createDeckSettingsDraft,
+} from "../../decks/deckSettingsViewModel";
 import { FlashcardButton } from "./FlashcardButton";
 import { useI18n } from "./I18nContext";
 import { formatStudyOrder } from "../../i18n";
@@ -43,63 +50,24 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 	onClose,
 }: DeckSettingsModalProps) {
 	const { t, language } = useI18n();
-	const [useCustom, setUseCustom] = useState(deckOverrides !== undefined);
-
-	const effective = {
-		dailyNewCards: deckOverrides?.dailyNewCards ?? globalSettings.dailyNewCards,
-		dailyReviewCards: deckOverrides?.dailyReviewCards ?? globalSettings.dailyReviewCards,
-		studyOrder: deckOverrides?.studyOrder ?? globalSettings.studyOrder,
-		requestRetention:
-			deckOverrides?.fsrsParameters?.requestRetention ??
-			globalSettings.fsrsParameters.requestRetention,
-		maximumInterval:
-			deckOverrides?.fsrsParameters?.maximumInterval ??
-			globalSettings.fsrsParameters.maximumInterval,
-	};
-
-	const [dailyNewCards, setDailyNewCards] = useState(effective.dailyNewCards);
-	const [dailyReviewCards, setDailyReviewCards] = useState(effective.dailyReviewCards);
-	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(effective.studyOrder);
-	const [requestRetention, setRequestRetention] = useState(effective.requestRetention);
-	const [maximumInterval, setMaximumInterval] = useState(String(effective.maximumInterval));
-
-	// Days-to-complete: bidirectionally linked with dailyNewCards
-	const calcDays = (perDay: number) => (totalCards > 0 ? Math.ceil(totalCards / perDay) : 0);
-	const [daysToComplete, setDaysToComplete] = useState(String(calcDays(effective.dailyNewCards)));
+	const [draft, setDraft] = useState(() =>
+		createDeckSettingsDraft({
+			totalCards,
+			globalSettings,
+			deckOverrides,
+		}),
+	);
 
 	const handleDailyNewCardsChange = (val: number) => {
-		setDailyNewCards(val);
-		setDaysToComplete(String(calcDays(val)));
+		setDraft((current) => applyDailyNewCardsToDeckSettingsDraft(current, totalCards, val));
 	};
 
 	const handleDaysToCompleteChange = (raw: string) => {
-		setDaysToComplete(raw);
-		const days = parseInt(raw, 10);
-		if (!isNaN(days) && days >= 1 && totalCards > 0) {
-			const newPerDay = Math.ceil(totalCards / days);
-			const clamped = Math.max(1, Math.min(200, newPerDay));
-			setDailyNewCards(clamped);
-		}
+		setDraft((current) => applyDaysToCompleteToDeckSettingsDraft(current, totalCards, raw));
 	};
 
 	const handleSave = async () => {
-		if (!useCustom) {
-			await onSave(null);
-		} else {
-			const intervalNum = parseInt(maximumInterval);
-			await onSave({
-				dailyNewCards,
-				dailyReviewCards,
-				studyOrder,
-				fsrsParameters: {
-					requestRetention,
-					maximumInterval:
-						!isNaN(intervalNum) && intervalNum >= 30
-							? intervalNum
-							: globalSettings.fsrsParameters.maximumInterval,
-				},
-			});
-		}
+		await onSave(buildDeckSettingsSavePayload(draft, globalSettings));
 		onClose();
 	};
 
@@ -121,7 +89,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						<span className="flashcard-modal-subtitle">
 							{t("deckSettings.subtitle", {
 								totalCards,
-								mode: useCustom
+								mode: draft.useCustom
 									? t("deckSettings.usingCustom")
 									: t("deckSettings.usingGlobal"),
 							})}
@@ -141,8 +109,13 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						<label className="flashcard-deck-settings-toggle-label">
 							<input
 								type="checkbox"
-								checked={useCustom}
-								onChange={(e) => setUseCustom(e.target.checked)}
+								checked={draft.useCustom}
+								onChange={(e) =>
+									setDraft((current) => ({
+										...current,
+										useCustom: e.target.checked,
+									}))
+								}
 							/>
 							<span>{t("deckSettings.useCustom")}</span>
 						</label>
@@ -151,7 +124,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						</p>
 					</div>
 
-					{!useCustom ? (
+					{!draft.useCustom ? (
 						<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
 							{t("deckSettings.globalHint", {
 								dailyNewCards: globalSettings.dailyNewCards,
@@ -162,7 +135,10 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								<span>
 									&nbsp;
 									{t("deckSettings.estimatedDays", {
-										days: calcDays(globalSettings.dailyNewCards),
+										days: calculateDaysToComplete(
+											totalCards,
+											globalSettings.dailyNewCards,
+										),
 									})}
 								</span>
 							)}
@@ -176,27 +152,27 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									</span>
 									<strong className="flashcard-deck-settings-summary-value">
 										{t("deckSettings.days", {
-											count: daysToComplete,
+											count: draft.daysToComplete,
 										})}
 									</strong>
 								</div>
 								<span className="flashcard-deck-settings-summary-label">
 									{t("deckSettings.dailySummary", {
-										dailyNewCards,
-										dailyReviewCards,
+										dailyNewCards: draft.dailyNewCards,
+										dailyReviewCards: draft.dailyReviewCards,
 									})}
 								</span>
 							</div>
 							<div className="flashcard-deck-settings-field">
 								<label>
 									<span>{t("deckSettings.dailyNewCards")}</span>
-									<strong>{dailyNewCards}</strong>
+									<strong>{draft.dailyNewCards}</strong>
 								</label>
 								<input
 									type="range"
 									min={1}
 									max={200}
-									value={dailyNewCards}
+									value={draft.dailyNewCards}
 									onChange={(e) =>
 										handleDailyNewCardsChange(parseInt(e.target.value))
 									}
@@ -210,7 +186,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 											type="number"
 											min={1}
 											max={totalCards}
-											value={daysToComplete}
+											value={draft.daysToComplete}
 											onChange={(e) =>
 												handleDaysToCompleteChange(e.target.value)
 											}
@@ -229,23 +205,32 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							<div className="flashcard-deck-settings-field">
 								<label>
 									<span>{t("deckSettings.dailyReviewCards")}</span>
-									<strong>{dailyReviewCards}</strong>
+									<strong>{draft.dailyReviewCards}</strong>
 								</label>
 								<input
 									type="range"
 									min={1}
 									max={500}
 									step={10}
-									value={dailyReviewCards}
-									onChange={(e) => setDailyReviewCards(parseInt(e.target.value))}
+									value={draft.dailyReviewCards}
+									onChange={(e) =>
+										setDraft((current) => ({
+											...current,
+											dailyReviewCards: parseInt(e.target.value),
+										}))
+									}
 								/>
 							</div>
 							<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
 								<label>{t("deckSettings.studyOrder")}</label>
 								<select
-									value={studyOrder}
+									value={draft.studyOrder}
 									onChange={(e) =>
-										setStudyOrder(e.target.value as "sequential" | "random")
+										setDraft((current) => ({
+											...current,
+											studyOrder: e.target
+												.value as StudySettings["studyOrder"],
+										}))
 									}
 								>
 									<option value="sequential">{t("order.sequential")}</option>
@@ -255,16 +240,19 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							<div className="flashcard-deck-settings-field">
 								<label>
 									<span>{t("deckSettings.targetRetention")}</span>
-									<strong>{requestRetention.toFixed(2)}</strong>
+									<strong>{draft.requestRetention.toFixed(2)}</strong>
 								</label>
 								<input
 									type="range"
 									min={0.7}
 									max={0.99}
 									step={0.01}
-									value={requestRetention}
+									value={draft.requestRetention}
 									onChange={(e) =>
-										setRequestRetention(parseFloat(e.target.value))
+										setDraft((current) => ({
+											...current,
+											requestRetention: parseFloat(e.target.value),
+										}))
 									}
 								/>
 							</div>
@@ -274,8 +262,13 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									type="number"
 									min={30}
 									max={3650}
-									value={maximumInterval}
-									onChange={(e) => setMaximumInterval(e.target.value)}
+									value={draft.maximumInterval}
+									onChange={(e) =>
+										setDraft((current) => ({
+											...current,
+											maximumInterval: e.target.value,
+										}))
+									}
 								/>
 							</div>
 						</div>
