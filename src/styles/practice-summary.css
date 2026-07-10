@@ -1,5 +1,17 @@
 /* Practice summary */
 .flashcard-practice-summary {
+	overflow: hidden;
+	padding: var(--fc-space-1);
+}
+
+.flashcard-practice-summary-scroll {
+	min-height: 0;
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+	overflow-y: auto;
+	overscroll-behavior: contain;
 	padding: var(--fc-space-1);
 }
 
@@ -130,8 +142,12 @@
 .flashcard-practice-incorrect-answer,
 .flashcard-practice-incorrect-explanation {
 	display: grid;
-	grid-template-columns: 28px minmax(0, 1fr);
+	grid-template-columns: max-content minmax(0, 1fr);
 	gap: var(--fc-space-2);
+}
+
+.flashcard-practice-incorrect-label {
+	white-space: nowrap;
 }
 
 .flashcard-practice-incorrect-question,
@@ -152,6 +168,11 @@
 .flashcard-practice-summary-actions {
 	width: min(560px, 100%);
 	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-	margin: 0 auto var(--fc-space-2);
+	flex: 0 0 auto;
+	margin: 0 auto;
+	padding: var(--fc-space-2);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: rgba(10, 15, 28, 0.94);
+	box-shadow: var(--fc-shadow);
 }
-

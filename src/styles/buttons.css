@@ -8,7 +8,7 @@
 	align-items: center;
 	justify-content: center;
 	gap: var(--fc-space-2);
-	padding: 9px 13px;
+	padding: 8px 12px;
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.22);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(16, 21, 33, 0.9);
@@ -224,4 +224,3 @@
 	font-size: var(--fc-font-xs);
 	font-family: var(--fc-font-data);
 }
-

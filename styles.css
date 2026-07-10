@@ -282,7 +282,7 @@
 	align-items: center;
 	justify-content: center;
 	gap: var(--fc-space-2);
-	padding: 9px 13px;
+	padding: 8px 12px;
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.22);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(16, 21, 33, 0.9);
@@ -620,7 +620,7 @@
 	content-visibility: auto;
 	contain-intrinsic-size: 0 116px;
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+	grid-template-columns: minmax(100px, 1fr) minmax(100px, 300px);
 	align-items: center;
 	gap: var(--fc-space-4);
 	padding: var(--fc-space-3) var(--fc-space-4);
@@ -1772,6 +1772,17 @@
 }
 /* Practice summary */
 .flashcard-practice-summary {
+	overflow: hidden;
+	padding: var(--fc-space-1);
+}
+.flashcard-practice-summary-scroll {
+	min-height: 0;
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+	overflow-y: auto;
+	overscroll-behavior: contain;
 	padding: var(--fc-space-1);
 }
 .flashcard-practice-summary-header {
@@ -1883,8 +1894,11 @@
 .flashcard-practice-incorrect-answer,
 .flashcard-practice-incorrect-explanation {
 	display: grid;
-	grid-template-columns: 28px minmax(0, 1fr);
+	grid-template-columns: max-content minmax(0, 1fr);
 	gap: var(--fc-space-2);
+}
+.flashcard-practice-incorrect-label {
+	white-space: nowrap;
 }
 .flashcard-practice-incorrect-question,
 .flashcard-practice-incorrect-answer {
@@ -1901,7 +1915,13 @@
 .flashcard-practice-summary-actions {
 	width: min(560px, 100%);
 	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-	margin: 0 auto var(--fc-space-2);
+	flex: 0 0 auto;
+	margin: 0 auto;
+	padding: var(--fc-space-2);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: rgba(10, 15, 28, 0.94);
+	box-shadow: var(--fc-shadow);
 }
 /* Stats */
 .flashcard-stats-view {
@@ -2463,6 +2483,7 @@
 }
 .theme-light .flashcard-header,
 .theme-light .flashcard-common-header,
+.theme-light .flashcard-practice-summary-actions,
 .theme-light .flashcard-home-hero,
 .theme-light .flashcard-word-list-sticky-top,
 .theme-light .flashcard-stats-top,
@@ -3116,6 +3137,10 @@
 	.flashcard-practice-summary,
 	.flashcard-stats-view,
 	.flashcard-word-list-view {
+		gap: var(--fc-space-2);
+	}
+
+	.flashcard-practice-summary-scroll {
 		gap: var(--fc-space-2);
 	}
 
