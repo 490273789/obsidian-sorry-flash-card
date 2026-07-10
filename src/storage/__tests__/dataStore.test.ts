@@ -1,5 +1,4 @@
 import { createEmptyCard, State } from "ts-fsrs";
-import { TFile } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DataStore, type StoredData } from "../dataStore";
 import {
@@ -10,9 +9,8 @@ import {
 } from "../../shared/types";
 
 vi.mock("obsidian", () => {
-	class TFile {}
 	class Plugin {}
-	return { TFile, Plugin };
+	return { Plugin };
 });
 
 interface MockFile {
@@ -101,13 +99,6 @@ function serializeDeck(deck: Deck): StoredData["decks"][string] {
 	};
 }
 
-function makeTFile(path: string, basename: string): TFile & MockFile {
-	return Object.assign(new TFile(), {
-		path,
-		basename,
-	});
-}
-
 describe("DataStore settings", () => {
 	it("migrates legacy flashcardTag and normalizes language/default messages", async () => {
 		const plugin = makePlugin({
@@ -182,44 +173,6 @@ describe("DataStore settings", () => {
 describe("DataStore deck scanning and study plans", () => {
 	afterEach(() => {
 		vi.useRealTimers();
-	});
-
-	it("syncs only configured tags while caching all discovered flashcard tags", async () => {
-		const files = [
-			{ path: "notes/word.md", basename: "word" },
-			{ path: "notes/phrase.md", basename: "phrase" },
-			{ path: "notes/plain.md", basename: "plain" },
-		];
-		const contentByPath = new Map([
-			[
-				"notes/word.md",
-				`#Word
-front
-??
-back
-;;`,
-			],
-			[
-				"notes/phrase.md",
-				`#短语
-front
-??
-back
-;;`,
-			],
-			["notes/plain.md", "#Word\n普通笔记"],
-		]);
-		const plugin = makePlugin(null, {
-			getMarkdownFiles: () => files,
-			cachedRead: vi.fn((file: MockFile) => Promise.resolve(contentByPath.get(file.path))),
-		});
-		const store = new DataStore(plugin as never, makeSettings({ flashcardTags: ["#word"] }));
-
-		await store.syncFromVault();
-
-		expect(store.getAllDecks().map((deck) => deck.id)).toEqual(["notes/word.md"]);
-		expect(store.getAvailableTags()).toEqual(["#Word", "#短语"]);
-		expect(plugin.saveData).toHaveBeenCalledTimes(1);
 	});
 
 	it("computes deck stats, day status, and today study caps", async () => {
@@ -364,91 +317,6 @@ back
 		expect(dates.size).toBe(20);
 		expect(dates.has("2026-07-03")).toBe(true);
 		expect(dates.has("2026-06-01")).toBe(false);
-		expect(plugin.saveData).toHaveBeenCalledTimes(1);
-	});
-
-	it("deletes source cards through the source editor and preserves remapped FSRS state", async () => {
-		const file = makeTFile("notes/deck.md", "deck");
-		const card2Fsrs = {
-			...createEmptyCard(),
-			state: State.Review,
-			reps: 7,
-			due: new Date("2026-07-01T00:00:00.000Z"),
-		};
-		const deck: Deck = {
-			id: file.path,
-			name: file.basename,
-			filePath: file.path,
-			tag: "#单词",
-			cards: [
-				makeCard("notes/deck.md::0", State.New, new Date("2026-07-03T00:00:00.000Z"), 0),
-				makeCard("notes/deck.md::1", State.New, new Date("2026-07-03T00:00:00.000Z"), 1),
-				makeCard("notes/deck.md::2", State.Review, card2Fsrs.due, 2, {
-					fsrsCard: card2Fsrs,
-				}),
-			],
-			studyCount: 0,
-			lastStudied: null,
-		};
-		const source = `#单词
-
-苹果
-??
-apple
-;;
-
-香蕉
-??
-banana
-;;
-
-梨
-??
-pear
-;;`;
-		const plugin = makePlugin(
-			{
-				decks: {
-					[deck.id]: serializeDeck(deck),
-				},
-				lastSync: "2026-07-02T00:00:00.000Z",
-				settings: makeSettings({ flashcardTags: ["#单词"] }),
-			} satisfies StoredData,
-			{
-				getAbstractFileByPath: vi.fn(() => file),
-				cachedRead: vi.fn(() => Promise.resolve(source)),
-			},
-		);
-		const store = new DataStore(plugin as never);
-
-		await store.loadSettings();
-		const idMap = await store.deleteCardFromDeck(deck.id, "notes/deck.md::1");
-
-		expect(idMap).toEqual({
-			"notes/deck.md::0": "notes/deck.md::0",
-			"notes/deck.md::1": null,
-			"notes/deck.md::2": "notes/deck.md::1",
-		});
-		expect(plugin.app.vault.modify).toHaveBeenCalledWith(
-			file,
-			`#单词
-
-苹果
-??
-apple
-;;
-
-梨
-??
-pear
-;;`,
-		);
-		const nextDeck = store.getDeck(deck.id);
-		expect(nextDeck?.cards.map((card) => card.id)).toEqual([
-			"notes/deck.md::0",
-			"notes/deck.md::1",
-		]);
-		expect(nextDeck?.cards[1]?.fsrsCard.reps).toBe(7);
 		expect(plugin.saveData).toHaveBeenCalledTimes(1);
 	});
 });

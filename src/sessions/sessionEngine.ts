@@ -1,6 +1,5 @@
 import type {
 	CardDirection,
-	CardIdMap,
 	FlashCard,
 	PracticeResult,
 	PracticeSession,
@@ -22,7 +21,6 @@ export {
 	finishStudySession,
 	getCurrentStudyCardId,
 	getStudyProgress,
-	remapStudySessionCards,
 	undoStudyAnswer,
 } from "./studySessionEngine";
 export type {
@@ -68,6 +66,7 @@ export function createPracticeSession(params: {
 		totalQuestions: params.cardIds.length,
 		answers: {},
 		history: [],
+		unavailableCardIds: [],
 	};
 }
 
@@ -198,8 +197,9 @@ export function answerPracticeCard(params: {
 		};
 	}
 
+	const unavailableCardIds = new Set(nextSession.unavailableCardIds ?? []);
 	const incorrectCardIds = Object.entries(answers)
-		.filter(([, correct]) => !correct)
+		.filter(([cardId, correct]) => !correct && !unavailableCardIds.has(cardId))
 		.map(([cardId]) => cardId);
 	const correctCount = Object.values(answers).filter(Boolean).length;
 	const incorrectCount = nextSession.totalQuestions - correctCount;
@@ -242,23 +242,6 @@ export function previousPracticeCard(session: PracticeSession): PracticeSession 
 	};
 }
 
-export function remapPracticeSessionCards(
-	session: PracticeSession,
-	idMap: CardIdMap,
-): PracticeSession | null {
-	const cardQueue = remapCardIds(session.cardQueue, idMap);
-	if (cardQueue.length === 0) return null;
-
-	return {
-		...session,
-		cardQueue,
-		currentIndex: Math.min(session.currentIndex, cardQueue.length - 1),
-		totalQuestions: cardQueue.length,
-		answers: remapAnswerMap(session.answers, idMap),
-		history: remapCardIds(session.history, idMap),
-	};
-}
-
 function normalizePracticeSession(session: PracticeSession): PracticeSession {
 	return {
 		...session,
@@ -266,6 +249,7 @@ function normalizePracticeSession(session: PracticeSession): PracticeSession {
 		cardQueue: normalizeStringArray(session.cardQueue),
 		answers: normalizeAnswerMap(session.answers),
 		history: normalizeStringArray(session.history),
+		unavailableCardIds: normalizeStringArray(session.unavailableCardIds),
 	};
 }
 
@@ -285,26 +269,4 @@ function normalizeAnswerMap(value: unknown): Record<string, boolean> {
 		}
 	}
 	return answers;
-}
-
-function remapCardIds(cardIds: string[], idMap: CardIdMap): string[] {
-	return cardIds.flatMap((cardId) => {
-		const nextCardId = idMap[cardId];
-		if (nextCardId === null) return [];
-		return [nextCardId ?? cardId];
-	});
-}
-
-function remapAnswerMap(
-	answers: Record<string, boolean>,
-	idMap: CardIdMap,
-): Record<string, boolean> {
-	const nextAnswers: Record<string, boolean> = {};
-	for (const [cardId, answer] of Object.entries(answers)) {
-		const nextCardId = idMap[cardId];
-		if (nextCardId !== null) {
-			nextAnswers[nextCardId ?? cardId] = answer;
-		}
-	}
-	return nextAnswers;
 }

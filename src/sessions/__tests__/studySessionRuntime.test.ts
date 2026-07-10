@@ -123,7 +123,11 @@ describe("StudySessionRuntime", () => {
 		const runtime = createStudySessionRuntime(store.store);
 
 		const outcome = await runtime.answer(
-			makeSession({ cardQueue: ["card-1"], currentIndex: 0 }),
+			makeSession({
+				cardQueue: ["card-1"],
+				currentIndex: 0,
+				originDeck: { id: "notes/deck.md", name: "Original Deck" },
+			}),
 			4,
 			61000,
 		);
@@ -133,7 +137,7 @@ describe("StudySessionRuntime", () => {
 		expect(store.incrementStudyCount).toHaveBeenCalledWith("notes/deck.md");
 		expect(store.recordStudySession).toHaveBeenCalledWith(
 			"notes/deck.md",
-			"Deck",
+			"Original Deck",
 			"study",
 			1,
 			60,
@@ -207,17 +211,5 @@ describe("StudySessionRuntime", () => {
 			1,
 			64,
 		);
-	});
-
-	it("keeps study session card identity remapping behind the runtime interface", () => {
-		const runtime = createStudySessionRuntime(makeStore([]).store);
-
-		const remapped = runtime.remapSessionCards(makeSession(), {
-			"card-1": null,
-			"card-2": "card-1",
-		});
-
-		expect(remapped?.cardQueue).toEqual(["card-1"]);
-		expect(remapped?.currentIndex).toBe(0);
 	});
 });

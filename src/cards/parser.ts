@@ -6,6 +6,7 @@ import {
 	FIRST_TAG_LINE_PATTERN,
 	FRONT_BACK_SEPARATOR,
 	CARD_END_SEPARATOR,
+	extractCardIdentityMarker,
 	hasFlashcardSyntax,
 	isMarkerLine,
 } from "./cardFormat";
@@ -55,7 +56,7 @@ export function parseFlashcards(
 		currentBlock = [];
 		if (!parsed) continue;
 
-		const cardId = generateCardId(filePath, cards.length);
+		const cardId = parsed.cardIdentity ?? generateCardId(filePath, cards.length);
 
 		// Preserve existing FSRS state if card exists
 		const existingCard = existingCards?.get(cardId);
@@ -76,7 +77,7 @@ export function parseFlashcards(
 
 function parseCardBlock(
 	blockLines: string[],
-): Pick<FlashCard, "front" | "back" | "explanation"> | null {
+): (Pick<FlashCard, "front" | "back" | "explanation"> & { cardIdentity: string | null }) | null {
 	const frontBackIndex = blockLines.findIndex((line) => isMarkerLine(line, FRONT_BACK_SEPARATOR));
 	if (frontBackIndex === -1) return null;
 
@@ -84,7 +85,13 @@ function parseCardBlock(
 		(line, index) => index > frontBackIndex && isMarkerLine(line, EXPLANATION_SEPARATOR),
 	);
 
-	const front = blockLines.slice(0, frontBackIndex).join("\n").trim();
+	const frontLines = blockLines.slice(0, frontBackIndex);
+	const cardIdentity =
+		frontLines.map(extractCardIdentityMarker).find((identity) => identity !== null) ?? null;
+	const front = frontLines
+		.filter((line) => extractCardIdentityMarker(line) === null)
+		.join("\n")
+		.trim();
 	const backLines =
 		explanationIndex === -1
 			? blockLines.slice(frontBackIndex + 1)
@@ -101,6 +108,7 @@ function parseCardBlock(
 	if (!front || !back) return null;
 
 	return {
+		cardIdentity,
 		front,
 		back,
 		explanation: explanation || undefined,

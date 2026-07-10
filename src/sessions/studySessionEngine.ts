@@ -2,7 +2,6 @@ import type { Card } from "ts-fsrs";
 import { State } from "ts-fsrs";
 import type {
 	CardDirection,
-	CardIdMap,
 	FlashCard,
 	StudyAnswerEvent,
 	StudyRating,
@@ -99,6 +98,7 @@ export function createStudySession(params: {
 		repeatQueue: [],
 		history: [],
 		answerEvents: [],
+		unavailableCardIds: [],
 	};
 }
 
@@ -165,7 +165,7 @@ export function answerStudyCard(params: {
 export function undoStudyAnswer(session: StudySession): StudySessionUndoStep | null {
 	const normalized = normalizeStudySession(session);
 	const event = normalized.answerEvents[normalized.answerEvents.length - 1];
-	if (!event) return null;
+	if (!event || normalized.unavailableCardIds?.includes(event.cardId)) return null;
 
 	return {
 		session: {
@@ -218,25 +218,9 @@ export function getStudyProgress(session: StudySession): {
 }
 
 export function canUndoStudyAnswer(session: StudySession): boolean {
-	return normalizeStudySession(session).answerEvents.length > 0;
-}
-
-export function remapStudySessionCards(
-	session: StudySession,
-	idMap: CardIdMap,
-): StudySession | null {
 	const normalized = normalizeStudySession(session);
-	const cardQueue = remapCardIds(normalized.cardQueue, idMap);
-	if (cardQueue.length === 0) return null;
-
-	return {
-		...normalized,
-		cardQueue,
-		currentIndex: Math.min(normalized.currentIndex, cardQueue.length - 1),
-		repeatQueue: remapCardIds(normalized.repeatQueue, idMap),
-		history: remapCardIds(normalized.history, idMap),
-		answerEvents: remapAnswerEvents(normalized.answerEvents, idMap),
-	};
+	const event = normalized.answerEvents[normalized.answerEvents.length - 1];
+	return Boolean(event && !normalized.unavailableCardIds?.includes(event.cardId));
 }
 
 function addAnswerEvent(session: StudySession, event: StudyAnswerEvent): StudySession {
@@ -273,6 +257,7 @@ function normalizeStudySession(session: StudySession): StudySession {
 		repeatQueue: normalizeStringArray(session.repeatQueue),
 		history: normalizeStringArray(session.history),
 		answerEvents: Array.isArray(session.answerEvents) ? session.answerEvents : [],
+		unavailableCardIds: normalizeStringArray(session.unavailableCardIds),
 	};
 }
 
@@ -280,26 +265,4 @@ function normalizeStringArray(value: unknown): string[] {
 	return Array.isArray(value)
 		? value.filter((item): item is string => typeof item === "string")
 		: [];
-}
-
-function remapCardIds(cardIds: string[], idMap: CardIdMap): string[] {
-	return cardIds.flatMap((cardId) => {
-		const nextCardId = idMap[cardId];
-		if (nextCardId === null) return [];
-		return [nextCardId ?? cardId];
-	});
-}
-
-function remapAnswerEvents(events: StudyAnswerEvent[], idMap: CardIdMap): StudyAnswerEvent[] {
-	return events.flatMap((event) => {
-		const nextCardId = idMap[event.cardId];
-		if (nextCardId === null) return [];
-		return [
-			{
-				...event,
-				cardId: nextCardId ?? event.cardId,
-				previousRepeatQueue: remapCardIds(event.previousRepeatQueue, idMap),
-			},
-		];
-	});
 }

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
 	containsReservedMarkerLine,
+	extractCardIdentityMarker,
 	formatCardBlock,
+	formatCardIdentityMarker,
 	hasFlashcardSyntax,
 	isMarkerLine,
 } from "../cardFormat";
@@ -28,6 +30,15 @@ back
 		expect(containsReservedMarkerLine("front text\n::\nexplanation")).toBe(true);
 		expect(containsReservedMarkerLine("front text with :: inline")).toBe(false);
 	});
+
+	it("round-trips a vault-wide card identity marker", () => {
+		const cardIdentity = "550e8400-e29b-41d4-a716-446655440000";
+		const marker = formatCardIdentityMarker(cardIdentity);
+
+		expect(marker).toBe(`<!-- wsr-card-id: ${cardIdentity} -->`);
+		expect(extractCardIdentityMarker(marker)).toBe(cardIdentity);
+		expect(extractCardIdentityMarker("front text")).toBeNull();
+	});
 });
 
 describe("formatCardBlock", () => {
@@ -37,5 +48,13 @@ describe("formatCardBlock", () => {
 		);
 		expect(formatCardBlock(" front ", " back ", "   ")).toBe("front\n??\nback");
 		expect(formatCardBlock(" front ", " back ")).toBe("front\n??\nback");
+	});
+
+	it("places the card identity marker before the front content", () => {
+		expect(formatCardBlock("front", "back", undefined, "550e8400-e29b-41d4-a716-446655440000"))
+			.toBe(`<!-- wsr-card-id: 550e8400-e29b-41d4-a716-446655440000 -->
+front
+??
+back`);
 	});
 });

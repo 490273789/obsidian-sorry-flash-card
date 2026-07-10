@@ -5,8 +5,6 @@ export type Language = "zh" | "en";
 
 export type CardDirection = "normal" | "reversed";
 
-export type CardIdMap = Record<string, string | null>;
-
 export type StudyRating = 1 | 2 | 3 | 4 | 5;
 
 /**
@@ -123,6 +121,15 @@ export interface StudySession {
 	history: string[];
 	/** Answer events used for statistics and true undo */
 	answerEvents: StudyAnswerEvent[];
+	/** Deck identity and name captured when the session began */
+	originDeck?: SessionOriginDeckSnapshot;
+	/** Identities removed from the source after their answer events were recorded */
+	unavailableCardIds?: string[];
+}
+
+export interface SessionOriginDeckSnapshot {
+	id: string;
+	name: string;
 }
 
 /**
@@ -256,6 +263,10 @@ export interface PracticeSession {
 	answers: Record<string, boolean>;
 	/** Answered-card history for the previous-card function */
 	history: string[];
+	/** Deck identity and name captured when the session began */
+	originDeck?: SessionOriginDeckSnapshot;
+	/** Identities removed from the source after their answer events were recorded */
+	unavailableCardIds?: string[];
 }
 
 /**

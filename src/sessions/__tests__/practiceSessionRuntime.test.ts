@@ -39,6 +39,7 @@ function makeSession(overrides: Partial<PracticeSession> = {}): PracticeSession 
 		totalQuestions: 2,
 		answers: {},
 		history: [],
+		unavailableCardIds: [],
 		...overrides,
 	};
 }
@@ -153,6 +154,7 @@ describe("PracticeSessionRuntime", () => {
 				currentIndex: 1,
 				answers: { "card-1": true },
 				history: ["card-1"],
+				originDeck: { id: "notes/deck.md", name: "Original Deck" },
 			}),
 			false,
 			91000,
@@ -169,7 +171,7 @@ describe("PracticeSessionRuntime", () => {
 		});
 		expect(store.recordStudySession).toHaveBeenCalledWith(
 			"notes/deck.md",
-			"Deck",
+			"Original Deck",
 			"practice",
 			2,
 			90,
@@ -217,31 +219,5 @@ describe("PracticeSessionRuntime", () => {
 				makeResult({ incorrectCardIds: [], incorrectCount: 0 }),
 			),
 		).toBeNull();
-	});
-
-	it("keeps practice session card identity remapping behind the runtime interface", () => {
-		const runtime = createPracticeSessionRuntime(makeStore([]).store);
-
-		const remapped = runtime.remapSessionCards(
-			makeSession({
-				currentIndex: 1,
-				answers: { "card-1": true, "card-2": false },
-				history: ["card-1"],
-			}),
-			{
-				"card-1": null,
-				"card-2": "card-1",
-			},
-		);
-
-		expect(remapped).toEqual(
-			makeSession({
-				cardQueue: ["card-1"],
-				currentIndex: 0,
-				totalQuestions: 1,
-				answers: { "card-1": false },
-				history: [],
-			}),
-		);
 	});
 });

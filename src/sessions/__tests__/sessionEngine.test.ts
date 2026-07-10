@@ -8,7 +8,6 @@ import {
 	createRangePracticeSession,
 	createRandomPracticeSession,
 	previousPracticeCard,
-	remapPracticeSessionCards,
 } from "../sessionEngine";
 import type { FlashCard, PracticeSession } from "../../shared/types";
 
@@ -44,6 +43,7 @@ function makePracticeSession(overrides: Partial<PracticeSession> = {}): Practice
 		totalQuestions: 3,
 		answers: {},
 		history: [],
+		unavailableCardIds: [],
 		...overrides,
 	};
 }
@@ -66,6 +66,7 @@ describe("practice session engine", () => {
 			totalQuestions: 2,
 			answers: {},
 			history: [],
+			unavailableCardIds: [],
 		});
 	});
 
@@ -225,6 +226,38 @@ describe("practice session engine", () => {
 		});
 	});
 
+	it("retains deleted-card answers in history but excludes them from the result", () => {
+		const result = answerPracticeCard({
+			session: makePracticeSession({
+				cardQueue: ["card-3"],
+				currentIndex: 0,
+				totalQuestions: 3,
+				answers: {
+					"card-1": true,
+					"card-2": false,
+				},
+				history: ["card-1", "card-2"],
+				unavailableCardIds: ["card-2"],
+			}),
+			cardId: "card-3",
+			isCorrect: true,
+			now: 91000,
+		});
+
+		expect(result).toEqual({
+			type: "complete",
+			result: {
+				direction: "normal",
+				totalQuestions: 3,
+				correctCount: 2,
+				incorrectCount: 1,
+				accuracy: 66.66666666666666,
+				incorrectCardIds: [],
+				timeSpent: 90,
+			},
+		});
+	});
+
 	it("returns to the previous practice card and removes its answer", () => {
 		const result = previousPracticeCard(
 			makePracticeSession({
@@ -241,39 +274,6 @@ describe("practice session engine", () => {
 				currentIndex: 0,
 				answers: {},
 				history: [],
-			}),
-		);
-	});
-
-	it("remaps practice queues, answers, and history after card identity changes", () => {
-		const result = remapPracticeSessionCards(
-			makePracticeSession({
-				cardQueue: ["card-1", "card-2", "card-3"],
-				currentIndex: 2,
-				answers: {
-					"card-1": true,
-					"card-2": false,
-					"card-3": true,
-				},
-				history: ["card-1", "card-2"],
-			}),
-			{
-				"card-1": "card-1",
-				"card-2": null,
-				"card-3": "card-2",
-			},
-		);
-
-		expect(result).toEqual(
-			makePracticeSession({
-				cardQueue: ["card-1", "card-2"],
-				currentIndex: 1,
-				totalQuestions: 2,
-				answers: {
-					"card-1": true,
-					"card-2": true,
-				},
-				history: ["card-1"],
 			}),
 		);
 	});

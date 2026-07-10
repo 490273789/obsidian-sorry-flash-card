@@ -124,7 +124,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			return;
 		}
 
-		// Use tags already cached from the last syncFromVault() call
+		// Use tags already cached from the last identity synchronization.
 		const cached = this.plugin.dataStore.getAvailableTags();
 		if (cached.length > 0) {
 			this.availableTags = cached;
@@ -155,7 +155,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		this.refreshDefinitions();
 
 		try {
-			await this.plugin.dataStore.syncFromVault();
+			await this.plugin.cardIdentityContinuity.synchronize();
 			this.availableTags = this.plugin.dataStore.getAvailableTags();
 			this.hasLoadedTags = true;
 
