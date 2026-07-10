@@ -173,7 +173,7 @@
 .flashcard-study-order-btn,
 .flashcard-direction-btn,
 .flashcard-practice-mode-btn {
-	min-height: 46px;
+	min-height: 40px;
 }
 
 .flashcard-practice-quick-btn {
@@ -317,12 +317,12 @@
 .flashcard-deck-settings-field input[type="number"],
 .flashcard-deck-settings-field select,
 .fc-settings-input {
-	min-height: 38px;
+	min-height: 36px;
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.24);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(5, 7, 13, 0.72);
 	color: var(--fc-text);
-	font: 700 var(--fc-font-sm) / 1.25 var(--fc-font-ui);
+	font: 600 var(--fc-font-sm) / 1.25 var(--fc-font-ui);
 }
 
 .flashcard-practice-input {

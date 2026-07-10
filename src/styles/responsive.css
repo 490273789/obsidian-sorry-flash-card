@@ -65,8 +65,7 @@
 	}
 
 	.flashcard-header,
-	.flashcard-common-header,
-	.flashcard-home-hero {
+	.flashcard-common-header {
 		padding: var(--fc-space-3);
 	}
 
@@ -368,7 +367,8 @@
 		order: 2;
 	}
 
-	.flashcard-study .flashcard-session-actions.is-open
+	.flashcard-study
+		.flashcard-session-actions.is-open
 		.flashcard-session-actions-toggle-icon {
 		transform: rotate(180deg);
 	}
@@ -378,7 +378,8 @@
 		order: 1;
 	}
 
-	.flashcard-study .flashcard-session-actions.is-open
+	.flashcard-study
+		.flashcard-session-actions.is-open
 		.flashcard-session-action-item {
 		display: inline-flex;
 	}
