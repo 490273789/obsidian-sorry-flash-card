@@ -1,4 +1,12 @@
-import React, { useState, useCallback, useRef, useMemo, useReducer } from "react";
+import React, {
+	useState,
+	useCallback,
+	useRef,
+	useMemo,
+	useReducer,
+	useEffect,
+	useSyncExternalStore,
+} from "react";
 import { App, ButtonComponent, Component, MarkdownRenderer, Modal, Notice, TFile } from "obsidian";
 import {
 	ViewState,
@@ -27,10 +35,17 @@ import { StatsView } from "./StatsView";
 import { I18nProvider } from "./I18nContext";
 import { createTranslator } from "../../i18n";
 import { CardEditorModal, type CardEditorSavePayload } from "./CardEditorModal";
+import type {
+	CardChangeOutcome,
+	CardIdentityContinuity,
+} from "../../identity/cardIdentityContinuity";
+import type { ActiveSessionStore } from "../../sessions/activeSessionStore";
 
 interface FlashcardAppProps {
 	app: App;
 	dataStore: DataStore;
+	cardIdentityContinuity: CardIdentityContinuity;
+	activeSessionStore: ActiveSessionStore;
 	settings: FlashcardSettings;
 	onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 	onRefresh: () => Promise<void>;
@@ -53,15 +68,26 @@ type CardEditorState =
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	app,
 	dataStore,
+	cardIdentityContinuity,
+	activeSessionStore,
 	settings,
 	onSaveSettings,
 	onRefresh,
 }) => {
 	const t = useMemo(() => createTranslator(settings.language), [settings.language]);
 	const [viewState, setViewState] = useState<ViewState>({ type: "home" });
-	const [studySession, setStudySession] = useState<StudySession | null>(null);
-	const [practiceSession, setPracticeSession] = useState<PracticeSession | null>(null);
-	const [practiceResult, setPracticeResult] = useState<PracticeResult | null>(null);
+	const activeSessions = useSyncExternalStore(
+		(listener) => activeSessionStore.subscribe(listener),
+		() => activeSessionStore.getSnapshot(),
+		() => activeSessionStore.getSnapshot(),
+	);
+	const { studySession, practiceSession, practiceResult } = activeSessions;
+	useEffect(() => {
+		if (activeSessions.lastEndReason !== "source-change") return;
+		new Notice(t("identity.sessionEndedBySourceChange"));
+		setViewState({ type: "home" });
+		activeSessionStore.clearEndReason();
+	}, [activeSessionStore, activeSessions.lastEndReason, t]);
 	const [, bumpSnapshotVersion] = useReducer((version: number) => version + 1, 0);
 	const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
 	// Track when word-list view was opened for duration recording
@@ -130,17 +156,24 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (!cardEditor) return;
 
 			try {
+				const outcome =
+					cardEditor.mode === "edit"
+						? await cardIdentityContinuity.change({
+								kind: "edit",
+								cardIdentity: cardEditor.cardId,
+								content: { front, back, explanation },
+							})
+						: await cardIdentityContinuity.change({
+								kind: "add",
+								deckId,
+								content: { front, back, explanation },
+							});
+				if (outcome.kind !== "applied") {
+					throw new Error(getCardChangeFailureMessage(outcome, t));
+				}
 				if (cardEditor.mode === "edit") {
-					await dataStore.updateCardContent(
-						cardEditor.deckId,
-						cardEditor.cardId,
-						front,
-						back,
-						explanation,
-					);
 					new Notice(t("notice.cardSaved"));
 				} else {
-					await dataStore.addCardToDeck(deckId, front, back, explanation);
 					new Notice(t("notice.cardAdded"));
 				}
 				bumpSnapshotVersion();
@@ -151,7 +184,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				throw error;
 			}
 		},
-		[cardEditor, dataStore, t],
+		[cardEditor, cardIdentityContinuity, t],
 	);
 
 	const handleSelectDeck = useCallback(
@@ -170,13 +203,17 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		(deckId: string, studyOrder: "sequential" | "random", direction: CardDirection) => {
 			const session = dataStore.createStudySession(deckId, studyOrder, direction);
 			if (session && session.cardQueue.length > 0) {
-				setStudySession(session);
+				const deck = dataStore.getDeck(deckId);
+				activeSessionStore.setStudySession({
+					...session,
+					originDeck: { id: deckId, name: deck?.name ?? deckId },
+				});
 				setViewState({ type: "study", deckId });
 			} else {
 				new Notice(t("notice.todayComplete"));
 			}
 		},
-		[dataStore, t],
+		[activeSessionStore, dataStore, t],
 	);
 
 	const handleStudyDay = useCallback(
@@ -193,11 +230,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				studyOrder,
 			});
 			if (!session) return;
-			setPracticeSession(session);
-			setPracticeResult(null);
+			const deck = dataStore.getDeck(deckId);
+			activeSessionStore.setPracticeSession({
+				...session,
+				originDeck: { id: deckId, name: deck?.name ?? deckId },
+			});
+			activeSessionStore.setPracticeResult(null);
 			setViewState({ type: "practice", deckId });
 		},
-		[practiceRuntime],
+		[activeSessionStore, dataStore, practiceRuntime],
 	);
 
 	const confirmAction = useCallback(
@@ -236,9 +277,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	);
 
 	const handleStudyComplete = useCallback(() => {
-		setStudySession(null);
+		activeSessionStore.setStudySession(null);
 		setViewState({ type: "home" });
-	}, []);
+	}, [activeSessionStore]);
 
 	const handleCloseStudy = useCallback(async () => {
 		const confirmed = await confirmAction(
@@ -251,17 +292,20 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (studySession) {
 			await studyRuntime.finish(studySession, "abandoned");
 		}
-		setStudySession(null);
+		activeSessionStore.setStudySession(null);
 		setViewState({ type: "home" });
-	}, [confirmAction, studyRuntime, studySession, t]);
+	}, [activeSessionStore, confirmAction, studyRuntime, studySession, t]);
 
 	const handleCloseStudyRequest = useCallback(() => {
 		void handleCloseStudy();
 	}, [handleCloseStudy]);
 
-	const handleSessionUpdate = useCallback((session: StudySession) => {
-		setStudySession(session);
-	}, []);
+	const handleSessionUpdate = useCallback(
+		(session: StudySession) => {
+			activeSessionStore.setStudySession(session);
+		},
+		[activeSessionStore],
+	);
 
 	const handleOpenWordList = useCallback((deckId: string) => {
 		wordListStartTime.current = Date.now();
@@ -307,20 +351,27 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			const session = practiceRuntime.createSession(deckId, options);
 			if (!session) return;
 
-			setPracticeSession(session);
-			setPracticeResult(null);
+			const deck = dataStore.getDeck(deckId);
+			activeSessionStore.setPracticeSession({
+				...session,
+				originDeck: { id: deckId, name: deck?.name ?? deckId },
+			});
+			activeSessionStore.setPracticeResult(null);
 			setViewState({ type: "practice", deckId });
 		},
-		[practiceRuntime],
+		[activeSessionStore, dataStore, practiceRuntime],
 	);
 
-	const handlePracticeSessionUpdate = useCallback((session: PracticeSession) => {
-		setPracticeSession(session);
-	}, []);
+	const handlePracticeSessionUpdate = useCallback(
+		(session: PracticeSession) => {
+			activeSessionStore.setPracticeSession(session);
+		},
+		[activeSessionStore],
+	);
 
 	const handlePracticeComplete = useCallback(
 		(result: PracticeResult) => {
-			setPracticeResult(result);
+			activeSessionStore.setPracticeResult(result);
 			if (practiceSession) {
 				setViewState({
 					type: "practice-summary",
@@ -328,7 +379,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				});
 			}
 		},
-		[practiceSession],
+		[activeSessionStore, practiceSession],
 	);
 
 	const handlePracticeRestart = useCallback(() => {
@@ -345,17 +396,23 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			const session = practiceRuntime.createIncorrectSession(practiceSession, practiceResult);
 			if (!session) return;
 
-			setPracticeSession(session);
-			setPracticeResult(null);
+			activeSessionStore.setPracticeSession({
+				...session,
+				originDeck: practiceSession.originDeck ?? {
+					id: practiceSession.deckId,
+					name: practiceSession.deckId,
+				},
+			});
+			activeSessionStore.setPracticeResult(null);
 			setViewState({ type: "practice", deckId: practiceSession.deckId });
 		}
-	}, [practiceResult, practiceRuntime, practiceSession]);
+	}, [activeSessionStore, practiceResult, practiceRuntime, practiceSession]);
 
 	const handlePracticeClose = useCallback(() => {
-		setPracticeSession(null);
-		setPracticeResult(null);
+		activeSessionStore.setPracticeSession(null);
+		activeSessionStore.setPracticeResult(null);
 		setViewState({ type: "home" });
-	}, []);
+	}, [activeSessionStore]);
 
 	const handleDeleteCard = useCallback(
 		async (deckId: string, cardId: string) => {
@@ -367,41 +424,22 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (!confirmed) return;
 
 			try {
-				const idMap = await dataStore.deleteCardFromDeck(deckId, cardId);
+				const outcome = await cardIdentityContinuity.change({
+					kind: "delete",
+					cardIdentity: cardId,
+				});
+				if (outcome.kind !== "applied") {
+					throw new Error(getCardChangeFailureMessage(outcome, t));
+				}
 				bumpSnapshotVersion();
 				new Notice(t("notice.cardDeleted"));
-
-				setStudySession((currentSession) => {
-					if (!currentSession || currentSession.deckId !== deckId) {
-						return currentSession;
-					}
-					const nextSession = studyRuntime.remapSessionCards(currentSession, idMap);
-					if (!nextSession) {
-						setViewState({ type: "home" });
-						return null;
-					}
-					return nextSession;
-				});
-
-				setPracticeSession((currentSession) => {
-					if (!currentSession || currentSession.deckId !== deckId) {
-						return currentSession;
-					}
-					const nextSession = practiceRuntime.remapSessionCards(currentSession, idMap);
-					if (!nextSession) {
-						setViewState({ type: "home" });
-						setPracticeResult(null);
-						return null;
-					}
-					return nextSession;
-				});
 			} catch (error) {
 				const message =
 					error instanceof Error ? error.message : t("cardEditor.deleteFailed");
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[dataStore, confirmAction, practiceRuntime, studyRuntime, t],
+		[cardIdentityContinuity, confirmAction, t],
 	);
 
 	const handleDeleteCardRequest = useCallback(
@@ -622,3 +660,19 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		</I18nProvider>
 	);
 };
+
+function getCardChangeFailureMessage(
+	outcome: Exclude<CardChangeOutcome, { kind: "applied" }>,
+	t: ReturnType<typeof createTranslator>,
+): string {
+	switch (outcome.kind) {
+		case "blocked":
+			return outcome.reason === "migration-required"
+				? t("identity.editNeedsMigration")
+				: t("identity.editNeedsRepair");
+		case "source-changing":
+			return t("identity.sourceChanging");
+		case "failed":
+			return outcome.message;
+	}
+}

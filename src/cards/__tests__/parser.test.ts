@@ -35,6 +35,62 @@ describe("extractFirstTag", () => {
 });
 
 describe("parseFlashcards", () => {
+	it("uses the source marker as card identity and preserves state after reordering", () => {
+		const appleState = createEmptyCard();
+		appleState.reps = 7;
+		const bananaState = createEmptyCard();
+		bananaState.reps = 3;
+		const existingCards = new Map<string, FlashCard>([
+			[
+				"550e8400-e29b-41d4-a716-446655440000",
+				{
+					id: "550e8400-e29b-41d4-a716-446655440000",
+					front: "苹果",
+					back: "apple",
+					fsrsCard: appleState,
+					sourceFile: "notes/vocab.md",
+					indexInFile: 0,
+				},
+			],
+			[
+				"7d444840-9dc0-11d1-b245-5ffdce74fad2",
+				{
+					id: "7d444840-9dc0-11d1-b245-5ffdce74fad2",
+					front: "香蕉",
+					back: "banana",
+					fsrsCard: bananaState,
+					sourceFile: "notes/vocab.md",
+					indexInFile: 1,
+				},
+			],
+		]);
+
+		const cards = parseFlashcards(
+			`#单词
+<!-- wsr-card-id: 7d444840-9dc0-11d1-b245-5ffdce74fad2 -->
+香蕉 updated
+??
+banana
+;;
+
+<!-- wsr-card-id: 550e8400-e29b-41d4-a716-446655440000 -->
+苹果
+??
+apple
+;;`,
+			"notes/vocab.md",
+			existingCards,
+		);
+
+		expect(cards.map((card) => card.id)).toEqual([
+			"7d444840-9dc0-11d1-b245-5ffdce74fad2",
+			"550e8400-e29b-41d4-a716-446655440000",
+		]);
+		expect(cards[0]?.fsrsCard).toBe(bananaState);
+		expect(cards[0]?.front).toBe("香蕉 updated");
+		expect(cards[1]?.fsrsCard).toBe(appleState);
+	});
+
 	it("parses cards with front, back, explanation, and stable source metadata", () => {
 		const cards = parseFlashcards(
 			`#单词

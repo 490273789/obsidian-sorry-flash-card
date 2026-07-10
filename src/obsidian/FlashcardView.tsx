@@ -5,23 +5,31 @@ import { FlashcardApp } from "../ui/components/FlashcardApp";
 import { DataStore } from "../storage/dataStore";
 import { FlashcardSettings } from "../shared/types";
 import { translate } from "../i18n";
+import type { CardIdentityContinuity } from "../identity/cardIdentityContinuity";
+import type { ActiveSessionStore } from "../sessions/activeSessionStore";
 
 export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
 export class FlashcardView extends ItemView {
 	private root: Root | null = null;
 	private dataStore: DataStore;
+	private cardIdentityContinuity: CardIdentityContinuity;
+	private activeSessionStore: ActiveSessionStore;
 	private settings: FlashcardSettings;
 	private onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 
 	constructor(
 		leaf: WorkspaceLeaf,
 		dataStore: DataStore,
+		cardIdentityContinuity: CardIdentityContinuity,
+		activeSessionStore: ActiveSessionStore,
 		settings: FlashcardSettings,
 		onSaveSettings: (settings: FlashcardSettings) => Promise<void>,
 	) {
 		super(leaf);
 		this.dataStore = dataStore;
+		this.cardIdentityContinuity = cardIdentityContinuity;
+		this.activeSessionStore = activeSessionStore;
 		this.settings = settings;
 		this.onSaveSettings = onSaveSettings;
 	}
@@ -46,7 +54,7 @@ export class FlashcardView extends ItemView {
 		container.addClass("flashcard-container");
 
 		// Single vault scan: syncs decks and caches available tags
-		await this.dataStore.syncFromVault();
+		await this.cardIdentityContinuity.synchronize();
 
 		// Create React root
 		const rootEl = container.createDiv({ cls: "flashcard-root" });
@@ -63,6 +71,8 @@ export class FlashcardView extends ItemView {
 				<FlashcardApp
 					app={this.app}
 					dataStore={this.dataStore}
+					cardIdentityContinuity={this.cardIdentityContinuity}
+					activeSessionStore={this.activeSessionStore}
 					settings={this.settings}
 					onSaveSettings={this.handleSaveSettings}
 					onRefresh={this.handleRefresh}
@@ -79,7 +89,7 @@ export class FlashcardView extends ItemView {
 	};
 
 	private handleRefresh = async (): Promise<void> => {
-		await this.dataStore.syncFromVault();
+		await this.cardIdentityContinuity.synchronize();
 		this.renderApp();
 	};
 
@@ -93,5 +103,9 @@ export class FlashcardView extends ItemView {
 	updateSettings(settings: FlashcardSettings): void {
 		this.settings = settings;
 		this.renderApp();
+	}
+
+	async refresh(): Promise<void> {
+		await this.handleRefresh();
 	}
 }

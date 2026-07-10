@@ -45,7 +45,78 @@ banana
 pear
 ;;`;
 
+const stableCards = [
+	"550e8400-e29b-41d4-a716-446655440000",
+	"7d444840-9dc0-11d1-b245-5ffdce74fad2",
+	"6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+] as const;
+
+function makeStableDeck(): Deck {
+	return {
+		...makeDeck(3),
+		cards: stableCards.map((id, index) => ({ ...makeCard(index), id })),
+	};
+}
+
+const stableThreeCardSource = `#单词
+
+<!-- wsr-card-id: 550e8400-e29b-41d4-a716-446655440000 -->
+苹果
+??
+apple
+;;
+
+<!-- wsr-card-id: 7d444840-9dc0-11d1-b245-5ffdce74fad2 -->
+香蕉
+??
+banana
+::
+黄色水果
+;;
+
+<!-- wsr-card-id: 6ba7b810-9dad-11d1-80b4-00c04fd430c8 -->
+梨
+??
+pear
+;;`;
+
 describe("editDeckSource", () => {
+	it("preserves stable identities when updating and deleting cards", () => {
+		const updated = editDeckSource(stableThreeCardSource, makeStableDeck(), {
+			type: "update",
+			cardId: stableCards[0],
+			front: "苹果 updated",
+			back: "apple updated",
+		});
+
+		expect(updated.nextContent).toContain(
+			`<!-- wsr-card-id: ${stableCards[0]} -->\n苹果 updated\n??\napple updated`,
+		);
+
+		const deleted = editDeckSource(stableThreeCardSource, makeStableDeck(), {
+			type: "delete",
+			cardId: stableCards[1],
+		});
+
+		expect(deleted.nextContent).not.toContain(stableCards[1]);
+		expect(deleted.nextContent).toContain(stableCards[2]);
+	});
+
+	it("writes the supplied stable identity when adding a card", () => {
+		const newIdentity = "16fd2706-8baf-433b-82eb-8c7fada847da";
+		const result = editDeckSource(stableThreeCardSource, makeStableDeck(), {
+			type: "add",
+			cardId: newIdentity,
+			front: "葡萄",
+			back: "grape",
+		});
+
+		expect(result.newCardId).toBe(newIdentity);
+		expect(result.nextContent).toContain(
+			`<!-- wsr-card-id: ${newIdentity} -->\n葡萄\n??\ngrape\n;;`,
+		);
+	});
+
 	it("appends new cards to the end and returns the new card id", () => {
 		const result = editDeckSource(threeCardSource, makeDeck(3), {
 			type: "add",
@@ -55,7 +126,6 @@ describe("editDeckSource", () => {
 		});
 
 		expect(result.newCardId).toBe("notes/deck.md::3");
-		expect(result.idMap).toEqual({});
 		expect(result.nextContent).toBe(`${threeCardSource}
 
 葡萄
@@ -75,7 +145,6 @@ fruit
 			back: "apple updated",
 		});
 
-		expect(result.idMap).toEqual({});
 		expect(result.nextContent).toBe(`#单词
 
 苹果 updated
@@ -96,17 +165,12 @@ pear
 ;;`);
 	});
 
-	it("deletes a middle card and returns card identity remaps", () => {
+	it("deletes a middle card without exposing identity remaps", () => {
 		const result = editDeckSource(threeCardSource, makeDeck(3), {
 			type: "delete",
 			cardId: "notes/deck.md::1",
 		});
 
-		expect(result.idMap).toEqual({
-			"notes/deck.md::0": "notes/deck.md::0",
-			"notes/deck.md::1": null,
-			"notes/deck.md::2": "notes/deck.md::1",
-		});
 		expect(result.nextContent).toBe(`#单词
 
 苹果
@@ -126,11 +190,6 @@ pear
 			cardId: "notes/deck.md::0",
 		});
 
-		expect(result.idMap).toEqual({
-			"notes/deck.md::0": null,
-			"notes/deck.md::1": "notes/deck.md::0",
-			"notes/deck.md::2": "notes/deck.md::1",
-		});
 		expect(result.nextContent.startsWith("#单词\n")).toBe(true);
 		expect(result.nextContent).toContain("香蕉\n??\nbanana");
 		expect(result.nextContent).not.toContain("苹果\n??\napple");

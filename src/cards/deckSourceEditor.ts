@@ -1,10 +1,12 @@
-import type { CardIdMap, Deck, FlashCard } from "../shared/types";
+import type { Deck, FlashCard } from "../shared/types";
 import {
 	CARD_END_SEPARATOR,
 	EXPLANATION_SEPARATOR,
 	FIRST_TAG_LINE_PATTERN,
 	FRONT_BACK_SEPARATOR,
+	extractCardIdentityMarker,
 	formatCardBlock,
+	formatCardIdentityMarker,
 	isMarkerLine,
 } from "./cardFormat";
 
@@ -33,6 +35,7 @@ export class DeckSourceEditException extends Error {
 export type DeckSourceEditOperation =
 	| {
 			type: "add";
+			cardId?: string;
 			front: string;
 			back: string;
 			explanation?: string;
@@ -51,13 +54,56 @@ export type DeckSourceEditOperation =
 
 export interface DeckSourceEditResult {
 	nextContent: string;
-	idMap: CardIdMap;
 	newCardId?: string;
 }
 
 interface CardBlockRange {
 	start: number;
 	end: number;
+}
+
+export interface CardIdentityRegistrationResult {
+	nextContent: string;
+	registeredIdentities: string[];
+}
+
+export function rewriteCardIdentityMarkers(content: string, identities: string[]): string {
+	const lines = content.split(/\r?\n/);
+	const nextLines: string[] = [];
+	let blockStart = 0;
+	let cardIndex = 0;
+
+	for (let index = 0; index < lines.length; index++) {
+		if (!isMarkerLine(lines[index] ?? "", CARD_END_SEPARATOR)) continue;
+		const blockLines = lines.slice(blockStart, index);
+		const frontBackIndex = blockLines.findIndex((line) =>
+			isMarkerLine(line, FRONT_BACK_SEPARATOR),
+		);
+		const desiredIdentity = identities[cardIndex];
+		if (frontBackIndex !== -1 && desiredIdentity) {
+			const withoutIdentity = blockLines.filter(
+				(line) => extractCardIdentityMarker(line) === null,
+			);
+			const frontContentIndex = findFrontContentIndex(withoutIdentity, cardIndex === 0);
+			if (frontContentIndex !== -1) {
+				withoutIdentity.splice(
+					frontContentIndex,
+					0,
+					formatCardIdentityMarker(desiredIdentity),
+				);
+				blockLines.splice(0, blockLines.length, ...withoutIdentity);
+				cardIndex++;
+			}
+		}
+		nextLines.push(...blockLines, lines[index] ?? CARD_END_SEPARATOR);
+		blockStart = index + 1;
+	}
+
+	if (cardIndex !== identities.length) {
+		throw new DeckSourceEditException({ type: "source-file-invalid" });
+	}
+	nextLines.push(...lines.slice(blockStart));
+	return nextLines.join("\n");
 }
 
 const RESERVED_MARKERS: readonly ReservedMarker[] = [
@@ -81,6 +127,73 @@ export function editDeckSource(
 	}
 }
 
+export function registerMissingCardIdentities(
+	content: string,
+	createIdentity: () => string,
+): CardIdentityRegistrationResult {
+	const lines = content.split(/\r?\n/);
+	const nextLines: string[] = [];
+	const registeredIdentities: string[] = [];
+	let blockStart = 0;
+	let validCardIndex = 0;
+
+	for (let index = 0; index < lines.length; index++) {
+		if (!isMarkerLine(lines[index] ?? "", CARD_END_SEPARATOR)) continue;
+
+		const blockLines = lines.slice(blockStart, index);
+		const frontBackIndex = blockLines.findIndex((line) =>
+			isMarkerLine(line, FRONT_BACK_SEPARATOR),
+		);
+		const explanationIndex = blockLines.findIndex(
+			(line, lineIndex) =>
+				lineIndex > frontBackIndex && isMarkerLine(line, EXPLANATION_SEPARATOR),
+		);
+		const backEnd = explanationIndex === -1 ? blockLines.length : explanationIndex;
+		const frontContentIndex = findFrontContentIndex(blockLines, validCardIndex === 0);
+		const hasFront =
+			frontBackIndex > 0 &&
+			frontContentIndex !== -1 &&
+			blockLines
+				.slice(frontContentIndex, frontBackIndex)
+				.some((line) => line.trim().length > 0);
+		const hasBack =
+			frontBackIndex !== -1 &&
+			blockLines.slice(frontBackIndex + 1, backEnd).some((line) => line.trim().length > 0);
+
+		if (hasFront && hasBack) {
+			validCardIndex++;
+			const existingIdentity = blockLines
+				.map(extractCardIdentityMarker)
+				.find((identity) => identity !== null);
+			if (!existingIdentity) {
+				const identity = createIdentity();
+				registeredIdentities.push(identity);
+				blockLines.splice(frontContentIndex, 0, formatCardIdentityMarker(identity));
+			}
+		}
+
+		nextLines.push(...blockLines, lines[index] ?? CARD_END_SEPARATOR);
+		blockStart = index + 1;
+	}
+
+	nextLines.push(...lines.slice(blockStart));
+	return {
+		nextContent: nextLines.join("\n"),
+		registeredIdentities,
+	};
+}
+
+function findFrontContentIndex(blockLines: string[], firstValidCard: boolean): number {
+	for (let index = 0; index < blockLines.length; index++) {
+		const line = blockLines[index] ?? "";
+		if (line.trim().length === 0) continue;
+		if (extractCardIdentityMarker(line)) continue;
+		if (firstValidCard && /^\s*#[\w\u4e00-\u9fa5]+\s*$/.test(line)) continue;
+		return index;
+	}
+	return -1;
+}
+
 function addCardToSource(
 	content: string,
 	deck: Deck,
@@ -94,9 +207,9 @@ function addCardToSource(
 			operation.front,
 			operation.back,
 			operation.explanation,
+			operation.cardId,
 		),
-		idMap: {},
-		newCardId: generateCardId(deck.filePath, deck.cards.length),
+		newCardId: operation.cardId ?? generateCardId(deck.filePath, deck.cards.length),
 	};
 }
 
@@ -113,11 +226,11 @@ function updateCardInSource(
 		operation.front,
 		operation.back,
 		operation.explanation,
+		isLegacyCardIdentity(deck.filePath, card.id) ? undefined : card.id,
 	);
 
 	return {
 		nextContent,
-		idMap: {},
 	};
 }
 
@@ -126,7 +239,6 @@ function deleteCardFromSource(content: string, deck: Deck, cardId: string): Deck
 
 	return {
 		nextContent: deleteCardBlock(content, card.indexInFile),
-		idMap: buildDeleteIdMap(deck, cardId),
 	};
 }
 
@@ -167,6 +279,7 @@ function replaceCardBlock(
 	front: string,
 	back: string,
 	explanation?: string,
+	cardIdentity?: string,
 ): string {
 	const lines = content.split(/\r?\n/);
 	const ranges = findCardBlockRanges(lines);
@@ -186,6 +299,7 @@ function replaceCardBlock(
 		front,
 		back,
 		explanation,
+		cardIdentity,
 	);
 	const nextLines = [
 		...lines.slice(0, currentRange.start),
@@ -234,8 +348,9 @@ function mergePreservedPrefixWithCardBlock(
 	front: string,
 	back: string,
 	explanation?: string,
+	cardIdentity?: string,
 ): string {
-	const cardBlock = formatCardBlock(front, back, explanation);
+	const cardBlock = formatCardBlock(front, back, explanation, cardIdentity);
 	if (indexInFile !== 0) return cardBlock;
 
 	const prefix = extractPreservedPrefix(currentBlock);
@@ -257,27 +372,15 @@ function appendCardBlock(
 	front: string,
 	back: string,
 	explanation?: string,
+	cardIdentity?: string,
 ): string {
 	const base = content.trimEnd();
 	const separator = base.length > 0 ? "\n\n" : "";
-	return `${base}${separator}${formatCardBlock(front, back, explanation)}\n${CARD_END_SEPARATOR}\n`;
+	return `${base}${separator}${formatCardBlock(front, back, explanation, cardIdentity)}\n${CARD_END_SEPARATOR}\n`;
 }
 
-function buildDeleteIdMap(deck: Deck, deletedCardId: string): CardIdMap {
-	const idMap: CardIdMap = {};
-	let nextIndex = 0;
-
-	for (const card of [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile)) {
-		if (card.id === deletedCardId) {
-			idMap[card.id] = null;
-			continue;
-		}
-
-		idMap[card.id] = generateCardId(deck.filePath, nextIndex);
-		nextIndex++;
-	}
-
-	return idMap;
+function isLegacyCardIdentity(filePath: string, cardId: string): boolean {
+	return cardId.startsWith(`${filePath}::`);
 }
 
 function generateCardId(filePath: string, index: number): string {

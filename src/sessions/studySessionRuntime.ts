@@ -1,17 +1,16 @@
 import type { Card } from "ts-fsrs";
 import type {
-	CardIdMap,
 	Deck,
 	FlashCard,
 	StudyHistoryEntry,
 	StudyRating,
 	StudySession,
+	SessionOriginDeckSnapshot,
 } from "../shared/types";
 import {
 	answerStudyCard,
 	finishStudySession,
 	getCurrentStudyCardId,
-	remapStudySessionCards,
 	undoStudyAnswer,
 	type StudyCardScheduler,
 	type StudySessionFinishIntent,
@@ -55,7 +54,6 @@ export interface StudySessionRuntime {
 	): Promise<StudyRuntimeAnswerOutcome | null>;
 	undo(session: StudySession): Promise<StudyRuntimeUndoOutcome | null>;
 	finish(session: StudySession, reason: StudySessionFinishReason, now?: number): Promise<void>;
-	remapSessionCards(session: StudySession, idMap: CardIdMap): StudySession | null;
 }
 
 export function createStudySessionRuntime(store: StudySessionRuntimeStore): StudySessionRuntime {
@@ -92,7 +90,7 @@ class DataStoreStudySessionRuntime implements StudySessionRuntime {
 		);
 
 		if (step.type === "complete") {
-			await this.persistFinishIntent(step.finishIntent);
+			await this.persistFinishIntent(step.finishIntent, session.originDeck);
 			return {
 				type: "complete",
 				session: step.session,
@@ -128,21 +126,20 @@ class DataStoreStudySessionRuntime implements StudySessionRuntime {
 		const intent = finishStudySession(session, reason, now);
 		if (!intent) return;
 
-		await this.persistFinishIntent(intent);
+		await this.persistFinishIntent(intent, session.originDeck);
 	}
 
-	remapSessionCards(session: StudySession, idMap: CardIdMap): StudySession | null {
-		return remapStudySessionCards(session, idMap);
-	}
-
-	private async persistFinishIntent(intent: StudySessionFinishIntent): Promise<void> {
+	private async persistFinishIntent(
+		intent: StudySessionFinishIntent,
+		originDeck?: SessionOriginDeckSnapshot,
+	): Promise<void> {
 		const deck = this.store.getDeck(intent.deckId);
 		if (intent.incrementStudyCount) {
 			await this.store.incrementStudyCount(intent.deckId);
 		}
 		await this.store.recordStudySession(
-			intent.deckId,
-			deck?.name ?? intent.deckId,
+			originDeck?.id ?? intent.deckId,
+			originDeck?.name ?? deck?.name ?? intent.deckId,
 			intent.mode,
 			intent.cardCount,
 			intent.duration,

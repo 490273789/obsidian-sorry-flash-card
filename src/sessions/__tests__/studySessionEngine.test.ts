@@ -7,7 +7,6 @@ import {
 	finishStudySession,
 	getCurrentStudyCardId,
 	getStudyProgress,
-	remapStudySessionCards,
 	undoStudyAnswer,
 	type StudyCardScheduler,
 } from "../studySessionEngine";
@@ -40,6 +39,7 @@ function makeSession(overrides: Partial<StudySession> = {}): StudySession {
 		repeatQueue: [],
 		history: [],
 		answerEvents: [],
+		unavailableCardIds: [],
 		...overrides,
 	};
 }
@@ -260,6 +260,32 @@ describe("undoStudyAnswer", () => {
 		expect(result?.session).toEqual(makeSession());
 		expect(canUndoStudyAnswer(result!.session)).toBe(false);
 	});
+
+	it("keeps a deleted card's answer event but refuses to undo it", () => {
+		const fsrsCard = createEmptyCard();
+		const session = makeSession({
+			currentIndex: 1,
+			history: ["card-1"],
+			unavailableCardIds: ["card-1"],
+			answerEvents: [
+				{
+					cardId: "card-1",
+					rating: 3,
+					previousFsrsCard: fsrsCard,
+					nextFsrsCard: fsrsCard,
+					repeatInSession: false,
+					answeredAt: 2000,
+					previousCurrentIndex: 0,
+					previousCardQueueLength: 3,
+					previousRepeatQueue: [],
+				},
+			],
+		});
+
+		expect(canUndoStudyAnswer(session)).toBe(false);
+		expect(undoStudyAnswer(session)).toBeNull();
+		expect(session.answerEvents).toHaveLength(1);
+	});
 });
 
 describe("finishStudySession", () => {
@@ -296,7 +322,7 @@ describe("finishStudySession", () => {
 	});
 });
 
-describe("study session selectors and remapping", () => {
+describe("study session selectors", () => {
 	it("hides queue implementation behind selectors", () => {
 		const session = makeSession({ currentIndex: 1 });
 
@@ -307,68 +333,5 @@ describe("study session selectors and remapping", () => {
 			percent: 66.66666666666666,
 			label: "2/3",
 		});
-	});
-
-	it("remaps queues and answer events after card identity changes", () => {
-		const eventCard = createEmptyCard();
-		const remapped = remapStudySessionCards(
-			makeSession({
-				cardQueue: ["card-1", "card-2", "card-3"],
-				currentIndex: 2,
-				repeatQueue: ["card-3"],
-				history: ["card-1", "card-2"],
-				answerEvents: [
-					{
-						cardId: "card-1",
-						rating: 3,
-						previousFsrsCard: eventCard,
-						nextFsrsCard: eventCard,
-						repeatInSession: false,
-						answeredAt: 2000,
-						previousCurrentIndex: 0,
-						previousCardQueueLength: 3,
-						previousRepeatQueue: [],
-					},
-					{
-						cardId: "card-2",
-						rating: 3,
-						previousFsrsCard: eventCard,
-						nextFsrsCard: eventCard,
-						repeatInSession: false,
-						answeredAt: 3000,
-						previousCurrentIndex: 1,
-						previousCardQueueLength: 3,
-						previousRepeatQueue: [],
-					},
-				],
-			}),
-			{
-				"card-1": "card-1",
-				"card-2": null,
-				"card-3": "card-2",
-			},
-		);
-
-		expect(remapped).toEqual(
-			makeSession({
-				cardQueue: ["card-1", "card-2"],
-				currentIndex: 1,
-				repeatQueue: ["card-2"],
-				history: ["card-1"],
-				answerEvents: [
-					{
-						cardId: "card-1",
-						rating: 3,
-						previousFsrsCard: eventCard,
-						nextFsrsCard: eventCard,
-						repeatInSession: false,
-						answeredAt: 2000,
-						previousCurrentIndex: 0,
-						previousCardQueueLength: 3,
-						previousRepeatQueue: [],
-					},
-				],
-			}),
-		);
 	});
 });

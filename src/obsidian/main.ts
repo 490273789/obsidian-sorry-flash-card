@@ -1,17 +1,33 @@
-import { Plugin, WorkspaceLeaf } from "obsidian";
+import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
 import "../styles/index.css";
 import { FlashcardSettings, DEFAULT_SETTINGS } from "../shared/types";
 import { DataStore } from "../storage/dataStore";
 import { FlashcardView, VIEW_TYPE_FLASHCARD } from "./FlashcardView";
 import { FlashcardSettingTab } from "./settingsTab";
 import { createTranslator } from "../i18n";
+import {
+	createCardIdentityContinuity,
+	type CardIdentityContinuity,
+	type ResolutionOutcome,
+} from "../identity/cardIdentityContinuity";
+import { createCardIdentity } from "../identity/cardIdentity";
+import { createActiveSessionStore, type ActiveSessionStore } from "../sessions/activeSessionStore";
+import { createObsidianContinuitySourceStore } from "./cardIdentityContinuityAdapters";
+import {
+	CardIdentityMigrationModal,
+	CardIdentityRepairModal,
+} from "./cardIdentityContinuityModals";
 
 const OPEN_COMMAND_ID = "open-flashcard-view";
 const SYNC_COMMAND_ID = "sync-flashcard-decks";
+const MIGRATE_IDENTITIES_COMMAND_ID = "migrate-card-identities";
+const REPAIR_IDENTITIES_COMMAND_ID = "repair-card-identities";
 
 export default class FlashcardPlugin extends Plugin {
 	settings: FlashcardSettings = DEFAULT_SETTINGS;
 	dataStore!: DataStore;
+	cardIdentityContinuity!: CardIdentityContinuity;
+	activeSessionStore!: ActiveSessionStore;
 	private ribbonIconEl: HTMLElement | null = null;
 
 	async onload() {
@@ -21,6 +37,24 @@ export default class FlashcardPlugin extends Plugin {
 		this.settings = await this.dataStore.loadSettings();
 		this.t = createTranslator(this.settings.language);
 		await this.dataStore.load();
+		this.activeSessionStore = createActiveSessionStore({
+			onSourceChangeEnd: async (ending) => {
+				if (ending.answerEventCount === 0) return;
+				await this.dataStore.recordStudySession(
+					ending.originDeck.id,
+					ending.originDeck.name,
+					ending.type,
+					ending.answerEventCount,
+					ending.duration,
+				);
+			},
+		});
+		this.cardIdentityContinuity = createCardIdentityContinuity({
+			sources: createObsidianContinuitySourceStore(this.app.vault),
+			state: this.dataStore.createContinuityStateStore(),
+			sessions: this.activeSessionStore,
+			createIdentity: createCardIdentity,
+		});
 
 		// Register view
 		this.registerView(
@@ -29,6 +63,8 @@ export default class FlashcardPlugin extends Plugin {
 				new FlashcardView(
 					leaf,
 					this.dataStore,
+					this.cardIdentityContinuity,
+					this.activeSessionStore,
 					this.settings,
 					this.saveSettings.bind(this),
 				),
@@ -58,6 +94,8 @@ export default class FlashcardPlugin extends Plugin {
 	private registerCommands(): void {
 		this.removeCommand(OPEN_COMMAND_ID);
 		this.removeCommand(SYNC_COMMAND_ID);
+		this.removeCommand(MIGRATE_IDENTITIES_COMMAND_ID);
+		this.removeCommand(REPAIR_IDENTITIES_COMMAND_ID);
 
 		this.addCommand({
 			id: OPEN_COMMAND_ID,
@@ -71,9 +109,134 @@ export default class FlashcardPlugin extends Plugin {
 			id: SYNC_COMMAND_ID,
 			name: this.t("main.commandSyncDecks"),
 			callback: async () => {
-				await this.dataStore.syncFromVault();
+				await this.runIdentitySynchronization();
 			},
 		});
+
+		this.addCommand({
+			id: MIGRATE_IDENTITIES_COMMAND_ID,
+			name: this.t("main.commandMigrateCardIdentities"),
+			callback: () => {
+				void this.openIdentityMigration();
+			},
+		});
+
+		this.addCommand({
+			id: REPAIR_IDENTITIES_COMMAND_ID,
+			name: this.t("main.commandRepairCardIdentities"),
+			callback: () => {
+				void this.openIdentityRepair();
+			},
+		});
+	}
+
+	private async runIdentitySynchronization(): Promise<void> {
+		const outcome = await this.cardIdentityContinuity.synchronize();
+		if (outcome.kind === "failed") {
+			new Notice(this.t("identity.syncFailed", { message: outcome.message }));
+			return;
+		}
+		new Notice(
+			this.t(
+				outcome.kind === "attention-required"
+					? "identity.syncAttention"
+					: "identity.syncCurrent",
+			),
+		);
+		await this.refreshFlashcardViews();
+	}
+
+	private async openIdentityMigration(): Promise<void> {
+		const outcome = await this.cardIdentityContinuity.synchronize();
+		if (outcome.kind === "failed") {
+			new Notice(this.t("identity.syncFailed", { message: outcome.message }));
+			return;
+		}
+		const preview = this.cardIdentityContinuity.inspect().migration;
+		if (!preview) {
+			new Notice(this.t("identity.noMigration"));
+			return;
+		}
+		new CardIdentityMigrationModal(this.app, preview, this.t, (deckIds) => {
+			void this.applyIdentityResolution(
+				this.cardIdentityContinuity.resolve({
+					kind: "migrate",
+					ticket: preview.ticket,
+					deckIds,
+				}),
+				"migration",
+			);
+		}).open();
+	}
+
+	private async openIdentityRepair(): Promise<void> {
+		const outcome = await this.cardIdentityContinuity.synchronize();
+		if (outcome.kind === "failed") {
+			new Notice(this.t("identity.syncFailed", { message: outcome.message }));
+			return;
+		}
+		const issue = this.cardIdentityContinuity.inspect().issues[0];
+		if (!issue) {
+			new Notice(this.t("identity.noRepair"));
+			return;
+		}
+		new CardIdentityRepairModal(
+			this.app,
+			issue,
+			this.t,
+			(successors) => {
+				void this.applyIdentityResolution(
+					this.cardIdentityContinuity.resolve({
+						kind: "repair",
+						ticket: issue.ticket,
+						issueId: issue.id,
+						successors,
+					}),
+					"repair",
+				);
+			},
+			() => new Notice(this.t("identity.duplicateAssignment")),
+		).open();
+	}
+
+	private async applyIdentityResolution(
+		resolution: Promise<ResolutionOutcome>,
+		type: "migration" | "repair",
+	): Promise<void> {
+		const outcome = await resolution;
+		if (outcome.kind === "applied") {
+			new Notice(
+				this.t(
+					type === "migration" ? "identity.migrationApplied" : "identity.repairApplied",
+				),
+			);
+			await this.refreshFlashcardViews();
+			return;
+		}
+		if (outcome.kind === "resumable") {
+			new Notice(this.t("identity.operationResumable"));
+			return;
+		}
+		if (outcome.kind === "failed") {
+			new Notice(this.t("identity.operationFailed", { message: outcome.message }));
+			return;
+		}
+		new Notice(
+			this.t(
+				outcome.reason === "active-session"
+					? "identity.migrationBlocked"
+					: "identity.previewExpired",
+			),
+		);
+	}
+
+	private async refreshFlashcardViews(): Promise<void> {
+		await Promise.all(
+			this.app.workspace.getLeavesOfType(VIEW_TYPE_FLASHCARD).map((leaf) => {
+				const view = leaf.view as FlashcardView;
+				return view.refresh();
+			}),
+		);
 	}
 
 	private updateLocalizedControls(): void {

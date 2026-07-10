@@ -1,4 +1,4 @@
-import { Plugin, TFile } from "obsidian";
+import { Plugin } from "obsidian";
 import { Card, State } from "ts-fsrs";
 import {
 	Deck,
@@ -11,19 +11,19 @@ import {
 	StudyHistoryEntry,
 	DEFAULT_SETTINGS,
 	CardDirection,
-	CardIdMap,
 	StudyRating,
 } from "../shared/types";
 import { FSRSScheduler, toFSRSRating } from "../sessions/scheduler";
-import { extractFirstTag, parseFileIntoDeck } from "../cards/parser";
-import { hasFlashcardSyntax } from "../cards/cardFormat";
-import { editDeckSource } from "../cards/deckSourceEditor";
-import { buildDeckIndex, type DeckIndexSourceFile } from "../cards/deckIndexBuilder";
 import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "../i18n";
 import {
 	createStudySession as createStudySessionState,
 	type StudyCardSchedule,
 } from "../sessions/sessionEngine";
+import type {
+	CardIdentityContinuityState,
+	ContinuityStateStore,
+	PersistedCardIdentityContinuityState,
+} from "../identity/cardIdentityContinuity";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -33,6 +33,7 @@ export interface StoredData {
 	lastSync: string;
 	settings?: FlashcardSettings;
 	studyHistory?: StudyHistoryEntry[];
+	continuity?: PersistedCardIdentityContinuityState;
 }
 
 /**
@@ -87,6 +88,7 @@ export class DataStore {
 	private settings: FlashcardSettings;
 	private studyHistory: StudyHistoryEntry[] = [];
 	private availableTags: string[] = [];
+	private continuity: PersistedCardIdentityContinuityState = createEmptyContinuityState();
 	/** Set to true after loadSettings() has already populated decks/history */
 	private dataLoaded = false;
 
@@ -139,6 +141,7 @@ export class DataStore {
 		if (data?.studyHistory) {
 			this.studyHistory = data.studyHistory;
 		}
+		this.continuity = cloneContinuityState(data?.continuity ?? createEmptyContinuityState());
 
 		this.scheduler = new FSRSScheduler(this.settings);
 		this.dataLoaded = true;
@@ -233,6 +236,7 @@ export class DataStore {
 		if (data?.studyHistory) {
 			this.studyHistory = data.studyHistory;
 		}
+		this.continuity = cloneContinuityState(data?.continuity ?? createEmptyContinuityState());
 		this.dataLoaded = true;
 	}
 
@@ -245,6 +249,7 @@ export class DataStore {
 			lastSync: new Date().toISOString(),
 			settings: this.settings,
 			studyHistory: this.studyHistory,
+			continuity: this.continuity,
 		};
 
 		for (const [id, deck] of this.decks) {
@@ -252,6 +257,23 @@ export class DataStore {
 		}
 
 		await this.plugin.saveData(data);
+	}
+
+	createContinuityStateStore(): ContinuityStateStore {
+		return {
+			load: async (): Promise<CardIdentityContinuityState> => ({
+				configuredTags: [...this.settings.flashcardTags],
+				availableTags: [...this.availableTags],
+				decks: new Map(this.decks),
+				continuity: cloneContinuityState(this.continuity),
+			}),
+			commit: async (state: CardIdentityContinuityState): Promise<void> => {
+				this.decks = new Map(state.decks);
+				this.availableTags = [...(state.availableTags ?? this.availableTags)];
+				this.continuity = cloneContinuityState(state.continuity);
+				await this.save();
+			},
+		};
 	}
 
 	/**
@@ -336,41 +358,6 @@ export class DataStore {
 	}
 
 	/**
-	 * Sync decks from vault files in a single pass.
-	 * Also caches all discovered flashcard tags (retrievable via getAvailableTags()).
-	 */
-	async syncFromVault(): Promise<void> {
-		const vault = this.plugin.app.vault;
-		const files: DeckIndexSourceFile[] = [];
-
-		for (const file of vault.getMarkdownFiles()) {
-			try {
-				const content = await vault.cachedRead(file);
-				files.push({
-					path: file.path,
-					basename: file.basename,
-					content,
-					existingDeck: this.decks.get(file.path),
-				});
-			} catch (error) {
-				console.error(`Error parsing file ${file.path}:`, error);
-			}
-		}
-
-		const result = buildDeckIndex({
-			files,
-			configuredTags: this.settings.flashcardTags,
-		});
-		for (const { filePath, error } of result.errors) {
-			console.error(`Error parsing file ${filePath}:`, error);
-		}
-
-		this.decks = result.decks;
-		this.availableTags = result.availableTags;
-		await this.save();
-	}
-
-	/**
 	 * Get all decks
 	 */
 	getAllDecks(): Deck[] {
@@ -378,7 +365,7 @@ export class DataStore {
 	}
 
 	/**
-	 * Get all flashcard tags discovered during the last syncFromVault() call.
+	 * Get all flashcard tags discovered during the last identity synchronization.
 	 * Includes tags not yet added to settings (useful for the "add tag" UI).
 	 */
 	getAvailableTags(): string[] {
@@ -577,156 +564,31 @@ export class DataStore {
 	 */
 	getCard(deckId: string, cardId: string): FlashCard | undefined {
 		const deck = this.decks.get(deckId);
-		return deck?.cards.find((c) => c.id === cardId);
-	}
-
-	/**
-	 * Update a card's front/back/explanation in the source Markdown file.
-	 */
-	async updateCardContent(
-		deckId: string,
-		cardId: string,
-		front: string,
-		back: string,
-		explanation?: string,
-	): Promise<Deck> {
-		const deck = this.decks.get(deckId);
-		if (!deck) throw new Error("Deck not found");
-
-		const file = this.getDeckSourceFile(deck);
-		const content = await this.plugin.app.vault.cachedRead(file);
-		const editResult = editDeckSource(content, deck, {
-			type: "update",
-			cardId,
-			front,
-			back,
-			explanation,
-		});
-
-		await this.plugin.app.vault.modify(file, editResult.nextContent);
-		return this.refreshDeckFromSource(file, deck, editResult.nextContent);
-	}
-
-	/**
-	 * Append a new card to an existing deck's source Markdown file.
-	 */
-	async addCardToDeck(
-		deckId: string,
-		front: string,
-		back: string,
-		explanation?: string,
-	): Promise<Deck> {
-		const deck = this.decks.get(deckId);
-		if (!deck) throw new Error("Deck not found");
-
-		const file = this.getDeckSourceFile(deck);
-		const content = await this.plugin.app.vault.cachedRead(file);
-		const editResult = editDeckSource(content, deck, {
-			type: "add",
-			front,
-			back,
-			explanation,
-		});
-
-		await this.plugin.app.vault.modify(file, editResult.nextContent);
-		return this.refreshDeckFromSource(file, deck, editResult.nextContent);
-	}
-
-	/**
-	 * Delete a card from an existing deck's source Markdown file.
-	 */
-	async deleteCardFromDeck(deckId: string, cardId: string): Promise<CardIdMap> {
-		const deck = this.decks.get(deckId);
-		if (!deck) throw new Error("Deck not found");
-
-		const file = this.getDeckSourceFile(deck);
-		const content = await this.plugin.app.vault.cachedRead(file);
-		const editResult = editDeckSource(content, deck, {
-			type: "delete",
-			cardId,
-		});
-		const remappedExistingDeck = this.remapExistingDeck(deck, editResult.idMap);
-
-		await this.plugin.app.vault.modify(file, editResult.nextContent);
-
-		const nextDeck = await parseFileIntoDeck(
-			file,
-			this.plugin.app.vault,
-			remappedExistingDeck,
-			editResult.nextContent,
-		);
-		if (nextDeck) {
-			this.decks.set(nextDeck.id, nextDeck);
-		} else {
-			this.decks.delete(deck.id);
+		const cardInOriginDeck = deck?.cards.find((card) => card.id === cardId);
+		if (cardInOriginDeck) return cardInOriginDeck;
+		for (const candidateDeck of this.decks.values()) {
+			const card = candidateDeck.cards.find((candidate) => candidate.id === cardId);
+			if (card) return card;
 		}
-		await this.save();
-		return editResult.idMap;
-	}
-
-	private getDeckSourceFile(deck: Deck): TFile {
-		const file = this.plugin.app.vault.getAbstractFileByPath(deck.filePath);
-		if (!(file instanceof TFile)) {
-			throw new Error("Source file not found");
-		}
-		return file;
-	}
-
-	private remapExistingDeck(deck: Deck, idMap: CardIdMap): Deck {
-		const cards = deck.cards.flatMap((card) => {
-			const nextId = idMap[card.id];
-			if (nextId === null) return [];
-			if (nextId === undefined || nextId === card.id) return [card];
-			return [
-				{
-					...card,
-					id: nextId,
-					sourceFile: deck.filePath,
-					indexInFile: this.getIndexFromCardId(deck.filePath, nextId) ?? card.indexInFile,
-				},
-			];
-		});
-
-		return {
-			...deck,
-			cards,
-		};
-	}
-
-	private getIndexFromCardId(filePath: string, cardId: string): number | null {
-		const prefix = `${filePath}::`;
-		if (!cardId.startsWith(prefix)) return null;
-
-		const index = Number(cardId.slice(prefix.length));
-		return Number.isInteger(index) ? index : null;
-	}
-
-	private async refreshDeckFromSource(
-		file: TFile,
-		existingDeck: Deck,
-		content: string,
-	): Promise<Deck> {
-		const deck = await parseFileIntoDeck(file, this.plugin.app.vault, existingDeck, content);
-		if (!deck) throw new Error("Updated source has no valid cards");
-
-		this.decks.set(deck.id, deck);
-		const tag = extractFirstTag(content);
-		if (tag && hasFlashcardSyntax(content)) {
-			this.availableTags = Array.from(new Set([...this.availableTags, tag]));
-		}
-		await this.save();
-		return deck;
+		return undefined;
 	}
 
 	/**
 	 * Update a card after rating
 	 */
 	async updateCard(deckId: string, cardId: string, updatedCard: Card): Promise<void> {
-		const deck = this.decks.get(deckId);
-		if (!deck) return;
-
-		const cardIndex = deck.cards.findIndex((c) => c.id === cardId);
-		if (cardIndex === -1) return;
+		let deck = this.decks.get(deckId);
+		let cardIndex = deck?.cards.findIndex((card) => card.id === cardId) ?? -1;
+		if (!deck || cardIndex === -1) {
+			for (const candidateDeck of this.decks.values()) {
+				const candidateIndex = candidateDeck.cards.findIndex((card) => card.id === cardId);
+				if (candidateIndex === -1) continue;
+				deck = candidateDeck;
+				cardIndex = candidateIndex;
+				break;
+			}
+		}
+		if (!deck || cardIndex === -1) return;
 
 		deck.cards[cardIndex] = {
 			...deck.cards[cardIndex]!,
@@ -808,4 +670,18 @@ export class DataStore {
 	getScheduler(): FSRSScheduler {
 		return this.scheduler;
 	}
+}
+
+function createEmptyContinuityState(): PersistedCardIdentityContinuityState {
+	return {
+		sources: {},
+		issues: [],
+		journal: null,
+	};
+}
+
+function cloneContinuityState(
+	state: PersistedCardIdentityContinuityState,
+): PersistedCardIdentityContinuityState {
+	return JSON.parse(JSON.stringify(state)) as PersistedCardIdentityContinuityState;
 }

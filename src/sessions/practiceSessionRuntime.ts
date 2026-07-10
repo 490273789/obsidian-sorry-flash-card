@@ -1,6 +1,5 @@
 import type {
 	CardDirection,
-	CardIdMap,
 	Deck,
 	FlashCard,
 	PracticeResult,
@@ -15,7 +14,6 @@ import {
 	createRangePracticeSession,
 	createRandomPracticeSession,
 	previousPracticeCard,
-	remapPracticeSessionCards,
 } from "./sessionEngine";
 
 export type PracticeSessionStartOptions =
@@ -80,7 +78,6 @@ export interface PracticeSessionRuntime {
 		now?: number,
 	): Promise<PracticeRuntimeAnswerOutcome | null>;
 	previous(session: PracticeSession): PracticeSession | null;
-	remapSessionCards(session: PracticeSession, idMap: CardIdMap): PracticeSession | null;
 }
 
 export function createPracticeSessionRuntime(
@@ -180,7 +177,7 @@ class DataStorePracticeSessionRuntime implements PracticeSessionRuntime {
 		});
 
 		if (step.type === "complete") {
-			await this.persistPracticeResult(session.deckId, step.result);
+			await this.persistPracticeResult(session, step.result);
 		}
 
 		return step;
@@ -190,15 +187,14 @@ class DataStorePracticeSessionRuntime implements PracticeSessionRuntime {
 		return previousPracticeCard(session);
 	}
 
-	remapSessionCards(session: PracticeSession, idMap: CardIdMap): PracticeSession | null {
-		return remapPracticeSessionCards(session, idMap);
-	}
-
-	private async persistPracticeResult(deckId: string, result: PracticeResult): Promise<void> {
-		const deck = this.store.getDeck(deckId);
+	private async persistPracticeResult(
+		session: PracticeSession,
+		result: PracticeResult,
+	): Promise<void> {
+		const deck = this.store.getDeck(session.deckId);
 		await this.store.recordStudySession(
-			deckId,
-			deck?.name ?? deckId,
+			session.originDeck?.id ?? session.deckId,
+			session.originDeck?.name ?? deck?.name ?? session.deckId,
 			"practice",
 			result.totalQuestions,
 			result.timeSpent,
