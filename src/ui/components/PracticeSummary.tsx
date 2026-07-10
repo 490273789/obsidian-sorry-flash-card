@@ -1,8 +1,9 @@
 import React, { memo, useMemo } from "react";
-import { FileText, Check, X, Timer, CircleX, RotateCw, House } from "lucide-react";
+import { FileText, Check, X, Timer, CircleCheck, CircleX, RotateCw, House } from "lucide-react";
 import { Deck, FlashCard, PracticeResult } from "../../shared/types";
 import type { PracticeSessionRuntime } from "../../sessions/practiceSessionRuntime";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
 import { useI18n } from "./I18nContext";
 import { formatCompactDuration } from "../../i18n";
@@ -49,89 +50,95 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 
 	return (
 		<div className="flashcard-practice-summary">
-			<div className="flashcard-practice-summary-header">
-				<div className="flashcard-practice-summary-title">{completionMessage}</div>
-				<div className="flashcard-practice-summary-deck">
-					{t("practice.summaryDeck", {
-						deckName: deck.name,
-						totalQuestions: result.totalQuestions,
-						time: formatCompactDuration(language, result.timeSpent),
-					})}
-				</div>
-			</div>
+			<FlashcardHeader icon={CircleCheck} title={t("practice.title")} onBack={onHome} />
 
-			<div className="flashcard-practice-summary-stats">
-				<div className="flashcard-practice-stat-card flashcard-practice-stat-accuracy">
-					<div
-						className="flashcard-practice-stat-value"
-						style={{ color: getAccuracyColor(result.accuracy) }}
-					>
-						{result.accuracy.toFixed(1)}%
-					</div>
-					<div className="flashcard-practice-stat-label">{t("practice.accuracy")}</div>
-				</div>
-
-				<div className="flashcard-practice-stat-row">
-					<div className="flashcard-practice-stat-item fc-lift">
-						<span className="flashcard-practice-stat-icon">
-							<FileText size={14} />
-						</span>
-						<span className="flashcard-practice-stat-text">
-							{t("practice.totalQuestions")}
-							<strong>{result.totalQuestions}</strong>
-						</span>
-					</div>
-					<div className="flashcard-practice-stat-item flashcard-practice-stat-correct fc-lift">
-						<span className="flashcard-practice-stat-icon">
-							<Check size={14} />
-						</span>
-						<span className="flashcard-practice-stat-text">
-							{t("practice.correct")}
-							<strong>{result.correctCount}</strong>
-						</span>
-					</div>
-					<div className="flashcard-practice-stat-item flashcard-practice-stat-wrong fc-lift">
-						<span className="flashcard-practice-stat-icon">
-							<X size={14} />
-						</span>
-						<span className="flashcard-practice-stat-text">
-							{t("practice.incorrect")}
-							<strong>{result.incorrectCount}</strong>
-						</span>
-					</div>
-					<div className="flashcard-practice-stat-item fc-lift">
-						<span className="flashcard-practice-stat-icon">
-							<Timer size={14} />
-						</span>
-						<span className="flashcard-practice-stat-text">
-							{t("practice.timeSpent")}
-							<strong>{formatCompactDuration(language, result.timeSpent)}</strong>
-						</span>
-					</div>
-				</div>
-			</div>
-
-			{incorrectCards.length > 0 && (
-				<div className="flashcard-practice-incorrect-section">
-					<h3 className="flashcard-practice-incorrect-title">
-						<CircleX size={16} />{" "}
-						{t("practice.incorrectList", {
-							count: incorrectCards.length,
+			<div className="flashcard-practice-summary-scroll">
+				<div className="flashcard-practice-summary-header">
+					<div className="flashcard-practice-summary-title">{completionMessage}</div>
+					<div className="flashcard-practice-summary-deck">
+						{t("practice.summaryDeck", {
+							deckName: deck.name,
+							totalQuestions: result.totalQuestions,
+							time: formatCompactDuration(language, result.timeSpent),
 						})}
-					</h3>
-					<div className="flashcard-practice-incorrect-list">
-						{incorrectCards.map((card, index) => (
-							<IncorrectCardItem
-								key={card.id}
-								card={card}
-								index={index + 1}
-								direction={result.direction}
-								markdownRenderer={markdownRenderer}
-							/>
-						))}
 					</div>
 				</div>
-			)}
+
+				<div className="flashcard-practice-summary-stats">
+					<div className="flashcard-practice-stat-card flashcard-practice-stat-accuracy">
+						<div
+							className="flashcard-practice-stat-value"
+							style={{ color: getAccuracyColor(result.accuracy) }}
+						>
+							{result.accuracy.toFixed(1)}%
+						</div>
+						<div className="flashcard-practice-stat-label">
+							{t("practice.accuracy")}
+						</div>
+					</div>
+
+					<div className="flashcard-practice-stat-row">
+						<div className="flashcard-practice-stat-item fc-lift">
+							<span className="flashcard-practice-stat-icon">
+								<FileText size={14} />
+							</span>
+							<span className="flashcard-practice-stat-text">
+								{t("practice.totalQuestions")}
+								<strong>{result.totalQuestions}</strong>
+							</span>
+						</div>
+						<div className="flashcard-practice-stat-item flashcard-practice-stat-correct fc-lift">
+							<span className="flashcard-practice-stat-icon">
+								<Check size={14} />
+							</span>
+							<span className="flashcard-practice-stat-text">
+								{t("practice.correct")}
+								<strong>{result.correctCount}</strong>
+							</span>
+						</div>
+						<div className="flashcard-practice-stat-item flashcard-practice-stat-wrong fc-lift">
+							<span className="flashcard-practice-stat-icon">
+								<X size={14} />
+							</span>
+							<span className="flashcard-practice-stat-text">
+								{t("practice.incorrect")}
+								<strong>{result.incorrectCount}</strong>
+							</span>
+						</div>
+						<div className="flashcard-practice-stat-item fc-lift">
+							<span className="flashcard-practice-stat-icon">
+								<Timer size={14} />
+							</span>
+							<span className="flashcard-practice-stat-text">
+								{t("practice.timeSpent")}
+								<strong>{formatCompactDuration(language, result.timeSpent)}</strong>
+							</span>
+						</div>
+					</div>
+				</div>
+
+				{incorrectCards.length > 0 && (
+					<div className="flashcard-practice-incorrect-section">
+						<h3 className="flashcard-practice-incorrect-title">
+							<CircleX size={16} />{" "}
+							{t("practice.incorrectList", {
+								count: incorrectCards.length,
+							})}
+						</h3>
+						<div className="flashcard-practice-incorrect-list">
+							{incorrectCards.map((card, index) => (
+								<IncorrectCardItem
+									key={card.id}
+									card={card}
+									index={index + 1}
+									direction={result.direction}
+									markdownRenderer={markdownRenderer}
+								/>
+							))}
+						</div>
+					</div>
+				)}
+			</div>
 
 			<div className="flashcard-practice-summary-actions">
 				<FlashcardButton variant="green" icon={RotateCw} iconSize={14} onClick={onRestart}>

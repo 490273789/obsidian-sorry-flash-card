@@ -72,6 +72,7 @@
 
 .theme-light .flashcard-header,
 .theme-light .flashcard-common-header,
+.theme-light .flashcard-practice-summary-actions,
 .theme-light .flashcard-home-hero,
 .theme-light .flashcard-word-list-sticky-top,
 .theme-light .flashcard-stats-top,
@@ -514,4 +515,3 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.16);
 	background: rgba(246, 248, 251, 0.92);
 }
-

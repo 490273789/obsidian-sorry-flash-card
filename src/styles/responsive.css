@@ -60,6 +60,10 @@
 		gap: var(--fc-space-2);
 	}
 
+	.flashcard-practice-summary-scroll {
+		gap: var(--fc-space-2);
+	}
+
 	.flashcard-header,
 	.flashcard-common-header,
 	.flashcard-home-hero {
