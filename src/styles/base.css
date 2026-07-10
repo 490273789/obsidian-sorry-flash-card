@@ -18,11 +18,11 @@
 	--fc-radius-pill: 999px;
 
 	--fc-space-1: 4px;
-	--fc-space-2: 8px;
-	--fc-space-3: 12px;
-	--fc-space-4: 16px;
-	--fc-space-5: 20px;
-	--fc-space-6: 24px;
+	--fc-space-2: 6px;
+	--fc-space-3: 8px;
+	--fc-space-4: 10px;
+	--fc-space-5: 12px;
+	--fc-space-6: 14px;
 
 	--fc-bg: #05070d;
 	--fc-bg-elevated: #0a0f1c;
@@ -293,4 +293,3 @@
 .fc-motion-button {
 	transition: var(--fc-transition-button);
 }
-

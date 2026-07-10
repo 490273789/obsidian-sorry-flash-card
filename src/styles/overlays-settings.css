@@ -250,7 +250,7 @@
 }
 
 .flashcard-card-editor-field select {
-	min-height: 38px;
+	min-height: 36px;
 	padding: 8px 10px;
 }
 
@@ -434,4 +434,3 @@
 	padding-left: var(--fc-space-5);
 	color: var(--fc-muted);
 }
-
