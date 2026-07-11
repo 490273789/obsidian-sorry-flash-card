@@ -11,7 +11,11 @@ This repository is an Obsidian plugin named `wsr-flash-card`.
 - React UI: `src/ui/components/FlashcardApp.tsx` and sibling components.
 - Data and persistence: `src/storage/dataStore.ts`.
 - Flashcard content rules: `src/cards/`.
-- Study and practice session rules: `src/sessions/`.
+- Deck home and per-deck settings logic: `src/decks/`.
+- Study, practice, and active-session rules/runtimes: `src/sessions/`.
+- Stable card identity, source editing, and source-change continuity: `src/identity/`, with Markdown mutation helpers in `src/cards/` and Obsidian adapters/modals under `src/obsidian/`.
+- Localization: `src/i18n/` (Chinese and English).
+- History and word-list presentation models: `src/history/` and `src/wordList/`.
 - Settings view model: `src/settings/settingsViewModel.ts`.
 - Shared types/helpers: `src/shared/`.
 - Tests: Vitest with config in `vitest.config.ts`; place focused tests in each module's `__tests__/` directory.
@@ -47,13 +51,19 @@ npm install
 npm run dev
 npm test
 npm run test:watch
+npm run typecheck
 npm run build
 npm run lint
+npm run lint:fix
+npm run format:check
+npm run format
 ```
 
 `npm run build` runs TypeScript checking and the production Vite bundle. Treat it as the primary validation command after code changes.
 
-`npm test` runs the Vitest suite once. `npm run test:watch` starts Vitest watch mode for TDD loops. The current package also works with the matching `pnpm` commands because the checked-in lockfile is `pnpm-lock.yaml`.
+`npm test` runs the Vitest suite once. `npm run test:watch` starts Vitest watch mode for TDD loops. `npm run lint` includes type checking before Oxlint, and formatting uses Oxfmt through the explicit format scripts. The current package also works with the matching `pnpm` commands because the checked-in lockfile is `pnpm-lock.yaml`.
+
+`npm run deploy` builds and copies `main.js`, `manifest.json`, and `styles.css` to the maintainer's configured local iCloud vault. Treat it as a machine-specific release helper: do not run it unless the user explicitly asks to deploy.
 
 ## Editing Rules
 
@@ -67,22 +77,23 @@ npm run lint
 
 ## Obsidian Plugin Architecture
 
-- `FlashcardPlugin.onload()` initializes `DataStore`, loads settings/data once, registers the custom view, commands, ribbon icon, and settings tab.
+- `FlashcardPlugin.onload()` initializes `DataStore` and loads settings/data once, then creates `ActiveSessionStore` and `CardIdentityContinuity` before registering the custom view, localized commands, ribbon icon, and settings tab.
 - `FlashcardPlugin.saveSettings()` persists through `DataStore` and updates active `FlashcardView` instances.
-- `FlashcardView.onOpen()` syncs decks once, caches available tags, creates a React root, and renders `FlashcardApp`.
+- `FlashcardView.onOpen()` synchronizes sources through `CardIdentityContinuity`, creates a React root, and renders `FlashcardApp`.
 - `FlashcardApp` owns most navigation state between home, setup, study, practice, summary, word list, and stats views.
 
-When adding plugin capabilities, register Obsidian-facing commands or views in `src/obsidian/main.ts`, but keep feature behavior in the relevant storage, cards, sessions, settings, or React component modules.
+When adding plugin capabilities, register Obsidian-facing commands or views in `src/obsidian/main.ts`, but keep feature behavior in the relevant storage, cards, decks, identity, sessions, settings, history/word-list presentation-model, or React component modules.
 
 ## Data Persistence
 
-`DataStore` is the source of truth for decks, settings, study history, and discovered tags.
+Markdown source files are authoritative for card content. `DataStore` owns the persisted deck cache, settings, study history, discovered tags, FSRS state, and card-identity continuity state.
 
 - Save via `DataStore.saveSettings()` or `DataStore.save()`.
 - Do not bypass `DataStore` with separate plugin data writes.
 - Preserve backward-compatible migrations in `loadSettings()`, especially legacy `flashcardTag` to `flashcardTags`.
 - Preserve existing FSRS card state when syncing or reparsing files.
 - Deck IDs are based on source file paths; changing that affects persisted history and card state.
+- Card identities may be stable UUIDs stored in source comments. Route plugin-initiated card additions, edits, and deletions through `CardIdentityContinuity.change()` rather than mutating source Markdown or persisted cards directly.
 
 ## Settings Tab Guidance
 
@@ -105,14 +116,17 @@ Parser behavior lives in `src/cards/parser.ts`.
 - Front and back are split by `??` on its own line.
 - Optional explanation content starts after `::` on its own line.
 - Cards end with `;;` on its own line.
-- Preserve existing card IDs as `${filePath}::${index}` unless intentionally migrating stored data.
+- Stable card identities are represented by `<!-- wsr-card-id: <uuid> -->` before the card front. The parser still falls back to `${filePath}::${index}` for legacy cards without a marker.
+- Preserve identity markers when formatting or editing cards. Use `src/cards/cardFormat.ts` and `src/cards/deckSourceEditor.ts` instead of duplicating marker syntax or mutating Markdown ad hoc.
+- Identity migration, duplicate repair, and source-change reconciliation belong in `src/identity/cardIdentityContinuity.ts`; keep its persisted journal and active-session behavior intact.
 - Preserve existing card FSRS state when parsing updated files.
-- Add or update focused parser tests in `src/cards/__tests__/parser.test.ts` whenever changing marker syntax, tag extraction, card IDs, or FSRS state preservation.
+- Add or update focused tests under `src/cards/__tests__/` and `src/identity/__tests__/` whenever changing marker syntax, source editing, tag extraction, card IDs, migration/repair, or FSRS state preservation.
 
 ## Testing Guidance
 
 - Use Vitest for unit tests; keep tests close to the code under `src/` using `*.test.ts` or `*.test.tsx`.
 - Prefer pure logic tests first for parser, scheduler, card formatting, settings migrations, and data helpers.
+- Keep runtime orchestration behind the existing interfaces in `deckHomeRuntime.ts`, `studySessionRuntime.ts`, and `practiceSessionRuntime.ts`; test state transitions without loading the Obsidian runtime.
 - Keep Obsidian runtime dependencies out of pure tests where possible; use `import type` for Obsidian-only types so tests do not load Obsidian APIs at runtime.
 - When component or Obsidian API tests become necessary, add explicit mocks or a documented test setup rather than relying on browser globals accidentally.
 - For TDD, run `npm run test:watch` while implementing and finish with `npm test`.
@@ -125,6 +139,7 @@ Scheduling lives in `src/sessions/scheduler.ts` and uses `ts-fsrs`.
 - Rating 5 is a custom "辣鸡" path that schedules the card 21 days later.
 - Keep interval labels and keyboard shortcuts aligned with `getRatingButtons()` and the UI.
 - Be cautious when changing date math, due checks, or serialized FSRS card fields.
+- Keep pure transitions in `studySessionEngine.ts`/`sessionEngine.ts`, persistence and scheduling orchestration in the runtime modules, and source-change reconciliation in `activeSessionStore.ts`.
 
 ## UI and Styling
 
@@ -143,15 +158,19 @@ Before finishing a code-change task:
 1. Run `npm test` when the change touches testable logic, parsing, scheduling, data helpers, or any area with existing tests.
 2. Run `npm run build`.
 3. Run `npm run lint` when the change touches TypeScript/React patterns, Obsidian API usage, or shared modules.
-4. For UI work, inspect the relevant view in Obsidian when feasible, or clearly state that only build/lint validation was run.
-5. For settings-tab changes, explicitly verify that the settings tab is not blank.
-6. Mention any validation command that could not be run.
+4. Run `npm run format:check` when files were broadly edited or formatting may have changed.
+5. For UI work, inspect the relevant view in Obsidian when feasible, or clearly state that only build/lint validation was run.
+6. For settings-tab changes, explicitly verify that the settings tab is not blank.
+7. Mention any validation command that could not be run.
 
 ## Files to Treat Carefully
 
 - `src/storage/dataStore.ts`: persisted data shape and migrations.
 - `src/obsidian/settingsTab.ts`: Obsidian settings compatibility behavior.
 - `src/cards/parser.ts`: card identity and deck detection.
+- `src/cards/deckSourceEditor.ts`: source Markdown mutation and identity-marker preservation.
+- `src/identity/cardIdentityContinuity.ts`: migration/repair journaling, persisted identity state, and source/session reconciliation.
+- `src/sessions/activeSessionStore.ts`: behavior when source cards change during active sessions.
 - `src/sessions/scheduler.ts`: review scheduling semantics.
 - `manifest.json` and `versions.json`: plugin release metadata; update intentionally, usually through `npm run version`.
 - `styles.css`: generated CSS bundle; do not hand-edit.
