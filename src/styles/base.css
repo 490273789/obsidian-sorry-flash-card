@@ -234,7 +234,7 @@
 	background: rgba(var(--fc-cyan-rgb), 0.075);
 	color: var(--fc-text);
 	font-size: var(--fc-font-xs);
-	font-weight: 700;
+	font-weight: 600;
 }
 
 .fc-kicker {
@@ -243,7 +243,7 @@
 	background: rgba(var(--fc-magenta-rgb), 0.08);
 	color: var(--fc-magenta);
 	font-size: var(--fc-font-xs);
-	font-weight: 800;
+	font-weight: 600;
 	text-transform: uppercase;
 }
 

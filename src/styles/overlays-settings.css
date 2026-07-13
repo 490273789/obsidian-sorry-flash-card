@@ -108,7 +108,7 @@
 	gap: var(--fc-space-2);
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);
-	font-weight: 850;
+	font-weight: 600;
 }
 
 .flashcard-modal-subtitle,
@@ -170,7 +170,7 @@
 	align-items: center;
 	gap: var(--fc-space-2);
 	color: var(--fc-text);
-	font-weight: 800;
+	font-weight: 600;
 }
 
 .flashcard-deck-settings-toggle-label input[type="checkbox"] {
@@ -235,7 +235,7 @@
 .flashcard-card-editor-field span {
 	color: var(--fc-muted);
 	font-size: var(--fc-font-sm);
-	font-weight: 800;
+	font-weight: 600;
 }
 
 .flashcard-card-editor-field select,
@@ -268,7 +268,7 @@
 	background: rgba(var(--fc-red-rgb), 0.1);
 	color: var(--fc-red);
 	font-size: var(--fc-font-sm);
-	font-weight: 800;
+	font-weight: 600;
 }
 
 .flashcard-confirm-modal {

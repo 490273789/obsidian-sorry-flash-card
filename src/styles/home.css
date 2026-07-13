@@ -96,7 +96,7 @@
 	flex: 1.3 1 0;
 	justify-content: center;
 	color: var(--fc-text);
-	font-weight: 800;
+	font-weight: 600;
 	text-align: center;
 	min-width: max-content;
 }
@@ -107,7 +107,7 @@
 	gap: var(--fc-space-2);
 	color: var(--fc-text);
 	font-size: var(--fc-font-xl);
-	font-weight: 900;
+	font-weight: 600;
 	letter-spacing: 0;
 }
 
@@ -127,7 +127,7 @@
 	gap: var(--fc-space-2);
 	margin: 0;
 	font-size: var(--fc-font-lg);
-	font-weight: 800;
+	font-weight: 600;
 	color: var(--fc-text);
 }
 
@@ -241,7 +241,7 @@
 	overflow: hidden;
 	color: var(--fc-text);
 	font-size: var(--fc-font-lg);
-	font-weight: 850;
+	font-weight: 600;
 	line-height: 1.2;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -311,7 +311,7 @@
 .flashcard-deck-stat-value,
 .flashcard-deck-review-chip strong {
 	font-family: var(--fc-font-data);
-	font-weight: 900;
+	font-weight: 600;
 	line-height: 1;
 }
 
@@ -385,7 +385,7 @@
 .flashcard-stats-summary-value {
 	font-family: var(--fc-font-data);
 	font-size: var(--fc-font-md);
-	font-weight: 900;
+	font-weight: 600;
 	line-height: 1;
 }
 
@@ -402,7 +402,7 @@
 .flashcard-stat-caption {
 	text-transform: uppercase;
 	color: var(--fc-faint);
-	font-weight: 800;
+	font-weight: 600;
 }
 
 .flashcard-deck-actions2,
