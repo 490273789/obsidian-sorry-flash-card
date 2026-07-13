@@ -149,7 +149,7 @@
 	gap: var(--fc-space-2);
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);
-	font-weight: 850;
+	font-weight: 600;
 }
 
 .flashcard-study-order-options,
@@ -226,7 +226,7 @@
 
 .flashcard-study-day-name {
 	color: var(--fc-text);
-	font-weight: 700;
+	font-weight: 600;
 }
 
 .flashcard-study-day-badge,
@@ -274,7 +274,7 @@
 .flashcard-study-action-title {
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);
-	font-weight: 850;
+	font-weight: 600;
 }
 
 .flashcard-practice-input-group,
@@ -341,7 +341,7 @@
 	overflow: hidden;
 	max-width: 24ch;
 	color: var(--fc-text);
-	font-weight: 850;
+	font-weight: 600;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
@@ -362,7 +362,7 @@
 	color: var(--fc-muted);
 	font-family: var(--fc-font-data);
 	font-size: var(--fc-font-xs);
-	font-weight: 800;
+	font-weight: 600;
 }
 
 .flashcard-badge {
@@ -492,7 +492,7 @@
 	color: var(--fc-text);
 	font-family: var(--fc-font-data);
 	font-size: var(--fc-font-sm);
-	font-weight: 900;
+	font-weight: 600;
 	white-space: nowrap;
 }
 
@@ -717,7 +717,7 @@
 .flashcard-rating-label,
 .flashcard-practice-btn-label {
 	font-size: var(--fc-font-sm);
-	font-weight: 850;
+	font-weight: 600;
 }
 
 .flashcard-rating-1 {
@@ -843,7 +843,7 @@
 .flashcard-complete div {
 	color: var(--fc-text);
 	font-size: var(--fc-font-xl);
-	font-weight: 850;
+	font-weight: 600;
 }
 
 .flashcard-complete p {

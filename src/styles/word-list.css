@@ -21,7 +21,7 @@
 	overflow: hidden;
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);
-	font-weight: 850;
+	font-weight: 600;
 	text-align: center;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -179,4 +179,3 @@
 	font-size: var(--fc-font-md);
 	line-height: 1.7;
 }
-
