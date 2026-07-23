@@ -170,7 +170,8 @@
 	.flashcard-study-action-bar,
 	.flashcard-practice-answer-buttons,
 	.flashcard-response-controls,
-	.flashcard-modal-footer {
+	.flashcard-modal-footer,
+	.flashcard-identity-migration-card {
 		flex-direction: column;
 		align-items: stretch;
 	}

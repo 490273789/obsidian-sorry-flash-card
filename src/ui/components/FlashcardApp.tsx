@@ -38,6 +38,7 @@ import { CardEditorModal, type CardEditorSavePayload } from "./CardEditorModal";
 import type {
 	CardChangeOutcome,
 	CardIdentityContinuity,
+	ResolutionOutcome,
 } from "../../identity/cardIdentityContinuity";
 import type { ActiveSessionStore } from "../../sessions/activeSessionStore";
 
@@ -60,6 +61,7 @@ type CardEditorState =
 			mode: "edit";
 			deckId: string;
 			cardId: string;
+			cardIndex: number;
 			front: string;
 			back: string;
 			explanation: string;
@@ -96,6 +98,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const decks = dataStore.getAllDecks();
 	const deckHomeRuntime = useMemo(() => createDeckHomeRuntime(dataStore), [dataStore]);
 	const deckHomeSnapshot = deckHomeRuntime.getSnapshot();
+	const migrationPreview = cardIdentityContinuity.inspect().migration;
 	const studyRuntime = useMemo(() => createStudySessionRuntime(dataStore), [dataStore]);
 	const practiceRuntime = useMemo(() => createPracticeSessionRuntime(dataStore), [dataStore]);
 
@@ -128,39 +131,180 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		});
 	}, [dataStore, t]);
 
-	const handleOpenEditCard = useCallback(
-		(deckId: string, cardId: string) => {
-			const card = dataStore.getCard(deckId, cardId);
-			if (!card) {
-				new Notice(t("notice.cardMissing"));
-				return;
-			}
-			setCardEditor({
-				mode: "edit",
-				deckId,
-				cardId,
-				front: card.front,
-				back: card.back,
-				explanation: card.explanation ?? "",
-			});
-		},
-		[dataStore, t],
-	);
-
 	const handleCloseCardEditor = useCallback(() => {
 		setCardEditor(null);
 	}, []);
 
+	const confirmAction = useCallback(
+		(title: string, message: string, confirmText: string): Promise<boolean> => {
+			return new Promise((resolve) => {
+				let isResolved = false;
+				const modal = new Modal(app);
+
+				const finish = (confirmed: boolean) => {
+					if (isResolved) return;
+					isResolved = true;
+					modal.close();
+					resolve(confirmed);
+				};
+
+				modal.titleEl.setText(title);
+				const body = modal.contentEl.createDiv({
+					cls: "flashcard-confirm-modal",
+				});
+				body.createEl("p", { text: message });
+				const actions = body.createDiv({
+					cls: "flashcard-confirm-actions",
+				});
+				new ButtonComponent(actions)
+					.setButtonText(t("common.cancel"))
+					.onClick(() => finish(false));
+				new ButtonComponent(actions)
+					.setButtonText(confirmText)
+					.setCta()
+					.onClick(() => finish(true));
+				modal.onClose = () => finish(false);
+				modal.open();
+			});
+		},
+		[app, t],
+	);
+
+	const ensureDeckEditable = useCallback(
+		async (deckId: string): Promise<boolean> => {
+			const snapshot = cardIdentityContinuity.inspect();
+			const condition = snapshot.sources[deckId];
+			if (!condition || condition.type === "current") return true;
+			if (condition.type === "last-known-good") {
+				new Notice(t("identity.editNeedsRepair"));
+				return false;
+			}
+
+			const preview = snapshot.migration;
+			const source = preview?.sources.find((candidate) => candidate.deckId === deckId);
+			if (!preview || !source) {
+				new Notice(t("identity.editNeedsMigration"));
+				return false;
+			}
+			const confirmed = await confirmAction(
+				t("identity.migrationTitle"),
+				t("identity.editMigrationDescription", {
+					deckName: source.deckName,
+					cards: source.cardCount,
+				}),
+				t("identity.migrateNow"),
+			);
+			if (!confirmed) return false;
+
+			const outcome = await cardIdentityContinuity.resolve({
+				kind: "migrate",
+				ticket: preview.ticket,
+				deckIds: [deckId],
+			});
+			if (outcome.kind === "applied") return true;
+			new Notice(getIdentityResolutionFailureMessage(outcome, t));
+			return false;
+		},
+		[cardIdentityContinuity, confirmAction, t],
+	);
+
+	const handleMigrateAllLegacyDecks = useCallback(async (): Promise<void> => {
+		for (let attempt = 0; attempt < 2; attempt++) {
+			const syncOutcome = await cardIdentityContinuity.synchronize();
+			if (syncOutcome.kind === "failed") {
+				new Notice(t("identity.syncFailed", { message: syncOutcome.message }));
+				return;
+			}
+			bumpSnapshotVersion();
+
+			const preview = cardIdentityContinuity.inspect().migration;
+			if (!preview) {
+				new Notice(t("identity.noMigration"));
+				return;
+			}
+			if (attempt > 0) new Notice(t("identity.migrationPlanRefreshed"));
+			const confirmed = await confirmAction(
+				t("identity.migrationTitle"),
+				t("identity.migrationDescription", {
+					sources: preview.sourceCount,
+					cards: preview.cardCount,
+				}),
+				t("identity.migrateAllNow"),
+			);
+			if (!confirmed) return;
+
+			const outcome = await cardIdentityContinuity.resolve({
+				kind: "migrate",
+				ticket: preview.ticket,
+				deckIds: preview.sources.map((source) => source.deckId),
+			});
+			if (outcome.kind === "applied") {
+				new Notice(t("identity.migrationApplied"));
+				bumpSnapshotVersion();
+				return;
+			}
+			if (
+				attempt === 0 &&
+				outcome.kind === "blocked" &&
+				(outcome.reason === "preview-expired" || outcome.reason === "source-changing")
+			) {
+				continue;
+			}
+			new Notice(getIdentityResolutionFailureMessage(outcome, t));
+			return;
+		}
+	}, [cardIdentityContinuity, confirmAction, t]);
+
+	const handleOpenEditCard = useCallback(
+		(deckId: string, cardId: string) => {
+			void (async () => {
+				const card = dataStore.getCard(deckId, cardId);
+				if (!card) {
+					new Notice(t("notice.cardMissing"));
+					return;
+				}
+				if (!(await ensureDeckEditable(deckId))) return;
+
+				const editableCard =
+					dataStore.getCard(deckId, cardId) ??
+					dataStore.getDeck(deckId)?.cards[card.indexInFile];
+				if (!editableCard) {
+					new Notice(t("notice.cardMissing"));
+					return;
+				}
+				setCardEditor({
+					mode: "edit",
+					deckId,
+					cardId: editableCard.id,
+					cardIndex: editableCard.indexInFile,
+					front: editableCard.front,
+					back: editableCard.back,
+					explanation: editableCard.explanation ?? "",
+				});
+			})();
+		},
+		[dataStore, ensureDeckEditable, t],
+	);
+
 	const handleSaveCardEditor = useCallback(
 		async ({ deckId, front, back, explanation }: CardEditorSavePayload) => {
 			if (!cardEditor) return;
+			if (!(await ensureDeckEditable(deckId))) return;
 
 			try {
+				const currentCardIdentity =
+					cardEditor.mode === "edit"
+						? (dataStore.getCard(cardEditor.deckId, cardEditor.cardId)?.id ??
+							dataStore.getDeck(cardEditor.deckId)?.cards[cardEditor.cardIndex]?.id)
+						: undefined;
+				if (cardEditor.mode === "edit" && !currentCardIdentity) {
+					throw new Error(t("notice.cardMissing"));
+				}
 				const outcome =
 					cardEditor.mode === "edit"
 						? await cardIdentityContinuity.change({
 								kind: "edit",
-								cardIdentity: cardEditor.cardId,
+								cardIdentity: currentCardIdentity ?? cardEditor.cardId,
 								content: { front, back, explanation },
 							})
 						: await cardIdentityContinuity.change({
@@ -184,7 +328,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				throw error;
 			}
 		},
-		[cardEditor, cardIdentityContinuity, t],
+		[cardEditor, cardIdentityContinuity, dataStore, ensureDeckEditable, t],
 	);
 
 	const handleSelectDeck = useCallback(
@@ -239,41 +383,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			setViewState({ type: "practice", deckId });
 		},
 		[activeSessionStore, dataStore, practiceRuntime],
-	);
-
-	const confirmAction = useCallback(
-		(title: string, message: string, confirmText: string): Promise<boolean> => {
-			return new Promise((resolve) => {
-				let isResolved = false;
-				const modal = new Modal(app);
-
-				const finish = (confirmed: boolean) => {
-					if (isResolved) return;
-					isResolved = true;
-					modal.close();
-					resolve(confirmed);
-				};
-
-				modal.titleEl.setText(title);
-				const body = modal.contentEl.createDiv({
-					cls: "flashcard-confirm-modal",
-				});
-				body.createEl("p", { text: message });
-				const actions = body.createDiv({
-					cls: "flashcard-confirm-actions",
-				});
-				new ButtonComponent(actions)
-					.setButtonText(t("common.cancel"))
-					.onClick(() => finish(false));
-				new ButtonComponent(actions)
-					.setButtonText(confirmText)
-					.setCta()
-					.onClick(() => finish(true));
-				modal.onClose = () => finish(false);
-				modal.open();
-			});
-		},
-		[app, t],
 	);
 
 	const handleStudyComplete = useCallback(() => {
@@ -416,17 +525,31 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handleDeleteCard = useCallback(
 		async (deckId: string, cardId: string) => {
+			const card = dataStore.getCard(deckId, cardId);
+			if (!card) {
+				new Notice(t("notice.cardMissing"));
+				return;
+			}
 			const confirmed = await confirmAction(
 				t("cardEditor.deleteCurrentTitle"),
 				t("cardEditor.deleteConfirm"),
 				t("settings.delete"),
 			);
 			if (!confirmed) return;
+			if (!(await ensureDeckEditable(deckId))) return;
+
+			const currentCardIdentity =
+				dataStore.getCard(deckId, cardId)?.id ??
+				dataStore.getDeck(deckId)?.cards[card.indexInFile]?.id;
+			if (!currentCardIdentity) {
+				new Notice(t("notice.cardMissing"));
+				return;
+			}
 
 			try {
 				const outcome = await cardIdentityContinuity.change({
 					kind: "delete",
-					cardIdentity: cardId,
+					cardIdentity: currentCardIdentity,
 				});
 				if (outcome.kind !== "applied") {
 					throw new Error(getCardChangeFailureMessage(outcome, t));
@@ -439,7 +562,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[cardIdentityContinuity, confirmAction, t],
+		[cardIdentityContinuity, confirmAction, dataStore, ensureDeckEditable, t],
 	);
 
 	const handleDeleteCardRequest = useCallback(
@@ -483,6 +606,14 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		<DeckList
 			snapshot={deckHomeSnapshot}
 			settings={settings}
+			legacyMigration={
+				migrationPreview
+					? {
+							sourceCount: migrationPreview.sourceCount,
+							cardCount: migrationPreview.cardCount,
+						}
+					: null
+			}
 			onSelectDeck={handleSelectDeck}
 			onOpenWordList={handleOpenWordList}
 			onStartPractice={handleStartPracticeSetup}
@@ -494,6 +625,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			onOpenSourceFile={handleOpenSourceFile}
 			onOpenStats={handleOpenStats}
 			onOpenAddCard={handleOpenAddCard}
+			onMigrateLegacyDecks={handleMigrateAllLegacyDecks}
 		/>
 	);
 
@@ -674,5 +806,23 @@ function getCardChangeFailureMessage(
 			return t("identity.sourceChanging");
 		case "failed":
 			return outcome.message;
+	}
+}
+
+function getIdentityResolutionFailureMessage(
+	outcome: Exclude<ResolutionOutcome, { kind: "applied" }>,
+	t: ReturnType<typeof createTranslator>,
+): string {
+	switch (outcome.kind) {
+		case "resumable":
+			return t("identity.operationResumable");
+		case "blocked":
+			if (outcome.reason === "active-session") return t("identity.migrationBlocked");
+			if (outcome.reason === "legacy-source-mismatch") {
+				return t("identity.migrationSourceMismatch");
+			}
+			return t("identity.previewExpired");
+		case "failed":
+			return t("identity.operationFailed", { message: outcome.message });
 	}
 }

@@ -225,7 +225,9 @@ export default class FlashcardPlugin extends Plugin {
 			this.t(
 				outcome.reason === "active-session"
 					? "identity.migrationBlocked"
-					: "identity.previewExpired",
+					: outcome.reason === "legacy-source-mismatch"
+						? "identity.migrationSourceMismatch"
+						: "identity.previewExpired",
 			),
 		);
 	}

@@ -66,9 +66,19 @@ const translations = {
 		"identity.migrationTitle": "迁移卡片身份",
 		"identity.migrationDescription":
 			"将为 {sources} 个题库中的 {cards} 张卡片写入稳定身份标记。迁移前请确认源文档已停止编辑。",
+		"identity.editMigrationDescription":
+			"编辑前需要先为题库「{deckName}」中的 {cards} 张旧卡片写入稳定身份标记。迁移前请确认源文档已停止编辑。",
 		"identity.migrateNow": "开始迁移",
+		"identity.migrateAllNow": "一键迁移",
+		"identity.migrating": "迁移中…",
+		"identity.migrationPlanRefreshed": "源文档刚刚发生变化，已刷新迁移方案，请再次确认",
+		"identity.oneClickMigrationTitle": "发现历史题库",
+		"identity.oneClickMigrationDescription":
+			"检测到 {sources} 个历史题库，共 {cards} 张卡片。迁移后即可直接编辑，学习进度不会丢失。",
 		"identity.migrationApplied": "卡片身份迁移完成",
 		"identity.migrationBlocked": "当前有学习或刷题会话，请先结束会话再迁移",
+		"identity.migrationSourceMismatch":
+			"历史卡片与源文档顺序不一致，无法安全保留学习记录；请先检查题库内容",
 		"identity.previewExpired": "源文档已变化，请重新执行命令确认最新方案",
 		"identity.operationResumable": "部分源文档仍在变化；进度已保存，下次同步会继续",
 		"identity.operationFailed": "卡片身份操作失败：{message}",
@@ -387,9 +397,20 @@ const translations = {
 		"identity.migrationTitle": "Migrate card identities",
 		"identity.migrationDescription":
 			"Stable identity markers will be written to {cards} cards in {sources} decks. Make sure the source documents are no longer being edited.",
+		"identity.editMigrationDescription":
+			"Before editing, stable identity markers must be written to {cards} legacy cards in “{deckName}”. Make sure the source document is no longer being edited.",
 		"identity.migrateNow": "Start migration",
+		"identity.migrateAllNow": "Migrate all",
+		"identity.migrating": "Migrating…",
+		"identity.migrationPlanRefreshed":
+			"The source just changed. The migration plan was refreshed; please confirm again.",
+		"identity.oneClickMigrationTitle": "Legacy decks found",
+		"identity.oneClickMigrationDescription":
+			"Found {sources} legacy decks with {cards} cards. Migrate them to enable direct editing without losing learning progress.",
 		"identity.migrationApplied": "Card identity migration completed",
 		"identity.migrationBlocked": "Finish the active study or practice session before migrating",
+		"identity.migrationSourceMismatch":
+			"The legacy cards no longer match the source order, so learning history cannot be preserved safely. Check the deck content first.",
 		"identity.previewExpired":
 			"The source changed. Run the command again to confirm the latest plan.",
 		"identity.operationResumable":

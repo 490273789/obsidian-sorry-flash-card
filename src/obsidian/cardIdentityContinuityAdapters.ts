@@ -17,7 +17,7 @@ class ObsidianContinuitySourceStore implements ContinuitySourceStore {
 			documents.push({
 				path: file.path,
 				basename: file.basename,
-				content: await this.vault.cachedRead(file),
+				content: await this.vault.read(file),
 			});
 		}
 		return documents;

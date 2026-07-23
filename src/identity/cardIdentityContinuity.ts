@@ -134,7 +134,14 @@ export type ContinuityResolution =
 export type ResolutionOutcome =
 	| { kind: "applied" }
 	| { kind: "resumable"; completedDeckIds: string[]; pendingDeckIds: string[] }
-	| { kind: "blocked"; reason: "active-session" | "preview-expired" | "source-changing" }
+	| {
+			kind: "blocked";
+			reason:
+				| "active-session"
+				| "preview-expired"
+				| "source-changing"
+				| "legacy-source-mismatch";
+	  }
 	| { kind: "failed"; retryable: boolean; message: string };
 
 export interface CardContentChange {
@@ -544,10 +551,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				);
 				const migratedCards = parseFlashcards(registration.nextContent, document.path);
 				if (
-					migratedCards.length !== deck.cards.length ||
+					!canMigrateLegacyCards(deck.cards, migratedCards) ||
 					migratedCards.some((card) => isLegacyIdentity(document.path, card.id))
 				) {
-					return { kind: "blocked", reason: "preview-expired" };
+					return { kind: "blocked", reason: "legacy-source-mismatch" };
 				}
 				plans.push({
 					path: source.deckId,
@@ -855,6 +862,23 @@ function isLegacyIdentity(filePath: string, cardIdentity: string): boolean {
 	return cardIdentity.startsWith(`${filePath}::`);
 }
 
+function canMigrateLegacyCards(
+	legacyCards: readonly FlashCard[],
+	currentCards: readonly FlashCard[],
+): boolean {
+	if (currentCards.length === legacyCards.length) return true;
+	if (currentCards.length < legacyCards.length) return false;
+	return legacyCards.every((legacyCard, index) => {
+		const currentCard = currentCards[index];
+		return (
+			currentCard !== undefined &&
+			legacyCard.front === currentCard.front &&
+			legacyCard.back === currentCard.back &&
+			(legacyCard.explanation ?? "") === (currentCard.explanation ?? "")
+		);
+	});
+}
+
 function findIdentityConflicts(sources: PreparedSource[]): CardIdentityIssue[] {
 	const occurrences = new Map<
 		string,
@@ -954,7 +978,7 @@ function buildMigrationPreview(
 				? {
 						deckId: path,
 						deckName: deck.name,
-						cardCount: deck.cards.length,
+						cardCount: parseFlashcards(document.content, path).length,
 						content: document.content,
 					}
 				: null;

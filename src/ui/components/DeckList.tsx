@@ -459,6 +459,7 @@ const DeckCard = memo(function DeckCard({
 interface DeckListProps {
 	snapshot: DeckHomeSnapshot;
 	settings: FlashcardSettings;
+	legacyMigration: { sourceCount: number; cardCount: number } | null;
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
@@ -470,11 +471,13 @@ interface DeckListProps {
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenStats: () => void;
 	onOpenAddCard: () => void;
+	onMigrateLegacyDecks: () => Promise<void>;
 }
 
 export const DeckList: React.FC<DeckListProps> = ({
 	snapshot,
 	settings,
+	legacyMigration,
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
@@ -483,9 +486,11 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onOpenSourceFile,
 	onOpenStats,
 	onOpenAddCard,
+	onMigrateLegacyDecks,
 }) => {
 	const { t } = useI18n();
 	const [isLoading, setIsLoading] = useState(false);
+	const [isMigrating, setIsMigrating] = useState(false);
 	const [modalDeckId, setModalDeckId] = useState<string | null>(null);
 
 	const handleRefresh = useCallback(async () => {
@@ -500,6 +505,15 @@ export const DeckList: React.FC<DeckListProps> = ({
 	const handleCloseModal = useCallback(() => {
 		setModalDeckId(null);
 	}, []);
+
+	const handleMigrateLegacyDecks = useCallback(async () => {
+		setIsMigrating(true);
+		try {
+			await onMigrateLegacyDecks();
+		} finally {
+			setIsMigrating(false);
+		}
+	}, [onMigrateLegacyDecks]);
 
 	const handleSaveDeckSettings = useCallback(
 		async (overrides: Partial<StudySettings> | null) => {
@@ -541,6 +555,33 @@ export const DeckList: React.FC<DeckListProps> = ({
 					</div>
 					<HomeStatsBar deckCount={snapshot.decks.length} totals={snapshot.totals} />
 				</div>
+
+				{legacyMigration && (
+					<section className="flashcard-identity-migration-card">
+						<div className="flashcard-identity-migration-copy">
+							<div className="flashcard-identity-migration-icon">
+								<Sparkles size={20} />
+							</div>
+							<div>
+								<strong>{t("identity.oneClickMigrationTitle")}</strong>
+								<p>
+									{t("identity.oneClickMigrationDescription", {
+										sources: legacyMigration.sourceCount,
+										cards: legacyMigration.cardCount,
+									})}
+								</p>
+							</div>
+						</div>
+						<FlashcardButton
+							variant="green"
+							icon={Sparkles}
+							onClick={() => void handleMigrateLegacyDecks()}
+							disabled={isMigrating}
+						>
+							{isMigrating ? t("identity.migrating") : t("identity.migrateAllNow")}
+						</FlashcardButton>
+					</section>
+				)}
 
 				{snapshot.decks.length === 0 ? (
 					<div className="flashcard-empty">

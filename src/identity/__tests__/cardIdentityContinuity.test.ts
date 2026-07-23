@@ -438,6 +438,165 @@ banana
 		expect(stateStore.state.continuity.journal).toBeNull();
 	});
 
+	it("edits the same legacy card after its deck is explicitly migrated", async () => {
+		const path = "notes/legacy.md";
+		const legacyIdentity = `${path}::0`;
+		const stateStore = new MemoryStateStore({
+			configuredTags: ["#单词"],
+			decks: new Map([[path, makeDeck(path, [makeCard(legacyIdentity, "苹果", 7, path)])]]),
+			continuity: { sources: {}, issues: [], journal: null },
+		});
+		const sourceStore = new MemorySourceStore([
+			{
+				path,
+				basename: "legacy",
+				content: `#单词
+苹果
+??
+apple
+;;`,
+			},
+		]);
+		const continuity = createCardIdentityContinuity({
+			sources: sourceStore,
+			state: stateStore,
+			createIdentity: () => APPLE_ID,
+		});
+
+		await continuity.synchronize();
+		expect(
+			await continuity.change({
+				kind: "edit",
+				cardIdentity: legacyIdentity,
+				content: { front: "青苹果", back: "green apple" },
+			}),
+		).toEqual({ kind: "blocked", reason: "migration-required" });
+
+		const preview = continuity.inspect().migration;
+		if (!preview) throw new Error("Expected migration preview");
+		expect(
+			await continuity.resolve({
+				kind: "migrate",
+				ticket: preview.ticket,
+				deckIds: [path],
+			}),
+		).toEqual({ kind: "applied" });
+
+		const migratedCard = stateStore.state.decks.get(path)?.cards[0];
+		if (!migratedCard) throw new Error("Expected migrated card");
+		const outcome = await continuity.change({
+			kind: "edit",
+			cardIdentity: migratedCard.id,
+			content: { front: "青苹果", back: "green apple" },
+		});
+
+		expect(outcome).toEqual({ kind: "applied" });
+		expect(sourceStore.documents[0]?.content).toContain(
+			`<!-- wsr-card-id: ${APPLE_ID} -->\n青苹果\n??\ngreen apple`,
+		);
+		expect(stateStore.state.decks.get(path)?.cards[0]).toMatchObject({
+			id: APPLE_ID,
+			front: "青苹果",
+			back: "green apple",
+			fsrsCard: { reps: 7 },
+		});
+	});
+
+	it("migrates appended legacy cards while preserving the existing prefix state", async () => {
+		const path = "notes/legacy-appended.md";
+		const stateStore = new MemoryStateStore({
+			configuredTags: ["#单词"],
+			decks: new Map([[path, makeDeck(path, [makeCard(`${path}::0`, "苹果", 7, path)])]]),
+			continuity: { sources: {}, issues: [], journal: null },
+		});
+		const sourceStore = new MemorySourceStore([
+			{
+				path,
+				basename: "legacy-appended",
+				content: `#单词
+苹果
+??
+苹果 back
+;;
+
+香蕉
+??
+香蕉 back
+;;`,
+			},
+		]);
+		const generated = [APPLE_ID, BANANA_ID];
+		const continuity = createCardIdentityContinuity({
+			sources: sourceStore,
+			state: stateStore,
+			createIdentity: () => generated.shift() ?? "unexpected",
+		});
+
+		await continuity.synchronize();
+		const preview = continuity.inspect().migration;
+		expect(preview).toMatchObject({ sourceCount: 1, cardCount: 2 });
+		if (!preview) throw new Error("Expected migration preview");
+		const outcome = await continuity.resolve({
+			kind: "migrate",
+			ticket: preview.ticket,
+			deckIds: [path],
+		});
+
+		expect(outcome).toEqual({ kind: "applied" });
+		expect(stateStore.state.decks.get(path)?.cards).toEqual([
+			expect.objectContaining({
+				id: APPLE_ID,
+				front: "苹果",
+				fsrsCard: expect.objectContaining({ reps: 7 }),
+			}),
+			expect.objectContaining({
+				id: BANANA_ID,
+				front: "香蕉",
+				fsrsCard: expect.objectContaining({ reps: 0 }),
+			}),
+		]);
+	});
+
+	it("does not migrate appended legacy cards when the existing prefix moved", async () => {
+		const path = "notes/legacy-inserted.md";
+		const originalContent = `#单词
+新增卡片
+??
+new back
+;;
+
+苹果
+??
+苹果 back
+;;`;
+		const stateStore = new MemoryStateStore({
+			configuredTags: ["#单词"],
+			decks: new Map([[path, makeDeck(path, [makeCard(`${path}::0`, "苹果", 7, path)])]]),
+			continuity: { sources: {}, issues: [], journal: null },
+		});
+		const sourceStore = new MemorySourceStore([
+			{ path, basename: "legacy-inserted", content: originalContent },
+		]);
+		const continuity = createCardIdentityContinuity({
+			sources: sourceStore,
+			state: stateStore,
+			createIdentity: () => APPLE_ID,
+		});
+
+		await continuity.synchronize();
+		const preview = continuity.inspect().migration;
+		if (!preview) throw new Error("Expected migration preview");
+		const outcome = await continuity.resolve({
+			kind: "migrate",
+			ticket: preview.ticket,
+			deckIds: [path],
+		});
+
+		expect(outcome).toEqual({ kind: "blocked", reason: "legacy-source-mismatch" });
+		expect(sourceStore.documents[0]?.content).toBe(originalContent);
+		expect(stateStore.state.continuity.journal).toBeNull();
+	});
+
 	it("adopts an existing valid marker during explicit legacy migration", async () => {
 		const path = "notes/legacy.md";
 		const stateStore = new MemoryStateStore({

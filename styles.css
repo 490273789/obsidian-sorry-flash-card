@@ -601,6 +601,49 @@
 .flashcard-home-pill {
 	background: rgba(16, 21, 33, 0.82);
 }
+.flashcard-identity-migration-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--fc-space-4);
+	padding: var(--fc-space-3) var(--fc-space-4);
+	border: 1px solid rgba(var(--fc-amber-rgb), 0.34);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-amber-rgb), 0.12), transparent 62%),
+		rgba(10, 15, 28, 0.88);
+	box-shadow: var(--fc-shadow);
+	animation: var(--fc-motion-rise);
+}
+.flashcard-identity-migration-copy {
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-3);
+}
+.flashcard-identity-migration-copy strong {
+	display: block;
+	margin-bottom: var(--fc-space-1);
+	color: var(--fc-text);
+	font-size: var(--fc-font-md);
+}
+.flashcard-identity-migration-copy p {
+	margin: 0;
+	color: var(--fc-text-muted);
+	font-size: var(--fc-font-sm);
+	line-height: 1.5;
+}
+.flashcard-identity-migration-icon {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	flex: 0 0 40px;
+	border: 1px solid rgba(var(--fc-amber-rgb), 0.34);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(var(--fc-amber-rgb), 0.1);
+	color: var(--fc-amber);
+}
 /* Home deck list */
 .flashcard-deck-list,
 .flashcard-stats-days,
@@ -3247,7 +3290,8 @@
 	.flashcard-study-action-bar,
 	.flashcard-practice-answer-buttons,
 	.flashcard-response-controls,
-	.flashcard-modal-footer {
+	.flashcard-modal-footer,
+	.flashcard-identity-migration-card {
 		flex-direction: column;
 		align-items: stretch;
 	}
