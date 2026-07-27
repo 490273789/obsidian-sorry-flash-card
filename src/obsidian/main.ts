@@ -17,6 +17,7 @@ import {
 	CardIdentityMigrationModal,
 	CardIdentityRepairModal,
 } from "./cardIdentityContinuityModals";
+import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
 
 const OPEN_COMMAND_ID = "open-flashcard-view";
 const SYNC_COMMAND_ID = "sync-flashcard-decks";
@@ -132,17 +133,13 @@ export default class FlashcardPlugin extends Plugin {
 
 	private async runIdentitySynchronization(): Promise<void> {
 		const outcome = await this.cardIdentityContinuity.synchronize();
-		if (outcome.kind === "failed") {
-			new Notice(this.t("identity.syncFailed", { message: outcome.message }));
-			return;
-		}
-		new Notice(
-			this.t(
-				outcome.kind === "attention-required"
-					? "identity.syncAttention"
-					: "identity.syncCurrent",
-			),
+		const feedback = describeSynchronizationOutcome(
+			outcome,
+			this.cardIdentityContinuity.inspect(),
+			this.settings.language,
 		);
+		new Notice(feedback ?? this.t("identity.syncCurrent"), feedback ? 12000 : undefined);
+		if (outcome.kind === "failed") return;
 		await this.refreshFlashcardViews();
 	}
 

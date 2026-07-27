@@ -62,6 +62,11 @@ const translations = {
 		"identity.syncCurrent": "闪卡题库已同步",
 		"identity.syncAttention": "题库已同步，但有卡片身份问题需要处理",
 		"identity.syncFailed": "题库同步失败：{message}",
+		"identity.syncConflictDetails":
+			"题库导入未完成：{sources} 中有多张卡片共用了身份 {identity}（{card}）。请运行“{command}”后重新刷新。{more}",
+		"identity.syncAmbiguityDetails":
+			"题库导入未完成：{sources} 中有 {count} 张卡片的身份无法匹配。请运行“{command}”后重新刷新。{more}",
+		"identity.syncMoreIssues": "另有 {count} 个身份问题。",
 		"identity.noMigration": "没有需要迁移的旧题库",
 		"identity.migrationTitle": "迁移卡片身份",
 		"identity.migrationDescription":
@@ -393,6 +398,11 @@ const translations = {
 		"identity.syncCurrent": "Flashcard decks synchronized",
 		"identity.syncAttention": "Decks synchronized, but card identity issues need attention",
 		"identity.syncFailed": "Deck synchronization failed: {message}",
+		"identity.syncConflictDetails":
+			"Deck import incomplete: multiple cards in {sources} share identity {identity} ({card}). Run “{command}” and refresh again.{more}",
+		"identity.syncAmbiguityDetails":
+			"Deck import incomplete: {count} card identities in {sources} could not be matched. Run “{command}” and refresh again.{more}",
+		"identity.syncMoreIssues": "{count} more identity issue(s) remain.",
 		"identity.noMigration": "No legacy decks need migration",
 		"identity.migrationTitle": "Migrate card identities",
 		"identity.migrationDescription":

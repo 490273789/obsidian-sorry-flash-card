@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, WorkspaceLeaf } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import React from "react";
 import { FlashcardApp } from "../ui/components/FlashcardApp";
@@ -7,6 +7,7 @@ import { FlashcardSettings } from "../shared/types";
 import { translate } from "../i18n";
 import type { CardIdentityContinuity } from "../identity/cardIdentityContinuity";
 import type { ActiveSessionStore } from "../sessions/activeSessionStore";
+import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
 
 export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
@@ -54,7 +55,8 @@ export class FlashcardView extends ItemView {
 		container.addClass("flashcard-container");
 
 		// Single vault scan: syncs decks and caches available tags
-		await this.cardIdentityContinuity.synchronize();
+		const outcome = await this.cardIdentityContinuity.synchronize();
+		this.showSynchronizationFeedback(outcome);
 
 		// Create React root
 		const rootEl = container.createDiv({ cls: "flashcard-root" });
@@ -89,9 +91,21 @@ export class FlashcardView extends ItemView {
 	};
 
 	private handleRefresh = async (): Promise<void> => {
-		await this.cardIdentityContinuity.synchronize();
+		const outcome = await this.cardIdentityContinuity.synchronize();
+		this.showSynchronizationFeedback(outcome);
 		this.renderApp();
 	};
+
+	private showSynchronizationFeedback(
+		outcome: Awaited<ReturnType<CardIdentityContinuity["synchronize"]>>,
+	): void {
+		const message = describeSynchronizationOutcome(
+			outcome,
+			this.cardIdentityContinuity.inspect(),
+			this.settings.language,
+		);
+		if (message) new Notice(message, 12000);
+	}
 
 	async onClose(): Promise<void> {
 		if (this.root) {
@@ -106,6 +120,7 @@ export class FlashcardView extends ItemView {
 	}
 
 	async refresh(): Promise<void> {
-		await this.handleRefresh();
+		await this.cardIdentityContinuity.synchronize();
+		this.renderApp();
 	}
 }
