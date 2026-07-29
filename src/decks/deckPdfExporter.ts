@@ -26,7 +26,7 @@ export const DECK_PDF_PRINT_STYLES = `
 				"Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
 				"Noto Sans SC", sans-serif !important;
 			font-size: 10.5pt !important;
-			line-height: 1.55 !important;
+			line-height: 1.4 !important;
 			-webkit-print-color-adjust: exact;
 			print-color-adjust: exact;
 		}
@@ -99,7 +99,7 @@ export const DECK_PDF_PRINT_STYLES = `
 		}
 
 		.flashcard-pdf-table th {
-			padding: 3mm 3.5mm;
+			padding: 2.2mm 3mm;
 			background: #e2e8f0;
 			color: #0f172a;
 			font-size: 10pt;
@@ -108,7 +108,7 @@ export const DECK_PDF_PRINT_STYLES = `
 		}
 
 		.flashcard-pdf-table td {
-			padding: 3.2mm 3.5mm;
+			padding: 1.8mm 3mm;
 			background: #ffffff;
 		}
 
@@ -131,7 +131,7 @@ export const DECK_PDF_PRINT_STYLES = `
 		.flashcard-pdf-content pre,
 		.flashcard-pdf-content table {
 			margin-top: 0;
-			margin-bottom: 0.65em;
+			margin-bottom: 0.35em;
 		}
 
 		.flashcard-pdf-content h1,
@@ -140,10 +140,10 @@ export const DECK_PDF_PRINT_STYLES = `
 		.flashcard-pdf-content h4,
 		.flashcard-pdf-content h5,
 		.flashcard-pdf-content h6 {
-			margin: 0 0 0.45em;
+			margin: 0 0 0.3em;
 			color: #0f172a;
 			font-size: 1em;
-			line-height: 1.4;
+			line-height: 1.3;
 		}
 
 		.flashcard-pdf-content img,
