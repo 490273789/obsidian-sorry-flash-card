@@ -5,10 +5,12 @@ import {
 	Brain,
 	Calculator,
 	ChartSpline,
+	FileDown,
 	FileText,
 	Inbox,
 	Layers3,
 	List,
+	LoaderCircle,
 	NotebookPen,
 	Plus,
 	RefreshCcw,
@@ -335,8 +337,10 @@ interface DeckCardProps {
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
+	onExportDeck: (deckId: string) => Promise<void>;
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenSettings: (deckId: string) => void;
+	isExporting: boolean;
 }
 
 const DeckCard = memo(function DeckCard({
@@ -345,8 +349,10 @@ const DeckCard = memo(function DeckCard({
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
+	onExportDeck,
 	onOpenSourceFile,
 	onOpenSettings,
+	isExporting,
 }: DeckCardProps) {
 	const { t } = useI18n();
 	const totalCards = deckStats?.totalCards ?? 0;
@@ -418,6 +424,19 @@ const DeckCard = memo(function DeckCard({
 					<FlashcardButton
 						preset="icon"
 						className="flashcard-deck-utility-btn"
+						icon={isExporting ? LoaderCircle : FileDown}
+						iconClassName={isExporting ? "spinning" : undefined}
+						onClick={(e) => {
+							e.stopPropagation();
+							void onExportDeck(deck.id);
+						}}
+						disabled={isExporting}
+						title={t("home.exportPdfTitle")}
+						aria-label={t("home.exportPdfTitle")}
+					/>
+					<FlashcardButton
+						preset="icon"
+						className="flashcard-deck-utility-btn"
 						icon={List}
 						onClick={(e) => {
 							e.stopPropagation();
@@ -463,6 +482,7 @@ interface DeckListProps {
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
+	onExportDeck: (deckId: string) => Promise<void>;
 	onRefresh: () => Promise<void>;
 	onUpdateDeckStudySettings: (
 		deckId: string,
@@ -481,6 +501,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
+	onExportDeck,
 	onRefresh,
 	onUpdateDeckStudySettings,
 	onOpenSourceFile,
@@ -491,6 +512,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 	const { t } = useI18n();
 	const [isLoading, setIsLoading] = useState(false);
 	const [isMigrating, setIsMigrating] = useState(false);
+	const [exportingDeckId, setExportingDeckId] = useState<string | null>(null);
 	const [modalDeckId, setModalDeckId] = useState<string | null>(null);
 
 	const handleRefresh = useCallback(async () => {
@@ -514,6 +536,19 @@ export const DeckList: React.FC<DeckListProps> = ({
 			setIsMigrating(false);
 		}
 	}, [onMigrateLegacyDecks]);
+
+	const handleExportDeck = useCallback(
+		async (deckId: string) => {
+			if (exportingDeckId !== null) return;
+			setExportingDeckId(deckId);
+			try {
+				await onExportDeck(deckId);
+			} finally {
+				setExportingDeckId(null);
+			}
+		},
+		[exportingDeckId, onExportDeck],
+	);
 
 	const handleSaveDeckSettings = useCallback(
 		async (overrides: Partial<StudySettings> | null) => {
@@ -603,8 +638,10 @@ export const DeckList: React.FC<DeckListProps> = ({
 								onSelectDeck={onSelectDeck}
 								onOpenWordList={onOpenWordList}
 								onStartPractice={onStartPractice}
+								onExportDeck={handleExportDeck}
 								onOpenSourceFile={onOpenSourceFile}
 								onOpenSettings={setModalDeckId}
+								isExporting={exportingDeckId === deck.id}
 							/>
 						))}
 					</div>

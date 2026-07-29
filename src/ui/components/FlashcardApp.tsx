@@ -7,7 +7,16 @@ import React, {
 	useEffect,
 	useSyncExternalStore,
 } from "react";
-import { App, ButtonComponent, Component, MarkdownRenderer, Modal, Notice, TFile } from "obsidian";
+import {
+	App,
+	ButtonComponent,
+	Component,
+	MarkdownRenderer,
+	Modal,
+	Notice,
+	Platform,
+	TFile,
+} from "obsidian";
 import {
 	ViewState,
 	FlashcardSettings,
@@ -19,6 +28,7 @@ import {
 } from "../../shared/types";
 import { DataStore } from "../../storage/dataStore";
 import { createDeckHomeRuntime } from "../../decks/deckHomeRuntime";
+import { exportDeckToPdf } from "../../decks/deckPdfExporter";
 import {
 	createPracticeSessionRuntime,
 	type PracticeSessionStartOptions,
@@ -584,6 +594,41 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[app, t],
 	);
 
+	const handleExportDeck = useCallback(
+		async (deckId: string) => {
+			const deck = dataStore.getDeck(deckId);
+			if (!deck) {
+				new Notice(t("notice.deckMissing"));
+				return;
+			}
+			if (deck.cards.length === 0) {
+				new Notice(t("notice.deckEmpty"));
+				return;
+			}
+			if (!Platform.isDesktopApp) {
+				new Notice(t("notice.pdfExportDesktopOnly"));
+				return;
+			}
+
+			try {
+				const result = await exportDeckToPdf(app, deck, {
+					frontColumn: t("common.cardFront"),
+					backColumn: t("common.cardBack"),
+					cardCount: (count) => t("pdf.cardCount", { count }),
+					saveDialogTitle: t("pdf.saveDialogTitle"),
+				});
+				if (result.kind === "saved") {
+					new Notice(t("notice.pdfExportSaved", { filePath: result.filePath }), 8000);
+				}
+			} catch (error) {
+				const message =
+					error instanceof Error ? error.message : t("notice.pdfExportUnknownError");
+				new Notice(t("notice.pdfExportFailed", { message }));
+			}
+		},
+		[app, dataStore, t],
+	);
+
 	const handleUpdateDeckStudySettings = useCallback(
 		async (deckId: string, overrides: Partial<StudySettings> | null) => {
 			const newDeckStudySettings = {
@@ -617,6 +662,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			onSelectDeck={handleSelectDeck}
 			onOpenWordList={handleOpenWordList}
 			onStartPractice={handleStartPracticeSetup}
+			onExportDeck={handleExportDeck}
 			onRefresh={async () => {
 				await onRefresh();
 				bumpSnapshotVersion();
