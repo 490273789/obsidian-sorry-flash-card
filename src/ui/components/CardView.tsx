@@ -201,44 +201,46 @@ export const CardView: React.FC<CardViewProps> = ({
 
 			{/* Content */}
 			<div className={`flashcard-content ${isAnimating ? "animating" : ""}`}>
-				<div className="flashcard-question fc-lift">
-					<div className="flashcard-label flashcard-label-question">
-						{t("common.question")}
-					</div>
-					<MarkdownContent
-						content={displayContent?.prompt ?? ""}
-						className="flashcard-markdown"
-						markdownRenderer={markdownRenderer}
-					/>
-				</div>
-
-				{showAnswer && (
-					<div className="flashcard-answer-section">
-						<div className="flashcard-divider" />
-						<div className="flashcard-answer fc-lift">
-							<div className="flashcard-label flashcard-label-answer">
-								{t("common.answer")}
-							</div>
-							<MarkdownContent
-								content={displayContent?.answer ?? ""}
-								className="flashcard-markdown"
-								markdownRenderer={markdownRenderer}
-							/>
+				<div className="flashcard-card-stack">
+					<div className="flashcard-question">
+						<div className="flashcard-label flashcard-label-question">
+							{t("common.question")}
 						</div>
-						{displayContent?.explanation && (
-							<div className="flashcard-explanation fc-lift">
-								<div className="flashcard-label flashcard-label-explanation">
-									{t("common.explanation")}
+						<MarkdownContent
+							content={displayContent?.prompt ?? ""}
+							className="flashcard-markdown"
+							markdownRenderer={markdownRenderer}
+						/>
+					</div>
+
+					{showAnswer && (
+						<div className="flashcard-answer-section">
+							<div className="flashcard-divider" />
+							<div className="flashcard-answer">
+								<div className="flashcard-label flashcard-label-answer">
+									{t("common.answer")}
 								</div>
 								<MarkdownContent
-									content={displayContent.explanation}
+									content={displayContent?.answer ?? ""}
 									className="flashcard-markdown"
 									markdownRenderer={markdownRenderer}
 								/>
 							</div>
-						)}
-					</div>
-				)}
+							{displayContent?.explanation && (
+								<div className="flashcard-explanation">
+									<div className="flashcard-label flashcard-label-explanation">
+										{t("common.explanation")}
+									</div>
+									<MarkdownContent
+										content={displayContent.explanation}
+										className="flashcard-markdown"
+										markdownRenderer={markdownRenderer}
+									/>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
 			</div>
 
 			{/* Footer */}
@@ -265,12 +267,16 @@ export const CardView: React.FC<CardViewProps> = ({
 									preset="rating"
 									className={`flashcard-rating-${btn.rating}`}
 									onClick={() => void handleRating(btn.rating)}
+									aria-label={`${btn.label}，${btn.intervalDesc}，${btn.shortcut}`}
 								>
-									<span className="flashcard-rating-label">
-										{btn.label}-{btn.intervalDesc}
+									<span className="flashcard-rating-meta">
+										<span className="flashcard-rating-label">{btn.label}</span>
+										<span className="flashcard-rating-interval">
+											{btn.shortcut}
+										</span>
 									</span>
-									<span className="flashcard-rating-interval">
-										({btn.shortcut})
+									<span className="flashcard-rating-duration">
+										{btn.intervalDesc}
 									</span>
 								</FlashcardButton>
 							))}

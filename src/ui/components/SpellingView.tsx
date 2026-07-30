@@ -129,104 +129,110 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 			/>
 
 			<div className="flashcard-content">
-				<div className="flashcard-question">
-					<div className="flashcard-label flashcard-label-question">
-						{t("spelling.meaningPrompt")}
+				<div className="flashcard-card-stack">
+					<div className="flashcard-question">
+						<div className="flashcard-label flashcard-label-question">
+							{t("spelling.meaningPrompt")}
+						</div>
+						<MarkdownContent
+							content={currentCard.back}
+							className="flashcard-markdown"
+							markdownRenderer={markdownRenderer}
+						/>
 					</div>
-					<MarkdownContent
-						content={currentCard.back}
-						className="flashcard-markdown"
-						markdownRenderer={markdownRenderer}
-					/>
-				</div>
 
-				{feedback &&
-					(feedback.feedback === "retrieval-incorrect" ||
-						feedback.feedback === "correction-incorrect") && (
-						<div className="flashcard-spelling-feedback is-wrong">
-							<div className="flashcard-spelling-feedback-title">
-								<X size={18} />
-								{feedback.feedback === "retrieval-incorrect"
-									? t("spelling.incorrect")
-									: t("spelling.correctionIncorrect")}
-							</div>
-							<div className="flashcard-spelling-submitted-answer">
-								<span>{t("spelling.yourInput")}</span>
-								<strong>{feedback.submittedInput || t("spelling.noAnswer")}</strong>
-							</div>
-							<div
-								className="flashcard-spelling-diff"
-								aria-label={t("spelling.yourInput")}
-							>
-								{feedback.diff.length > 0 ? (
-									feedback.diff.map((segment, index) => (
-										<span
-											key={`${segment.kind}-${index}`}
-											className={`flashcard-spelling-diff-${segment.kind}`}
-											title={segment.expected}
-										>
-											{segment.value || " "}
-										</span>
-									))
-								) : (
-									<span className="flashcard-spelling-empty-answer">
-										{t("spelling.noAnswer")}
-									</span>
-								)}
-							</div>
-							<div className="flashcard-spelling-correct-answer">
-								<span>{t("spelling.correctAnswer")}</span>
-								<strong>{feedback.answer}</strong>
-							</div>
-							{currentCard.explanation && (
-								<div className="flashcard-explanation">
-									<div className="flashcard-label flashcard-label-explanation">
-										{t("common.explanation")}
+					{feedback &&
+						(feedback.feedback === "retrieval-incorrect" ||
+							feedback.feedback === "correction-incorrect") && (
+							<>
+								<div className="flashcard-spelling-feedback is-wrong">
+									<div className="flashcard-spelling-feedback-title">
+										<X size={18} />
+										{feedback.feedback === "retrieval-incorrect"
+											? t("spelling.incorrect")
+											: t("spelling.correctionIncorrect")}
 									</div>
-									<MarkdownContent
-										content={currentCard.explanation}
-										className="flashcard-markdown"
-										markdownRenderer={markdownRenderer}
-									/>
+									<div className="flashcard-spelling-submitted-answer">
+										<span>{t("spelling.yourInput")}</span>
+										<strong>
+											{feedback.submittedInput || t("spelling.noAnswer")}
+										</strong>
+									</div>
+									<div
+										className="flashcard-spelling-diff"
+										aria-label={t("spelling.yourInput")}
+									>
+										{feedback.diff.length > 0 ? (
+											feedback.diff.map((segment, index) => (
+												<span
+													key={`${segment.kind}-${index}`}
+													className={`flashcard-spelling-diff-${segment.kind}`}
+													title={segment.expected}
+												>
+													{segment.value || " "}
+												</span>
+											))
+										) : (
+											<span className="flashcard-spelling-empty-answer">
+												{t("spelling.noAnswer")}
+											</span>
+										)}
+									</div>
+									<div className="flashcard-spelling-correct-answer">
+										<span>{t("spelling.correctAnswer")}</span>
+										<strong>{feedback.answer}</strong>
+									</div>
 								</div>
-							)}
+								{currentCard.explanation && (
+									<div className="flashcard-explanation">
+										<div className="flashcard-label flashcard-label-explanation">
+											{t("common.explanation")}
+										</div>
+										<MarkdownContent
+											content={currentCard.explanation}
+											className="flashcard-markdown"
+											markdownRenderer={markdownRenderer}
+										/>
+									</div>
+								)}
+							</>
+						)}
+
+					{isCorrectFeedback && (
+						<div className="flashcard-spelling-feedback is-correct">
+							<Check size={20} />
+							<span>{t("spelling.correct")}</span>
+							<strong>{feedback.answer}</strong>
 						</div>
 					)}
 
-				{isCorrectFeedback && (
-					<div className="flashcard-spelling-feedback is-correct">
-						<Check size={20} />
-						<span>{t("spelling.correct")}</span>
-						<strong>{feedback.answer}</strong>
-					</div>
-				)}
-
-				<label className="flashcard-spelling-input-group">
-					<span>
-						{isCorrection
-							? t("spelling.retypeInstruction")
-							: t("spelling.inputInstruction")}
-					</span>
-					<input
-						ref={inputRef}
-						type="text"
-						value={input}
-						onChange={(event) => setInput(event.target.value)}
-						onKeyDown={(event) => {
-							if (event.key === "Enter") {
-								event.preventDefault();
-								void submit(input);
-							}
-						}}
-						disabled={isSubmitting}
-						spellCheck={false}
-						autoComplete="off"
-						autoCapitalize="none"
-						autoCorrect="off"
-						enterKeyHint="done"
-						aria-label={t("spelling.inputInstruction")}
-					/>
-				</label>
+					<label className="flashcard-spelling-input-group">
+						<span>
+							{isCorrection
+								? t("spelling.retypeInstruction")
+								: t("spelling.inputInstruction")}
+						</span>
+						<input
+							ref={inputRef}
+							type="text"
+							value={input}
+							onChange={(event) => setInput(event.target.value)}
+							onKeyDown={(event) => {
+								if (event.key === "Enter") {
+									event.preventDefault();
+									void submit(input);
+								}
+							}}
+							disabled={isSubmitting}
+							spellCheck={false}
+							autoComplete="off"
+							autoCapitalize="none"
+							autoCorrect="off"
+							enterKeyHint="done"
+							aria-label={t("spelling.inputInstruction")}
+						/>
+					</label>
+				</div>
 			</div>
 
 			<div className="flashcard-footer flashcard-spelling-actions">

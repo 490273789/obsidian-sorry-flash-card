@@ -53,12 +53,32 @@ describe("formatting helpers", () => {
 		const buttons = getLocalizedRatingButtons("zh");
 
 		expect(buttons).toEqual([
-			expect.objectContaining({ label: "重来", shortcut: "1", rating: 1 }),
-			expect.objectContaining({ label: "困难", shortcut: "2", rating: 2 }),
-			expect.objectContaining({ label: "良好", shortcut: "3/空格", rating: 3 }),
-			expect.objectContaining({ label: "简单", shortcut: "4", rating: 4 }),
 			expect.objectContaining({
-				label: "辣鸡",
+				label: "忘记",
+				shortcut: "1",
+				rating: 1,
+				intervalDesc: "1分钟",
+			}),
+			expect.objectContaining({
+				label: "困难",
+				shortcut: "2",
+				rating: 2,
+				intervalDesc: "1天",
+			}),
+			expect.objectContaining({
+				label: "记得",
+				shortcut: "3/空格",
+				rating: 3,
+				intervalDesc: "3天",
+			}),
+			expect.objectContaining({
+				label: "轻松",
+				shortcut: "4",
+				rating: 4,
+				intervalDesc: "10天",
+			}),
+			expect.objectContaining({
+				label: "暂缓",
 				shortcut: "5",
 				rating: 5,
 				intervalDesc: "21天",

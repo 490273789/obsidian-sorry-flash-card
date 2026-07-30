@@ -146,6 +146,47 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.22);
 }
 
+.theme-light .flashcard-content {
+	border-inline: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.theme-light .flashcard-content {
+	border-block: 0;
+}
+
+.theme-light .flashcard-question,
+.theme-light .flashcard-answer,
+.theme-light .flashcard-explanation {
+	border: 1px solid rgba(33, 55, 83, 0.12);
+	border-left-width: 3px;
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.68);
+	box-shadow: 0 8px 24px rgba(35, 49, 68, 0.055);
+}
+
+.theme-light .flashcard-question {
+	border-left-color: rgba(var(--fc-cyan-rgb), 0.62);
+}
+
+.theme-light .flashcard-answer {
+	border-left-color: rgba(var(--fc-magenta-rgb), 0.56);
+}
+
+.theme-light .flashcard-explanation {
+	border-left-color: rgba(var(--fc-amber-rgb), 0.62);
+}
+
+.theme-light .flashcard-footer {
+	border-inline: 0;
+	border-bottom: 0;
+	border-radius: 0;
+	background: rgba(248, 250, 252, 0.9);
+	box-shadow: 0 -8px 20px rgba(35, 49, 68, 0.05);
+}
+
 .theme-light .flashcard-markdown,
 .theme-light .flashcard-deck-name,
 .theme-light .flashcard-deck-title,
@@ -211,6 +252,35 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.18);
 	background: rgba(220, 238, 243, 0.82);
 	box-shadow: inset 0 0 10px rgba(33, 55, 83, 0.08);
+}
+
+.theme-light .flashcard-session-toolbar {
+	border: 1px solid rgba(33, 55, 83, 0.12);
+	border-radius: 8px;
+	background: rgba(238, 243, 248, 0.64);
+	box-shadow: 0 6px 18px rgba(35, 49, 68, 0.045);
+}
+
+.theme-light .flashcard-session-shell {
+	background: transparent;
+	box-shadow: none;
+}
+
+.theme-light .flashcard-session-header {
+	border: 1px solid rgba(33, 55, 83, 0.14);
+	border-top: 2px solid rgba(var(--fc-cyan-rgb), 0.52);
+	border-radius: 10px;
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 42%),
+		rgba(255, 255, 255, 0.9);
+	box-shadow: 0 10px 28px rgba(35, 49, 68, 0.07);
+}
+
+.theme-light .flashcard-session-progress,
+.theme-light .flashcard-session-timer {
+	border-color: transparent;
+	background: transparent;
+	box-shadow: none;
 }
 
 .theme-light .flashcard-root button.flashcard-btn,

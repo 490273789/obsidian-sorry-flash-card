@@ -62,11 +62,11 @@ describe("FSRSScheduler", () => {
 
 	it("returns localized rating button configuration through scheduler facade", () => {
 		expect(getRatingButtons("en").map((button) => button.label)).toEqual([
-			"Again",
+			"Forgot",
 			"Hard",
-			"Good",
+			"Remembered",
 			"Easy",
-			"Trash",
+			"Later",
 		]);
 	});
 });
