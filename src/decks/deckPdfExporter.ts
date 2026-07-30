@@ -9,6 +9,18 @@ export interface DeckPdfExportLabels {
 	saveDialogTitle: string;
 }
 
+export interface DeckPdfExportProgress {
+	phase: "rendering" | "generating";
+	completed: number;
+	total: number;
+}
+
+export interface DeckPdfExportOptions {
+	onProgress?: (progress: DeckPdfExportProgress) => void;
+}
+
+const DECK_PDF_RENDER_BATCH_SIZE = 12;
+
 export const DECK_PDF_PRINT_STYLES = `
 	@page {
 		size: A4 portrait;
@@ -181,6 +193,7 @@ export async function exportDeckToPdf(
 	app: App,
 	deck: Deck,
 	labels: DeckPdfExportLabels,
+	options: DeckPdfExportOptions = {},
 ): Promise<DeckPdfExportResult> {
 	const sourceDocument = activeDocument;
 	const desktopRuntime = getDesktopPdfRuntime(sourceDocument);
@@ -195,25 +208,46 @@ export async function exportDeckToPdf(
 	}
 
 	const component = new Component();
-	const renderRoot = createPrintableDeck(sourceDocument, deck, labels);
-	const printStyle = sourceDocument.createElement("style");
-	printStyle.dataset.flashcardPdfExport = "true";
-	printStyle.textContent = DECK_PDF_PRINT_STYLES;
-	const originalDocumentTitle = sourceDocument.title;
-	renderRoot.style.position = "fixed";
-	renderRoot.style.left = "-100000px";
-	renderRoot.style.top = "0";
-	renderRoot.style.width = "210mm";
-	sourceDocument.body.appendChild(renderRoot);
-	sourceDocument.head.appendChild(printStyle);
+	const printableDeck = createPrintableDeck(sourceDocument, deck, labels);
+	let pdfWindow: ElectronBrowserWindow | null = null;
+	let temporaryDirectory: string | null = null;
 
 	try {
 		component.load();
-		await renderDeckRows(app, deck, renderRoot, component);
-		sourceDocument.body.classList.add("flashcard-pdf-exporting");
-		sourceDocument.title = deck.name;
-		await waitForPrintAssets(sourceDocument, renderRoot, desktopRuntime.browserWindow);
-		const pdfData = await desktopRuntime.browserWindow.webContents.printToPDF({
+		options.onProgress?.({
+			phase: "rendering",
+			completed: 0,
+			total: deck.cards.length,
+		});
+		await yieldToUi(sourceDocument.defaultView);
+		await renderDeckRows(
+			app,
+			deck,
+			printableDeck.tableBody,
+			component,
+			sourceDocument.defaultView,
+			options.onProgress,
+		);
+
+		options.onProgress?.({
+			phase: "generating",
+			completed: deck.cards.length,
+			total: deck.cards.length,
+		});
+		await yieldToUi(sourceDocument.defaultView);
+
+		temporaryDirectory = await desktopRuntime.createTemporaryDirectory();
+		const htmlFilePath = desktopRuntime.joinPath(temporaryDirectory, "deck.html");
+		await desktopRuntime.writeFile(
+			htmlFilePath,
+			createPdfDocumentHtml(deck.name, sourceDocument.baseURI, printableDeck.root.outerHTML),
+		);
+
+		pdfWindow = desktopRuntime.createBackgroundWindow();
+		pdfWindow.webContents.setBackgroundThrottling(false);
+		await pdfWindow.loadFile(htmlFilePath);
+		await waitForPrintAssets(pdfWindow);
+		const pdfData = await pdfWindow.webContents.printToPDF({
 			displayHeaderFooter: false,
 			landscape: false,
 			pageSize: "A4",
@@ -224,19 +258,29 @@ export async function exportDeckToPdf(
 		await desktopRuntime.writeFile(filePath, pdfData);
 		return { kind: "saved", filePath };
 	} finally {
-		sourceDocument.body.classList.remove("flashcard-pdf-exporting");
-		sourceDocument.title = originalDocumentTitle;
 		component.unload();
-		renderRoot.remove();
-		printStyle.remove();
+		printableDeck.root.remove();
+		if (pdfWindow && !pdfWindow.isDestroyed()) {
+			pdfWindow.destroy();
+		}
+		if (temporaryDirectory) {
+			await desktopRuntime
+				.removeTemporaryDirectory(temporaryDirectory)
+				.catch(() => undefined);
+		}
 	}
+}
+
+interface PrintableDeck {
+	root: HTMLElement;
+	tableBody: HTMLTableSectionElement;
 }
 
 function createPrintableDeck(
 	document: Document,
 	deck: Deck,
 	labels: DeckPdfExportLabels,
-): HTMLElement {
+): PrintableDeck {
 	const root = document.createElement("main");
 	root.className = "flashcard-pdf-document";
 
@@ -269,78 +313,108 @@ function createPrintableDeck(
 	table.appendChild(tableHead);
 
 	const tableBody = document.createElement("tbody");
-	for (let index = 0; index < deck.cards.length; index += 1) {
-		const row = document.createElement("tr");
-		row.dataset.cardIndex = String(index);
-
-		for (const side of ["front", "back"] as const) {
-			const cell = document.createElement("td");
-			const content = document.createElement("div");
-			content.className = "flashcard-pdf-content";
-			content.dataset.cardSide = side;
-			cell.appendChild(content);
-			row.appendChild(cell);
-		}
-
-		tableBody.appendChild(row);
-	}
 	table.appendChild(tableBody);
 	root.appendChild(table);
 
-	return root;
+	return { root, tableBody };
 }
 
 async function renderDeckRows(
 	app: App,
 	deck: Deck,
-	renderRoot: HTMLElement,
+	tableBody: HTMLTableSectionElement,
 	component: Component,
+	sourceWindow: Window | null,
+	onProgress: DeckPdfExportOptions["onProgress"],
 ): Promise<void> {
 	const rows = getDeckPdfRows(deck);
 	for (let index = 0; index < rows.length; index += 1) {
 		const row = rows[index];
-		const front = renderRoot.querySelector<HTMLElement>(
-			`[data-card-index="${index}"] [data-card-side="front"]`,
-		);
-		const back = renderRoot.querySelector<HTMLElement>(
-			`[data-card-index="${index}"] [data-card-side="back"]`,
-		);
-		if (!row || !front || !back) {
+		if (!row) {
 			throw new Error(`Card ${index + 1} could not be rendered`);
 		}
 
+		const rowElement = tableBody.ownerDocument.createElement("tr");
+		const front = appendPrintableCell(rowElement);
+		const back = appendPrintableCell(rowElement);
+		tableBody.appendChild(rowElement);
 		await MarkdownRenderer.render(app, row.front, front, deck.filePath, component);
 		await MarkdownRenderer.render(app, row.back, back, deck.filePath, component);
+
+		const completed = index + 1;
+		if (completed % DECK_PDF_RENDER_BATCH_SIZE === 0 || completed === rows.length) {
+			onProgress?.({
+				phase: "rendering",
+				completed,
+				total: rows.length,
+			});
+			await yieldToUi(sourceWindow);
+		}
 	}
 }
 
-async function waitForPrintAssets(
-	document: Document,
-	renderRoot: HTMLElement,
-	browserWindow: ElectronBrowserWindow,
-): Promise<void> {
-	const sourceWindow = document.defaultView;
-	if (!sourceWindow) return;
-	const pendingImages = Array.from(renderRoot.querySelectorAll("img")).filter(
-		(image) => !image.complete,
-	);
-	const imageReady = Promise.all(
-		pendingImages.map(
-			(image) =>
-				new Promise<void>((resolve) => {
-					image.addEventListener("load", () => resolve(), { once: true });
-					image.addEventListener("error", () => resolve(), { once: true });
-				}),
-		),
-	);
-	const timeout = new Promise<void>((resolve) => {
-		sourceWindow.setTimeout(resolve, 5_000);
-	});
+function appendPrintableCell(row: HTMLTableRowElement): HTMLElement {
+	const cell = row.ownerDocument.createElement("td");
+	const content = row.ownerDocument.createElement("div");
+	content.className = "flashcard-pdf-content";
+	cell.appendChild(content);
+	row.appendChild(cell);
+	return content;
+}
 
-	await Promise.race([imageReady.then(() => undefined), timeout]);
-	await document.fonts?.ready;
+function createPdfDocumentHtml(title: string, baseUri: string, content: string): string {
+	return `<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="utf-8">
+		<meta name="color-scheme" content="light">
+		<base href="${escapeHtml(baseUri)}">
+		<title>${escapeHtml(title)}</title>
+		<style>${DECK_PDF_PRINT_STYLES}</style>
+	</head>
+	<body class="flashcard-pdf-exporting">${content}</body>
+</html>`;
+}
+
+function escapeHtml(value: string): string {
+	return value
+		.replace(/&/g, "&amp;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
+}
+
+async function yieldToUi(sourceWindow: Window | null): Promise<void> {
+	if (!sourceWindow) {
+		await Promise.resolve();
+		return;
+	}
+	await new Promise<void>((resolve) => {
+		sourceWindow.setTimeout(resolve, 0);
+	});
+}
+
+async function waitForPrintAssets(browserWindow: ElectronBrowserWindow): Promise<void> {
 	await browserWindow.webContents.executeJavaScript(
-		"new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
+		`(async () => {
+			const pendingImages = Array.from(document.images).filter((image) => !image.complete);
+			await Promise.race([
+				Promise.all(
+					pendingImages.map(
+						(image) =>
+							new Promise((resolve) => {
+								image.addEventListener("load", resolve, { once: true });
+								image.addEventListener("error", resolve, { once: true });
+							}),
+					),
+				),
+				new Promise((resolve) => setTimeout(resolve, 5000)),
+			]);
+			await document.fonts?.ready;
+			await new Promise((resolve) =>
+				requestAnimationFrame(() => requestAnimationFrame(resolve)),
+			);
+		})()`,
 	);
 }
 
@@ -363,6 +437,7 @@ interface ElectronDialog {
 
 interface ElectronWebContents {
 	executeJavaScript(code: string): Promise<unknown>;
+	setBackgroundThrottling(allowed: boolean): void;
 	printToPDF(options: {
 		displayHeaderFooter: boolean;
 		landscape: boolean;
@@ -374,11 +449,27 @@ interface ElectronWebContents {
 
 interface ElectronBrowserWindow {
 	webContents: ElectronWebContents;
+	loadFile(filePath: string): Promise<void>;
+	isDestroyed(): boolean;
+	destroy(): void;
+}
+
+interface ElectronBrowserWindowConstructor {
+	new (options: {
+		show: boolean;
+		width: number;
+		height: number;
+		backgroundColor: string;
+		webPreferences: {
+			backgroundThrottling: boolean;
+		};
+	}): ElectronBrowserWindow;
 }
 
 interface ObsidianDesktopWindow extends Window {
 	electron?: {
 		remote?: {
+			BrowserWindow?: ElectronBrowserWindowConstructor;
 			dialog?: ElectronDialog;
 			getCurrentWindow?: () => ElectronBrowserWindow;
 		};
@@ -390,7 +481,11 @@ interface ObsidianDesktopWindow extends Window {
 interface DesktopPdfRuntime {
 	browserWindow: ElectronBrowserWindow;
 	dialog: ElectronDialog;
-	writeFile: (filePath: string, data: Uint8Array) => Promise<void>;
+	createBackgroundWindow: () => ElectronBrowserWindow;
+	createTemporaryDirectory: () => Promise<string>;
+	joinPath: (...parts: string[]) => string;
+	removeTemporaryDirectory: (path: string) => Promise<void>;
+	writeFile: (filePath: string, data: string | Uint8Array) => Promise<void>;
 }
 
 function getDesktopPdfRuntime(document: Document): DesktopPdfRuntime {
@@ -398,17 +493,41 @@ function getDesktopPdfRuntime(document: Document): DesktopPdfRuntime {
 	const remote = desktopWindow?.electron?.remote;
 	const browserWindow = desktopWindow?.electronWindow ?? remote?.getCurrentWindow?.();
 	const dialog = remote?.dialog;
+	const BrowserWindow = remote?.BrowserWindow;
 	const requireModule = desktopWindow?.require;
-	if (!browserWindow || !dialog || !requireModule) {
+	if (!browserWindow || !dialog || !BrowserWindow || !requireModule) {
 		throw new Error("The Obsidian desktop PDF runtime is unavailable");
 	}
 
 	const fileSystem = requireModule("node:fs/promises") as {
-		writeFile: (filePath: string, data: Uint8Array) => Promise<void>;
+		mkdtemp: (prefix: string) => Promise<string>;
+		rm: (path: string, options: { recursive: boolean; force: boolean }) => Promise<void>;
+		writeFile: (filePath: string, data: string | Uint8Array) => Promise<void>;
+	};
+	const path = requireModule("node:path") as {
+		join: (...parts: string[]) => string;
+	};
+	const operatingSystem = requireModule("node:os") as {
+		tmpdir: () => string;
 	};
 	return {
 		browserWindow,
 		dialog,
+		createBackgroundWindow: () =>
+			new BrowserWindow({
+				show: false,
+				width: 794,
+				height: 1123,
+				backgroundColor: "#ffffff",
+				webPreferences: {
+					backgroundThrottling: false,
+				},
+			}),
+		createTemporaryDirectory: () =>
+			fileSystem.mkdtemp(path.join(operatingSystem.tmpdir(), "wsr-flash-card-pdf-")),
+		joinPath: path.join,
+		removeTemporaryDirectory: (temporaryPath) =>
+			fileSystem.rm(temporaryPath, { recursive: true, force: true }),
 		writeFile: fileSystem.writeFile,
 	};
 }

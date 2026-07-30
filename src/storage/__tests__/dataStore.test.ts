@@ -58,6 +58,7 @@ function makeSettings(overrides: Partial<FlashcardSettings> = {}): FlashcardSett
 			...overrides.fsrsParameters,
 		},
 		deckStudySettings: overrides.deckStudySettings ?? {},
+		wordLearningDecks: overrides.wordLearningDecks ?? {},
 	};
 }
 
@@ -119,6 +120,7 @@ describe("DataStore settings", () => {
 			maximumInterval: DEFAULT_SETTINGS.fsrsParameters.maximumInterval,
 		});
 		expect(settings.practiceMessagesCustomized).toBe(false);
+		expect(settings.wordLearningDecks).toEqual({});
 		expect(settings.practicePerfectMessages).toEqual(DEFAULT_SETTINGS.practicePerfectMessages);
 	});
 
@@ -167,6 +169,164 @@ describe("DataStore settings", () => {
 		expect(store.getAllDecks()).toHaveLength(1);
 		expect(store.getAllDecks()[0]?.cards[0]?.explanation).toBe("note");
 		expect(store.getStudyHistory()).toHaveLength(1);
+	});
+
+	it("saves the word-learning deck marker with the unified settings payload", async () => {
+		const plugin = makePlugin();
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+		const settings = makeSettings({
+			wordLearningDecks: { "notes/deck.md": true },
+		});
+
+		await store.saveSettings(settings);
+
+		expect(plugin.saveData).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				settings: expect.objectContaining({
+					wordLearningDecks: { "notes/deck.md": true },
+				}),
+			}),
+		);
+	});
+
+	it("persists independent spelling progress without changing FSRS state", async () => {
+		const card = makeCard(
+			"550e8400-e29b-41d4-a716-446655440000",
+			State.Review,
+			new Date("2026-07-01T00:00:00.000Z"),
+			0,
+		);
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [card],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-07-02T00:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+		const before = store.getDeck(deck.id)?.cards[0]?.fsrsCard;
+
+		await store.recordSpellingAttempt(card.id, false, 1000);
+		await store.recordSpellingAttempt(card.id, true, 2000);
+
+		expect(store.getSpellingProgress()[card.id]).toEqual({
+			attempts: 2,
+			correctAttempts: 1,
+			correctStreak: 1,
+			lastAttemptAt: 2000,
+			lastIncorrectAt: 1000,
+		});
+		expect(store.getDeck(deck.id)?.cards[0]?.fsrsCard).toEqual(before);
+	});
+
+	it("prunes progress for cards deleted from a retained deck", async () => {
+		const retained = makeCard(
+			"550e8400-e29b-41d4-a716-446655440000",
+			State.New,
+			new Date("2026-07-01T00:00:00.000Z"),
+			0,
+		);
+		const deleted = makeCard(
+			"7d444840-9dc0-11d1-b245-5ffdce74fad2",
+			State.New,
+			new Date("2026-07-01T00:00:00.000Z"),
+			1,
+		);
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [retained, deleted],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const progress = {
+			attempts: 1,
+			correctAttempts: 1,
+			correctStreak: 1,
+			lastAttemptAt: 1000,
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-07-02T00:00:00.000Z",
+			settings: makeSettings(),
+			spellingProgress: {
+				[retained.id]: progress,
+				[deleted.id]: progress,
+			},
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+
+		const continuityStore = store.createContinuityStateStore();
+		const state = await continuityStore.load();
+		state.decks.set(deck.id, { ...deck, cards: [retained] });
+		await continuityStore.commit(state);
+
+		expect(store.getSpellingProgress()).toEqual({
+			[retained.id]: progress,
+		});
+	});
+
+	it("keeps spelling progress when a stable card identity moves between decks", async () => {
+		const card = makeCard(
+			"550e8400-e29b-41d4-a716-446655440000",
+			State.New,
+			new Date("2026-07-01T00:00:00.000Z"),
+			0,
+		);
+		const sourceDeck: Deck = {
+			id: "notes/source.md",
+			name: "source",
+			filePath: "notes/source.md",
+			tag: "#单词",
+			cards: [card],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const progress = {
+			attempts: 2,
+			correctAttempts: 1,
+			correctStreak: 0,
+			lastAttemptAt: 2000,
+			lastIncorrectAt: 2000,
+		};
+		const plugin = makePlugin({
+			decks: { [sourceDeck.id]: serializeDeck(sourceDeck) },
+			lastSync: "2026-07-02T00:00:00.000Z",
+			settings: makeSettings(),
+			spellingProgress: { [card.id]: progress },
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+
+		const continuityStore = store.createContinuityStateStore();
+		const state = await continuityStore.load();
+		state.decks = new Map([
+			[
+				"notes/target.md",
+				{
+					...sourceDeck,
+					id: "notes/target.md",
+					name: "target",
+					filePath: "notes/target.md",
+					cards: [{ ...card, sourceFile: "notes/target.md" }],
+				},
+			],
+		]);
+		await continuityStore.commit(state);
+
+		expect(store.getSpellingProgress()[card.id]).toEqual(progress);
 	});
 });
 

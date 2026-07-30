@@ -124,6 +124,20 @@
 	}
 }
 
+@keyframes fc-current-day-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+		box-shadow: none;
+	}
+	50% {
+		transform: scale(1.03);
+		box-shadow:
+			0 0 28px rgba(var(--fc-cyan-rgb), 0.22),
+			0 0 44px rgba(var(--fc-lime-rgb), 0.14);
+	}
+}
+
 @keyframes fc-complete-pop {
 	from {
 		opacity: 0;
@@ -209,4 +223,3 @@
 		animation-iteration-count: 1 !important;
 	}
 }
-

@@ -85,6 +85,10 @@
 	border-left-color: var(--fc-orange);
 }
 
+.stats-mode-spelling {
+	border-left-color: var(--fc-green);
+}
+
 .stats-mode-list {
 	border-left-color: var(--fc-cyan);
 }

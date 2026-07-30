@@ -1,5 +1,14 @@
 import React, { memo, useCallback, useMemo, useState } from "react";
-import { CircleCheck, Target, Lock, Brain, Dices, AudioWaveform, Repeat2 } from "lucide-react";
+import {
+	CircleCheck,
+	Target,
+	Lock,
+	Brain,
+	Dices,
+	AudioWaveform,
+	Repeat2,
+	Keyboard,
+} from "lucide-react";
 import { CardDirection, Deck, StudyDayInfo } from "../../shared/types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
@@ -17,6 +26,8 @@ interface StudySetupProps {
 		studyOrder: "sequential" | "random",
 		direction: CardDirection,
 	) => void;
+	spellingEnabled: boolean;
+	onStartDaySpelling: (dayIndex: number) => void;
 	onBack: () => void;
 }
 
@@ -28,13 +39,24 @@ interface StudyDayRowProps {
 		studyOrder: "sequential" | "random",
 		direction: CardDirection,
 	) => void;
+	spellingEnabled: boolean;
+	onStartDaySpelling: (dayIndex: number) => void;
 }
 
-const StudyDayRow = memo(function StudyDayRow({ day, direction, onStartDay }: StudyDayRowProps) {
+const StudyDayRow = memo(function StudyDayRow({
+	day,
+	direction,
+	onStartDay,
+	spellingEnabled,
+	onStartDaySpelling,
+}: StudyDayRowProps) {
 	const { t } = useI18n();
 	const handleReview = useCallback(() => {
 		onStartDay(day.dayIndex, "random", direction);
 	}, [day.dayIndex, direction, onStartDay]);
+	const handleSpelling = useCallback(() => {
+		onStartDaySpelling(day.dayIndex);
+	}, [day.dayIndex, onStartDaySpelling]);
 
 	return (
 		<div
@@ -64,12 +86,26 @@ const StudyDayRow = memo(function StudyDayRow({ day, direction, onStartDay }: St
 					{day.studiedCards}/{day.totalCards}
 				</span>
 				{day.isCompleted && (
-					<FlashcardButton
-						className="flashcard-study-day-review-btn"
-						onClick={handleReview}
-					>
-						{t("study.review")}
-					</FlashcardButton>
+					<>
+						<FlashcardButton
+							className="flashcard-study-day-review-btn"
+							onClick={handleReview}
+						>
+							{t("study.review")}
+						</FlashcardButton>
+						{spellingEnabled && (
+							<FlashcardButton
+								variant="green"
+								icon={Keyboard}
+								iconSize={14}
+								className="flashcard-study-day-review-btn"
+								onClick={handleSpelling}
+								title={t("home.spellingModeTitle")}
+							>
+								{t("home.spelling")}
+							</FlashcardButton>
+						)}
+					</>
 				)}
 			</div>
 		</div>
@@ -84,6 +120,8 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	defaultStudyOrder,
 	onStart,
 	onStartDay,
+	spellingEnabled,
+	onStartDaySpelling,
 	onBack,
 }) => {
 	const { t } = useI18n();
@@ -241,6 +279,8 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 									day={day}
 									direction={direction}
 									onStartDay={onStartDay}
+									spellingEnabled={spellingEnabled}
+									onStartDaySpelling={onStartDaySpelling}
 								/>
 							))}
 						</div>

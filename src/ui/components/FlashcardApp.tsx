@@ -24,6 +24,8 @@ import {
 	StudySession,
 	PracticeSession,
 	PracticeResult,
+	SpellingResult,
+	SpellingSession,
 	CardDirection,
 } from "../../shared/types";
 import { DataStore } from "../../storage/dataStore";
@@ -34,6 +36,10 @@ import {
 	type PracticeSessionStartOptions,
 } from "../../sessions/practiceSessionRuntime";
 import { createStudySessionRuntime } from "../../sessions/studySessionRuntime";
+import {
+	createSpellingSessionRuntime,
+	type SpellingSessionStartOptions,
+} from "../../sessions/spellingSessionRuntime";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
 import { PracticeSetup } from "./PracticeSetup";
@@ -42,6 +48,9 @@ import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
 import { StudySetup } from "./StudySetup";
 import { StatsView } from "./StatsView";
+import { SpellingSetup } from "./SpellingSetup";
+import { SpellingView } from "./SpellingView";
+import { SpellingSummary } from "./SpellingSummary";
 import { I18nProvider } from "./I18nContext";
 import { createTranslator } from "../../i18n";
 import { CardEditorModal, type CardEditorSavePayload } from "./CardEditorModal";
@@ -51,6 +60,8 @@ import type {
 	ResolutionOutcome,
 } from "../../identity/cardIdentityContinuity";
 import type { ActiveSessionStore } from "../../sessions/activeSessionStore";
+import { validateSpellingDeck } from "../../cards/spellingWord";
+import { isStableCardIdentity } from "../../identity/cardIdentity";
 
 interface FlashcardAppProps {
 	app: App;
@@ -93,7 +104,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		() => activeSessionStore.getSnapshot(),
 		() => activeSessionStore.getSnapshot(),
 	);
-	const { studySession, practiceSession, practiceResult } = activeSessions;
+	const { studySession, practiceSession, practiceResult, spellingSession, spellingResult } =
+		activeSessions;
 	useEffect(() => {
 		if (activeSessions.lastEndReason !== "source-change") return;
 		new Notice(t("identity.sessionEndedBySourceChange"));
@@ -111,6 +123,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const migrationPreview = cardIdentityContinuity.inspect().migration;
 	const studyRuntime = useMemo(() => createStudySessionRuntime(dataStore), [dataStore]);
 	const practiceRuntime = useMemo(() => createPracticeSessionRuntime(dataStore), [dataStore]);
+	const spellingRuntime = useMemo(() => createSpellingSessionRuntime(dataStore), [dataStore]);
 
 	// Markdown renderer function
 	const renderMarkdown = useCallback(
@@ -265,6 +278,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		}
 	}, [cardIdentityContinuity, confirmAction, t]);
 
+	const handleEnsureDeckIdentity = useCallback(
+		async (deckId: string): Promise<boolean> => {
+			const ready = await ensureDeckEditable(deckId);
+			if (ready) bumpSnapshotVersion();
+			return ready;
+		},
+		[ensureDeckEditable],
+	);
+
 	const handleOpenEditCard = useCallback(
 		(deckId: string, cardId: string) => {
 			void (async () => {
@@ -393,6 +415,32 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			setViewState({ type: "practice", deckId });
 		},
 		[activeSessionStore, dataStore, practiceRuntime],
+	);
+
+	const handleSpellingDay = useCallback(
+		(deckId: string, dayIndex: number) => {
+			const deck = dataStore.getDeck(deckId);
+			if (!deck || !settings.wordLearningDecks[deckId]) {
+				new Notice(t("spelling.deckNotEnabled"));
+				return;
+			}
+			if (!deck.cards.every((card) => isStableCardIdentity(card.id))) {
+				new Notice(t("spelling.identityRequired"));
+				return;
+			}
+			const session = spellingRuntime.createDaySession(deckId, dayIndex);
+			if (!session) {
+				new Notice(t("spelling.dayInvalid"));
+				return;
+			}
+			activeSessionStore.setSpellingSession({
+				...session,
+				originDeck: { id: deckId, name: deck.name },
+			});
+			activeSessionStore.setSpellingResult(null);
+			setViewState({ type: "spelling", deckId });
+		},
+		[activeSessionStore, dataStore, settings.wordLearningDecks, spellingRuntime, t],
 	);
 
 	const handleStudyComplete = useCallback(() => {
@@ -533,6 +581,119 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setViewState({ type: "home" });
 	}, [activeSessionStore]);
 
+	const handleStartSpellingSetup = useCallback(
+		(deckId: string) => {
+			const deck = dataStore.getDeck(deckId);
+			if (!deck || !settings.wordLearningDecks[deckId]) {
+				new Notice(t("spelling.deckNotEnabled"));
+				return;
+			}
+			const validation = validateSpellingDeck(deck);
+			if (!validation.canStart) {
+				new Notice(t("spelling.deckInvalid"));
+				return;
+			}
+			if (!deck.cards.every((card) => isStableCardIdentity(card.id))) {
+				new Notice(t("spelling.identityRequired"));
+				return;
+			}
+			setViewState({ type: "spelling-setup", deckId });
+		},
+		[dataStore, settings.wordLearningDecks, t],
+	);
+
+	const handleStartSpelling = useCallback(
+		(deckId: string, options: SpellingSessionStartOptions) => {
+			const deck = dataStore.getDeck(deckId);
+			if (!deck || !settings.wordLearningDecks[deckId]) {
+				new Notice(t("spelling.deckNotEnabled"));
+				return;
+			}
+			const validation = validateSpellingDeck(deck);
+			if (!validation.canStart) {
+				new Notice(t("spelling.deckInvalid"));
+				return;
+			}
+			if (!deck.cards.every((card) => isStableCardIdentity(card.id))) {
+				new Notice(t("spelling.identityRequired"));
+				return;
+			}
+			const session = spellingRuntime.createSession(deckId, options);
+			if (!session) {
+				new Notice(t("notice.deckEmpty"));
+				return;
+			}
+			activeSessionStore.setSpellingSession({
+				...session,
+				originDeck: { id: deckId, name: deck.name },
+			});
+			activeSessionStore.setSpellingResult(null);
+			setViewState({ type: "spelling", deckId });
+		},
+		[activeSessionStore, dataStore, settings.wordLearningDecks, spellingRuntime, t],
+	);
+
+	const handleSpellingSessionUpdate = useCallback(
+		(session: SpellingSession) => {
+			activeSessionStore.setSpellingSession(session);
+		},
+		[activeSessionStore],
+	);
+
+	const handleSpellingComplete = useCallback(
+		(result: SpellingResult) => {
+			activeSessionStore.setSpellingResult(result);
+			if (spellingSession) {
+				setViewState({
+					type: "spelling-summary",
+					deckId: spellingSession.deckId,
+				});
+			}
+		},
+		[activeSessionStore, spellingSession],
+	);
+
+	const handleCloseSpelling = useCallback(async () => {
+		const confirmed = await confirmAction(
+			t("spelling.exitTitle"),
+			t("spelling.exitConfirm"),
+			t("common.confirm"),
+		);
+		if (!confirmed) return;
+		if (spellingSession) {
+			await spellingRuntime.finish(spellingSession);
+		}
+		activeSessionStore.setSpellingSession(null);
+		activeSessionStore.setSpellingResult(null);
+		setViewState({ type: "home" });
+	}, [activeSessionStore, confirmAction, spellingRuntime, spellingSession, t]);
+
+	const handleSpellingRetryIncorrect = useCallback(() => {
+		if (!spellingSession || !spellingResult) return;
+		const session = spellingRuntime.createIncorrectSession(spellingSession, spellingResult);
+		if (!session) return;
+		activeSessionStore.setSpellingSession({
+			...session,
+			originDeck: spellingSession.originDeck,
+		});
+		activeSessionStore.setSpellingResult(null);
+		setViewState({ type: "spelling", deckId: spellingSession.deckId });
+	}, [activeSessionStore, spellingResult, spellingRuntime, spellingSession]);
+
+	const handleSpellingRestart = useCallback(() => {
+		if (!spellingSession) return;
+		const deckId = spellingSession.deckId;
+		activeSessionStore.setSpellingSession(null);
+		activeSessionStore.setSpellingResult(null);
+		setViewState({ type: "spelling-setup", deckId });
+	}, [activeSessionStore, spellingSession]);
+
+	const handleSpellingHome = useCallback(() => {
+		activeSessionStore.setSpellingSession(null);
+		activeSessionStore.setSpellingResult(null);
+		setViewState({ type: "home" });
+	}, [activeSessionStore]);
+
 	const handleDeleteCard = useCallback(
 		async (deckId: string, cardId: string) => {
 			const card = dataStore.getCard(deckId, cardId);
@@ -610,13 +771,31 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				return;
 			}
 
+			const progressNotice = { current: null as Notice | null };
 			try {
-				const result = await exportDeckToPdf(app, deck, {
-					frontColumn: t("common.cardFront"),
-					backColumn: t("common.cardBack"),
-					cardCount: (count) => t("pdf.cardCount", { count }),
-					saveDialogTitle: t("pdf.saveDialogTitle"),
-				});
+				const result = await exportDeckToPdf(
+					app,
+					deck,
+					{
+						frontColumn: t("common.cardFront"),
+						backColumn: t("common.cardBack"),
+						cardCount: (count) => t("pdf.cardCount", { count }),
+						saveDialogTitle: t("pdf.saveDialogTitle"),
+					},
+					{
+						onProgress: ({ phase, completed, total }) => {
+							const message =
+								phase === "rendering"
+									? t("notice.pdfExportRendering", { completed, total })
+									: t("notice.pdfExportGenerating");
+							if (progressNotice.current) {
+								progressNotice.current.setMessage(message);
+							} else {
+								progressNotice.current = new Notice(message, 0);
+							}
+						},
+					},
+				);
 				if (result.kind === "saved") {
 					new Notice(t("notice.pdfExportSaved", { filePath: result.filePath }), 8000);
 				}
@@ -624,13 +803,19 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				const message =
 					error instanceof Error ? error.message : t("notice.pdfExportUnknownError");
 				new Notice(t("notice.pdfExportFailed", { message }));
+			} finally {
+				progressNotice.current?.hide();
 			}
 		},
 		[app, dataStore, t],
 	);
 
-	const handleUpdateDeckStudySettings = useCallback(
-		async (deckId: string, overrides: Partial<StudySettings> | null) => {
+	const handleUpdateDeckSettings = useCallback(
+		async (
+			deckId: string,
+			overrides: Partial<StudySettings> | null,
+			wordLearningEnabled: boolean,
+		) => {
 			const newDeckStudySettings = {
 				...settings.deckStudySettings,
 			};
@@ -639,9 +824,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			} else {
 				newDeckStudySettings[deckId] = overrides;
 			}
+			const wordLearningDecks = {
+				...settings.wordLearningDecks,
+			};
+			if (wordLearningEnabled) {
+				wordLearningDecks[deckId] = true;
+			} else {
+				delete wordLearningDecks[deckId];
+			}
 			await onSaveSettings({
 				...settings,
 				deckStudySettings: newDeckStudySettings,
+				wordLearningDecks,
 			});
 		},
 		[onSaveSettings, settings],
@@ -662,12 +856,14 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			onSelectDeck={handleSelectDeck}
 			onOpenWordList={handleOpenWordList}
 			onStartPractice={handleStartPracticeSetup}
+			onStartSpelling={handleStartSpellingSetup}
 			onExportDeck={handleExportDeck}
 			onRefresh={async () => {
 				await onRefresh();
 				bumpSnapshotVersion();
 			}}
-			onUpdateDeckStudySettings={handleUpdateDeckStudySettings}
+			onUpdateDeckSettings={handleUpdateDeckSettings}
+			onMigrateDeckIdentity={handleEnsureDeckIdentity}
 			onOpenSourceFile={handleOpenSourceFile}
 			onOpenStats={handleOpenStats}
 			onOpenAddCard={handleOpenAddCard}
@@ -699,6 +895,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						}
 						onStartDay={(dayIndex, order, direction) =>
 							handleStudyDay(viewState.deckId, dayIndex, order, direction)
+						}
+						spellingEnabled={Boolean(settings.wordLearningDecks[viewState.deckId])}
+						onStartDaySpelling={(dayIndex) =>
+							handleSpellingDay(viewState.deckId, dayIndex)
 						}
 						onBack={handleBackHome}
 					/>
@@ -792,6 +992,58 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						onRestart={handlePracticeRestart}
 						onPracticeIncorrect={handlePracticeIncorrect}
 						onHome={handlePracticeClose}
+						markdownRenderer={renderMarkdown}
+					/>
+				);
+			}
+
+			case "spelling-setup": {
+				const deck = dataStore.getDeck(viewState.deckId);
+				if (!deck) return renderHome();
+				return (
+					<SpellingSetup
+						key={deck.id}
+						deck={deck}
+						stats={spellingRuntime.getDeckProgressStats(deck.id)}
+						onStart={(options) => handleStartSpelling(deck.id, options)}
+						onBack={handleBackHome}
+					/>
+				);
+			}
+
+			case "spelling": {
+				if (!spellingSession) return renderHome();
+				const deck = dataStore.getDeck(viewState.deckId);
+				if (!deck) return renderHome();
+				return (
+					<SpellingView
+						key={deck.id}
+						spellingRuntime={spellingRuntime}
+						deck={deck}
+						session={spellingSession}
+						onSessionUpdate={handleSpellingSessionUpdate}
+						onEditCard={handleOpenEditCard}
+						onDeleteCard={handleDeleteCardRequest}
+						onComplete={handleSpellingComplete}
+						onClose={() => void handleCloseSpelling()}
+						markdownRenderer={renderMarkdown}
+					/>
+				);
+			}
+
+			case "spelling-summary": {
+				if (!spellingResult || !spellingSession) return renderHome();
+				const deck = dataStore.getDeck(viewState.deckId);
+				if (!deck) return renderHome();
+				return (
+					<SpellingSummary
+						key={deck.id}
+						deck={deck}
+						spellingRuntime={spellingRuntime}
+						result={spellingResult}
+						onRetryIncorrect={handleSpellingRetryIncorrect}
+						onRestart={handleSpellingRestart}
+						onHome={handleSpellingHome}
 						markdownRenderer={renderMarkdown}
 					/>
 				);

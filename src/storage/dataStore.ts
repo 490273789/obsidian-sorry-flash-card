@@ -9,6 +9,7 @@ import {
 	FlashcardSettings,
 	StudySettings,
 	StudyHistoryEntry,
+	SpellingCardProgress,
 	DEFAULT_SETTINGS,
 	CardDirection,
 	StudyRating,
@@ -33,6 +34,7 @@ export interface StoredData {
 	lastSync: string;
 	settings?: FlashcardSettings;
 	studyHistory?: StudyHistoryEntry[];
+	spellingProgress?: Record<string, SpellingCardProgress>;
 	continuity?: PersistedCardIdentityContinuityState;
 }
 
@@ -87,6 +89,7 @@ export class DataStore {
 	private scheduler: FSRSScheduler;
 	private settings: FlashcardSettings;
 	private studyHistory: StudyHistoryEntry[] = [];
+	private spellingProgress: Record<string, SpellingCardProgress> = {};
 	private availableTags: string[] = [];
 	private continuity: PersistedCardIdentityContinuityState = createEmptyContinuityState();
 	/** Set to true after loadSettings() has already populated decks/history */
@@ -141,6 +144,7 @@ export class DataStore {
 		if (data?.studyHistory) {
 			this.studyHistory = data.studyHistory;
 		}
+		this.spellingProgress = normalizeSpellingProgress(data?.spellingProgress);
 		this.continuity = cloneContinuityState(data?.continuity ?? createEmptyContinuityState());
 
 		this.scheduler = new FSRSScheduler(this.settings);
@@ -182,6 +186,7 @@ export class DataStore {
 			...settings,
 			language,
 			deckStudySettings: settings.deckStudySettings ?? {},
+			wordLearningDecks: settings.wordLearningDecks ?? {},
 			fsrsParameters: {
 				...DEFAULT_SETTINGS.fsrsParameters,
 				...settings.fsrsParameters,
@@ -236,6 +241,7 @@ export class DataStore {
 		if (data?.studyHistory) {
 			this.studyHistory = data.studyHistory;
 		}
+		this.spellingProgress = normalizeSpellingProgress(data?.spellingProgress);
 		this.continuity = cloneContinuityState(data?.continuity ?? createEmptyContinuityState());
 		this.dataLoaded = true;
 	}
@@ -249,6 +255,7 @@ export class DataStore {
 			lastSync: new Date().toISOString(),
 			settings: this.settings,
 			studyHistory: this.studyHistory,
+			spellingProgress: this.spellingProgress,
 			continuity: this.continuity,
 		};
 
@@ -268,6 +275,7 @@ export class DataStore {
 				continuity: cloneContinuityState(this.continuity),
 			}),
 			commit: async (state: CardIdentityContinuityState): Promise<void> => {
+				this.pruneSpellingProgress(this.decks, state.decks);
 				this.decks = new Map(state.decks);
 				this.availableTags = [...(state.availableTags ?? this.availableTags)];
 				this.continuity = cloneContinuityState(state.continuity);
@@ -656,6 +664,37 @@ export class DataStore {
 		return [...this.studyHistory];
 	}
 
+	getSpellingProgress(): Record<string, SpellingCardProgress> {
+		return Object.fromEntries(
+			Object.entries(this.spellingProgress).map(([cardId, progress]) => [
+				cardId,
+				{ ...progress },
+			]),
+		);
+	}
+
+	async recordSpellingAttempt(
+		cardId: string,
+		correct: boolean,
+		attemptedAt: number = Date.now(),
+	): Promise<void> {
+		const current = this.spellingProgress[cardId] ?? {
+			attempts: 0,
+			correctAttempts: 0,
+			correctStreak: 0,
+			lastAttemptAt: attemptedAt,
+		};
+		this.spellingProgress[cardId] = {
+			...current,
+			attempts: current.attempts + 1,
+			correctAttempts: current.correctAttempts + (correct ? 1 : 0),
+			correctStreak: correct ? current.correctStreak + 1 : 0,
+			lastAttemptAt: attemptedAt,
+			...(correct ? {} : { lastIncorrectAt: attemptedAt }),
+		};
+		await this.save();
+	}
+
 	/**
 	 * Update settings reference (does not save to disk)
 	 */
@@ -669,6 +708,23 @@ export class DataStore {
 	 */
 	getScheduler(): FSRSScheduler {
 		return this.scheduler;
+	}
+
+	private pruneSpellingProgress(
+		previousDecks: ReadonlyMap<string, Deck>,
+		nextDecks: ReadonlyMap<string, Deck>,
+	): void {
+		const availableIdentities = new Set(
+			Array.from(nextDecks.values()).flatMap((deck) => deck.cards.map((card) => card.id)),
+		);
+		const previousIdentities = new Set(
+			Array.from(previousDecks.values()).flatMap((deck) => deck.cards.map((card) => card.id)),
+		);
+		for (const cardId of previousIdentities) {
+			if (!availableIdentities.has(cardId)) {
+				delete this.spellingProgress[cardId];
+			}
+		}
 	}
 }
 
@@ -684,4 +740,32 @@ function cloneContinuityState(
 	state: PersistedCardIdentityContinuityState,
 ): PersistedCardIdentityContinuityState {
 	return JSON.parse(JSON.stringify(state)) as PersistedCardIdentityContinuityState;
+}
+
+function normalizeSpellingProgress(
+	value: Record<string, SpellingCardProgress> | undefined,
+): Record<string, SpellingCardProgress> {
+	if (!value || typeof value !== "object") return {};
+	const normalized: Record<string, SpellingCardProgress> = {};
+	for (const [cardId, progress] of Object.entries(value)) {
+		if (
+			!progress ||
+			typeof progress.attempts !== "number" ||
+			typeof progress.correctAttempts !== "number" ||
+			typeof progress.correctStreak !== "number" ||
+			typeof progress.lastAttemptAt !== "number"
+		) {
+			continue;
+		}
+		normalized[cardId] = {
+			attempts: Math.max(0, progress.attempts),
+			correctAttempts: Math.max(0, progress.correctAttempts),
+			correctStreak: Math.max(0, progress.correctStreak),
+			lastAttemptAt: progress.lastAttemptAt,
+			...(typeof progress.lastIncorrectAt === "number"
+				? { lastIncorrectAt: progress.lastIncorrectAt }
+				: {}),
+		};
+	}
+	return normalized;
 }

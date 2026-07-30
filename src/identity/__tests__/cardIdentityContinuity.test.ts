@@ -187,6 +187,7 @@ apple
 
 		expect(Array.from(reconciled[0]?.availableIdentities ?? [])).toEqual([APPLE_ID]);
 		expect(Array.from(reconciled[0]?.deletedIdentities ?? [])).toEqual([BANANA_ID]);
+		expect(Array.from(reconciled[0]?.spellableIdentitiesByDeck?.get(path) ?? [])).toEqual([]);
 	});
 
 	it("blocks legacy migration while a session is active", async () => {

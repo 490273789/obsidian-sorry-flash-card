@@ -253,6 +253,11 @@
 	font-size: var(--fc-font-xs);
 }
 
+.flashcard-study-day-progress {
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
 .flashcard-study-day-review-btn {
 	min-height: 30px;
 	padding: 5px 9px;

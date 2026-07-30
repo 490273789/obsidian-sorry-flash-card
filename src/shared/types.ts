@@ -32,6 +32,8 @@ export interface FlashcardSettings extends StudySettings {
 	language: Language;
 	/** Tags to scan for flashcards (each tag represents a deck) */
 	flashcardTags: string[];
+	/** Decks explicitly enabled for English-word spelling practice, keyed by deck ID */
+	wordLearningDecks: Record<string, boolean>;
 	/** Practice completion messages when all correct */
 	practicePerfectMessages: string[];
 	/** Practice completion messages when there are errors */
@@ -48,6 +50,7 @@ export interface FlashcardSettings extends StudySettings {
 export const DEFAULT_SETTINGS: FlashcardSettings = {
 	language: DEFAULT_LANGUAGE,
 	flashcardTags: ["#wordTag"],
+	wordLearningDecks: {},
 	dailyNewCards: 20,
 	dailyReviewCards: 100,
 	studyOrder: "random",
@@ -199,6 +202,9 @@ export type ViewState =
 	| { type: "practice-setup"; deckId: string }
 	| { type: "practice"; deckId: string }
 	| { type: "practice-summary"; deckId: string }
+	| { type: "spelling-setup"; deckId: string }
+	| { type: "spelling"; deckId: string }
+	| { type: "spelling-summary"; deckId: string }
 	| { type: "stats" };
 
 /**
@@ -211,8 +217,8 @@ export interface StudyHistoryEntry {
 	deckId: string;
 	/** Deck name at time of session */
 	deckName: string;
-	/** 'study' = Study FSRS, 'practice' = Practice, 'word-list' = List浏览 */
-	mode: "study" | "practice" | "word-list";
+	/** Session mode */
+	mode: "study" | "practice" | "spelling" | "word-list";
 	/** Cards reviewed (0 for word-list) */
 	cardCount: number;
 	/** Session duration in seconds */
@@ -286,6 +292,63 @@ export interface PracticeResult {
 	/** List of incorrectly answered card IDs */
 	incorrectCardIds: string[];
 	/** Total time spent (in seconds) */
+	timeSpent: number;
+}
+
+/**
+ * Persisted spelling performance for one stable card identity.
+ * Forced correction attempts are intentionally excluded.
+ */
+export interface SpellingCardProgress {
+	attempts: number;
+	correctAttempts: number;
+	correctStreak: number;
+	lastAttemptAt: number;
+	lastIncorrectAt?: number;
+}
+
+export type SpellingSessionPhase = "retrieval" | "correction";
+
+export interface SpellingFirstAttempt {
+	input: string;
+	correct: boolean;
+	answeredAt: number;
+}
+
+export interface SpellingAttemptEvent {
+	cardId: string;
+	input: string;
+	correct: boolean;
+	kind: SpellingSessionPhase;
+	answeredAt: number;
+}
+
+/**
+ * Active spelling session. Wrong retrievals append the card to the queue and
+ * keep the current position in correction phase until the answer is retyped.
+ */
+export interface SpellingSession {
+	deckId: string;
+	selectedCardIds: string[];
+	cardQueue: string[];
+	currentIndex: number;
+	startTime: number;
+	phase: SpellingSessionPhase;
+	firstAttempts: Record<string, SpellingFirstAttempt>;
+	attempts: SpellingAttemptEvent[];
+	completedCardIds: string[];
+	originDeck?: SessionOriginDeckSnapshot;
+	unavailableCardIds?: string[];
+}
+
+export interface SpellingResult {
+	totalWords: number;
+	firstTryCorrectCount: number;
+	firstTryIncorrectCount: number;
+	firstTryAccuracy: number;
+	totalRetrievalAttempts: number;
+	incorrectCardIds: string[];
+	firstInputs: Record<string, string>;
 	timeSpent: number;
 }
 

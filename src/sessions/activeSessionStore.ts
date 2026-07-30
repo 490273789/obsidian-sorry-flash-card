@@ -2,6 +2,8 @@ import type {
 	PracticeResult,
 	PracticeSession,
 	SessionOriginDeckSnapshot,
+	SpellingResult,
+	SpellingSession,
 	StudySession,
 } from "../shared/types";
 import type {
@@ -15,11 +17,13 @@ export interface ActiveSessionSnapshot {
 	studySession: StudySession | null;
 	practiceSession: PracticeSession | null;
 	practiceResult: PracticeResult | null;
+	spellingSession: SpellingSession | null;
+	spellingResult: SpellingResult | null;
 	lastEndReason: SessionEndReason;
 }
 
 export interface SourceChangeEnd {
-	type: "study" | "practice";
+	type: "study" | "practice" | "spelling";
 	originDeck: SessionOriginDeckSnapshot;
 	answerEventCount: number;
 	duration: number;
@@ -35,6 +39,8 @@ export interface ActiveSessionStore extends ContinuitySessionStore {
 	setStudySession(session: StudySession | null): void;
 	setPracticeSession(session: PracticeSession | null): void;
 	setPracticeResult(result: PracticeResult | null): void;
+	setSpellingSession(session: SpellingSession | null): void;
+	setSpellingResult(result: SpellingResult | null): void;
 	clearEndReason(): void;
 }
 
@@ -49,6 +55,8 @@ class DefaultActiveSessionStore implements ActiveSessionStore {
 		studySession: null,
 		practiceSession: null,
 		practiceResult: null,
+		spellingSession: null,
+		spellingResult: null,
 		lastEndReason: null,
 	};
 	private readonly listeners = new Set<() => void>();
@@ -76,18 +84,31 @@ class DefaultActiveSessionStore implements ActiveSessionStore {
 		this.publish({ ...this.snapshot, practiceResult: result });
 	}
 
+	setSpellingSession(session: SpellingSession | null): void {
+		this.publish({ ...this.snapshot, spellingSession: session, lastEndReason: null });
+	}
+
+	setSpellingResult(result: SpellingResult | null): void {
+		this.publish({ ...this.snapshot, spellingResult: result });
+	}
+
 	clearEndReason(): void {
 		if (this.snapshot.lastEndReason === null) return;
 		this.publish({ ...this.snapshot, lastEndReason: null });
 	}
 
 	hasActiveSession(): boolean {
-		return this.snapshot.studySession !== null || this.snapshot.practiceSession !== null;
+		return (
+			this.snapshot.studySession !== null ||
+			this.snapshot.practiceSession !== null ||
+			this.snapshot.spellingSession !== null
+		);
 	}
 
 	async reconcile(change: ContinuitySessionChange): Promise<void> {
 		let nextStudySession = this.snapshot.studySession;
 		let nextPracticeSession = this.snapshot.practiceSession;
+		let nextSpellingSession = this.snapshot.spellingSession;
 		let lastEndReason = this.snapshot.lastEndReason;
 
 		if (nextStudySession) {
@@ -112,24 +133,39 @@ class DefaultActiveSessionStore implements ActiveSessionStore {
 			}
 		}
 
+		if (nextSpellingSession) {
+			const reconciled = reconcileSpellingSession(nextSpellingSession, change);
+			if (reconciled) {
+				nextSpellingSession = reconciled;
+			} else {
+				await this.reportSourceChangeEnd("spelling", nextSpellingSession);
+				nextSpellingSession = null;
+				lastEndReason = "source-change";
+			}
+		}
+
 		this.publish({
 			...this.snapshot,
 			studySession: nextStudySession,
 			practiceSession: nextPracticeSession,
 			practiceResult: nextPracticeSession ? this.snapshot.practiceResult : null,
+			spellingSession: nextSpellingSession,
+			spellingResult: nextSpellingSession ? this.snapshot.spellingResult : null,
 			lastEndReason,
 		});
 	}
 
 	private async reportSourceChangeEnd(
 		type: SourceChangeEnd["type"],
-		session: StudySession | PracticeSession,
+		session: StudySession | PracticeSession | SpellingSession,
 	): Promise<void> {
 		if (!this.options.onSourceChangeEnd) return;
 		const answerEventCount =
 			type === "study"
 				? (session as StudySession).answerEvents.length
-				: (session as PracticeSession).history.length;
+				: type === "practice"
+					? (session as PracticeSession).history.length
+					: Object.keys((session as SpellingSession).firstAttempts).length;
 		await this.options.onSourceChangeEnd({
 			type,
 			originDeck: session.originDeck ?? { id: session.deckId, name: session.deckId },
@@ -142,6 +178,74 @@ class DefaultActiveSessionStore implements ActiveSessionStore {
 		this.snapshot = snapshot;
 		for (const listener of this.listeners) listener();
 	}
+}
+
+function reconcileSpellingSession(
+	session: SpellingSession,
+	change: ContinuitySessionChange,
+): SpellingSession | null {
+	const spellableIdentities =
+		change.spellableIdentitiesByDeck?.get(session.deckId) ?? change.availableIdentities;
+	const selectedCardIds = session.selectedCardIds.filter((identity) =>
+		spellableIdentities.has(identity),
+	);
+	const cardQueue = session.cardQueue.filter((identity) => spellableIdentities.has(identity));
+	if (selectedCardIds.length === 0 || cardQueue.length === 0) return null;
+	const previousCurrentIdentity = session.cardQueue[session.currentIndex];
+	const firstAttempts = Object.fromEntries(
+		Object.entries(session.firstAttempts).filter(([identity]) =>
+			spellableIdentities.has(identity),
+		),
+	);
+	const unavailableIdentities = new Set([
+		...change.deletedIdentities,
+		...session.selectedCardIds.filter((identity) => !spellableIdentities.has(identity)),
+	]);
+	return {
+		...session,
+		selectedCardIds,
+		cardQueue,
+		currentIndex: reconcileSpellingCurrentIndex(
+			session.cardQueue,
+			session.currentIndex,
+			cardQueue,
+		),
+		phase:
+			previousCurrentIdentity && spellableIdentities.has(previousCurrentIdentity)
+				? session.phase
+				: "retrieval",
+		firstAttempts,
+		completedCardIds: session.completedCardIds.filter((identity) =>
+			spellableIdentities.has(identity),
+		),
+		unavailableCardIds: mergeUnavailableIdentities(
+			session.unavailableCardIds,
+			unavailableIdentities,
+		),
+	};
+}
+
+function reconcileSpellingCurrentIndex(
+	previousQueue: string[],
+	previousIndex: number,
+	nextQueue: string[],
+): number {
+	const currentIdentity = previousQueue[previousIndex];
+	if (currentIdentity) {
+		const occurrence = previousQueue
+			.slice(0, previousIndex + 1)
+			.filter((identity) => identity === currentIdentity).length;
+		let seen = 0;
+		for (let index = 0; index < nextQueue.length; index++) {
+			if (nextQueue[index] !== currentIdentity) continue;
+			seen++;
+			if (seen === occurrence) return index;
+		}
+	}
+	const survivingBefore = previousQueue
+		.slice(0, previousIndex)
+		.filter((identity) => nextQueue.includes(identity)).length;
+	return Math.min(survivingBefore, nextQueue.length - 1);
 }
 
 function reconcileStudySession(

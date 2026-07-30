@@ -104,7 +104,7 @@
 	--fc-motion-rise: fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both;
 	--fc-motion-current-day:
 		fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both 1,
-		fc-soft-pulse 2.6s ease-in-out infinite;
+		fc-current-day-pulse 2.6s ease-in-out infinite;
 	--fc-motion-answer: fc-answer-reveal 300ms var(--fc-ease-out) both;
 	--fc-motion-divider: fc-divider-scan 820ms var(--fc-ease-out) both;
 	--fc-motion-active-glow: fc-active-glow var(--fc-motion-page)

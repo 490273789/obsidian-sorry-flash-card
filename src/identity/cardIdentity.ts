@@ -14,3 +14,7 @@ export function createCardIdentity(): string {
 		hex.slice(10, 16).join(""),
 	].join("-");
 }
+
+export function isStableCardIdentity(identity: string): boolean {
+	return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identity);
+}

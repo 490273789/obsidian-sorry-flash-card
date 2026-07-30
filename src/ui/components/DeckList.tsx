@@ -8,6 +8,7 @@ import {
 	FileDown,
 	FileText,
 	Inbox,
+	Keyboard,
 	Layers3,
 	List,
 	LoaderCircle,
@@ -18,6 +19,7 @@ import {
 	Settings,
 	Sparkles,
 	Target,
+	TriangleAlert,
 } from "lucide-react";
 import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../../shared/types";
 import type { DeckHomeSnapshot, DeckHomeTotals } from "../../decks/deckHomeRuntime";
@@ -31,27 +33,37 @@ import {
 import { FlashcardButton } from "./FlashcardButton";
 import { useI18n } from "./I18nContext";
 import { formatStudyOrder } from "../../i18n";
+import { validateSpellingDeck } from "../../cards/spellingWord";
+import { isStableCardIdentity } from "../../identity/cardIdentity";
 
 // ── Per-deck settings modal ───────────────────────────────────────────────────
 
 interface DeckSettingsModalProps {
-	deckName: string;
-	totalCards: number;
+	deck: Deck;
 	globalSettings: FlashcardSettings;
 	deckOverrides: Partial<StudySettings> | undefined;
-	onSave: (overrides: Partial<StudySettings> | null) => Promise<void>;
+	wordLearningEnabled: boolean;
+	onSave: (
+		overrides: Partial<StudySettings> | null,
+		wordLearningEnabled: boolean,
+	) => Promise<void>;
+	onOpenSourceFile: () => void;
+	onMigrateIdentity: () => Promise<boolean>;
 	onClose: () => void;
 }
 
 const DeckSettingsModal = memo(function DeckSettingsModal({
-	deckName,
-	totalCards,
+	deck,
 	globalSettings,
 	deckOverrides,
+	wordLearningEnabled,
 	onSave,
+	onOpenSourceFile,
+	onMigrateIdentity,
 	onClose,
 }: DeckSettingsModalProps) {
 	const { t, language } = useI18n();
+	const totalCards = deck.cards.length;
 	const [draft, setDraft] = useState(() =>
 		createDeckSettingsDraft({
 			totalCards,
@@ -59,6 +71,15 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 			deckOverrides,
 		}),
 	);
+	const [wordLearningDraft, setWordLearningDraft] = useState(wordLearningEnabled);
+	const [isMigratingIdentity, setIsMigratingIdentity] = useState(false);
+	const spellingValidation = useMemo(() => validateSpellingDeck(deck), [deck]);
+	const hasStableIdentities = useMemo(
+		() => deck.cards.every((card) => isStableCardIdentity(card.id)),
+		[deck.cards],
+	);
+	const spellingBlocked =
+		wordLearningDraft && (!spellingValidation.canStart || !hasStableIdentities);
 
 	const handleDailyNewCardsChange = (val: number) => {
 		setDraft((current) => applyDailyNewCardsToDeckSettingsDraft(current, totalCards, val));
@@ -69,8 +90,18 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 	};
 
 	const handleSave = async () => {
-		await onSave(buildDeckSettingsSavePayload(draft, globalSettings));
+		if (spellingBlocked) return;
+		await onSave(buildDeckSettingsSavePayload(draft, globalSettings), wordLearningDraft);
 		onClose();
+	};
+
+	const handleMigrateIdentity = async () => {
+		setIsMigratingIdentity(true);
+		try {
+			await onMigrateIdentity();
+		} finally {
+			setIsMigratingIdentity(false);
+		}
 	};
 
 	const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -86,7 +117,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							<Sparkles size={14} /> {t("deckSettings.kicker")}
 						</div>
 						<span className="flashcard-modal-title">
-							{t("deckSettings.title", { deckName })}
+							{t("deckSettings.title", { deckName: deck.name })}
 						</span>
 						<span className="flashcard-modal-subtitle">
 							{t("deckSettings.subtitle", {
@@ -107,6 +138,86 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 				</div>
 
 				<div className="flashcard-modal-body">
+					<div className="flashcard-deck-settings-purpose flashcard-deck-settings-card">
+						<div className="flashcard-deck-settings-purpose-heading">
+							<div>
+								<strong>{t("deckSettings.wordLearningTitle")}</strong>
+								<p>{t("deckSettings.wordLearningDescription")}</p>
+							</div>
+							<label className="flashcard-deck-settings-toggle-label">
+								<input
+									type="checkbox"
+									checked={wordLearningDraft}
+									onChange={(event) => setWordLearningDraft(event.target.checked)}
+								/>
+								<span>{t("deckSettings.wordLearningToggle")}</span>
+							</label>
+						</div>
+
+						{wordLearningDraft && !hasStableIdentities && (
+							<div className="flashcard-deck-settings-warning">
+								<TriangleAlert size={16} />
+								<span>{t("deckSettings.identityRequired")}</span>
+								<FlashcardButton
+									variant="purple"
+									onClick={() => void handleMigrateIdentity()}
+									disabled={isMigratingIdentity}
+								>
+									{isMigratingIdentity
+										? t("identity.migrating")
+										: t("identity.migrateNow")}
+								</FlashcardButton>
+							</div>
+						)}
+
+						{wordLearningDraft &&
+							(!spellingValidation.canStart ||
+								spellingValidation.invalidCards.length > 0) && (
+								<div className="flashcard-deck-settings-warning">
+									<TriangleAlert size={16} />
+									<div>
+										<strong>
+											{spellingValidation.canStart
+												? t("deckSettings.invalidSpellingCards", {
+														count: spellingValidation.invalidCards
+															.length,
+													})
+												: t("deckSettings.noEligibleSpellingCards", {
+														count: spellingValidation.invalidCards
+															.length,
+													})}
+										</strong>
+										<ul>
+											{spellingValidation.invalidCards
+												.slice(0, 5)
+												.map((invalidCard) => (
+													<li key={invalidCard.cardId}>
+														{t("deckSettings.invalidSpellingCard", {
+															index: invalidCard.indexInFile + 1,
+															front:
+																invalidCard.front
+																	.replace(/\s+/g, " ")
+																	.slice(0, 40) || "—",
+														})}
+													</li>
+												))}
+										</ul>
+										{spellingValidation.invalidCards.length > 5 && (
+											<span>
+												{t("deckSettings.invalidSpellingCardsMore", {
+													count:
+														spellingValidation.invalidCards.length - 5,
+												})}
+											</span>
+										)}
+									</div>
+									<FlashcardButton variant="blue" onClick={onOpenSourceFile}>
+										{t("home.openSourceTitle")}
+									</FlashcardButton>
+								</div>
+							)}
+					</div>
+
 					<div className="flashcard-deck-settings-toggle flashcard-deck-settings-card">
 						<label className="flashcard-deck-settings-toggle-label">
 							<input
@@ -278,7 +389,11 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 				</div>
 
 				<div className="flashcard-modal-footer">
-					<FlashcardButton variant="green" onClick={() => void handleSave()}>
+					<FlashcardButton
+						variant="green"
+						onClick={() => void handleSave()}
+						disabled={spellingBlocked}
+					>
 						{t("common.save")}
 					</FlashcardButton>
 					<FlashcardButton onClick={onClose}>{t("common.cancel")}</FlashcardButton>
@@ -340,6 +455,8 @@ interface DeckCardProps {
 	onExportDeck: (deckId: string) => Promise<void>;
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenSettings: (deckId: string) => void;
+	onStartSpelling: (deckId: string) => void;
+	wordLearningEnabled: boolean;
 	isExporting: boolean;
 }
 
@@ -352,12 +469,30 @@ const DeckCard = memo(function DeckCard({
 	onExportDeck,
 	onOpenSourceFile,
 	onOpenSettings,
+	onStartSpelling,
+	wordLearningEnabled,
 	isExporting,
 }: DeckCardProps) {
 	const { t } = useI18n();
 	const totalCards = deckStats?.totalCards ?? 0;
 	const newCards = deckStats?.newCards ?? 0;
 	const dueCards = deckStats?.dueCards ?? 0;
+	const spellingValidation = useMemo(() => validateSpellingDeck(deck), [deck]);
+	const unstableCardIds = useMemo(
+		() => deck.cards.filter((card) => !isStableCardIdentity(card.id)).map((card) => card.id),
+		[deck.cards],
+	);
+	const spellingIssueCount = useMemo(
+		() =>
+			new Set([
+				...(spellingValidation.canStart
+					? []
+					: spellingValidation.invalidCards.map((card) => card.cardId)),
+				...unstableCardIds,
+			]).size,
+		[spellingValidation.canStart, spellingValidation.invalidCards, unstableCardIds],
+	);
+	const spellingReady = spellingValidation.canStart && unstableCardIds.length === 0;
 
 	return (
 		<article className="flashcard-deck-item fc-lift">
@@ -365,7 +500,25 @@ const DeckCard = memo(function DeckCard({
 				<div className="flashcard-deck-headline">
 					<div className="flashcard-deck-info">
 						<div className="flashcard-deck-name">{deck.name}</div>
-						<span className="flashcard-deck-tag">{deck.tag}</span>
+						<div className="flashcard-deck-name-wrapper">
+							<span className="flashcard-deck-tag">{deck.tag}</span>
+							{wordLearningEnabled && (
+								<span
+									className={`flashcard-word-learning-badge${
+										spellingReady ? "" : " is-invalid"
+									}`}
+								>
+									{spellingReady ? (
+										<Keyboard size={13} />
+									) : (
+										<TriangleAlert size={13} />
+									)}
+									{spellingReady
+										? t("home.wordLearningDeck")
+										: t("home.wordLearningNeedsRepair")}
+								</span>
+							)}
+						</div>
 					</div>
 					<span className={`flashcard-deck-review-chip${dueCards > 0 ? " has-due" : ""}`}>
 						<ScanEye size={14} />
@@ -396,7 +549,11 @@ const DeckCard = memo(function DeckCard({
 			</div>
 
 			<div className="flashcard-deck-side">
-				<div className="flashcard-deck-actions2">
+				<div
+					className={`flashcard-deck-actions2${
+						wordLearningEnabled ? " has-spelling" : ""
+					}`}
+				>
 					<FlashcardButton
 						variant="purple"
 						icon={Brain}
@@ -419,6 +576,30 @@ const DeckCard = memo(function DeckCard({
 					>
 						<span>{t("home.practice")}</span>
 					</FlashcardButton>
+					{wordLearningEnabled && (
+						<FlashcardButton
+							variant="green"
+							icon={Keyboard}
+							onClick={(event) => {
+								event.stopPropagation();
+								onStartSpelling(deck.id);
+							}}
+							disabled={!spellingReady}
+							title={
+								spellingReady
+									? spellingValidation.invalidCards.length > 0
+										? t("home.spellingModeIgnoredTitle", {
+												count: spellingValidation.invalidCards.length,
+											})
+										: t("home.spellingModeTitle")
+									: t("home.spellingUnavailableTitle", {
+											count: spellingIssueCount,
+										})
+							}
+						>
+							<span>{t("home.spelling")}</span>
+						</FlashcardButton>
+					)}
 				</div>
 				<div className="flashcard-deck-actions3">
 					<FlashcardButton
@@ -482,12 +663,15 @@ interface DeckListProps {
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
+	onStartSpelling: (deckId: string) => void;
 	onExportDeck: (deckId: string) => Promise<void>;
 	onRefresh: () => Promise<void>;
-	onUpdateDeckStudySettings: (
+	onUpdateDeckSettings: (
 		deckId: string,
 		overrides: Partial<StudySettings> | null,
+		wordLearningEnabled: boolean,
 	) => Promise<void>;
+	onMigrateDeckIdentity: (deckId: string) => Promise<boolean>;
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenStats: () => void;
 	onOpenAddCard: () => void;
@@ -501,9 +685,11 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
+	onStartSpelling,
 	onExportDeck,
 	onRefresh,
-	onUpdateDeckStudySettings,
+	onUpdateDeckSettings,
+	onMigrateDeckIdentity,
 	onOpenSourceFile,
 	onOpenStats,
 	onOpenAddCard,
@@ -551,11 +737,11 @@ export const DeckList: React.FC<DeckListProps> = ({
 	);
 
 	const handleSaveDeckSettings = useCallback(
-		async (overrides: Partial<StudySettings> | null) => {
+		async (overrides: Partial<StudySettings> | null, wordLearningEnabled: boolean) => {
 			if (modalDeckId === null) return;
-			await onUpdateDeckStudySettings(modalDeckId, overrides);
+			await onUpdateDeckSettings(modalDeckId, overrides, wordLearningEnabled);
 		},
-		[modalDeckId, onUpdateDeckStudySettings],
+		[modalDeckId, onUpdateDeckSettings],
 	);
 
 	const modalDeck = useMemo(
@@ -638,9 +824,11 @@ export const DeckList: React.FC<DeckListProps> = ({
 								onSelectDeck={onSelectDeck}
 								onOpenWordList={onOpenWordList}
 								onStartPractice={onStartPractice}
+								onStartSpelling={onStartSpelling}
 								onExportDeck={handleExportDeck}
 								onOpenSourceFile={onOpenSourceFile}
 								onOpenSettings={setModalDeckId}
+								wordLearningEnabled={settings.wordLearningDecks[deck.id] === true}
 								isExporting={exportingDeckId === deck.id}
 							/>
 						))}
@@ -650,11 +838,13 @@ export const DeckList: React.FC<DeckListProps> = ({
 
 			{modalDeckId !== null && modalDeck && (
 				<DeckSettingsModal
-					deckName={modalDeck.name}
-					totalCards={modalDeck.cards.length}
+					deck={modalDeck}
 					globalSettings={settings}
 					deckOverrides={settings.deckStudySettings?.[modalDeckId]}
+					wordLearningEnabled={settings.wordLearningDecks[modalDeckId] === true}
 					onSave={handleSaveDeckSettings}
+					onOpenSourceFile={() => onOpenSourceFile(modalDeck.filePath)}
+					onMigrateIdentity={() => onMigrateDeckIdentity(modalDeck.id)}
 					onClose={handleCloseModal}
 				/>
 			)}

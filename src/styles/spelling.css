@@ -1,0 +1,289 @@
+.flashcard-deck-actions2.has-spelling {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.flashcard-word-learning-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 8px;
+	border: 1px solid rgba(var(--fc-lime-rgb), 0.3);
+	border-radius: var(--fc-radius-xs);
+	background: rgba(var(--fc-lime-rgb), 0.08);
+	color: var(--fc-lime);
+	font-family: var(--fc-font-data);
+	font-size: var(--fc-font-xs);
+	font-weight: 600;
+}
+
+.flashcard-word-learning-badge.is-invalid {
+	border-color: rgba(var(--fc-red-rgb), 0.34);
+	background: rgba(var(--fc-red-rgb), 0.08);
+	color: var(--fc-red);
+}
+
+.flashcard-deck-settings-purpose {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+	margin-bottom: var(--fc-space-3);
+}
+
+.flashcard-deck-settings-purpose-heading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--fc-space-3);
+}
+
+.flashcard-deck-settings-purpose-heading strong {
+	color: var(--fc-text);
+}
+
+.flashcard-deck-settings-purpose-heading p {
+	margin: var(--fc-space-1) 0 0;
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	line-height: 1.5;
+}
+
+.flashcard-deck-settings-warning {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-3);
+	border: 1px solid rgba(var(--fc-red-rgb), 0.34);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(var(--fc-red-rgb), 0.08);
+	color: var(--fc-red);
+	font-size: var(--fc-font-sm);
+	line-height: 1.5;
+}
+
+.flashcard-deck-settings-warning > div {
+	min-width: 0;
+	flex: 1;
+}
+
+.flashcard-deck-settings-warning ul {
+	margin: var(--fc-space-2) 0 0;
+	padding-left: var(--fc-space-4);
+	color: var(--fc-muted);
+}
+
+.flashcard-spelling-stats {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.flashcard-spelling-stats .flashcard-stat-caption {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--fc-space-1);
+}
+
+.flashcard-spelling-input-group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-4);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.28);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 50%),
+		rgba(16, 21, 33, 0.84);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	font-weight: 600;
+}
+
+.flashcard-spelling-input-group input {
+	width: 100%;
+	min-height: 56px;
+	padding: 10px 14px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.42);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(5, 7, 13, 0.78);
+	color: var(--fc-text);
+	font: 700 var(--fc-font-xl) / 1.2 var(--fc-font-data);
+	letter-spacing: 0.04em;
+	text-align: center;
+}
+
+.flashcard-spelling-input-group input:focus {
+	border-color: var(--fc-cyan);
+	box-shadow: var(--fc-glow-cyan);
+	outline: none;
+}
+
+.flashcard-spelling-feedback {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-4);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.24);
+	border-radius: var(--fc-radius-md);
+	background: rgba(16, 21, 33, 0.84);
+	animation: var(--fc-motion-answer);
+}
+
+.flashcard-spelling-feedback.is-correct {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	border-color: rgba(var(--fc-lime-rgb), 0.4);
+	background: rgba(var(--fc-lime-rgb), 0.1);
+	color: var(--fc-lime);
+	font-size: var(--fc-font-md);
+}
+
+.flashcard-spelling-feedback.is-correct strong {
+	color: var(--fc-text);
+	font-family: var(--fc-font-data);
+	font-size: var(--fc-font-lg);
+}
+
+.flashcard-spelling-feedback.is-wrong {
+	border-color: rgba(var(--fc-red-rgb), 0.38);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-red-rgb), 0.1), transparent 50%),
+		rgba(16, 21, 33, 0.84);
+}
+
+.flashcard-spelling-feedback-title {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	color: var(--fc-red);
+	font-weight: 700;
+}
+
+.flashcard-spelling-diff {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 3px;
+	padding: var(--fc-space-3);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(5, 7, 13, 0.64);
+	font: 700 var(--fc-font-xl) / 1.2 var(--fc-font-data);
+}
+
+.flashcard-spelling-diff > span:not(.flashcard-spelling-empty-answer) {
+	min-width: 1.1em;
+	padding: 3px 4px;
+	border-bottom: 2px solid currentColor;
+	text-align: center;
+}
+
+.flashcard-spelling-diff-correct {
+	color: var(--fc-lime);
+}
+
+.flashcard-spelling-diff-incorrect,
+.flashcard-spelling-diff-extra {
+	color: var(--fc-red);
+}
+
+.flashcard-spelling-diff-missing {
+	border: 1px dashed rgba(var(--fc-amber-rgb), 0.48);
+	color: var(--fc-amber);
+}
+
+.flashcard-spelling-empty-answer {
+	color: var(--fc-faint);
+	font-size: var(--fc-font-sm);
+}
+
+.flashcard-spelling-submitted-answer {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: var(--fc-space-2);
+	color: var(--fc-muted);
+}
+
+.flashcard-spelling-submitted-answer strong {
+	color: var(--fc-red);
+	font-family: var(--fc-font-data);
+	font-size: var(--fc-font-lg);
+	overflow-wrap: anywhere;
+}
+
+.flashcard-spelling-correct-answer {
+	display: flex;
+	align-items: baseline;
+	justify-content: center;
+	gap: var(--fc-space-2);
+	color: var(--fc-muted);
+}
+
+.flashcard-spelling-correct-answer strong {
+	color: var(--fc-text);
+	font-family: var(--fc-font-data);
+	font-size: var(--fc-font-xl);
+}
+
+.flashcard-spelling-actions {
+	display: grid;
+	grid-template-columns: minmax(120px, 0.35fr) minmax(180px, 1fr);
+	gap: var(--fc-space-2);
+}
+
+.flashcard-spelling-actions > .flashcard-btn:only-child {
+	grid-column: 1 / -1;
+}
+
+.flashcard-spelling-summary-answer-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--fc-space-2) var(--fc-space-4);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+}
+
+.flashcard-spelling-summary-answer-row strong {
+	color: var(--fc-text);
+	font-family: var(--fc-font-data);
+}
+
+.theme-light .flashcard-spelling-input-group,
+.theme-light .flashcard-spelling-feedback,
+.theme-light .flashcard-deck-settings-warning {
+	background: rgba(255, 255, 255, 0.84);
+}
+
+.theme-light .flashcard-spelling-input-group input,
+.theme-light .flashcard-spelling-diff {
+	background: rgba(241, 246, 251, 0.94);
+	color: var(--fc-text);
+}
+
+@media (max-width: 900px) {
+	.flashcard-spelling-stats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	.flashcard-deck-actions2.has-spelling {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-spelling-stats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.flashcard-deck-settings-purpose-heading,
+	.flashcard-deck-settings-warning {
+		flex-direction: column;
+	}
+
+	.flashcard-spelling-actions {
+		grid-template-columns: 1fr;
+	}
+
+	.flashcard-spelling-input-group input {
+		min-height: 52px;
+		font-size: var(--fc-font-lg);
+	}
+}

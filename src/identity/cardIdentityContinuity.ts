@@ -5,6 +5,7 @@ import {
 	rewriteCardIdentityMarkers,
 } from "../cards/deckSourceEditor";
 import { extractFirstTag, parseFlashcards } from "../cards/parser";
+import { extractSpellingWord } from "../cards/spellingWord";
 import type { Deck, FlashCard } from "../shared/types";
 
 export interface ContinuitySourceDocument {
@@ -92,6 +93,7 @@ export interface ContinuityStateStore {
 export interface ContinuitySessionChange {
 	availableIdentities: Set<string>;
 	deletedIdentities: Set<string>;
+	spellableIdentitiesByDeck?: ReadonlyMap<string, ReadonlySet<string>>;
 }
 
 export interface ContinuitySessionStore {
@@ -636,7 +638,8 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				resolution.successors.some(
 					(successor) =>
 						!expectedIdentities.has(successor.cardIdentity) ||
-						(successor.occurrence !== null && !candidateTokens.has(successor.occurrence)),
+						(successor.occurrence !== null &&
+							!candidateTokens.has(successor.occurrence)),
 				) ||
 				new Set(resolution.successors.map((successor) => successor.cardIdentity)).size !==
 					expectedIdentities.size ||
@@ -854,7 +857,21 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 		const deletedIdentities = new Set(
 			Array.from(previousIdentities).filter((identity) => !availableIdentities.has(identity)),
 		);
-		await this.options.sessions.reconcile({ availableIdentities, deletedIdentities });
+		const spellableIdentitiesByDeck = new Map(
+			Array.from(nextDecks.entries()).map(([deckId, deck]) => [
+				deckId,
+				new Set(
+					deck.cards
+						.filter((card) => extractSpellingWord(card.front) !== null)
+						.map((card) => card.id),
+				),
+			]),
+		);
+		await this.options.sessions.reconcile({
+			availableIdentities,
+			deletedIdentities,
+			spellableIdentitiesByDeck,
+		});
 	}
 }
 
