@@ -3731,7 +3731,7 @@
 		box-shadow: none;
 	}
 	50% {
-		transform: scale(1.03);
+		transform: scale(1.01);
 		box-shadow:
 			0 0 28px rgba(var(--fc-cyan-rgb), 0.22),
 			0 0 44px rgba(var(--fc-lime-rgb), 0.14);
