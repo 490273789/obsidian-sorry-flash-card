@@ -1,10 +1,19 @@
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, {
+	memo,
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import ReactDOM from "react-dom";
 import {
 	BookOpen,
 	Brain,
 	Calculator,
 	ChartSpline,
+	Ellipsis,
 	FileDown,
 	FileText,
 	Inbox,
@@ -21,8 +30,16 @@ import {
 	Target,
 	TriangleAlert,
 } from "lucide-react";
-import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../../shared/types";
-import type { DeckHomeSnapshot, DeckHomeTotals } from "../../decks/deckHomeRuntime";
+import {
+	Deck,
+	DeckStats,
+	FlashcardSettings,
+	StudySettings,
+} from "../../shared/types";
+import type {
+	DeckHomeSnapshot,
+	DeckHomeTotals,
+} from "../../decks/deckHomeRuntime";
 import {
 	applyDailyNewCardsToDeckSettingsDraft,
 	applyDaysToCompleteToDeckSettingsDraft,
@@ -71,27 +88,39 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 			deckOverrides,
 		}),
 	);
-	const [wordLearningDraft, setWordLearningDraft] = useState(wordLearningEnabled);
+	const [wordLearningDraft, setWordLearningDraft] =
+		useState(wordLearningEnabled);
 	const [isMigratingIdentity, setIsMigratingIdentity] = useState(false);
-	const spellingValidation = useMemo(() => validateSpellingDeck(deck), [deck]);
+	const spellingValidation = useMemo(
+		() => validateSpellingDeck(deck),
+		[deck],
+	);
 	const hasStableIdentities = useMemo(
 		() => deck.cards.every((card) => isStableCardIdentity(card.id)),
 		[deck.cards],
 	);
 	const spellingBlocked =
-		wordLearningDraft && (!spellingValidation.canStart || !hasStableIdentities);
+		wordLearningDraft &&
+		(!spellingValidation.canStart || !hasStableIdentities);
 
 	const handleDailyNewCardsChange = (val: number) => {
-		setDraft((current) => applyDailyNewCardsToDeckSettingsDraft(current, totalCards, val));
+		setDraft((current) =>
+			applyDailyNewCardsToDeckSettingsDraft(current, totalCards, val),
+		);
 	};
 
 	const handleDaysToCompleteChange = (raw: string) => {
-		setDraft((current) => applyDaysToCompleteToDeckSettingsDraft(current, totalCards, raw));
+		setDraft((current) =>
+			applyDaysToCompleteToDeckSettingsDraft(current, totalCards, raw),
+		);
 	};
 
 	const handleSave = async () => {
 		if (spellingBlocked) return;
-		await onSave(buildDeckSettingsSavePayload(draft, globalSettings), wordLearningDraft);
+		await onSave(
+			buildDeckSettingsSavePayload(draft, globalSettings),
+			wordLearningDraft,
+		);
 		onClose();
 	};
 
@@ -141,23 +170,35 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 					<div className="flashcard-deck-settings-purpose flashcard-deck-settings-card">
 						<div className="flashcard-deck-settings-purpose-heading">
 							<div>
-								<strong>{t("deckSettings.wordLearningTitle")}</strong>
-								<p>{t("deckSettings.wordLearningDescription")}</p>
+								<strong>
+									{t("deckSettings.wordLearningTitle")}
+								</strong>
+								<p>
+									{t("deckSettings.wordLearningDescription")}
+								</p>
 							</div>
 							<label className="flashcard-deck-settings-toggle-label">
 								<input
 									type="checkbox"
 									checked={wordLearningDraft}
-									onChange={(event) => setWordLearningDraft(event.target.checked)}
+									onChange={(event) =>
+										setWordLearningDraft(
+											event.target.checked,
+										)
+									}
 								/>
-								<span>{t("deckSettings.wordLearningToggle")}</span>
+								<span>
+									{t("deckSettings.wordLearningToggle")}
+								</span>
 							</label>
 						</div>
 
 						{wordLearningDraft && !hasStableIdentities && (
 							<div className="flashcard-deck-settings-warning">
 								<TriangleAlert size={16} />
-								<span>{t("deckSettings.identityRequired")}</span>
+								<span>
+									{t("deckSettings.identityRequired")}
+								</span>
 								<FlashcardButton
 									variant="purple"
 									onClick={() => void handleMigrateIdentity()}
@@ -178,40 +219,71 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									<div>
 										<strong>
 											{spellingValidation.canStart
-												? t("deckSettings.invalidSpellingCards", {
-														count: spellingValidation.invalidCards
-															.length,
-													})
-												: t("deckSettings.noEligibleSpellingCards", {
-														count: spellingValidation.invalidCards
-															.length,
-													})}
+												? t(
+														"deckSettings.invalidSpellingCards",
+														{
+															count: spellingValidation
+																.invalidCards
+																.length,
+														},
+													)
+												: t(
+														"deckSettings.noEligibleSpellingCards",
+														{
+															count: spellingValidation
+																.invalidCards
+																.length,
+														},
+													)}
 										</strong>
 										<ul>
 											{spellingValidation.invalidCards
 												.slice(0, 5)
 												.map((invalidCard) => (
-													<li key={invalidCard.cardId}>
-														{t("deckSettings.invalidSpellingCard", {
-															index: invalidCard.indexInFile + 1,
-															front:
-																invalidCard.front
-																	.replace(/\s+/g, " ")
-																	.slice(0, 40) || "—",
-														})}
+													<li
+														key={invalidCard.cardId}
+													>
+														{t(
+															"deckSettings.invalidSpellingCard",
+															{
+																index:
+																	invalidCard.indexInFile +
+																	1,
+																front:
+																	invalidCard.front
+																		.replace(
+																			/\s+/g,
+																			" ",
+																		)
+																		.slice(
+																			0,
+																			40,
+																		) ||
+																	"—",
+															},
+														)}
 													</li>
 												))}
 										</ul>
-										{spellingValidation.invalidCards.length > 5 && (
+										{spellingValidation.invalidCards
+											.length > 5 && (
 											<span>
-												{t("deckSettings.invalidSpellingCardsMore", {
-													count:
-														spellingValidation.invalidCards.length - 5,
-												})}
+												{t(
+													"deckSettings.invalidSpellingCardsMore",
+													{
+														count:
+															spellingValidation
+																.invalidCards
+																.length - 5,
+													},
+												)}
 											</span>
 										)}
 									</div>
-									<FlashcardButton variant="blue" onClick={onOpenSourceFile}>
+									<FlashcardButton
+										variant="blue"
+										onClick={onOpenSourceFile}
+									>
 										{t("home.openSourceTitle")}
 									</FlashcardButton>
 								</div>
@@ -241,8 +313,12 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
 							{t("deckSettings.globalHint", {
 								dailyNewCards: globalSettings.dailyNewCards,
-								dailyReviewCards: globalSettings.dailyReviewCards,
-								studyOrder: formatStudyOrder(language, globalSettings.studyOrder),
+								dailyReviewCards:
+									globalSettings.dailyReviewCards,
+								studyOrder: formatStudyOrder(
+									language,
+									globalSettings.studyOrder,
+								),
 							})}
 							{totalCards > 0 && (
 								<span>
@@ -272,13 +348,16 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								<span className="flashcard-deck-settings-summary-label">
 									{t("deckSettings.dailySummary", {
 										dailyNewCards: draft.dailyNewCards,
-										dailyReviewCards: draft.dailyReviewCards,
+										dailyReviewCards:
+											draft.dailyReviewCards,
 									})}
 								</span>
 							</div>
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>{t("deckSettings.dailyNewCards")}</span>
+									<span>
+										{t("deckSettings.dailyNewCards")}
+									</span>
 									<strong>{draft.dailyNewCards}</strong>
 								</label>
 								<input
@@ -287,13 +366,17 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									max={200}
 									value={draft.dailyNewCards}
 									onChange={(e) =>
-										handleDailyNewCardsChange(parseInt(e.target.value))
+										handleDailyNewCardsChange(
+											parseInt(e.target.value),
+										)
 									}
 								/>
 							</div>
 							{totalCards > 0 && (
 								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row flashcard-deck-settings-days">
-									<label>{t("deckSettings.estimatedDaysLabel")}</label>
+									<label>
+										{t("deckSettings.estimatedDaysLabel")}
+									</label>
 									<div className="flashcard-deck-settings-days-inputs">
 										<input
 											type="number"
@@ -301,7 +384,9 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 											max={totalCards}
 											value={draft.daysToComplete}
 											onChange={(e) =>
-												handleDaysToCompleteChange(e.target.value)
+												handleDaysToCompleteChange(
+													e.target.value,
+												)
 											}
 										/>
 										<span className="flashcard-deck-settings-days-unit">
@@ -317,7 +402,9 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							)}
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>{t("deckSettings.dailyReviewCards")}</span>
+									<span>
+										{t("deckSettings.dailyReviewCards")}
+									</span>
 									<strong>{draft.dailyReviewCards}</strong>
 								</label>
 								<input
@@ -329,7 +416,9 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									onChange={(e) =>
 										setDraft((current) => ({
 											...current,
-											dailyReviewCards: parseInt(e.target.value),
+											dailyReviewCards: parseInt(
+												e.target.value,
+											),
 										}))
 									}
 								/>
@@ -346,14 +435,22 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										}))
 									}
 								>
-									<option value="sequential">{t("order.sequential")}</option>
-									<option value="random">{t("order.random")}</option>
+									<option value="sequential">
+										{t("order.sequential")}
+									</option>
+									<option value="random">
+										{t("order.random")}
+									</option>
 								</select>
 							</div>
 							<div className="flashcard-deck-settings-field">
 								<label>
-									<span>{t("deckSettings.targetRetention")}</span>
-									<strong>{draft.requestRetention.toFixed(2)}</strong>
+									<span>
+										{t("deckSettings.targetRetention")}
+									</span>
+									<strong>
+										{draft.requestRetention.toFixed(2)}
+									</strong>
 								</label>
 								<input
 									type="range"
@@ -364,13 +461,17 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									onChange={(e) =>
 										setDraft((current) => ({
 											...current,
-											requestRetention: parseFloat(e.target.value),
+											requestRetention: parseFloat(
+												e.target.value,
+											),
 										}))
 									}
 								/>
 							</div>
 							<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
-								<label>{t("deckSettings.maxReviewInterval")}</label>
+								<label>
+									{t("deckSettings.maxReviewInterval")}
+								</label>
 								<input
 									type="number"
 									min={30}
@@ -396,14 +497,17 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 					>
 						{t("common.save")}
 					</FlashcardButton>
-					<FlashcardButton onClick={onClose}>{t("common.cancel")}</FlashcardButton>
+					<FlashcardButton onClick={onClose}>
+						{t("common.cancel")}
+					</FlashcardButton>
 				</div>
 			</div>
 		</div>
 	);
 
 	// Keep the modal inside the plugin root so design tokens remain available.
-	const container = activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
+	const container =
+		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
 	return ReactDOM.createPortal(modal, container);
 });
 
@@ -412,7 +516,10 @@ interface HomeStatsBarProps {
 	totals: DeckHomeTotals;
 }
 
-const HomeStatsBar = memo(function HomeStatsBar({ deckCount, totals }: HomeStatsBarProps) {
+const HomeStatsBar = memo(function HomeStatsBar({
+	deckCount,
+	totals,
+}: HomeStatsBarProps) {
 	const { t } = useI18n();
 
 	return (
@@ -477,9 +584,18 @@ const DeckCard = memo(function DeckCard({
 	const totalCards = deckStats?.totalCards ?? 0;
 	const newCards = deckStats?.newCards ?? 0;
 	const dueCards = deckStats?.dueCards ?? 0;
-	const spellingValidation = useMemo(() => validateSpellingDeck(deck), [deck]);
+	const [showMoreActions, setShowMoreActions] = useState(false);
+	const actionsMenuId = useId();
+	const actionsRef = useRef<HTMLDivElement>(null);
+	const spellingValidation = useMemo(
+		() => validateSpellingDeck(deck),
+		[deck],
+	);
 	const unstableCardIds = useMemo(
-		() => deck.cards.filter((card) => !isStableCardIdentity(card.id)).map((card) => card.id),
+		() =>
+			deck.cards
+				.filter((card) => !isStableCardIdentity(card.id))
+				.map((card) => card.id),
 		[deck.cards],
 	);
 	const spellingIssueCount = useMemo(
@@ -487,78 +603,125 @@ const DeckCard = memo(function DeckCard({
 			new Set([
 				...(spellingValidation.canStart
 					? []
-					: spellingValidation.invalidCards.map((card) => card.cardId)),
+					: spellingValidation.invalidCards.map(
+							(card) => card.cardId,
+						)),
 				...unstableCardIds,
 			]).size,
-		[spellingValidation.canStart, spellingValidation.invalidCards, unstableCardIds],
+		[
+			spellingValidation.canStart,
+			spellingValidation.invalidCards,
+			unstableCardIds,
+		],
 	);
-	const spellingReady = spellingValidation.canStart && unstableCardIds.length === 0;
+	const spellingReady =
+		spellingValidation.canStart && unstableCardIds.length === 0;
+
+	useEffect(() => {
+		if (!showMoreActions) return;
+
+		const handlePointerDown = (event: PointerEvent) => {
+			if (!actionsRef.current?.contains(event.target as Node | null)) {
+				setShowMoreActions(false);
+			}
+		};
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setShowMoreActions(false);
+			}
+		};
+
+		activeDocument.addEventListener("pointerdown", handlePointerDown);
+		activeDocument.addEventListener("keydown", handleKeyDown);
+		return () => {
+			activeDocument.removeEventListener(
+				"pointerdown",
+				handlePointerDown,
+			);
+			activeDocument.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [showMoreActions]);
 
 	return (
-		<article className="flashcard-deck-item fc-lift">
+		<article
+			className={`flashcard-deck-item fc-lift${showMoreActions ? " is-actions-open" : ""}`}
+		>
 			<div className="flashcard-deck-main">
 				<div className="flashcard-deck-headline">
-					<div className="flashcard-deck-info">
-						<div className="flashcard-deck-name">{deck.name}</div>
-						<div className="flashcard-deck-name-wrapper">
-							<span className="flashcard-deck-tag">{deck.tag}</span>
-							{wordLearningEnabled && (
-								<span
-									className={`flashcard-word-learning-badge${
-										spellingReady ? "" : " is-invalid"
-									}`}
-								>
-									{spellingReady ? (
-										<Keyboard size={13} />
-									) : (
-										<TriangleAlert size={13} />
-									)}
-									{spellingReady
-										? t("home.wordLearningDeck")
-										: t("home.wordLearningNeedsRepair")}
-								</span>
-							)}
-						</div>
+					<div className="flashcard-deck-name">{deck.name}</div>
+					<div className="flashcard-deck-name-wrapper">
+						<span className="flashcard-deck-tag">{deck.tag}</span>
+						{wordLearningEnabled && (
+							<span
+								className={`flashcard-word-learning-badge${
+									spellingReady ? "" : " is-invalid"
+								}`}
+							>
+								{spellingReady ? (
+									<Keyboard size={13} />
+								) : (
+									<TriangleAlert size={13} />
+								)}
+								{spellingReady
+									? t("home.wordLearningDeck")
+									: t("home.wordLearningNeedsRepair")}
+							</span>
+						)}
 					</div>
-					<span className={`flashcard-deck-review-chip${dueCards > 0 ? " has-due" : ""}`}>
+					<span
+						className={`flashcard-deck-review-chip${dueCards > 0 ? " has-due" : ""}`}
+					>
 						<ScanEye size={14} />
 						<strong>{dueCards}</strong>
 						{t("home.toBeReviewed")}
 					</span>
-				</div>
-				<div className="flashcard-deck-stats">
-					<div className="flashcard-deck-stat">
-						<span className="flashcard-deck-stat-value orange">{totalCards}</span>
-						<span className="flashcard-deck-stat-label">{t("home.total")}</span>
-					</div>
-					<div className="flashcard-deck-stat">
-						<span className="flashcard-deck-stat-value blue">{newCards}</span>
-						<span className="flashcard-deck-stat-label">{t("home.new")}</span>
-					</div>
-					<div className="flashcard-deck-stat">
-						<span className={`flashcard-deck-stat-value${dueCards > 0 ? " red" : ""}`}>
-							{dueCards}
-						</span>
-						<span className="flashcard-deck-stat-label">{t("home.toBeReviewed")}</span>
-					</div>
-					<div className="flashcard-deck-stat">
-						<span className="flashcard-deck-stat-value purple">{deck.studyCount}</span>
-						<span className="flashcard-deck-stat-label">{t("home.studyCount")}</span>
+					<div className="flashcard-deck-stats">
+						<div className="flashcard-deck-stat">
+							<span className="flashcard-deck-stat-value orange">
+								{totalCards}
+							</span>
+							<span className="flashcard-deck-stat-label">
+								{t("home.total")}
+							</span>
+						</div>
+						<div className="flashcard-deck-stat">
+							<span className="flashcard-deck-stat-value blue">
+								{newCards}
+							</span>
+							<span className="flashcard-deck-stat-label">
+								{t("home.new")}
+							</span>
+						</div>
+						<div className="flashcard-deck-stat">
+							<span
+								className={`flashcard-deck-stat-value${dueCards > 0 ? " red" : ""}`}
+							>
+								{dueCards}
+							</span>
+							<span className="flashcard-deck-stat-label">
+								{t("home.toBeReviewed")}
+							</span>
+						</div>
+						<div className="flashcard-deck-stat">
+							<span className="flashcard-deck-stat-value purple">
+								{deck.studyCount}
+							</span>
+							<span className="flashcard-deck-stat-label">
+								{t("home.studyCount")}
+							</span>
+						</div>
 					</div>
 				</div>
 			</div>
 
-			<div className="flashcard-deck-side">
-				<div
-					className={`flashcard-deck-actions2${
-						wordLearningEnabled ? " has-spelling" : ""
-					}`}
-				>
+			<div ref={actionsRef} className="flashcard-deck-side">
+				<div className="flashcard-deck-actions2">
 					<FlashcardButton
-						variant="purple"
+						variant="green"
+						className="flashcard-deck-action-study"
 						icon={Brain}
-						onClick={(e) => {
-							e.stopPropagation();
+						onClick={(event) => {
+							event.stopPropagation();
 							onSelectDeck(deck.id);
 						}}
 						title={t("home.studyModeTitle")}
@@ -567,88 +730,124 @@ const DeckCard = memo(function DeckCard({
 					</FlashcardButton>
 					<FlashcardButton
 						variant="blue"
+						className="flashcard-deck-action-practice"
 						icon={Target}
-						onClick={(e) => {
-							e.stopPropagation();
+						onClick={(event) => {
+							event.stopPropagation();
 							onStartPractice(deck.id);
 						}}
 						title={t("home.practiceModeTitle")}
 					>
 						<span>{t("home.practice")}</span>
 					</FlashcardButton>
-					{wordLearningEnabled && (
+					<FlashcardButton
+						variant="gray"
+						icon={Ellipsis}
+						onClick={(event) => {
+							event.stopPropagation();
+							setShowMoreActions((current) => !current);
+						}}
+						active={showMoreActions}
+						title={
+							showMoreActions
+								? t("home.hideMoreActions")
+								: t("home.showMoreActions")
+						}
+						aria-expanded={showMoreActions}
+						aria-controls={actionsMenuId}
+					>
+						<span>{t("home.more")}</span>
+					</FlashcardButton>
+				</div>
+
+				{showMoreActions && (
+					<div
+						id={actionsMenuId}
+						className="flashcard-deck-more-actions"
+						role="toolbar"
+						aria-label={t("home.moreActions")}
+					>
+						{wordLearningEnabled && (
+							<FlashcardButton
+								variant="green"
+								className="flashcard-deck-more-action"
+								icon={Keyboard}
+								onClick={(event) => {
+									event.stopPropagation();
+									setShowMoreActions(false);
+									onStartSpelling(deck.id);
+								}}
+								disabled={!spellingReady}
+								title={
+									spellingReady
+										? spellingValidation.invalidCards
+												.length > 0
+											? t(
+													"home.spellingModeIgnoredTitle",
+													{
+														count: spellingValidation
+															.invalidCards
+															.length,
+													},
+												)
+											: t("home.spellingModeTitle")
+										: t("home.spellingUnavailableTitle", {
+												count: spellingIssueCount,
+											})
+								}
+							>
+								<span>{t("home.spelling")}</span>
+							</FlashcardButton>
+						)}
 						<FlashcardButton
-							variant="green"
-							icon={Keyboard}
+							className="flashcard-deck-more-action"
+							icon={isExporting ? LoaderCircle : FileDown}
+							iconClassName={isExporting ? "spinning" : undefined}
 							onClick={(event) => {
 								event.stopPropagation();
-								onStartSpelling(deck.id);
+								setShowMoreActions(false);
+								void onExportDeck(deck.id);
 							}}
-							disabled={!spellingReady}
-							title={
-								spellingReady
-									? spellingValidation.invalidCards.length > 0
-										? t("home.spellingModeIgnoredTitle", {
-												count: spellingValidation.invalidCards.length,
-											})
-										: t("home.spellingModeTitle")
-									: t("home.spellingUnavailableTitle", {
-											count: spellingIssueCount,
-										})
-							}
+							disabled={isExporting}
+							title={t("home.exportPdfTitle")}
 						>
-							<span>{t("home.spelling")}</span>
+							<span>{t("home.exportPdfTitle")}</span>
 						</FlashcardButton>
-					)}
-				</div>
-				<div className="flashcard-deck-actions3">
-					<FlashcardButton
-						preset="icon"
-						className="flashcard-deck-utility-btn"
-						icon={isExporting ? LoaderCircle : FileDown}
-						iconClassName={isExporting ? "spinning" : undefined}
-						onClick={(e) => {
-							e.stopPropagation();
-							void onExportDeck(deck.id);
-						}}
-						disabled={isExporting}
-						title={t("home.exportPdfTitle")}
-						aria-label={t("home.exportPdfTitle")}
-					/>
-					<FlashcardButton
-						preset="icon"
-						className="flashcard-deck-utility-btn"
-						icon={List}
-						onClick={(e) => {
-							e.stopPropagation();
-							onOpenWordList(deck.id);
-						}}
-						title={t("home.wordListTitle")}
-						aria-label={t("home.wordListTitle")}
-					/>
-					<FlashcardButton
-						preset="icon"
-						className="flashcard-deck-utility-btn"
-						icon={FileText}
-						onClick={(e) => {
-							e.stopPropagation();
-							onOpenSourceFile(deck.filePath);
-						}}
-						title={t("home.openSourceTitle")}
-						aria-label={t("home.openSourceTitle")}
-					/>
-					<FlashcardButton
-						preset="icon"
-						className="flashcard-deck-utility-btn"
-						icon={Settings}
-						onClick={(e) => {
-							e.stopPropagation();
-							onOpenSettings(deck.id);
-						}}
-						title={t("home.studySettingsTitle")}
-						aria-label={t("home.studySettingsTitle")}
-					/>
-				</div>
+						<FlashcardButton
+							className="flashcard-deck-more-action"
+							icon={List}
+							onClick={(event) => {
+								event.stopPropagation();
+								setShowMoreActions(false);
+								onOpenWordList(deck.id);
+							}}
+						>
+							<span>{t("home.list")}</span>
+						</FlashcardButton>
+						<FlashcardButton
+							className="flashcard-deck-more-action"
+							icon={FileText}
+							onClick={(event) => {
+								event.stopPropagation();
+								setShowMoreActions(false);
+								onOpenSourceFile(deck.filePath);
+							}}
+						>
+							<span>{t("home.source")}</span>
+						</FlashcardButton>
+						<FlashcardButton
+							className="flashcard-deck-more-action"
+							icon={Settings}
+							onClick={(event) => {
+								event.stopPropagation();
+								setShowMoreActions(false);
+								onOpenSettings(deck.id);
+							}}
+						>
+							<span>{t("home.setting")}</span>
+						</FlashcardButton>
+					</div>
+				)}
 			</div>
 		</article>
 	);
@@ -739,9 +938,16 @@ export const DeckList: React.FC<DeckListProps> = ({
 	);
 
 	const handleSaveDeckSettings = useCallback(
-		async (overrides: Partial<StudySettings> | null, wordLearningEnabled: boolean) => {
+		async (
+			overrides: Partial<StudySettings> | null,
+			wordLearningEnabled: boolean,
+		) => {
 			if (modalDeckId === null) return;
-			await onUpdateDeckSettings(modalDeckId, overrides, wordLearningEnabled);
+			await onUpdateDeckSettings(
+				modalDeckId,
+				overrides,
+				wordLearningEnabled,
+			);
 		},
 		[modalDeckId, onUpdateDeckSettings],
 	);
@@ -782,7 +988,10 @@ export const DeckList: React.FC<DeckListProps> = ({
 							/>
 						</div>
 					</div>
-					<HomeStatsBar deckCount={snapshot.decks.length} totals={snapshot.totals} />
+					<HomeStatsBar
+						deckCount={snapshot.decks.length}
+						totals={snapshot.totals}
+					/>
 				</div>
 
 				{legacyMigration && (
@@ -792,12 +1001,18 @@ export const DeckList: React.FC<DeckListProps> = ({
 								<Sparkles size={20} />
 							</div>
 							<div>
-								<strong>{t("identity.oneClickMigrationTitle")}</strong>
+								<strong>
+									{t("identity.oneClickMigrationTitle")}
+								</strong>
 								<p>
-									{t("identity.oneClickMigrationDescription", {
-										sources: legacyMigration.sourceCount,
-										cards: legacyMigration.cardCount,
-									})}
+									{t(
+										"identity.oneClickMigrationDescription",
+										{
+											sources:
+												legacyMigration.sourceCount,
+											cards: legacyMigration.cardCount,
+										},
+									)}
 								</p>
 							</div>
 						</div>
@@ -807,7 +1022,9 @@ export const DeckList: React.FC<DeckListProps> = ({
 							onClick={() => void handleMigrateLegacyDecks()}
 							disabled={isMigrating}
 						>
-							{isMigrating ? t("identity.migrating") : t("identity.migrateAllNow")}
+							{isMigrating
+								? t("identity.migrating")
+								: t("identity.migrateAllNow")}
 						</FlashcardButton>
 					</section>
 				)}
@@ -836,7 +1053,9 @@ export const DeckList: React.FC<DeckListProps> = ({
 								onExportDeck={handleExportDeck}
 								onOpenSourceFile={onOpenSourceFile}
 								onOpenSettings={setModalDeckId}
-								wordLearningEnabled={settings.wordLearningDecks[deck.id] === true}
+								wordLearningEnabled={
+									settings.wordLearningDecks[deck.id] === true
+								}
 								isExporting={exportingDeckId === deck.id}
 							/>
 						))}
@@ -849,10 +1068,16 @@ export const DeckList: React.FC<DeckListProps> = ({
 					deck={modalDeck}
 					globalSettings={settings}
 					deckOverrides={settings.deckStudySettings?.[modalDeckId]}
-					wordLearningEnabled={settings.wordLearningDecks[modalDeckId] === true}
+					wordLearningEnabled={
+						settings.wordLearningDecks[modalDeckId] === true
+					}
 					onSave={handleSaveDeckSettings}
-					onOpenSourceFile={() => onOpenSourceFile(modalDeck.filePath)}
-					onMigrateIdentity={() => onMigrateDeckIdentity(modalDeck.id)}
+					onOpenSourceFile={() =>
+						onOpenSourceFile(modalDeck.filePath)
+					}
+					onMigrateIdentity={() =>
+						onMigrateDeckIdentity(modalDeck.id)
+					}
 					onClose={handleCloseModal}
 				/>
 			)}

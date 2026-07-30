@@ -33,6 +33,17 @@
 	display: none;
 }
 
+.flashcard-stats-summary-item {
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+}
+
+.flashcard-stats-summary-item:nth-child(1),
+.flashcard-stats-summary-item:nth-child(3) {
+	border-right: 1px solid var(--fc-line);
+}
+
 .flashcard-stats-body {
 	flex: 1 1 auto;
 	min-height: 0;
@@ -42,6 +53,11 @@
 
 .flashcard-stats-day {
 	padding: var(--fc-space-4);
+	border: 0;
+	border-bottom: 1px solid var(--fc-line);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
 	animation: var(--fc-motion-rise);
 }
 
@@ -69,12 +85,17 @@
 	gap: var(--fc-space-3);
 	align-items: center;
 	padding: var(--fc-space-3);
-	border: 1px solid rgba(139, 159, 181, 0.18);
-	border-left-width: 3px;
-	border-radius: var(--fc-radius-sm);
-	background: rgba(16, 21, 33, 0.74);
+	border: 0;
+	border-top: 1px solid rgba(139, 159, 181, 0.16);
+	border-left: 3px solid transparent;
+	border-radius: 0;
+	background: transparent;
 	animation: var(--fc-motion-rise);
 	transition: var(--fc-transition-lift);
+}
+
+.flashcard-stats-session:first-child {
+	border-top-color: transparent;
 }
 
 .stats-mode-study {

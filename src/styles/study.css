@@ -45,14 +45,7 @@
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background:
-		linear-gradient(
-			135deg,
-			transparent 0 48%,
-			rgba(var(--fc-magenta-rgb), 0.18) 48% 49%,
-			transparent 49% 100%
-		),
-		linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.08), transparent);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.06), transparent);
 }
 
 .flashcard-study-hero-copy,
@@ -358,6 +351,349 @@
 .flashcard-practice-info-item {
 	padding: var(--fc-space-2) var(--fc-space-3);
 	color: var(--fc-muted);
+}
+
+/* Setup pages use sections and separators instead of stacked nested cards. */
+.flashcard-study-hero {
+	padding: var(--fc-space-4) 0;
+	border: 0;
+	border-bottom: 1px solid var(--fc-line);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.flashcard-setup-stats {
+	gap: 0;
+	overflow: hidden;
+	border-top: 1px solid var(--fc-line);
+	border-bottom: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-xs);
+	background: rgba(16, 21, 33, 0.38);
+}
+
+.flashcard-setup-stat {
+	border: 0;
+	border-left: 1px solid var(--fc-line);
+	border-radius: 0;
+	background: transparent;
+}
+
+.flashcard-setup-stat:first-child {
+	border-left: 0;
+}
+
+.flashcard-study-panel,
+.flashcard-practice-question-selector,
+.flashcard-practice-info {
+	padding: var(--fc-space-4) 0;
+	border: 0;
+	border-top: 1px solid var(--fc-line);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.flashcard-study-panel.fc-lift:hover {
+	border-top-color: rgba(var(--fc-cyan-rgb), 0.34);
+	box-shadow: none;
+}
+
+.flashcard-study-day-list {
+	overflow: hidden;
+	gap: 0;
+	border-top: 1px solid rgba(139, 159, 181, 0.24);
+	border-bottom: 1px solid rgba(139, 159, 181, 0.24);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(5, 7, 13, 0.22);
+}
+
+.flashcard-study-day-item {
+	padding: var(--fc-space-3) var(--fc-space-2);
+	border: 0;
+	border-top: 1px solid rgba(139, 159, 181, 0.28);
+	border-radius: 0;
+	background: rgba(16, 21, 33, 0.16);
+}
+
+.flashcard-study-day-item:first-child {
+	border-top: 0;
+}
+
+.flashcard-study-day-item:nth-child(even) {
+	background: rgba(16, 21, 33, 0.3);
+}
+
+.flashcard-study-day-item.current {
+	border-color: rgba(var(--fc-cyan-rgb), 0.44);
+	background: rgba(var(--fc-cyan-rgb), 0.07);
+	box-shadow: inset 3px 0 0 var(--fc-cyan);
+}
+
+.flashcard-study-day-item.completed {
+	border-color: rgba(var(--fc-lime-rgb), 0.32);
+	background: rgba(var(--fc-lime-rgb), 0.065);
+}
+
+.flashcard-study-day-item.fc-lift:hover {
+	border-top-color: rgba(var(--fc-cyan-rgb), 0.38);
+	background: rgba(var(--fc-cyan-rgb), 0.065);
+	box-shadow: none;
+}
+
+.flashcard-study-day-item.current.fc-lift:hover {
+	background: rgba(var(--fc-cyan-rgb), 0.09);
+	box-shadow: inset 3px 0 0 var(--fc-cyan);
+}
+
+.flashcard-study-day-item.completed.fc-lift:hover {
+	background: rgba(var(--fc-lime-rgb), 0.07);
+}
+
+.flashcard-practice-input-group,
+.flashcard-deck-settings-field {
+	padding: var(--fc-space-3) 0;
+	border: 0;
+	border-bottom: 1px solid rgba(139, 159, 181, 0.16);
+	border-radius: 0;
+	background: transparent;
+}
+
+.flashcard-study-panel.flashcard-setup-controls {
+	overflow: hidden;
+	gap: 0;
+	padding: 0;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 44%),
+		rgba(10, 15, 28, 0.64);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.025),
+		0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.flashcard-setup-control-group {
+	display: grid;
+	grid-template-columns: minmax(190px, 0.72fr) minmax(280px, 1.28fr);
+	align-items: start;
+	gap: var(--fc-space-5);
+	padding: var(--fc-space-5);
+}
+
+.flashcard-setup-control-group + .flashcard-setup-control-group {
+	border-top: 1px solid rgba(139, 159, 181, 0.14);
+}
+
+.flashcard-setup-control-copy {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--fc-space-3);
+	min-width: 0;
+	padding-top: 3px;
+}
+
+.flashcard-setup-control-icon {
+	width: 32px;
+	height: 32px;
+	flex: 0 0 32px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.22);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(var(--fc-cyan-rgb), 0.07);
+	color: var(--fc-cyan);
+	box-shadow: inset 0 0 12px rgba(var(--fc-cyan-rgb), 0.04);
+}
+
+.flashcard-setup-control-text,
+.flashcard-setup-control-body {
+	min-width: 0;
+}
+
+.flashcard-setup-control-text {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-1);
+}
+
+.flashcard-setup-control-title {
+	color: var(--fc-text);
+	font-size: var(--fc-font-md);
+	font-weight: 650;
+	line-height: 1.35;
+}
+
+.flashcard-setup-control-note {
+	color: var(--fc-muted);
+	font-size: var(--fc-font-xs);
+	line-height: 1.45;
+}
+
+.flashcard-setup-control-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+}
+
+.flashcard-setup-segmented {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 3px;
+	min-inline-size: 0;
+	margin: 0;
+	padding: 3px;
+	border: 1px solid rgba(139, 159, 181, 0.16);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(5, 7, 13, 0.54);
+}
+
+.flashcard-root button.flashcard-setup-segment-btn {
+	justify-content: flex-start;
+	gap: var(--fc-space-2);
+	min-height: 38px;
+	padding: 8px 10px;
+	border-color: transparent;
+	background: transparent;
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-setup-segment-btn:hover:not(:disabled),
+.flashcard-root button.flashcard-setup-segment-btn:focus-visible {
+	border-color: rgba(var(--fc-cyan-rgb), 0.18);
+	background: rgba(var(--fc-cyan-rgb), 0.055);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-setup-segment-btn.active {
+	border-color: rgba(var(--fc-cyan-rgb), 0.3);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.14), transparent 72%),
+		rgba(16, 21, 33, 0.88);
+	color: var(--fc-text);
+	box-shadow:
+		inset 2px 0 0 var(--fc-cyan),
+		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.035);
+	animation: none;
+}
+
+.flashcard-setup-segment-btn svg {
+	flex: 0 0 auto;
+}
+
+.flashcard-setup-segment-btn.active svg {
+	color: var(--fc-cyan);
+}
+
+.flashcard-setup-segment-label {
+	overflow: hidden;
+	min-width: 0;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.flashcard-setup-segment-status {
+	width: 6px;
+	height: 6px;
+	flex: 0 0 6px;
+	margin-left: auto;
+	border: 1px solid var(--fc-faint);
+	border-radius: 50%;
+	opacity: 0.5;
+}
+
+.flashcard-setup-segment-btn.active .flashcard-setup-segment-status {
+	border-color: var(--fc-cyan);
+	background: var(--fc-cyan);
+	box-shadow: 0 0 9px rgba(var(--fc-cyan-rgb), 0.5);
+	opacity: 1;
+}
+
+.flashcard-setup-control-detail {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+	padding-top: var(--fc-space-3);
+	border-top: 1px solid rgba(139, 159, 181, 0.12);
+	animation: var(--fc-motion-fade-in);
+}
+
+.flashcard-root button.flashcard-setup-chip {
+	min-height: 32px;
+	padding: 6px 9px;
+	border-color: rgba(139, 159, 181, 0.16);
+	background: rgba(16, 21, 33, 0.48);
+	color: var(--fc-muted);
+	font-family: var(--fc-font-data);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-setup-chip:hover:not(:disabled),
+.flashcard-root button.flashcard-setup-chip:focus-visible {
+	border-color: rgba(var(--fc-cyan-rgb), 0.34);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-setup-chip.active {
+	border-color: rgba(var(--fc-cyan-rgb), 0.42);
+	background: rgba(var(--fc-cyan-rgb), 0.12);
+	color: var(--fc-cyan);
+	box-shadow: inset 0 -2px 0 rgba(var(--fc-cyan-rgb), 0.72);
+	animation: none;
+}
+
+.flashcard-setup-custom-field {
+	width: fit-content;
+	max-width: 100%;
+	margin-left: auto;
+	display: grid;
+	grid-template-columns: auto 82px auto;
+	align-items: center;
+	gap: var(--fc-space-2);
+	color: var(--fc-muted);
+}
+
+.flashcard-setup-range-field {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 94px;
+	align-items: center;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-2) var(--fc-space-3);
+	border: 1px solid rgba(139, 159, 181, 0.14);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(16, 21, 33, 0.38);
+}
+
+.flashcard-setup-custom-field .flashcard-practice-input,
+.flashcard-setup-range-field .flashcard-practice-input {
+	width: 100%;
+	min-height: 34px;
+	background: rgba(5, 7, 13, 0.6);
+}
+
+.flashcard-setup-custom-field .flashcard-practice-input:focus,
+.flashcard-setup-range-field .flashcard-practice-input:focus {
+	border-color: rgba(var(--fc-cyan-rgb), 0.58);
+	box-shadow: 0 0 0 2px rgba(var(--fc-cyan-rgb), 0.1);
+	outline: none;
+}
+
+.flashcard-setup-control-detail .flashcard-practice-range-summary {
+	padding: var(--fc-space-2) var(--fc-space-3);
+	border-left: 2px solid rgba(var(--fc-cyan-rgb), 0.4);
+	background: rgba(var(--fc-cyan-rgb), 0.04);
+}
+
+.flashcard-study-action-bar {
+	border: 0;
+	border-top: 1px solid var(--fc-line);
+	border-radius: 0;
+	background: rgba(10, 15, 28, 0.9);
+	box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* Active study/practice card view */

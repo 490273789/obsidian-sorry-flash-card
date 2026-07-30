@@ -9,6 +9,7 @@ import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
 import { SetupStats } from "./SetupStats";
+import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 const QUICK_COUNTS = [10, 20, 50];
 
@@ -86,104 +87,113 @@ export const SpellingSetup: React.FC<SpellingSetupProps> = ({ deck, stats, onSta
 					]}
 				/>
 
-				<div className="flashcard-study-panel flashcard-practice-question-selector">
-					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
-						<div className="flashcard-practice-panel-title">
-							<SlidersHorizontal size={16} /> {t("spelling.chooseWords")}
-						</div>
-						<div className="flashcard-study-panel-note">
-							{t("spelling.chooseWordsNote")}
-						</div>
-					</div>
-					<div className="flashcard-practice-mode-options">
-						<FlashcardButton
-							className="flashcard-practice-mode-btn"
-							active={mode === "smart"}
-							onClick={() => setMode("smart")}
-						>
-							<BrainCircuit size={16} /> {t("spelling.smartSelection")}
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-practice-mode-btn"
-							active={mode === "range"}
-							onClick={() => setMode("range")}
-						>
-							<ListOrdered size={16} /> {t("spelling.rangeSelection")}
-						</FlashcardButton>
-					</div>
+				<div className="flashcard-study-panel flashcard-setup-controls">
+					<SetupControlGroup
+						icon={SlidersHorizontal}
+						title={t("spelling.chooseWords")}
+						note={t("spelling.chooseWordsNote")}
+					>
+						<SetupSelector
+							value={mode}
+							ariaLabel={t("spelling.chooseWords")}
+							options={[
+								{
+									value: "smart",
+									label: t("spelling.smartSelection"),
+									icon: BrainCircuit,
+								},
+								{
+									value: "range",
+									label: t("spelling.rangeSelection"),
+									icon: ListOrdered,
+								},
+							]}
+							onChange={setMode}
+						/>
 
-					{mode === "smart" ? (
-						<div className="flashcard-practice-quick-buttons">
-							{QUICK_COUNTS.map((count) => {
-								return (
+						<div className="flashcard-setup-control-detail">
+							{mode === "smart" ? (
+								<div className="flashcard-practice-quick-buttons">
+									{QUICK_COUNTS.map((count) => (
+										<FlashcardButton
+											key={count}
+											type="button"
+											className="flashcard-setup-chip"
+											active={questionCount === count}
+											onClick={() => setQuestionCount(count)}
+											disabled={count > maxQuestions}
+										>
+											{count}
+										</FlashcardButton>
+									))}
 									<FlashcardButton
-										key={count}
-										active={questionCount === count}
-										onClick={() => setQuestionCount(count)}
-										disabled={count > maxQuestions}
+										type="button"
+										className="flashcard-setup-chip"
+										active={questionCount === maxQuestions}
+										onClick={() => setQuestionCount(maxQuestions)}
 									>
-										{count}
+										{t("common.all")}
 									</FlashcardButton>
-								);
-							})}
-							<FlashcardButton
-								active={questionCount === maxQuestions}
-								onClick={() => setQuestionCount(maxQuestions)}
-							>
-								{t("common.all")}
-							</FlashcardButton>
+								</div>
+							) : (
+								<div className="flashcard-practice-range-group">
+									<div className="flashcard-practice-range-inputs">
+										<label className="flashcard-setup-range-field">
+											<span className="flashcard-practice-input-label">
+												{t("practice.rangeStart")}
+											</span>
+											<input
+												type="number"
+												className="flashcard-practice-input"
+												min={1}
+												max={maxQuestions}
+												value={rangeStart}
+												onChange={(event) => {
+													const next = Math.max(
+														1,
+														Math.min(
+															Number(event.target.value),
+															rangeEnd,
+														),
+													);
+													setRangeStart(next);
+												}}
+											/>
+										</label>
+										<label className="flashcard-setup-range-field">
+											<span className="flashcard-practice-input-label">
+												{t("practice.rangeEnd")}
+											</span>
+											<input
+												type="number"
+												className="flashcard-practice-input"
+												min={rangeStart}
+												max={maxQuestions}
+												value={rangeEnd}
+												onChange={(event) => {
+													const next = Math.max(
+														rangeStart,
+														Math.min(
+															Number(event.target.value),
+															maxQuestions,
+														),
+													);
+													setRangeEnd(next);
+												}}
+											/>
+										</label>
+									</div>
+									<div className="flashcard-practice-range-summary">
+										{t("spelling.rangeSummary", {
+											start: rangeStart,
+											end: rangeEnd,
+											count: rangeCount,
+										})}
+									</div>
+								</div>
+							)}
 						</div>
-					) : (
-						<div className="flashcard-practice-range-group">
-							<div className="flashcard-practice-range-inputs">
-								<label className="flashcard-practice-input-group">
-									<span className="flashcard-practice-input-label">
-										{t("practice.rangeStart")}
-									</span>
-									<input
-										type="number"
-										className="flashcard-practice-input"
-										min={1}
-										max={maxQuestions}
-										value={rangeStart}
-										onChange={(event) => {
-											const next = Math.max(
-												1,
-												Math.min(Number(event.target.value), rangeEnd),
-											);
-											setRangeStart(next);
-										}}
-									/>
-								</label>
-								<label className="flashcard-practice-input-group">
-									<span className="flashcard-practice-input-label">
-										{t("practice.rangeEnd")}
-									</span>
-									<input
-										type="number"
-										className="flashcard-practice-input"
-										min={rangeStart}
-										max={maxQuestions}
-										value={rangeEnd}
-										onChange={(event) => {
-											const next = Math.max(
-												rangeStart,
-												Math.min(Number(event.target.value), maxQuestions),
-											);
-											setRangeEnd(next);
-										}}
-									/>
-								</label>
-							</div>
-							<div className="flashcard-practice-range-summary">
-								{t("spelling.rangeSummary", {
-									start: rangeStart,
-									end: rangeEnd,
-									count: rangeCount,
-								})}
-							</div>
-						</div>
-					)}
+					</SetupControlGroup>
 				</div>
 
 				<div className="flashcard-study-panel flashcard-practice-info">

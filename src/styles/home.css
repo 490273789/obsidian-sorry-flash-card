@@ -46,7 +46,20 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-3);
+	padding-bottom: var(--fc-space-3);
+	overflow: hidden;
+	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
+	background: rgba(10, 15, 28, 0.92);
+	backdrop-filter: blur(14px);
+}
+
+.flashcard-home-hero .flashcard-header {
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	backdrop-filter: none;
 }
 
 .flashcard-header,
@@ -135,10 +148,14 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--fc-space-2);
+	padding: 0 var(--fc-space-4);
 }
 
 .flashcard-home-pill {
-	background: rgba(16, 21, 33, 0.82);
+	padding: 3px 0;
+	border: 0;
+	background: transparent;
+	color: var(--fc-muted);
 }
 
 .flashcard-identity-migration-card {
@@ -211,19 +228,40 @@
 .flashcard-deck-item {
 	content-visibility: auto;
 	contain-intrinsic-size: 0 116px;
+	position: relative;
 	display: grid;
 	grid-template-columns: minmax(100px, 1fr) minmax(100px, 300px);
 	align-items: center;
 	gap: var(--fc-space-4);
 	padding: var(--fc-space-3) var(--fc-space-4);
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.15);
-	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.52);
-	border-radius: var(--fc-radius-md);
+	border: 0;
+	border-top: 1px solid rgba(var(--fc-cyan-rgb), 0.15);
+	border-left: 2px solid rgba(var(--fc-cyan-rgb), 0.42);
+	border-radius: var(--fc-radius-xs);
 	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 30%),
-		rgba(10, 15, 28, 0.86);
-	box-shadow: var(--fc-shadow);
+		linear-gradient(
+			90deg,
+			rgba(var(--fc-cyan-rgb), 0.055),
+			transparent 28%
+		),
+		rgba(10, 15, 28, 0.54);
+	box-shadow: none;
 	animation: var(--fc-motion-rise);
+}
+
+.flashcard-deck-item.is-actions-open {
+	content-visibility: visible;
+	contain: none;
+	z-index: 12;
+}
+
+.flashcard-deck-item.fc-lift:hover {
+	border-top-color: rgba(var(--fc-cyan-rgb), 0.3);
+	border-left-color: rgba(var(--fc-cyan-rgb), 0.7);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 32%),
+		rgba(10, 15, 28, 0.68);
+	box-shadow: none;
 }
 
 .flashcard-deck-list .flashcard-deck-item:nth-child(2),
@@ -266,6 +304,7 @@
 }
 
 .flashcard-deck-side {
+	position: relative;
 	justify-content: center;
 	align-items: stretch;
 }
@@ -275,17 +314,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
 	gap: var(--fc-space-3);
-}
-
-.flashcard-deck-info {
-	flex: 1 1 220px;
-	display: flex;
-	align-items: center;
-	gap: var(--fc-space-2);
-	min-width: 0;
-	flex-wrap: wrap;
 }
 
 .flashcard-deck-name {
@@ -372,24 +401,17 @@
 .flashcard-deck-review-chip {
 	flex: 0 0 auto;
 	padding: 5px 9px;
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
-	border-radius: var(--fc-radius-sm);
-	background: rgba(16, 21, 33, 0.68);
+	border: 0;
+	border-radius: var(--fc-radius-xs);
+	background: rgba(var(--fc-cyan-rgb), 0.055);
 	color: var(--fc-faint);
 	font-size: var(--fc-font-xs);
 }
 
 .flashcard-deck-review-chip.has-due {
-	border-color: rgba(var(--fc-red-rgb), 0.36);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-red-rgb), 0.16),
-			rgba(var(--fc-violet-rgb), 0.08)
-		),
-		rgba(16, 21, 33, 0.76);
+	background: rgba(var(--fc-red-rgb), 0.11);
 	color: var(--fc-text);
-	box-shadow: 0 0 16px rgba(var(--fc-red-rgb), 0.1);
+	box-shadow: none;
 }
 
 .flashcard-deck-review-chip.has-due strong {
@@ -458,30 +480,79 @@
 }
 
 .flashcard-deck-actions2 {
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.flashcard-deck-actions3 {
-	display: flex;
-	justify-content: flex-end;
-	gap: var(--fc-space-2);
+/* Primary deck actions use a calm, distinct blue-green pair. */
+.flashcard-root button.flashcard-deck-action-study {
+	border-color: rgba(92, 224, 180, 0.62);
+	background: linear-gradient(135deg, #176b5d, #168c78);
+	color: #effff9;
+	box-shadow: inset 0 1px 0 rgba(220, 255, 246, 0.16);
 }
 
-.flashcard-deck-utility-btn {
-	width: 36px;
-	height: 34px;
-	min-height: 34px;
-	border-color: rgba(var(--fc-cyan-rgb), 0.22);
-	color: var(--fc-muted);
+.flashcard-root button.flashcard-deck-action-practice {
+	border-color: rgba(93, 190, 255, 0.66);
+	background: linear-gradient(135deg, #17668d, #1686a8);
+	color: #effaff;
+	box-shadow: inset 0 1px 0 rgba(225, 248, 255, 0.16);
 }
 
-.flashcard-root button.flashcard-deck-utility-btn {
+.flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-action-study:focus-visible {
+	border-color: #8ef0ca;
+	box-shadow:
+		inset 0 1px 0 rgba(232, 255, 249, 0.24),
+		0 0 0 3px rgba(92, 224, 180, 0.16),
+		0 8px 20px rgba(22, 140, 120, 0.26);
+}
+
+.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-action-practice:focus-visible {
+	border-color: #98d7ff;
+	box-shadow:
+		inset 0 1px 0 rgba(232, 249, 255, 0.24),
+		0 0 0 3px rgba(93, 190, 255, 0.16),
+		0 8px 20px rgba(22, 134, 168, 0.26);
+}
+
+.flashcard-deck-more-actions {
+	position: absolute;
+	top: calc(100% + var(--fc-space-2));
+	right: 0;
+	z-index: 30;
+	width: min(230px, calc(100vw - 40px));
+	display: grid;
+	gap: var(--fc-space-1);
+	padding: var(--fc-space-2);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
 	background:
 		linear-gradient(
 			135deg,
-			rgba(var(--fc-cyan-rgb), 0.08),
-			rgba(var(--fc-violet-rgb), 0.05)
+			rgba(var(--fc-cyan-rgb), 0.07),
+			transparent 48%
 		),
-		rgba(10, 15, 28, 0.68);
+		rgba(10, 15, 28, 0.98);
+	box-shadow: var(--fc-shadow);
+	animation: var(--fc-motion-fade-in);
+}
+
+.flashcard-root button.flashcard-deck-more-action {
+	width: 100%;
+	justify-content: flex-start;
+	min-height: 34px;
+	padding: 7px 9px;
+	border-color: transparent;
+	background: transparent;
+	box-shadow: none;
 	color: var(--fc-muted);
+}
+
+.flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-more-action:focus-visible {
+	border-color: rgba(var(--fc-cyan-rgb), 0.22);
+	background: rgba(var(--fc-cyan-rgb), 0.08);
+	color: var(--fc-text);
+	box-shadow: none;
 }

@@ -14,6 +14,7 @@ import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
 import { SetupStats } from "./SetupStats";
+import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
@@ -180,141 +181,139 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 					]}
 				/>
 
-				<div className="flashcard-study-panel flashcard-practice-question-selector">
-					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
-						<div className="flashcard-practice-panel-title">
-							<SlidersHorizontal size={16} /> {t("practice.chooseCount")}
-						</div>
-						<div className="flashcard-study-panel-note">
-							{t("practice.chooseCountNote")}
-						</div>
-					</div>
-					<div className="flashcard-practice-mode-options">
-						<FlashcardButton
-							className="flashcard-practice-mode-btn"
-							active={selectionMode === "random-count"}
-							onClick={() => setSelectionMode("random-count")}
-						>
-							<Shuffle size={16} /> {t("practice.modeRandomCount")}
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-practice-mode-btn"
-							active={selectionMode === "range"}
-							onClick={() => setSelectionMode("range")}
-						>
-							<ListOrdered size={16} /> {t("practice.modeRange")}
-						</FlashcardButton>
-					</div>
-					{/* flashcard-practice-quick-btn */}
-					{selectionMode === "random-count" ? (
-						<>
-							<div className="flashcard-practice-quick-buttons">
-								{QUICK_QUESTION_COUNTS.map((count) => (
-									<FlashcardButton
-										key={count}
-										className="flashcard-active-orang"
-										active={questionCount === Math.min(count, maxQuestions)}
-										onClick={() => handleQuickSelect(count)}
-										disabled={count > maxQuestions && count !== maxQuestions}
-									>
-										{count > maxQuestions ? maxQuestions : count}
-									</FlashcardButton>
-								))}
-								<FlashcardButton
-									className="flashcard-practice-quick-btn"
-									active={questionCount === maxQuestions}
-									onClick={() => handleQuickSelect(maxQuestions)}
-								>
-									{t("common.all")}
-								</FlashcardButton>
-							</div>
+				<div className="flashcard-study-panel flashcard-setup-controls">
+					<SetupControlGroup
+						icon={SlidersHorizontal}
+						title={t("practice.chooseCount")}
+						note={t("practice.chooseCountNote")}
+					>
+						<SetupSelector
+							value={selectionMode}
+							ariaLabel={t("practice.chooseCount")}
+							options={[
+								{
+									value: "random-count",
+									label: t("practice.modeRandomCount"),
+									icon: Shuffle,
+								},
+								{
+									value: "range",
+									label: t("practice.modeRange"),
+									icon: ListOrdered,
+								},
+							]}
+							onChange={setSelectionMode}
+						/>
 
-							<div className="flashcard-practice-input-group">
-								<span className="flashcard-practice-input-label">
-									{t("practice.customCount")}
-								</span>
-								<input
-									type="number"
-									className="flashcard-practice-input"
-									value={inputValue}
-									onChange={handleInputChange}
-									onBlur={handleInputBlur}
-									min={1}
-									max={maxQuestions}
-								/>
-								<span className="flashcard-practice-input-hint">
-									(1 - {maxQuestions})
-								</span>
-							</div>
-						</>
-					) : (
-						<div className="flashcard-practice-range-group">
-							<div className="flashcard-practice-range-inputs">
-								<label className="flashcard-practice-input-group">
-									<span className="flashcard-practice-input-label">
-										{t("practice.rangeStart")}
-									</span>
-									<input
-										type="number"
-										className="flashcard-practice-input"
-										value={rangeStartInput}
-										onChange={handleRangeStartChange}
-										onBlur={handleRangeBlur}
-										min={1}
-										max={maxQuestions}
-									/>
-								</label>
-								<label className="flashcard-practice-input-group">
-									<span className="flashcard-practice-input-label">
-										{t("practice.rangeEnd")}
-									</span>
-									<input
-										type="number"
-										className="flashcard-practice-input"
-										value={rangeEndInput}
-										onChange={handleRangeEndChange}
-										onBlur={handleRangeBlur}
-										min={rangeStart}
-										max={maxQuestions}
-									/>
-								</label>
-							</div>
-							<div className="flashcard-practice-range-summary">
-								{t("practice.rangeSummary", {
-									start: rangeStart,
-									end: rangeEnd,
-									count: rangeQuestionCount,
-								})}
-							</div>
-						</div>
-					)}
-				</div>
+						<div className="flashcard-setup-control-detail">
+							{selectionMode === "random-count" ? (
+								<>
+									<div className="flashcard-practice-quick-buttons">
+										{QUICK_QUESTION_COUNTS.map((count) => (
+											<FlashcardButton
+												key={count}
+												type="button"
+												className="flashcard-setup-chip"
+												active={
+													questionCount === Math.min(count, maxQuestions)
+												}
+												onClick={() => handleQuickSelect(count)}
+												disabled={
+													count > maxQuestions && count !== maxQuestions
+												}
+											>
+												{count > maxQuestions ? maxQuestions : count}
+											</FlashcardButton>
+										))}
+										<FlashcardButton
+											type="button"
+											className="flashcard-setup-chip"
+											active={questionCount === maxQuestions}
+											onClick={() => handleQuickSelect(maxQuestions)}
+										>
+											{t("common.all")}
+										</FlashcardButton>
+									</div>
 
-				<div className="flashcard-study-panel flashcard-direction-section">
-					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
-						<div className="flashcard-practice-panel-title">
-							<Repeat2 size={16} /> {t("mode.direction")}
+									<label className="flashcard-setup-custom-field">
+										<span className="flashcard-practice-input-label">
+											{t("practice.customCount")}
+										</span>
+										<input
+											type="number"
+											className="flashcard-practice-input"
+											value={inputValue}
+											onChange={handleInputChange}
+											onBlur={handleInputBlur}
+											min={1}
+											max={maxQuestions}
+										/>
+										<span className="flashcard-practice-input-hint">
+											1–{maxQuestions}
+										</span>
+									</label>
+								</>
+							) : (
+								<div className="flashcard-practice-range-group">
+									<div className="flashcard-practice-range-inputs">
+										<label className="flashcard-setup-range-field">
+											<span className="flashcard-practice-input-label">
+												{t("practice.rangeStart")}
+											</span>
+											<input
+												type="number"
+												className="flashcard-practice-input"
+												value={rangeStartInput}
+												onChange={handleRangeStartChange}
+												onBlur={handleRangeBlur}
+												min={1}
+												max={maxQuestions}
+											/>
+										</label>
+										<label className="flashcard-setup-range-field">
+											<span className="flashcard-practice-input-label">
+												{t("practice.rangeEnd")}
+											</span>
+											<input
+												type="number"
+												className="flashcard-practice-input"
+												value={rangeEndInput}
+												onChange={handleRangeEndChange}
+												onBlur={handleRangeBlur}
+												min={rangeStart}
+												max={maxQuestions}
+											/>
+										</label>
+									</div>
+									<div className="flashcard-practice-range-summary">
+										{t("practice.rangeSummary", {
+											start: rangeStart,
+											end: rangeEnd,
+											count: rangeQuestionCount,
+										})}
+									</div>
+								</div>
+							)}
 						</div>
-						<div className="flashcard-study-panel-note">
-							{direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")}
-						</div>
-					</div>
-					<div className="flashcard-direction-options">
-						<FlashcardButton
-							className="flashcard-direction-btn"
-							active={direction === "normal"}
-							onClick={() => setDirection("normal")}
-						>
-							<Target size={16} /> {t("mode.normal")}
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-direction-btn"
-							active={direction === "reversed"}
-							onClick={() => setDirection("reversed")}
-						>
-							<Repeat2 size={16} /> {t("mode.reversed")}
-						</FlashcardButton>
-					</div>
+					</SetupControlGroup>
+
+					<SetupControlGroup
+						icon={Repeat2}
+						title={t("mode.direction")}
+						note={
+							direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")
+						}
+					>
+						<SetupSelector
+							value={direction}
+							ariaLabel={t("mode.direction")}
+							options={[
+								{ value: "normal", label: t("mode.normal"), icon: Target },
+								{ value: "reversed", label: t("mode.reversed"), icon: Repeat2 },
+							]}
+							onChange={setDirection}
+						/>
+					</SetupControlGroup>
 				</div>
 
 				<div className="flashcard-study-panel flashcard-practice-info">

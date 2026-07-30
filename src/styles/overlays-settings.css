@@ -153,9 +153,10 @@
 .flashcard-deck-settings-card,
 .flashcard-deck-settings-summary {
 	padding: var(--fc-space-3);
-	border: 1px solid rgba(139, 159, 181, 0.18);
-	border-radius: var(--fc-radius-sm);
-	background: rgba(16, 21, 33, 0.74);
+	border: 0;
+	border-bottom: 1px solid rgba(139, 159, 181, 0.18);
+	border-radius: 0;
+	background: transparent;
 }
 
 .flashcard-deck-settings-toggle,
@@ -226,10 +227,11 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-2);
-	padding: var(--fc-space-3);
-	border: 1px solid rgba(139, 159, 181, 0.18);
-	border-radius: var(--fc-radius-sm);
-	background: rgba(16, 21, 33, 0.74);
+	padding: 0 0 var(--fc-space-3);
+	border: 0;
+	border-bottom: 1px solid rgba(139, 159, 181, 0.18);
+	border-radius: 0;
+	background: transparent;
 }
 
 .flashcard-card-editor-field span {

@@ -14,6 +14,7 @@ import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
 import { SetupStats } from "./SetupStats";
+import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 interface StudySetupProps {
 	deck: Deck;
@@ -176,57 +177,49 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 					]}
 				/>
 
-				{/* Study order selector */}
-				<div className="flashcard-study-panel flashcard-study-order-section fc-lift">
-					<div className="flashcard-study-panel-heading">
-						<div className="flashcard-study-order-label">{t("study.studyOrder")}</div>
-						<div className="flashcard-study-panel-note">
-							{studyOrder === "random"
+				{/* Study preferences */}
+				<div className="flashcard-study-panel flashcard-setup-controls">
+					<SetupControlGroup
+						icon={AudioWaveform}
+						title={t("study.studyOrder")}
+						note={
+							studyOrder === "random"
 								? t("study.randomNote")
-								: t("study.sequentialNote")}
-						</div>
-					</div>
-					<div className="flashcard-study-order-options">
-						<FlashcardButton
-							className="flashcard-study-order-btn"
-							active={studyOrder === "sequential"}
-							onClick={() => setStudyOrder("sequential")}
-						>
-							<AudioWaveform size={16} /> {t("study.sequentialOrder")}
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-study-order-btn"
-							active={studyOrder === "random"}
-							onClick={() => setStudyOrder("random")}
-						>
-							<Dices size={16} /> {t("study.randomOrder")}
-						</FlashcardButton>
-					</div>
-				</div>
+								: t("study.sequentialNote")
+						}
+					>
+						<SetupSelector
+							value={studyOrder}
+							ariaLabel={t("study.studyOrder")}
+							options={[
+								{
+									value: "sequential",
+									label: t("study.sequentialOrder"),
+									icon: AudioWaveform,
+								},
+								{ value: "random", label: t("study.randomOrder"), icon: Dices },
+							]}
+							onChange={setStudyOrder}
+						/>
+					</SetupControlGroup>
 
-				<div className="flashcard-study-panel flashcard-direction-section fc-lift">
-					<div className="flashcard-study-panel-heading">
-						<div className="flashcard-study-order-label">{t("mode.direction")}</div>
-						<div className="flashcard-study-panel-note">
-							{direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")}
-						</div>
-					</div>
-					<div className="flashcard-direction-options">
-						<FlashcardButton
-							className="flashcard-direction-btn"
-							active={direction === "normal"}
-							onClick={() => setDirection("normal")}
-						>
-							<Brain size={16} /> {t("mode.normal")}
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-direction-btn"
-							active={direction === "reversed"}
-							onClick={() => setDirection("reversed")}
-						>
-							<Repeat2 size={16} /> {t("mode.reversed")}
-						</FlashcardButton>
-					</div>
+					<SetupControlGroup
+						icon={Repeat2}
+						title={t("mode.direction")}
+						note={
+							direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")
+						}
+					>
+						<SetupSelector
+							value={direction}
+							ariaLabel={t("mode.direction")}
+							options={[
+								{ value: "normal", label: t("mode.normal"), icon: Brain },
+								{ value: "reversed", label: t("mode.reversed"), icon: Repeat2 },
+							]}
+							onChange={setDirection}
+						/>
+					</SetupControlGroup>
 				</div>
 
 				{/* Day list */}

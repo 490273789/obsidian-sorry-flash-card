@@ -27,7 +27,7 @@
 	--fc-amber-rgb: 164, 110, 0;
 	--fc-red-rgb: 195, 59, 84;
 	--fc-orange-rgb: 184, 93, 31;
-	--fc-shadow: 0 14px 34px rgba(35, 49, 68, 0.11);
+	--fc-shadow: 0 8px 24px rgba(35, 49, 68, 0.09);
 	--fc-glow-cyan:
 		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.2), 0 10px 24px rgba(var(--fc-cyan-rgb), 0.08);
 	--fc-glow-magenta:
@@ -38,29 +38,15 @@
 .theme-light .flashcard-root {
 	border-color: rgba(var(--fc-cyan-rgb), 0.2);
 	background:
-		linear-gradient(
-			120deg,
-			transparent 0 34%,
-			rgba(var(--fc-magenta-rgb), 0.055) 34% 35%,
-			transparent 35% 100%
-		),
-		linear-gradient(180deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 34%),
-		linear-gradient(var(--fc-grid) 1px, transparent 1px),
-		linear-gradient(90deg, var(--fc-grid) 1px, transparent 1px), var(--fc-bg);
+		radial-gradient(circle at 12% 0%, rgba(var(--fc-cyan-rgb), 0.06), transparent 36%),
+		radial-gradient(circle at 88% 10%, rgba(var(--fc-violet-rgb), 0.035), transparent 30%),
+		var(--fc-bg);
 }
 
 .theme-light .flashcard-root::before {
-	background:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.7), transparent 26%),
-		repeating-linear-gradient(
-			180deg,
-			rgba(23, 32, 51, 0.025) 0,
-			rgba(23, 32, 51, 0.025) 1px,
-			transparent 1px,
-			transparent 7px
-		);
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), transparent 26%);
 	mix-blend-mode: normal;
-	opacity: 0.55;
+	opacity: 0.5;
 }
 
 .theme-light .flashcard-header,
@@ -281,6 +267,20 @@
 	color: #503890;
 }
 
+.theme-light .flashcard-root button.flashcard-deck-action-study {
+	border-color: rgba(24, 151, 119, 0.38);
+	background: linear-gradient(135deg, #e1f8ed, #c5f0df);
+	color: #14614f;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.theme-light .flashcard-root button.flashcard-deck-action-practice {
+	border-color: rgba(31, 130, 186, 0.38);
+	background: linear-gradient(135deg, #e0f3ff, #c7eafd);
+	color: #165f8b;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
 .theme-light .flashcard-root button.flashcard-btn-orange {
 	border-color: rgba(var(--fc-orange-rgb), 0.32);
 	background: linear-gradient(135deg, rgba(255, 234, 213, 0.98), rgba(249, 219, 205, 0.98));
@@ -355,6 +355,67 @@
 .theme-light .flashcard-root button.flashcard-study-order-btn.active svg,
 .theme-light .flashcard-root button.flashcard-direction-btn.active svg {
 	color: var(--fc-cyan);
+}
+
+.theme-light .flashcard-study-panel.flashcard-setup-controls {
+	border-color: rgba(var(--fc-cyan-rgb), 0.2);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 44%),
+		rgba(255, 255, 255, 0.72);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.8),
+		0 10px 24px rgba(35, 49, 68, 0.07);
+}
+
+.theme-light .flashcard-setup-control-icon {
+	border-color: rgba(var(--fc-cyan-rgb), 0.2);
+	background: rgba(var(--fc-cyan-rgb), 0.065);
+}
+
+.theme-light .flashcard-setup-segmented {
+	border-color: rgba(33, 55, 83, 0.13);
+	background: rgba(224, 232, 241, 0.58);
+}
+
+.theme-light .flashcard-root button.flashcard-setup-segment-btn {
+	background: transparent;
+	color: var(--fc-muted);
+}
+
+.theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
+	border-color: rgba(var(--fc-cyan-rgb), 0.28);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 74%),
+		rgba(255, 255, 255, 0.94);
+	color: var(--fc-text);
+	box-shadow:
+		inset 2px 0 0 var(--fc-cyan),
+		0 2px 8px rgba(35, 49, 68, 0.07);
+}
+
+.theme-light .flashcard-root button.flashcard-setup-chip {
+	border-color: rgba(33, 55, 83, 0.13);
+	background: rgba(255, 255, 255, 0.64);
+	color: var(--fc-muted);
+}
+
+.theme-light .flashcard-root button.flashcard-setup-chip.active {
+	border-color: rgba(var(--fc-cyan-rgb), 0.34);
+	background: rgba(var(--fc-cyan-rgb), 0.09);
+	color: var(--fc-cyan);
+	box-shadow: inset 0 -2px 0 rgba(var(--fc-cyan-rgb), 0.58);
+}
+
+.theme-light .flashcard-setup-range-field,
+.theme-light .flashcard-setup-control-detail .flashcard-practice-range-summary {
+	border-color: rgba(33, 55, 83, 0.12);
+	background: rgba(255, 255, 255, 0.58);
+}
+
+.theme-light .flashcard-setup-custom-field .flashcard-practice-input,
+.theme-light .flashcard-setup-range-field .flashcard-practice-input {
+	background: rgba(255, 255, 255, 0.86);
+	color: var(--fc-text);
 }
 
 .theme-light .flashcard-root button.flashcard-rating-btn {
@@ -440,4 +501,91 @@
 .theme-light .flashcard-help pre {
 	border-color: rgba(var(--fc-cyan-rgb), 0.16);
 	background: rgba(246, 248, 251, 0.92);
+}
+
+/* Preserve the flatter hierarchy after the general light-theme surface rules. */
+.theme-light .flashcard-home-hero {
+	border-color: var(--fc-line);
+	background: rgba(255, 255, 255, 0.82);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-home-hero .flashcard-header,
+.theme-light .flashcard-home-pill {
+	border-color: transparent;
+	background: transparent;
+	box-shadow: none;
+}
+
+.theme-light .flashcard-deck-item {
+	border-top-color: rgba(var(--fc-cyan-rgb), 0.14);
+	border-left-color: rgba(var(--fc-cyan-rgb), 0.38);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 28%),
+		rgba(255, 255, 255, 0.52);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-deck-item.fc-lift:hover {
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.075), transparent 32%),
+		rgba(255, 255, 255, 0.7);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-deck-more-actions {
+	border-color: var(--fc-line);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 48%),
+		rgba(255, 255, 255, 0.98);
+}
+
+.theme-light .flashcard-root button.flashcard-deck-more-action {
+	border-color: transparent;
+	background: transparent;
+	box-shadow: none;
+	color: var(--fc-muted);
+}
+
+.theme-light .flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-more-action:focus-visible {
+	border-color: rgba(var(--fc-cyan-rgb), 0.18);
+	background: rgba(var(--fc-cyan-rgb), 0.07);
+	box-shadow: none;
+	color: var(--fc-text);
+}
+
+.theme-light .flashcard-study-hero,
+.theme-light .flashcard-study-panel,
+.theme-light .flashcard-practice-question-selector,
+.theme-light .flashcard-practice-info,
+.theme-light .flashcard-practice-summary-stats,
+.theme-light .flashcard-practice-incorrect-section,
+.theme-light .flashcard-stats-day {
+	border-color: var(--fc-line);
+	background: transparent;
+	box-shadow: none;
+}
+
+.theme-light .flashcard-setup-stats {
+	border-color: var(--fc-line);
+	background: rgba(255, 255, 255, 0.46);
+}
+
+.theme-light .flashcard-setup-stat,
+.theme-light .flashcard-stats-summary-item,
+.theme-light .flashcard-stats-session,
+.theme-light .flashcard-deck-settings-card,
+.theme-light .flashcard-deck-settings-summary,
+.theme-light .flashcard-deck-settings-field,
+.theme-light .flashcard-practice-input-group,
+.theme-light .flashcard-card-editor-field {
+	background: transparent;
+	box-shadow: none;
+}
+
+.theme-light .flashcard-study-action-bar {
+	border-color: var(--fc-line);
+	background: rgba(255, 255, 255, 0.9);
+	box-shadow: 0 -8px 20px rgba(35, 49, 68, 0.06);
 }
