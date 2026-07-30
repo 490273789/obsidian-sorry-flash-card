@@ -13,6 +13,7 @@ import type { PracticeSessionStartOptions } from "../../sessions/practiceSession
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
+import { SetupStats } from "./SetupStats";
 
 const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
@@ -148,66 +149,36 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
 					<div className="flashcard-study-hero-copy flashcard-practice-hero-copy">
-						<div className="flashcard-deck-name">{deck.name}</div>
-						<div className="flashcard-deck-tag">{deck.tag}</div>
-						<div className="flashcard-deck-total">
-							{t("practice.opportunities", {
-								count: maxQuestions,
-							})}
+						<div className="flashcard-deck-name-wrapper">
+							<div className="flashcard-deck-name">{deck.name}</div>
+							<div className="flashcard-deck-tag">{deck.tag}</div>
 						</div>
+
 						<div className="flashcard-practice-setup-subtitle">
 							{t("practice.setupSubtitle")}
 						</div>
 					</div>
-					<div className="flashcard-study-hero-meta flashcard-practice-hero-meta">
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("practice.pickMethod")}
-							</span>
-							<strong>
-								{selectionMode === "range"
-									? t("practice.rangePick")
-									: t("practice.randomPick")}
-							</strong>
-						</div>
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("practice.currentCount")}
-							</span>
-							<strong>
-								{currentQuestionCount} {t("common.questions")}
-							</strong>
-						</div>
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("practice.coverage")}
-							</span>
-							<strong>{coverage}%</strong>
-						</div>
-					</div>
 				</div>
 
-				<div className="flashcard-today-stats">
-					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">{t("practice.deckScale")}</span>
-						<span className="flashcard-stat-value purple">{maxQuestions}</span>
-						<span className="flashcard-stat-label">
-							{t("practice.availableQuestions")}
-						</span>
-					</div>
-					<div className=" flashcard-stat-card">
-						<span className="flashcard-stat-caption">{t("practice.currentCount")}</span>
-						<span className="flashcard-stat-value blue">{currentQuestionCount}</span>
-						<span className="flashcard-stat-label">
-							{t("practice.currentSelection")}
-						</span>
-					</div>
-					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">{t("practice.coverage")}</span>
-						<span className="flashcard-stat-value green">{coverage}%</span>
-						<span className="flashcard-stat-label">{t("practice.scanRange")}</span>
-					</div>
-				</div>
+				<SetupStats
+					items={[
+						{
+							value: maxQuestions,
+							label: t("practice.availableQuestions"),
+							tone: "purple",
+						},
+						{
+							value: currentQuestionCount,
+							label: t("practice.currentSelection"),
+							tone: "blue",
+						},
+						{
+							value: `${coverage}%`,
+							label: t("practice.scanRange"),
+							tone: "green",
+						},
+					]}
+				/>
 
 				<div className="flashcard-study-panel flashcard-practice-question-selector">
 					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">

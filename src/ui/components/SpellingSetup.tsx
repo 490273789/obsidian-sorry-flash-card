@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-	BrainCircuit,
-	CheckCheck,
-	Keyboard,
-	ListOrdered,
-	RotateCcw,
-	SlidersHorizontal,
-	Sparkles,
-} from "lucide-react";
+import { BrainCircuit, Keyboard, ListOrdered, SlidersHorizontal } from "lucide-react";
 import type { Deck } from "../../shared/types";
 import type {
 	SpellingDeckProgressStats,
@@ -16,6 +8,7 @@ import type {
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
+import { SetupStats } from "./SetupStats";
 
 const QUICK_COUNTS = [10, 20, 50];
 
@@ -39,7 +32,11 @@ export const SpellingSetup: React.FC<SpellingSetupProps> = ({ deck, stats, onSta
 
 	const handleStart = () => {
 		if (mode === "range") {
-			onStart({ mode: "range", startIndex: rangeStart, endIndex: rangeEnd });
+			onStart({
+				mode: "range",
+				startIndex: rangeStart,
+				endIndex: rangeEnd,
+			});
 			return;
 		}
 		onStart({ mode: "smart", questionCount });
@@ -52,58 +49,42 @@ export const SpellingSetup: React.FC<SpellingSetupProps> = ({ deck, stats, onSta
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-spelling-hero">
 					<div className="flashcard-study-hero-copy">
-						<div className="flashcard-deck-name">{deck.name}</div>
-						<div className="flashcard-deck-tag">{deck.tag}</div>
+						<div className="flashcard-deck-name-wrapper">
+							<div className="flashcard-deck-name">{deck.name}</div>
+							<div className="flashcard-deck-tag">{deck.tag}</div>
+						</div>
+
 						<div className="flashcard-practice-setup-subtitle">
 							{t("spelling.setupSubtitle")}
 						</div>
 					</div>
-					<div className="flashcard-study-hero-meta">
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("spelling.selectionMode")}
-							</span>
-							<strong>
-								{mode === "smart"
-									? t("spelling.smartSelection")
-									: t("spelling.rangeSelection")}
-							</strong>
-						</div>
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("spelling.currentCount")}
-							</span>
-							<strong>{currentCount}</strong>
-						</div>
-					</div>
 				</div>
 
-				<div className="flashcard-today-stats flashcard-spelling-stats">
-					<ProgressStat
-						icon={Keyboard}
-						value={stats.total}
-						label={t("spelling.totalWords")}
-						color="blue"
-					/>
-					<ProgressStat
-						icon={Sparkles}
-						value={stats.unpracticed}
-						label={t("spelling.unpracticed")}
-						color="orange"
-					/>
-					<ProgressStat
-						icon={RotateCcw}
-						value={stats.reinforcement}
-						label={t("spelling.reinforcement")}
-						color="red"
-					/>
-					<ProgressStat
-						icon={CheckCheck}
-						value={stats.stable}
-						label={t("spelling.stable")}
-						color="green"
-					/>
-				</div>
+				<SetupStats
+					className="flashcard-spelling-stats"
+					items={[
+						{
+							value: stats.total,
+							label: t("spelling.totalWords"),
+							tone: "blue",
+						},
+						{
+							value: stats.unpracticed,
+							label: t("spelling.unpracticed"),
+							tone: "orange",
+						},
+						{
+							value: stats.reinforcement,
+							label: t("spelling.reinforcement"),
+							tone: "red",
+						},
+						{
+							value: stats.stable,
+							label: t("spelling.stable"),
+							tone: "green",
+						},
+					]}
+				/>
 
 				<div className="flashcard-study-panel flashcard-practice-question-selector">
 					<div className="flashcard-study-panel-heading flashcard-practice-panel-heading">
@@ -246,24 +227,3 @@ export const SpellingSetup: React.FC<SpellingSetupProps> = ({ deck, stats, onSta
 		</div>
 	);
 };
-
-function ProgressStat({
-	icon: Icon,
-	value,
-	label,
-	color,
-}: {
-	icon: typeof Keyboard;
-	value: number;
-	label: string;
-	color: string;
-}) {
-	return (
-		<div className="flashcard-stat-card">
-			<span className="flashcard-stat-caption">
-				<Icon size={14} /> {label}
-			</span>
-			<span className={`flashcard-stat-value ${color}`}>{value}</span>
-		</div>
-	);
-}

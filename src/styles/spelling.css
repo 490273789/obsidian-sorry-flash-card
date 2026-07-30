@@ -75,12 +75,6 @@
 	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.flashcard-spelling-stats .flashcard-stat-caption {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--fc-space-1);
-}
-
 .flashcard-spelling-input-group {
 	display: flex;
 	flex-direction: column;

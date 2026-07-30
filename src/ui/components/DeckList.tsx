@@ -674,6 +674,7 @@ interface DeckListProps {
 	onMigrateDeckIdentity: (deckId: string) => Promise<boolean>;
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenStats: () => void;
+	onOpenSettings: () => void;
 	onOpenAddCard: () => void;
 	onMigrateLegacyDecks: () => Promise<void>;
 }
@@ -692,6 +693,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onMigrateDeckIdentity,
 	onOpenSourceFile,
 	onOpenStats,
+	onOpenSettings,
 	onOpenAddCard,
 	onMigrateLegacyDecks,
 }) => {
@@ -771,6 +773,12 @@ export const DeckList: React.FC<DeckListProps> = ({
 								disabled={isLoading}
 								title={t("home.refreshTitle")}
 								iconClassName={isLoading ? "spinning" : ""}
+							/>
+							<FlashcardButton
+								preset="icon"
+								icon={Settings}
+								onClick={onOpenSettings}
+								title={t("home.pluginSettingsTitle")}
 							/>
 						</div>
 					</div>

@@ -71,6 +71,7 @@ interface FlashcardAppProps {
 	settings: FlashcardSettings;
 	onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 	onRefresh: () => Promise<void>;
+	onOpenSettings: () => void;
 }
 
 type CardEditorState =
@@ -96,6 +97,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	settings,
 	onSaveSettings,
 	onRefresh,
+	onOpenSettings,
 }) => {
 	const t = useMemo(() => createTranslator(settings.language), [settings.language]);
 	const [viewState, setViewState] = useState<ViewState>({ type: "home" });
@@ -866,6 +868,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			onMigrateDeckIdentity={handleEnsureDeckIdentity}
 			onOpenSourceFile={handleOpenSourceFile}
 			onOpenStats={handleOpenStats}
+			onOpenSettings={onOpenSettings}
 			onOpenAddCard={handleOpenAddCard}
 			onMigrateLegacyDecks={handleMigrateAllLegacyDecks}
 		/>

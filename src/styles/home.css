@@ -150,7 +150,11 @@
 	border: 1px solid rgba(var(--fc-amber-rgb), 0.34);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(90deg, rgba(var(--fc-amber-rgb), 0.12), transparent 62%),
+		linear-gradient(
+			90deg,
+			rgba(var(--fc-amber-rgb), 0.12),
+			transparent 62%
+		),
 		rgba(10, 15, 28, 0.88);
 	box-shadow: var(--fc-shadow);
 	animation: var(--fc-motion-rise);
@@ -306,11 +310,6 @@
 	background: rgba(var(--fc-cyan-rgb), 0.07);
 }
 
-.flashcard-deck-total {
-	color: var(--fc-muted);
-	font-size: var(--fc-font-sm);
-}
-
 .flashcard-deck-name-wrapper {
 	display: flex;
 	align-items: center;
@@ -410,8 +409,7 @@
 .flashcard-stat-card,
 .flashcard-stats-summary-item,
 .flashcard-practice-stat-item,
-.flashcard-practice-stat-card,
-.flashcard-study-hero-pill {
+.flashcard-practice-stat-card {
 	border: 1px solid rgba(139, 159, 181, 0.18);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(16, 21, 33, 0.78);

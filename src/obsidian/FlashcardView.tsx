@@ -18,6 +18,7 @@ export class FlashcardView extends ItemView {
 	private activeSessionStore: ActiveSessionStore;
 	private settings: FlashcardSettings;
 	private onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
+	private onOpenSettings: () => void;
 
 	constructor(
 		leaf: WorkspaceLeaf,
@@ -26,6 +27,7 @@ export class FlashcardView extends ItemView {
 		activeSessionStore: ActiveSessionStore,
 		settings: FlashcardSettings,
 		onSaveSettings: (settings: FlashcardSettings) => Promise<void>,
+		onOpenSettings: () => void,
 	) {
 		super(leaf);
 		this.dataStore = dataStore;
@@ -33,6 +35,7 @@ export class FlashcardView extends ItemView {
 		this.activeSessionStore = activeSessionStore;
 		this.settings = settings;
 		this.onSaveSettings = onSaveSettings;
+		this.onOpenSettings = onOpenSettings;
 	}
 
 	getViewType(): string {
@@ -78,6 +81,7 @@ export class FlashcardView extends ItemView {
 					settings={this.settings}
 					onSaveSettings={this.handleSaveSettings}
 					onRefresh={this.handleRefresh}
+					onOpenSettings={this.onOpenSettings}
 				/>
 			</React.StrictMode>,
 		);

@@ -13,6 +13,7 @@ import { CardDirection, Deck, StudyDayInfo } from "../../shared/types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
+import { SetupStats } from "./SetupStats";
 
 interface StudySetupProps {
 	deck: Deck;
@@ -128,7 +129,6 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(defaultStudyOrder);
 	const [direction, setDirection] = useState<CardDirection>("normal");
 
-	const currentDay = dayList.find((d) => d.isCurrent);
 	const completedDays = useMemo(
 		() => dayList.reduce((total, day) => total + (day.isCompleted ? 1 : 0), 0),
 		[dayList],
@@ -148,62 +148,33 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero">
 					<div className="flashcard-study-hero-copy">
-						<div className="flashcard-deck-name">{deck.name}</div>
 						<div className="flashcard-deck-name-wrapper">
-							<div className="flashcard-deck-total">
-								{t("study.totalCards", {
-									count: deck.cards.length,
-								})}
-							</div>
+							<div className="flashcard-deck-name">{deck.name}</div>
 							<div className="flashcard-deck-tag">{deck.tag}</div>
-						</div>
-					</div>
-					<div className="flashcard-study-hero-meta">
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("study.totalDays")}
-							</span>
-							<strong>{dayList.length || 1}</strong>
-						</div>
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("study.currentStage")}
-							</span>
-							<strong>
-								{allCompleted
-									? t("study.reviewStage")
-									: t("study.day", {
-											day: (currentDay?.dayIndex ?? 0) + 1,
-										})}
-							</strong>
-						</div>
-						<div className="flashcard-study-hero-pill">
-							<span className="flashcard-study-hero-pill-label">
-								{t("study.todayTasks")}
-							</span>
-							<strong>{todayTotal}</strong>
 						</div>
 					</div>
 				</div>
 
 				{/* Today's session stats */}
-				<div className="flashcard-today-stats">
-					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">{t("study.newContent")}</span>
-						<span className="flashcard-stat-value green">{todayNewCount}</span>
-						<span className="flashcard-stat-label">{t("study.todayNew")}</span>
-					</div>
-					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">{t("study.consolidation")}</span>
-						<span className="flashcard-stat-value purple">{todayReviewCount}</span>
-						<span className="flashcard-stat-label">{t("study.dueReview")}</span>
-					</div>
-					<div className="flashcard-stat-card">
-						<span className="flashcard-stat-caption">{t("study.progress")}</span>
-						<span className="flashcard-stat-value blue">{completedDays}</span>
-						<span className="flashcard-stat-label">{t("study.completedDays")}</span>
-					</div>
-				</div>
+				<SetupStats
+					items={[
+						{
+							value: todayNewCount,
+							label: t("study.todayNew"),
+							tone: "green",
+						},
+						{
+							value: todayReviewCount,
+							label: t("study.dueReview"),
+							tone: "purple",
+						},
+						{
+							value: completedDays,
+							label: t("study.completedDays"),
+							tone: "blue",
+						},
+					]}
+				/>
 
 				{/* Study order selector */}
 				<div className="flashcard-study-panel flashcard-study-order-section fc-lift">

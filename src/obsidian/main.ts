@@ -24,6 +24,11 @@ const SYNC_COMMAND_ID = "sync-flashcard-decks";
 const MIGRATE_IDENTITIES_COMMAND_ID = "migrate-card-identities";
 const REPAIR_IDENTITIES_COMMAND_ID = "repair-card-identities";
 
+interface ObsidianSettingsManager {
+	open(): void;
+	openTabById(id: string): void;
+}
+
 export default class FlashcardPlugin extends Plugin {
 	settings: FlashcardSettings = DEFAULT_SETTINGS;
 	dataStore!: DataStore;
@@ -68,6 +73,7 @@ export default class FlashcardPlugin extends Plugin {
 					this.activeSessionStore,
 					this.settings,
 					this.saveSettings.bind(this),
+					this.openSettings,
 				),
 		);
 
@@ -76,6 +82,13 @@ export default class FlashcardPlugin extends Plugin {
 		// Add settings tab
 		this.addSettingTab(new FlashcardSettingTab(this.app, this));
 	}
+
+	private openSettings = (): void => {
+		const settingsManager = (this.app as typeof this.app & { setting: ObsidianSettingsManager })
+			.setting;
+		settingsManager.open();
+		settingsManager.openTabById(this.manifest.id);
+	};
 
 	onunload() {
 		// Plugin cleanup is handled automatically by Obsidian
