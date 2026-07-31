@@ -59,7 +59,6 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 	return (
 		<div className="flashcard-session-shell">
 			<FlashcardHeader
-				className="flashcard-session-header"
 				title={
 					<div className="flashcard-session-identity">
 						<span className="flashcard-deck-title">{deckName}</span>
@@ -72,8 +71,13 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 				backTitle={closeTitle}
 			/>
 			<div className="flashcard-session-toolbar">
-				<div className="flashcard-session-progress" aria-label={t("study.progress")}>
-					<span className="flashcard-session-progress-text">{progress}</span>
+				<div
+					className="flashcard-session-progress"
+					aria-label={t("study.progress")}
+				>
+					<span className="flashcard-session-progress-text">
+						{progress}
+					</span>
 					<span className="flashcard-session-progress-track">
 						<span
 							className="flashcard-session-progress-fill"
@@ -87,7 +91,9 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 						className="flashcard-timer flashcard-session-timer"
 					/>
 				</div>
-				<div className={`flashcard-session-actions${areActionsOpen ? " is-open" : ""}`}>
+				<div
+					className={`flashcard-session-actions${areActionsOpen ? " is-open" : ""}`}
+				>
 					<FlashcardButton
 						preset="icon"
 						icon={ChevronDown}

@@ -296,14 +296,24 @@
 	color: var(--fc-muted);
 }
 
-/* Setup pages use sections and separators instead of stacked nested cards. */
+/* Setup pages keep the same section layout while using subtle surface depth. */
 .flashcard-study-hero {
-	padding: var(--fc-space-4) 0;
-	border: 0;
-	border-bottom: 1px solid var(--fc-line);
-	border-radius: 0;
-	background: transparent;
-	box-shadow: none;
+	padding: var(--fc-space-5) var(--fc-space-4);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.14);
+	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.5);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 42%),
+		rgba(10, 15, 28, 0.34);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.025),
+		0 8px 22px rgba(0, 0, 0, 0.06);
+}
+
+.flashcard-study-hero .flashcard-deck-tag {
+	border-color: rgba(var(--fc-cyan-rgb), 0.26);
+	background: rgba(5, 7, 13, 0.32);
+	box-shadow: inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.035);
 }
 
 .flashcard-study-panel,
@@ -324,10 +334,10 @@
 
 .flashcard-study-day-list {
 	gap: var(--fc-space-2);
-	padding: var(--fc-space-2);
+	/* padding: var(--fc-space-2);
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
 	border-radius: var(--fc-radius-md);
-	background: rgba(5, 7, 13, 0.34);
+	background: rgba(5, 7, 13, 0.34); */
 }
 
 .flashcard-study-day-item {
@@ -465,11 +475,16 @@
 }
 
 .flashcard-setup-control-group {
+	position: relative;
 	display: grid;
 	grid-template-columns: minmax(190px, 0.72fr) minmax(280px, 1.28fr);
 	align-items: start;
 	gap: var(--fc-space-5);
 	padding: var(--fc-space-5);
+}
+
+.flashcard-setup-control-group:nth-child(even) {
+	background: rgba(5, 7, 13, 0.12);
 }
 
 .flashcard-setup-control-group + .flashcard-setup-control-group {
@@ -481,7 +496,8 @@
 	align-items: flex-start;
 	gap: var(--fc-space-3);
 	min-width: 0;
-	padding-top: 3px;
+	padding: 3px var(--fc-space-5) 3px 0;
+	border-right: 1px solid rgba(139, 159, 181, 0.12);
 }
 
 .flashcard-setup-control-icon {
@@ -495,7 +511,9 @@
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-cyan-rgb), 0.07);
 	color: var(--fc-cyan);
-	box-shadow: inset 0 0 12px rgba(var(--fc-cyan-rgb), 0.04);
+	box-shadow:
+		inset 0 0 12px rgba(var(--fc-cyan-rgb), 0.04),
+		0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .flashcard-setup-control-text,
@@ -538,6 +556,9 @@
 	border: 1px solid rgba(139, 159, 181, 0.16);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(5, 7, 13, 0.54);
+	box-shadow:
+		inset 0 1px 3px rgba(0, 0, 0, 0.18),
+		0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .flashcard-root button.flashcard-setup-segment-btn {
@@ -567,7 +588,8 @@
 	color: var(--fc-text);
 	box-shadow:
 		inset 2px 0 0 var(--fc-cyan),
-		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.035);
+		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.035),
+		0 3px 10px rgba(0, 0, 0, 0.12);
 	animation: none;
 }
 
@@ -679,12 +701,59 @@
 	background: rgba(var(--fc-cyan-rgb), 0.04);
 }
 
+.flashcard-study-day-section > .flashcard-study-panel-heading,
+.flashcard-practice-info > .flashcard-study-panel-heading {
+	padding-bottom: var(--fc-space-3);
+	border-bottom: 1px solid rgba(139, 159, 181, 0.14);
+}
+
+.flashcard-practice-info {
+	padding: var(--fc-space-4);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.14);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.04),
+			transparent 46%
+		),
+		rgba(10, 15, 28, 0.3);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.flashcard-practice-info-item {
+	position: relative;
+	padding-left: calc(var(--fc-space-3) + 10px);
+}
+
+.flashcard-practice-info-item::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: var(--fc-space-3);
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: rgba(var(--fc-cyan-rgb), 0.72);
+	box-shadow: 0 0 7px rgba(var(--fc-cyan-rgb), 0.32);
+	transform: translateY(-50%);
+}
+
 .flashcard-study-action-bar {
-	border: 0;
-	border-top: 1px solid var(--fc-line);
-	border-radius: 0;
-	background: rgba(10, 15, 28, 0.9);
-	box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.16);
+	border-top-color: rgba(var(--fc-cyan-rgb), 0.3);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(
+			90deg,
+			rgba(var(--fc-cyan-rgb), 0.055),
+			transparent 40%
+		),
+		rgba(10, 15, 28, 0.92);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.03),
+		0 -8px 24px rgba(0, 0, 0, 0.12),
+		0 10px 26px rgba(0, 0, 0, 0.08);
 }
 
 /* Active study/practice card view */
@@ -728,22 +797,6 @@
 	gap: 8px;
 }
 
-.flashcard-session-header {
-	position: relative;
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr) auto;
-	align-items: center;
-	gap: var(--fc-space-3);
-	min-height: 48px;
-	padding: var(--fc-space-3) var(--fc-space-4);
-	border: 0;
-	border-bottom: 1px solid var(--fc-line);
-	border-radius: 0;
-	background: transparent;
-	box-shadow: none;
-	backdrop-filter: none;
-}
-
 .flashcard-session-identity,
 .flashcard-session-metrics,
 .flashcard-session-actions {
@@ -756,7 +809,7 @@
 	gap: var(--fc-space-3);
 }
 
-.flashcard-session-header .flashcard-deck-title {
+.flashcard-deck-title {
 	font-size: 16px;
 	font-weight: 750;
 	letter-spacing: -0.01em;
