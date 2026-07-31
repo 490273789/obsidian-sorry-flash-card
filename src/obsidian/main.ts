@@ -18,6 +18,7 @@ import {
 	CardIdentityRepairModal,
 } from "./cardIdentityContinuityModals";
 import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
+import { createPronunciationRuntime, type PronunciationRuntime } from "../pronunciation";
 
 const OPEN_COMMAND_ID = "open-flashcard-view";
 const SYNC_COMMAND_ID = "sync-flashcard-decks";
@@ -34,6 +35,7 @@ export default class FlashcardPlugin extends Plugin {
 	dataStore!: DataStore;
 	cardIdentityContinuity!: CardIdentityContinuity;
 	activeSessionStore!: ActiveSessionStore;
+	pronunciationRuntime!: PronunciationRuntime;
 	private ribbonIconEl: HTMLElement | null = null;
 
 	async onload() {
@@ -42,6 +44,10 @@ export default class FlashcardPlugin extends Plugin {
 		// load() is a no-op when called right after (data already in memory).
 		this.settings = await this.dataStore.loadSettings();
 		this.t = createTranslator(this.settings.language);
+		this.pronunciationRuntime = createPronunciationRuntime(
+			this.app,
+			this.settings.pronunciation,
+		);
 		await this.dataStore.load();
 		this.activeSessionStore = createActiveSessionStore({
 			onSourceChangeEnd: async (ending) => {
@@ -71,6 +77,7 @@ export default class FlashcardPlugin extends Plugin {
 					this.dataStore,
 					this.cardIdentityContinuity,
 					this.activeSessionStore,
+					this.pronunciationRuntime,
 					this.settings,
 					this.saveSettings.bind(this),
 					this.openSettings,
@@ -91,7 +98,7 @@ export default class FlashcardPlugin extends Plugin {
 	};
 
 	onunload() {
-		// Plugin cleanup is handled automatically by Obsidian
+		this.pronunciationRuntime?.dispose();
 	}
 
 	private registerLocalizedControls(): void {
@@ -272,6 +279,7 @@ export default class FlashcardPlugin extends Plugin {
 		}
 
 		this.t = createTranslator(this.settings.language);
+		this.pronunciationRuntime.updateSettings(this.settings.pronunciation);
 		this.updateLocalizedControls();
 
 		// Update active views

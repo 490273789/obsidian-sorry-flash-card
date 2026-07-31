@@ -7,6 +7,31 @@ export type CardDirection = "normal" | "reversed";
 
 export type StudyRating = 1 | 2 | 3 | 4 | 5;
 
+export type PronunciationAccent = "system" | "en-US" | "en-GB";
+
+export type PronunciationRate = "normal" | "slow";
+
+export type OnlinePronunciationProvider = "none" | "azure" | "openai";
+
+export interface PronunciationSettings {
+	/** Automatically pronounce a spelling answer after it has been entered correctly. */
+	spellingAutoPlay: boolean;
+	/** Preferred English accent. System uses the device's default local English voice. */
+	accent: PronunciationAccent;
+	/** Speaking speed shared by local and online voices. */
+	rate: PronunciationRate;
+	/** Optional provider used only when no local English voice is installed. */
+	onlineProvider: OnlinePronunciationProvider;
+	/** Azure public cloud or Azure operated by 21Vianet. */
+	azureCloud: "china" | "global";
+	/** Azure Speech resource region identifier. */
+	azureRegion: string;
+	/** SecretStorage ID containing the Azure Speech resource key. */
+	azureSecretId: string;
+	/** SecretStorage ID containing the OpenAI API key. */
+	openaiSecretId: string;
+}
+
 /**
  * Per-deck or global study settings
  */
@@ -42,6 +67,8 @@ export interface FlashcardSettings extends StudySettings {
 	practiceMessagesCustomized?: boolean;
 	/** Per-deck study setting overrides, keyed by deck ID */
 	deckStudySettings: Record<string, Partial<StudySettings>>;
+	/** Offline-first word and phrase pronunciation preferences. */
+	pronunciation: PronunciationSettings;
 }
 
 /**
@@ -59,6 +86,16 @@ export const DEFAULT_SETTINGS: FlashcardSettings = {
 		maximumInterval: 365,
 	},
 	deckStudySettings: {},
+	pronunciation: {
+		spellingAutoPlay: false,
+		accent: "system",
+		rate: "normal",
+		onlineProvider: "none",
+		azureCloud: "china",
+		azureRegion: "chinaeast2",
+		azureSecretId: "",
+		openaiSecretId: "",
+	},
 	practicePerfectMessages: DEFAULT_PRACTICE_MESSAGES.zh.perfect,
 	practiceErrorMessages: DEFAULT_PRACTICE_MESSAGES.zh.error,
 	practiceMessagesCustomized: false,

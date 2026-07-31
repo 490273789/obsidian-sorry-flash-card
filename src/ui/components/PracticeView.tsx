@@ -8,6 +8,9 @@ import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
 import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
+import type { PronunciationRuntime } from "../../pronunciation";
+import { extractSpellingWord } from "../../cards/spellingWord";
+import { PronounceableMarkdown } from "./PronounceableMarkdown";
 
 interface PracticeViewProps {
 	practiceRuntime: PracticeSessionRuntime;
@@ -19,6 +22,8 @@ interface PracticeViewProps {
 	onComplete: (result: PracticeResult) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
+	pronunciationRuntime: PronunciationRuntime;
+	pronunciationEnabled: boolean;
 }
 
 export const PracticeView: React.FC<PracticeViewProps> = ({
@@ -31,6 +36,8 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	onComplete,
 	onClose,
 	markdownRenderer,
+	pronunciationRuntime,
+	pronunciationEnabled,
 }) => {
 	const { t } = useI18n();
 	const [showAnswer, setShowAnswer] = useState(false);
@@ -42,10 +49,14 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
 		[currentCard, session.direction],
 	);
+	const pronunciationWord =
+		pronunciationEnabled && currentCard ? extractSpellingWord(currentCard.front) : null;
 
 	useEffect(() => {
+		pronunciationRuntime.stop();
 		setShowAnswer(false);
-	}, [currentCard?.id]);
+		return () => pronunciationRuntime.stop();
+	}, [currentCard?.id, pronunciationRuntime]);
 
 	const handleShowAnswer = useCallback(() => {
 		setShowAnswer(true);
@@ -174,11 +185,20 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 						<div className="flashcard-label flashcard-label-question">
 							{t("common.question")}
 						</div>
-						<MarkdownContent
-							content={displayContent?.prompt ?? ""}
-							className="flashcard-markdown"
-							markdownRenderer={markdownRenderer}
-						/>
+						{session.direction === "normal" && pronunciationWord ? (
+							<PronounceableMarkdown
+								content={displayContent?.prompt ?? ""}
+								word={pronunciationWord}
+								runtime={pronunciationRuntime}
+								markdownRenderer={markdownRenderer}
+							/>
+						) : (
+							<MarkdownContent
+								content={displayContent?.prompt ?? ""}
+								className="flashcard-markdown"
+								markdownRenderer={markdownRenderer}
+							/>
+						)}
 					</div>
 
 					{showAnswer && (
@@ -188,11 +208,20 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 								<div className="flashcard-label flashcard-label-answer">
 									{t("common.answer")}
 								</div>
-								<MarkdownContent
-									content={displayContent?.answer ?? ""}
-									className="flashcard-markdown"
-									markdownRenderer={markdownRenderer}
-								/>
+								{session.direction === "reversed" && pronunciationWord ? (
+									<PronounceableMarkdown
+										content={displayContent?.answer ?? ""}
+										word={pronunciationWord}
+										runtime={pronunciationRuntime}
+										markdownRenderer={markdownRenderer}
+									/>
+								) : (
+									<MarkdownContent
+										content={displayContent?.answer ?? ""}
+										className="flashcard-markdown"
+										markdownRenderer={markdownRenderer}
+									/>
+								)}
 							</div>
 							{displayContent?.explanation && (
 								<div className="flashcard-explanation">

@@ -9,6 +9,11 @@ import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
 import { useI18n } from "./I18nContext";
+import {
+	shouldAutoPronounceSpellingFeedback,
+	waitForSpellingPronunciation,
+	type PronunciationRuntime,
+} from "../../pronunciation";
 
 interface SpellingViewProps {
 	spellingRuntime: SpellingSessionRuntime;
@@ -20,6 +25,8 @@ interface SpellingViewProps {
 	onComplete: (result: SpellingResult) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
+	pronunciationRuntime: PronunciationRuntime;
+	autoPronounce: boolean;
 }
 
 type Feedback = SpellingRuntimeAnswerOutcome & { submittedInput: string };
@@ -34,6 +41,8 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 	onComplete,
 	onClose,
 	markdownRenderer,
+	pronunciationRuntime,
+	autoPronounce,
 }) => {
 	const { t } = useI18n();
 	const [input, setInput] = useState("");
@@ -41,21 +50,26 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const advanceTimerRef = useRef<number | null>(null);
+	const advanceGenerationRef = useRef(0);
 	const currentCard = spellingRuntime.getCurrentCard(session);
 
 	useEffect(() => {
+		advanceGenerationRef.current++;
+		pronunciationRuntime.stop();
 		setInput("");
 		setFeedback(null);
 		window.setTimeout(() => inputRef.current?.focus(), 0);
-	}, [currentCard?.id, session.currentIndex]);
+	}, [currentCard?.id, pronunciationRuntime, session.currentIndex]);
 
 	useEffect(
 		() => () => {
+			advanceGenerationRef.current++;
+			pronunciationRuntime.stop();
 			if (advanceTimerRef.current !== null) {
 				window.clearTimeout(advanceTimerRef.current);
 			}
 		},
-		[],
+		[pronunciationRuntime],
 	);
 
 	const submit = useCallback(
@@ -82,16 +96,34 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 				return;
 			}
 
-			advanceTimerRef.current = window.setTimeout(() => {
-				setIsSubmitting(false);
-				if (outcome.type === "continue") {
-					onSessionUpdate(outcome.session);
-				} else {
-					onComplete(outcome.result);
-				}
-			}, 550);
+			const generation = ++advanceGenerationRef.current;
+			if (autoPronounce && shouldAutoPronounceSpellingFeedback(outcome.feedback)) {
+				await waitForSpellingPronunciation(pronunciationRuntime, outcome.answer);
+				if (generation !== advanceGenerationRef.current) return;
+			}
+
+			advanceTimerRef.current = window.setTimeout(
+				() => {
+					setIsSubmitting(false);
+					if (outcome.type === "continue") {
+						onSessionUpdate(outcome.session);
+					} else {
+						onComplete(outcome.result);
+					}
+				},
+				autoPronounce ? 0 : 550,
+			);
 		},
-		[currentCard, isSubmitting, onComplete, onSessionUpdate, session, spellingRuntime],
+		[
+			autoPronounce,
+			currentCard,
+			isSubmitting,
+			onComplete,
+			onSessionUpdate,
+			pronunciationRuntime,
+			session,
+			spellingRuntime,
+		],
 	);
 
 	if (!currentCard) {

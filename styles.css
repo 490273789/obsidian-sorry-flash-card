@@ -3013,6 +3013,84 @@
 		font-size: var(--fc-font-lg);
 	}
 }
+.flashcard-pronunciation-row {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: var(--fc-space-2);
+	min-width: 0;
+}
+
+.flashcard-pronunciation-row > .flashcard-markdown {
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+.flashcard-pronunciation-button {
+	display: inline-flex;
+	flex: 0 0 36px;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.34);
+	border-radius: 999px;
+	background: rgba(var(--fc-cyan-rgb), 0.08);
+	color: var(--fc-cyan);
+	cursor: pointer;
+	transition:
+		transform 140ms ease,
+		border-color 140ms ease,
+		background-color 140ms ease,
+		box-shadow 140ms ease;
+}
+
+.flashcard-pronunciation-button:hover {
+	border-color: rgba(var(--fc-cyan-rgb), 0.72);
+	background: rgba(var(--fc-cyan-rgb), 0.16);
+	transform: translateY(-1px);
+}
+
+.flashcard-pronunciation-button:focus-visible {
+	outline: 2px solid var(--fc-cyan);
+	outline-offset: 3px;
+}
+
+.flashcard-pronunciation-button.is-speaking {
+	border-color: var(--fc-cyan);
+	background: rgba(var(--fc-cyan-rgb), 0.2);
+	box-shadow: 0 0 0 5px rgba(var(--fc-cyan-rgb), 0.08);
+	animation: flashcard-pronunciation-pulse 900ms ease-in-out infinite alternate;
+}
+
+.flashcard-settings-status {
+	color: var(--fc-muted);
+	font-family: var(--font-monospace);
+	font-size: var(--fc-font-xs);
+	white-space: nowrap;
+}
+
+@keyframes flashcard-pronunciation-pulse {
+	to {
+		transform: scale(1.06);
+		box-shadow: 0 0 0 8px rgba(var(--fc-cyan-rgb), 0.03);
+	}
+}
+
+@media (max-width: 600px), (pointer: coarse) {
+	.flashcard-pronunciation-button {
+		flex-basis: 44px;
+		width: 44px;
+		height: 44px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.flashcard-pronunciation-button.is-speaking {
+		animation: none;
+	}
+}
 /* Stats */
 .flashcard-stats-view {
 	overflow: hidden;

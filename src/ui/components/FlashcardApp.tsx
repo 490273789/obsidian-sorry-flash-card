@@ -62,12 +62,14 @@ import type {
 import type { ActiveSessionStore } from "../../sessions/activeSessionStore";
 import { validateSpellingDeck } from "../../cards/spellingWord";
 import { isStableCardIdentity } from "../../identity/cardIdentity";
+import type { PronunciationRuntime } from "../../pronunciation";
 
 interface FlashcardAppProps {
 	app: App;
 	dataStore: DataStore;
 	cardIdentityContinuity: CardIdentityContinuity;
 	activeSessionStore: ActiveSessionStore;
+	pronunciationRuntime: PronunciationRuntime;
 	settings: FlashcardSettings;
 	onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 	onRefresh: () => Promise<void>;
@@ -94,6 +96,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	dataStore,
 	cardIdentityContinuity,
 	activeSessionStore,
+	pronunciationRuntime,
 	settings,
 	onSaveSettings,
 	onRefresh,
@@ -928,6 +931,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						onDeleteCard={handleDeleteCardRequest}
 						onClose={handleCloseStudyRequest}
 						markdownRenderer={renderMarkdown}
+						pronunciationRuntime={pronunciationRuntime}
+						pronunciationEnabled={Boolean(settings.wordLearningDecks[viewState.deckId])}
 					/>
 				);
 			}
@@ -974,6 +979,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						onComplete={handlePracticeComplete}
 						onClose={handlePracticeClose}
 						markdownRenderer={renderMarkdown}
+						pronunciationRuntime={pronunciationRuntime}
+						pronunciationEnabled={Boolean(settings.wordLearningDecks[viewState.deckId])}
 					/>
 				);
 			}
@@ -1030,6 +1037,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						onComplete={handleSpellingComplete}
 						onClose={() => void handleCloseSpelling()}
 						markdownRenderer={renderMarkdown}
+						pronunciationRuntime={pronunciationRuntime}
+						autoPronounce={settings.pronunciation.spellingAutoPlay}
 					/>
 				);
 			}

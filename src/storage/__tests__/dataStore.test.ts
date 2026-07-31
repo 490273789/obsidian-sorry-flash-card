@@ -57,6 +57,10 @@ function makeSettings(overrides: Partial<FlashcardSettings> = {}): FlashcardSett
 			...DEFAULT_SETTINGS.fsrsParameters,
 			...overrides.fsrsParameters,
 		},
+		pronunciation: {
+			...DEFAULT_SETTINGS.pronunciation,
+			...overrides.pronunciation,
+		},
 		deckStudySettings: overrides.deckStudySettings ?? {},
 		wordLearningDecks: overrides.wordLearningDecks ?? {},
 	};
@@ -121,6 +125,7 @@ describe("DataStore settings", () => {
 		});
 		expect(settings.practiceMessagesCustomized).toBe(false);
 		expect(settings.wordLearningDecks).toEqual({});
+		expect(settings.pronunciation).toEqual(DEFAULT_SETTINGS.pronunciation);
 		expect(settings.practicePerfectMessages).toEqual(DEFAULT_SETTINGS.practicePerfectMessages);
 	});
 
@@ -188,6 +193,33 @@ describe("DataStore settings", () => {
 				}),
 			}),
 		);
+	});
+
+	it("persists pronunciation SecretStorage IDs without storing API keys", async () => {
+		const plugin = makePlugin();
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+		const settings = makeSettings({
+			pronunciation: {
+				...DEFAULT_SETTINGS.pronunciation,
+				spellingAutoPlay: true,
+				onlineProvider: "openai",
+				openaiSecretId: "openai-flashcard",
+			},
+		});
+
+		await store.saveSettings(settings);
+
+		const saved = plugin.saveData.mock.calls[
+			plugin.saveData.mock.calls.length - 1
+		]?.[0] as StoredData;
+		if (!saved.settings) throw new Error("Expected saved settings");
+		expect(saved.settings.pronunciation).toMatchObject({
+			spellingAutoPlay: true,
+			onlineProvider: "openai",
+			openaiSecretId: "openai-flashcard",
+		});
+		expect(JSON.stringify(saved.settings.pronunciation)).not.toContain("sk-");
 	});
 
 	it("persists independent spelling progress without changing FSRS state", async () => {

@@ -8,6 +8,7 @@ import { translate } from "../i18n";
 import type { CardIdentityContinuity } from "../identity/cardIdentityContinuity";
 import type { ActiveSessionStore } from "../sessions/activeSessionStore";
 import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
+import type { PronunciationRuntime } from "../pronunciation";
 
 export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
@@ -16,6 +17,7 @@ export class FlashcardView extends ItemView {
 	private dataStore: DataStore;
 	private cardIdentityContinuity: CardIdentityContinuity;
 	private activeSessionStore: ActiveSessionStore;
+	private pronunciationRuntime: PronunciationRuntime;
 	private settings: FlashcardSettings;
 	private onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 	private onOpenSettings: () => void;
@@ -25,6 +27,7 @@ export class FlashcardView extends ItemView {
 		dataStore: DataStore,
 		cardIdentityContinuity: CardIdentityContinuity,
 		activeSessionStore: ActiveSessionStore,
+		pronunciationRuntime: PronunciationRuntime,
 		settings: FlashcardSettings,
 		onSaveSettings: (settings: FlashcardSettings) => Promise<void>,
 		onOpenSettings: () => void,
@@ -33,6 +36,7 @@ export class FlashcardView extends ItemView {
 		this.dataStore = dataStore;
 		this.cardIdentityContinuity = cardIdentityContinuity;
 		this.activeSessionStore = activeSessionStore;
+		this.pronunciationRuntime = pronunciationRuntime;
 		this.settings = settings;
 		this.onSaveSettings = onSaveSettings;
 		this.onOpenSettings = onOpenSettings;
@@ -78,6 +82,7 @@ export class FlashcardView extends ItemView {
 					dataStore={this.dataStore}
 					cardIdentityContinuity={this.cardIdentityContinuity}
 					activeSessionStore={this.activeSessionStore}
+					pronunciationRuntime={this.pronunciationRuntime}
 					settings={this.settings}
 					onSaveSettings={this.handleSaveSettings}
 					onRefresh={this.handleRefresh}
@@ -112,6 +117,7 @@ export class FlashcardView extends ItemView {
 	}
 
 	async onClose(): Promise<void> {
+		this.pronunciationRuntime.stop();
 		if (this.root) {
 			this.root.unmount();
 			this.root = null;

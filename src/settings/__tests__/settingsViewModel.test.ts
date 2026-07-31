@@ -10,9 +10,19 @@ function makeSettings(overrides: Partial<FlashcardSettings> = {}): FlashcardSett
 			...DEFAULT_SETTINGS.fsrsParameters,
 			...overrides.fsrsParameters,
 		},
+		pronunciation: {
+			...DEFAULT_SETTINGS.pronunciation,
+			...overrides.pronunciation,
+		},
 		deckStudySettings: overrides.deckStudySettings ?? {},
 	};
 }
+
+const DEFAULT_PRONUNCIATION_STATE = {
+	pronunciationCacheUsageBytes: 0,
+	isTestingPronunciation: false,
+	isClearingPronunciationCache: false,
+} as const;
 
 function makeActions(): SettingsViewModelActions {
 	return {
@@ -27,6 +37,16 @@ function makeActions(): SettingsViewModelActions {
 		setStudyOrder: vi.fn(),
 		setRequestRetention: vi.fn(),
 		setMaximumInterval: vi.fn(),
+		setPronunciationAutoPlay: vi.fn(),
+		setPronunciationAccent: vi.fn(),
+		setPronunciationRate: vi.fn(),
+		setOnlinePronunciationProvider: vi.fn(),
+		setAzureCloud: vi.fn(),
+		setAzureRegion: vi.fn(),
+		setAzureSecretId: vi.fn(),
+		setOpenAiSecretId: vi.fn(),
+		testOnlinePronunciation: vi.fn(),
+		clearPronunciationCache: vi.fn(),
 	};
 }
 
@@ -35,6 +55,7 @@ describe("buildSettingsViewModel", () => {
 		const actions = makeActions();
 		const model = buildSettingsViewModel(
 			{
+				...DEFAULT_PRONUNCIATION_STATE,
 				settings: makeSettings({ flashcardTags: ["#单词"] }),
 				availableTags: ["#单词", "#短语"],
 				isLoadingTags: false,
@@ -48,6 +69,7 @@ describe("buildSettingsViewModel", () => {
 			"闪卡设置",
 			"界面设置",
 			"默认学习设置（全局兜底）",
+			"单词发音",
 			"Fsrs 算法参数",
 			"使用说明",
 		]);
@@ -60,6 +82,7 @@ describe("buildSettingsViewModel", () => {
 		const actions = makeActions();
 		const model = buildSettingsViewModel(
 			{
+				...DEFAULT_PRONUNCIATION_STATE,
 				settings: makeSettings({ flashcardTags: ["#word"] }),
 				availableTags: ["#word", "#phrase"],
 				isLoadingTags: false,
@@ -105,6 +128,7 @@ describe("buildSettingsViewModel", () => {
 	it("shows loading and empty discovered-tag states", () => {
 		const loadingModel = buildSettingsViewModel(
 			{
+				...DEFAULT_PRONUNCIATION_STATE,
 				settings: makeSettings(),
 				availableTags: [],
 				isLoadingTags: true,
@@ -122,6 +146,7 @@ describe("buildSettingsViewModel", () => {
 
 		const unloadedModel = buildSettingsViewModel(
 			{
+				...DEFAULT_PRONUNCIATION_STATE,
 				settings: makeSettings(),
 				availableTags: [],
 				isLoadingTags: false,
@@ -139,6 +164,7 @@ describe("buildSettingsViewModel", () => {
 
 		const loadedModel = buildSettingsViewModel(
 			{
+				...DEFAULT_PRONUNCIATION_STATE,
 				settings: makeSettings(),
 				availableTags: [],
 				isLoadingTags: false,
@@ -159,6 +185,7 @@ describe("buildSettingsViewModel", () => {
 		const actions = makeActions();
 		const model = buildSettingsViewModel(
 			{
+				...DEFAULT_PRONUNCIATION_STATE,
 				settings: makeSettings({
 					language: "zh",
 					dailyNewCards: 12,
@@ -180,8 +207,8 @@ describe("buildSettingsViewModel", () => {
 		const dailyNew = model[2]!.items[1]!.controls?.[0];
 		const dailyReview = model[2]!.items[2]!.controls?.[0];
 		const studyOrder = model[2]!.items[3]!.controls?.[0];
-		const retention = model[3]!.items[0]!.controls?.[0];
-		const maximumInterval = model[3]!.items[1]!.controls?.[0];
+		const retention = model[4]!.items[0]!.controls?.[0];
+		const maximumInterval = model[4]!.items[1]!.controls?.[0];
 
 		if (language?.type !== "select") throw new Error("Expected language select");
 		void language.onChange("en");
@@ -213,6 +240,7 @@ describe("buildSettingsViewModel", () => {
 	it("keeps help content semantic instead of constructing DOM", () => {
 		const model = buildSettingsViewModel(
 			{
+				...DEFAULT_PRONUNCIATION_STATE,
 				settings: makeSettings(),
 				availableTags: [],
 				isLoadingTags: false,
@@ -221,10 +249,48 @@ describe("buildSettingsViewModel", () => {
 			},
 			makeActions(),
 		);
-		const help = model[4]!.items[0]!.help;
+		const help = model[5]!.items[0]!.help;
 
 		expect(help?.cardFormatTitle).toBe("卡片格式说明:");
 		expect(help?.cardFormatExample).toContain("??");
 		expect(help?.shortcuts).toContain("数字6: 上一题");
+	});
+
+	it("exposes pronunciation controls and provider-specific fields", () => {
+		const actions = makeActions();
+		const model = buildSettingsViewModel(
+			{
+				...DEFAULT_PRONUNCIATION_STATE,
+				pronunciationCacheUsageBytes: 1024 * 1024,
+				settings: makeSettings({
+					pronunciation: {
+						...DEFAULT_SETTINGS.pronunciation,
+						onlineProvider: "openai",
+						openaiSecretId: "openai-flashcard",
+					},
+				}),
+				availableTags: [],
+				isLoadingTags: false,
+				hasLoadedTags: true,
+				language: "zh",
+			},
+			actions,
+		);
+		const pronunciation = model[3]!;
+		const autoPlay = pronunciation.items[0]!.controls?.[0];
+		const provider = pronunciation.items[3]!.controls?.[0];
+		const openAiSecret = pronunciation.items.find((item) => item.name === "OpenAI API Key");
+		const cacheStatus = pronunciation.items.find((item) => item.name === "设备音频缓存")
+			?.controls?.[0];
+
+		if (autoPlay?.type !== "toggle") throw new Error("Expected autoplay toggle");
+		void autoPlay.onChange(true);
+		expect(actions.setPronunciationAutoPlay).toHaveBeenCalledWith(true);
+
+		if (provider?.type !== "select") throw new Error("Expected provider select");
+		void provider.onChange("azure");
+		expect(actions.setOnlinePronunciationProvider).toHaveBeenCalledWith("azure");
+		expect(openAiSecret?.visible).toBe(true);
+		expect(cacheStatus).toMatchObject({ type: "status", text: "1.0 MB" });
 	});
 });

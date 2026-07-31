@@ -191,6 +191,10 @@ export class DataStore {
 				...DEFAULT_SETTINGS.fsrsParameters,
 				...settings.fsrsParameters,
 			},
+			pronunciation: {
+				...DEFAULT_SETTINGS.pronunciation,
+				...settings.pronunciation,
+			},
 			practiceMessagesCustomized: messagesCustomized,
 			practicePerfectMessages: messagesCustomized
 				? [...(settings.practicePerfectMessages ?? defaultMessages.perfect)]
