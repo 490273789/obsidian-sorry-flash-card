@@ -167,6 +167,64 @@
 	opacity: 0.46;
 }
 
+.flashcard-root::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	border-radius: inherit;
+	background-image:
+		radial-gradient(
+			ellipse at 18% 24%,
+			rgba(var(--fc-cyan-rgb), 0.09),
+			transparent 44%
+		),
+		radial-gradient(
+			ellipse at 84% 64%,
+			rgba(var(--fc-violet-rgb), 0.065),
+			transparent 42%
+		),
+		radial-gradient(
+			circle,
+			var(--fc-grid) 0,
+			var(--fc-grid) 0.9px,
+			transparent 1px
+		);
+	background-position:
+		0 0,
+		0 0,
+		11px 11px;
+	background-size:
+		100% 100%,
+		100% 100%,
+		22px 22px;
+	-webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+	mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+	opacity: 0.46;
+}
+
+.theme-dark .flashcard-root::after {
+	background-image:
+		radial-gradient(
+			ellipse at 16% 38%,
+			rgba(var(--fc-cyan-rgb), 0.15),
+			transparent 46%
+		),
+		radial-gradient(
+			ellipse at 84% 72%,
+			rgba(var(--fc-violet-rgb), 0.11),
+			transparent 44%
+		),
+		radial-gradient(
+			circle,
+			rgba(var(--fc-cyan-rgb), 0.105) 0,
+			rgba(var(--fc-cyan-rgb), 0.105) 0.9px,
+			transparent 1px
+		);
+	opacity: 0.78;
+}
+
 .flashcard-root > * {
 	position: relative;
 	z-index: 1;
@@ -1948,7 +2006,7 @@
 }
 
 .flashcard-session-actions-toggle {
-	display: inline-flex;
+	display: none;
 }
 
 .flashcard-session-actions-toggle-icon {
@@ -1960,10 +2018,6 @@
 }
 
 .flashcard-session-action-item {
-	display: none;
-}
-
-.flashcard-session-actions.is-open .flashcard-session-action-item {
 	display: inline-flex;
 }
 
@@ -3047,30 +3101,35 @@
 	}
 }
 .flashcard-pronunciation-row {
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-	gap: var(--fc-space-2);
+	display: block;
 	min-width: 0;
 }
 
 .flashcard-pronunciation-row > .flashcard-markdown {
-	flex: 0 1 auto;
 	min-width: 0;
 }
 
-.flashcard-pronunciation-button {
+.flashcard-root button.flashcard-pronunciation-button {
+	position: absolute;
+	top: 14px;
+	right: 16px;
 	display: inline-flex;
-	flex: 0 0 36px;
 	align-items: center;
 	justify-content: center;
-	width: 36px;
-	height: 36px;
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+	min-height: 32px;
 	padding: 0;
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.34);
-	border-radius: 999px;
-	background: rgba(var(--fc-cyan-rgb), 0.08);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.3);
+	border-radius: 8px;
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 72%),
+		rgba(7, 11, 22, 0.52);
 	color: var(--fc-cyan);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+		0 4px 12px rgba(0, 0, 0, 0.1);
 	cursor: pointer;
 	transition:
 		transform 140ms ease,
@@ -3079,21 +3138,30 @@
 		box-shadow 140ms ease;
 }
 
-.flashcard-pronunciation-button:hover {
+.flashcard-root button.flashcard-pronunciation-button:hover {
 	border-color: rgba(var(--fc-cyan-rgb), 0.72);
-	background: rgba(var(--fc-cyan-rgb), 0.16);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.2), transparent 72%),
+		rgba(10, 15, 28, 0.88);
+	box-shadow:
+		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.06),
+		0 0 16px rgba(var(--fc-cyan-rgb), 0.12);
 	transform: translateY(-1px);
 }
 
-.flashcard-pronunciation-button:focus-visible {
+.flashcard-root button.flashcard-pronunciation-button:focus-visible {
 	outline: 2px solid var(--fc-cyan);
 	outline-offset: 3px;
 }
 
-.flashcard-pronunciation-button.is-speaking {
+.flashcard-root button.flashcard-pronunciation-button.is-speaking {
 	border-color: var(--fc-cyan);
-	background: rgba(var(--fc-cyan-rgb), 0.2);
-	box-shadow: 0 0 0 5px rgba(var(--fc-cyan-rgb), 0.08);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.24), transparent 72%),
+		rgba(10, 15, 28, 0.92);
+	box-shadow:
+		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.1),
+		0 0 0 4px rgba(var(--fc-cyan-rgb), 0.07);
 	animation: flashcard-pronunciation-pulse 900ms ease-in-out infinite alternate;
 }
 
@@ -3106,21 +3174,26 @@
 
 @keyframes flashcard-pronunciation-pulse {
 	to {
-		transform: scale(1.06);
-		box-shadow: 0 0 0 8px rgba(var(--fc-cyan-rgb), 0.03);
+		transform: translateY(-1px);
+		box-shadow:
+			inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.14),
+			0 0 0 7px rgba(var(--fc-cyan-rgb), 0.025);
 	}
 }
 
 @media (max-width: 600px), (pointer: coarse) {
-	.flashcard-pronunciation-button {
-		flex-basis: 44px;
+	.flashcard-root button.flashcard-pronunciation-button {
+		top: 12px;
+		right: 12px;
 		width: 44px;
 		height: 44px;
+		min-width: 44px;
+		min-height: 44px;
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.flashcard-pronunciation-button.is-speaking {
+	.flashcard-root button.flashcard-pronunciation-button.is-speaking {
 		animation: none;
 	}
 }
@@ -3281,11 +3354,7 @@
 	padding: var(--fc-space-4);
 	overflow-y: auto;
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.12),
-			transparent 38%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%),
 		rgba(0, 0, 0, 0.74);
 	backdrop-filter: blur(14px);
 	animation: var(--fc-motion-fade-in);
@@ -3508,22 +3577,109 @@
 	font-weight: 600;
 }
 
-.flashcard-confirm-modal {
-	display: flex;
-	flex-direction: column;
-	gap: var(--fc-space-4, 16px);
+.flashcard-confirm-backdrop {
+	background:
+		radial-gradient(circle at 50% 46%, rgba(var(--fc-cyan-rgb), 0.12), transparent 30%),
+		rgba(0, 0, 0, 0.76);
 }
 
-.flashcard-confirm-modal p {
+.flashcard-confirm-dialog {
+	--fc-confirm-rgb: var(--fc-cyan-rgb);
+	position: relative;
+	width: min(480px, 100%);
+	border-color: rgba(var(--fc-confirm-rgb), 0.34);
+	background:
+		radial-gradient(circle at 12% 0%, rgba(var(--fc-confirm-rgb), 0.1), transparent 36%),
+		var(--fc-bg-elevated);
+	box-shadow:
+		0 30px 90px rgba(0, 0, 0, 0.58),
+		0 0 0 1px rgba(var(--fc-confirm-rgb), 0.08),
+		0 0 38px rgba(var(--fc-confirm-rgb), 0.13);
+}
+
+.flashcard-confirm-dialog.is-danger {
+	--fc-confirm-rgb: var(--fc-red-rgb);
+}
+
+.flashcard-confirm-accent {
+	position: absolute;
+	top: 0;
+	left: 14%;
+	right: 14%;
+	z-index: 2;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-confirm-rgb), 0.95), transparent);
+	box-shadow: 0 0 18px rgba(var(--fc-confirm-rgb), 0.55);
+	pointer-events: none;
+}
+
+.flashcard-confirm-header {
+	align-items: center;
+	padding: 18px 20px 16px;
+	background: rgba(12, 17, 29, 0.72);
+}
+
+.flashcard-confirm-heading {
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-4);
+}
+
+.flashcard-confirm-icon {
+	width: 42px;
+	height: 42px;
+	flex: 0 0 42px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid rgba(var(--fc-confirm-rgb), 0.34);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-confirm-rgb), 0.2), transparent), rgba(5, 7, 13, 0.72);
+	color: rgb(var(--fc-confirm-rgb));
+	box-shadow: 0 0 22px rgba(var(--fc-confirm-rgb), 0.12);
+}
+
+.flashcard-confirm-dialog .flashcard-modal-kicker {
+	padding: 3px 7px;
+	border-color: rgba(var(--fc-confirm-rgb), 0.24);
+	background: rgba(var(--fc-confirm-rgb), 0.07);
+	color: rgb(var(--fc-confirm-rgb));
+	font: 700 10px / 1.2 var(--fc-font-data);
+	letter-spacing: 0.08em;
+}
+
+.flashcard-confirm-title {
 	margin: 0;
-	color: var(--text-normal);
-	line-height: 1.6;
+	color: var(--fc-text);
+	font: 700 var(--fc-font-lg) / 1.25 var(--fc-font-ui);
+	letter-spacing: 0.01em;
 }
 
-.flashcard-confirm-actions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 8px;
+.flashcard-confirm-body {
+	padding: 20px;
+	background: linear-gradient(135deg, rgba(var(--fc-confirm-rgb), 0.04), transparent 58%);
+}
+
+.flashcard-confirm-body p {
+	margin: 0;
+	padding: 13px 14px;
+	border-left: 2px solid rgba(var(--fc-confirm-rgb), 0.68);
+	border-radius: 0 var(--fc-radius-sm) var(--fc-radius-sm) 0;
+	background: rgba(var(--fc-confirm-rgb), 0.055);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	line-height: 1.75;
+}
+
+.flashcard-confirm-footer {
+	padding: 14px 20px;
+	background: rgba(12, 17, 29, 0.78);
+}
+
+.flashcard-confirm-footer .flashcard-btn {
+	min-width: 96px;
 }
 
 .flashcard-add-card-fab {
@@ -3544,11 +3700,7 @@
 
 .flashcard-root button.flashcard-add-card-fab {
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-lime-rgb), 0.28),
-			rgba(var(--fc-cyan-rgb), 0.14)
-		),
+		linear-gradient(135deg, rgba(var(--fc-lime-rgb), 0.28), rgba(var(--fc-cyan-rgb), 0.14)),
 		rgba(10, 15, 28, 0.96);
 	color: var(--fc-lime);
 }
@@ -3734,6 +3886,10 @@
 	);
 	mix-blend-mode: normal;
 	opacity: 0.5;
+}
+
+.theme-light .flashcard-root::after {
+	opacity: 0.66;
 }
 
 .theme-light .flashcard-practice-summary-actions,
@@ -3999,6 +4155,25 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.18);
 	background: rgba(220, 238, 243, 0.82);
 	box-shadow: inset 0 0 10px rgba(33, 55, 83, 0.08);
+}
+
+.theme-light .flashcard-root button.flashcard-pronunciation-button {
+	border-color: rgba(var(--fc-cyan-rgb), 0.3);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 72%),
+		rgba(255, 255, 255, 0.82);
+	color: var(--fc-cyan);
+	box-shadow:
+		inset 0 0 0 1px rgba(255, 255, 255, 0.62),
+		0 4px 12px rgba(35, 49, 68, 0.08);
+}
+
+.theme-light .flashcard-root button.flashcard-pronunciation-button:hover,
+.theme-light .flashcard-root button.flashcard-pronunciation-button.is-speaking {
+	border-color: rgba(var(--fc-cyan-rgb), 0.58);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.18), transparent 72%),
+		rgba(255, 255, 255, 0.94);
 }
 
 .theme-light .flashcard-session-toolbar {

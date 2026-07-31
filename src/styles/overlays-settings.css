@@ -46,11 +46,7 @@
 	padding: var(--fc-space-4);
 	overflow-y: auto;
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.12),
-			transparent 38%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%),
 		rgba(0, 0, 0, 0.74);
 	backdrop-filter: blur(14px);
 	animation: var(--fc-motion-fade-in);
@@ -273,22 +269,109 @@
 	font-weight: 600;
 }
 
-.flashcard-confirm-modal {
-	display: flex;
-	flex-direction: column;
-	gap: var(--fc-space-4, 16px);
+.flashcard-confirm-backdrop {
+	background:
+		radial-gradient(circle at 50% 46%, rgba(var(--fc-cyan-rgb), 0.12), transparent 30%),
+		rgba(0, 0, 0, 0.76);
 }
 
-.flashcard-confirm-modal p {
+.flashcard-confirm-dialog {
+	--fc-confirm-rgb: var(--fc-cyan-rgb);
+	position: relative;
+	width: min(480px, 100%);
+	border-color: rgba(var(--fc-confirm-rgb), 0.34);
+	background:
+		radial-gradient(circle at 12% 0%, rgba(var(--fc-confirm-rgb), 0.1), transparent 36%),
+		var(--fc-bg-elevated);
+	box-shadow:
+		0 30px 90px rgba(0, 0, 0, 0.58),
+		0 0 0 1px rgba(var(--fc-confirm-rgb), 0.08),
+		0 0 38px rgba(var(--fc-confirm-rgb), 0.13);
+}
+
+.flashcard-confirm-dialog.is-danger {
+	--fc-confirm-rgb: var(--fc-red-rgb);
+}
+
+.flashcard-confirm-accent {
+	position: absolute;
+	top: 0;
+	left: 14%;
+	right: 14%;
+	z-index: 2;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-confirm-rgb), 0.95), transparent);
+	box-shadow: 0 0 18px rgba(var(--fc-confirm-rgb), 0.55);
+	pointer-events: none;
+}
+
+.flashcard-confirm-header {
+	align-items: center;
+	padding: 18px 20px 16px;
+	background: rgba(12, 17, 29, 0.72);
+}
+
+.flashcard-confirm-heading {
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-4);
+}
+
+.flashcard-confirm-icon {
+	width: 42px;
+	height: 42px;
+	flex: 0 0 42px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid rgba(var(--fc-confirm-rgb), 0.34);
+	border-radius: var(--fc-radius-md);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-confirm-rgb), 0.2), transparent), rgba(5, 7, 13, 0.72);
+	color: rgb(var(--fc-confirm-rgb));
+	box-shadow: 0 0 22px rgba(var(--fc-confirm-rgb), 0.12);
+}
+
+.flashcard-confirm-dialog .flashcard-modal-kicker {
+	padding: 3px 7px;
+	border-color: rgba(var(--fc-confirm-rgb), 0.24);
+	background: rgba(var(--fc-confirm-rgb), 0.07);
+	color: rgb(var(--fc-confirm-rgb));
+	font: 700 10px / 1.2 var(--fc-font-data);
+	letter-spacing: 0.08em;
+}
+
+.flashcard-confirm-title {
 	margin: 0;
-	color: var(--text-normal);
-	line-height: 1.6;
+	color: var(--fc-text);
+	font: 700 var(--fc-font-lg) / 1.25 var(--fc-font-ui);
+	letter-spacing: 0.01em;
 }
 
-.flashcard-confirm-actions {
-	display: flex;
-	justify-content: flex-end;
-	gap: 8px;
+.flashcard-confirm-body {
+	padding: 20px;
+	background: linear-gradient(135deg, rgba(var(--fc-confirm-rgb), 0.04), transparent 58%);
+}
+
+.flashcard-confirm-body p {
+	margin: 0;
+	padding: 13px 14px;
+	border-left: 2px solid rgba(var(--fc-confirm-rgb), 0.68);
+	border-radius: 0 var(--fc-radius-sm) var(--fc-radius-sm) 0;
+	background: rgba(var(--fc-confirm-rgb), 0.055);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	line-height: 1.75;
+}
+
+.flashcard-confirm-footer {
+	padding: 14px 20px;
+	background: rgba(12, 17, 29, 0.78);
+}
+
+.flashcard-confirm-footer .flashcard-btn {
+	min-width: 96px;
 }
 
 .flashcard-add-card-fab {
@@ -309,11 +392,7 @@
 
 .flashcard-root button.flashcard-add-card-fab {
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-lime-rgb), 0.28),
-			rgba(var(--fc-cyan-rgb), 0.14)
-		),
+		linear-gradient(135deg, rgba(var(--fc-lime-rgb), 0.28), rgba(var(--fc-cyan-rgb), 0.14)),
 		rgba(10, 15, 28, 0.96);
 	color: var(--fc-lime);
 }

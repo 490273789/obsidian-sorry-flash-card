@@ -838,7 +838,7 @@
 }
 
 .flashcard-session-actions-toggle {
-	display: inline-flex;
+	display: none;
 }
 
 .flashcard-session-actions-toggle-icon {
@@ -850,10 +850,6 @@
 }
 
 .flashcard-session-action-item {
-	display: none;
-}
-
-.flashcard-session-actions.is-open .flashcard-session-action-item {
 	display: inline-flex;
 }
 

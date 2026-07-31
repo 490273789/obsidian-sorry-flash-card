@@ -7,16 +7,7 @@ import React, {
 	useEffect,
 	useSyncExternalStore,
 } from "react";
-import {
-	App,
-	ButtonComponent,
-	Component,
-	MarkdownRenderer,
-	Modal,
-	Notice,
-	Platform,
-	TFile,
-} from "obsidian";
+import { App, Component, MarkdownRenderer, Notice, Platform, TFile } from "obsidian";
 import {
 	ViewState,
 	FlashcardSettings,
@@ -54,6 +45,7 @@ import { SpellingSummary } from "./SpellingSummary";
 import { I18nProvider } from "./I18nContext";
 import { createTranslator } from "../../i18n";
 import { CardEditorModal, type CardEditorSavePayload } from "./CardEditorModal";
+import { ConfirmDialog, type ConfirmDialogTone } from "./ConfirmDialog";
 import type {
 	CardChangeOutcome,
 	CardIdentityContinuity,
@@ -91,6 +83,14 @@ type CardEditorState =
 			explanation: string;
 	  };
 
+interface ConfirmationState {
+	title: string;
+	message: string;
+	confirmText: string;
+	tone: ConfirmDialogTone;
+	resolve: (confirmed: boolean) => void;
+}
+
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	app,
 	dataStore,
@@ -119,6 +119,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	}, [activeSessionStore, activeSessions.lastEndReason, t]);
 	const [, bumpSnapshotVersion] = useReducer((version: number) => version + 1, 0);
 	const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
+	const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null);
+	const confirmationRef = useRef<ConfirmationState | null>(null);
 	// Track when word-list view was opened for duration recording
 	const wordListStartTime = useRef<number | null>(null);
 
@@ -163,40 +165,39 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setCardEditor(null);
 	}, []);
 
+	const resolveConfirmation = useCallback((confirmed: boolean) => {
+		const current = confirmationRef.current;
+		if (!current) return;
+		confirmationRef.current = null;
+		setConfirmation(null);
+		current.resolve(confirmed);
+	}, []);
+	const handleConfirmDialogConfirm = useCallback(() => resolveConfirmation(true), [resolveConfirmation]);
+	const handleConfirmDialogCancel = useCallback(() => resolveConfirmation(false), [resolveConfirmation]);
+
 	const confirmAction = useCallback(
-		(title: string, message: string, confirmText: string): Promise<boolean> => {
+		(
+			title: string,
+			message: string,
+			confirmText: string,
+			tone: ConfirmDialogTone = "primary",
+		): Promise<boolean> => {
 			return new Promise((resolve) => {
-				let isResolved = false;
-				const modal = new Modal(app);
-
-				const finish = (confirmed: boolean) => {
-					if (isResolved) return;
-					isResolved = true;
-					modal.close();
-					resolve(confirmed);
-				};
-
-				modal.titleEl.setText(title);
-				const body = modal.contentEl.createDiv({
-					cls: "flashcard-confirm-modal",
-				});
-				body.createEl("p", { text: message });
-				const actions = body.createDiv({
-					cls: "flashcard-confirm-actions",
-				});
-				new ButtonComponent(actions)
-					.setButtonText(t("common.cancel"))
-					.onClick(() => finish(false));
-				new ButtonComponent(actions)
-					.setButtonText(confirmText)
-					.setCta()
-					.onClick(() => finish(true));
-				modal.onClose = () => finish(false);
-				modal.open();
+				confirmationRef.current?.resolve(false);
+				const nextConfirmation = { title, message, confirmText, tone, resolve };
+				confirmationRef.current = nextConfirmation;
+				setConfirmation(nextConfirmation);
 			});
 		},
-		[app, t],
+		[],
 	);
+
+	useEffect(() => {
+		return () => {
+			confirmationRef.current?.resolve(false);
+			confirmationRef.current = null;
+		};
+	}, []);
 
 	const ensureDeckEditable = useCallback(
 		async (deckId: string): Promise<boolean> => {
@@ -458,6 +459,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			t("study.exitTitle"),
 			t("study.exitConfirm"),
 			t("common.confirm"),
+			"danger",
 		);
 		if (!confirmed) return;
 
@@ -663,6 +665,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			t("spelling.exitTitle"),
 			t("spelling.exitConfirm"),
 			t("common.confirm"),
+			"danger",
 		);
 		if (!confirmed) return;
 		if (spellingSession) {
@@ -710,6 +713,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				t("cardEditor.deleteCurrentTitle"),
 				t("cardEditor.deleteConfirm"),
 				t("settings.delete"),
+				"danger",
 			);
 			if (!confirmed) return;
 			if (!(await ensureDeckEditable(deckId))) return;
@@ -1097,6 +1101,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					initialExplanation={cardEditor.mode === "edit" ? cardEditor.explanation : ""}
 					onSave={handleSaveCardEditor}
 					onClose={handleCloseCardEditor}
+				/>
+			)}
+			{confirmation && (
+				<ConfirmDialog
+					title={confirmation.title}
+					message={confirmation.message}
+					confirmText={confirmation.confirmText}
+					cancelText={t("common.cancel")}
+					kicker={t("common.confirmAction")}
+					tone={confirmation.tone}
+					onConfirm={handleConfirmDialogConfirm}
+					onCancel={handleConfirmDialogCancel}
 				/>
 			)}
 		</I18nProvider>

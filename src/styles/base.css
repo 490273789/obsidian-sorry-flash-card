@@ -163,6 +163,64 @@
 	opacity: 0.46;
 }
 
+.flashcard-root::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	border-radius: inherit;
+	background-image:
+		radial-gradient(
+			ellipse at 18% 24%,
+			rgba(var(--fc-cyan-rgb), 0.09),
+			transparent 44%
+		),
+		radial-gradient(
+			ellipse at 84% 64%,
+			rgba(var(--fc-violet-rgb), 0.065),
+			transparent 42%
+		),
+		radial-gradient(
+			circle,
+			var(--fc-grid) 0,
+			var(--fc-grid) 0.9px,
+			transparent 1px
+		);
+	background-position:
+		0 0,
+		0 0,
+		11px 11px;
+	background-size:
+		100% 100%,
+		100% 100%,
+		22px 22px;
+	-webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+	mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+	opacity: 0.46;
+}
+
+.theme-dark .flashcard-root::after {
+	background-image:
+		radial-gradient(
+			ellipse at 16% 38%,
+			rgba(var(--fc-cyan-rgb), 0.15),
+			transparent 46%
+		),
+		radial-gradient(
+			ellipse at 84% 72%,
+			rgba(var(--fc-violet-rgb), 0.11),
+			transparent 44%
+		),
+		radial-gradient(
+			circle,
+			rgba(var(--fc-cyan-rgb), 0.105) 0,
+			rgba(var(--fc-cyan-rgb), 0.105) 0.9px,
+			transparent 1px
+		);
+	opacity: 0.78;
+}
+
 .flashcard-root > * {
 	position: relative;
 	z-index: 1;

@@ -82,7 +82,7 @@ export const PronunciationButton: React.FC<PronunciationButtonRuntimeProps> = ({
 					.catch(() => new Notice(t("pronunciation.failed")));
 			}}
 		>
-			<Volume2 size={18} aria-hidden="true" />
+			<Volume2 size={16} aria-hidden="true" />
 		</button>
 	);
 };
