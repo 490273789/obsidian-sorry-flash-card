@@ -1077,11 +1077,7 @@
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.07),
-			transparent 40%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 40%),
 		rgba(10, 15, 28, 0.88);
 	box-shadow: var(--fc-shadow);
 }
@@ -1107,12 +1103,7 @@
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(var(--fc-cyan-rgb), 0.06),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.06), transparent);
 }
 
 .flashcard-study-hero-copy,
@@ -1467,54 +1458,110 @@
 }
 
 .flashcard-study-day-list {
-	overflow: hidden;
-	gap: 0;
-	border-top: 1px solid rgba(139, 159, 181, 0.24);
-	border-bottom: 1px solid rgba(139, 159, 181, 0.24);
-	border-radius: var(--fc-radius-sm);
-	background: rgba(5, 7, 13, 0.22);
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-2);
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
+	border-radius: var(--fc-radius-md);
+	background: rgba(5, 7, 13, 0.34);
 }
 
 .flashcard-study-day-item {
-	padding: var(--fc-space-3) var(--fc-space-2);
-	border: 0;
-	border-top: 1px solid rgba(139, 159, 181, 0.28);
-	border-radius: 0;
-	background: rgba(16, 21, 33, 0.16);
-}
-
-.flashcard-study-day-item:first-child {
-	border-top: 0;
+	min-height: 64px;
+	padding: var(--fc-space-4) var(--fc-space-5);
+	border: 1px solid rgba(139, 159, 181, 0.2);
+	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.38);
+	border-radius: var(--fc-radius-sm);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 30%),
+		rgba(16, 21, 33, 0.52);
 }
 
 .flashcard-study-day-item:nth-child(even) {
-	background: rgba(16, 21, 33, 0.3);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 30%),
+		rgba(16, 21, 33, 0.66);
 }
 
 .flashcard-study-day-item.current {
-	border-color: rgba(var(--fc-cyan-rgb), 0.44);
-	background: rgba(var(--fc-cyan-rgb), 0.07);
-	box-shadow: inset 3px 0 0 var(--fc-cyan);
+	border-color: rgba(var(--fc-cyan-rgb), 0.46);
+	border-left-color: var(--fc-cyan);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%),
+		rgba(16, 21, 33, 0.72);
+	box-shadow:
+		inset 3px 0 0 var(--fc-cyan),
+		0 0 18px rgba(var(--fc-cyan-rgb), 0.06);
 }
 
 .flashcard-study-day-item.completed {
-	border-color: rgba(var(--fc-lime-rgb), 0.32);
-	background: rgba(var(--fc-lime-rgb), 0.065);
+	border-color: rgba(var(--fc-lime-rgb), 0.3);
+	border-left-color: rgba(var(--fc-lime-rgb), 0.72);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-lime-rgb), 0.09), transparent 34%),
+		rgba(16, 21, 33, 0.58);
+}
+
+.flashcard-study-day-item.locked {
+	opacity: 0.72;
+}
+
+.flashcard-study-day-badge {
+	width: 34px;
+	height: 34px;
+	flex: 0 0 34px;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.32);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(var(--fc-cyan-rgb), 0.08);
+}
+
+.flashcard-study-day-badge svg {
+	width: 18px;
+	height: 18px;
+}
+
+.flashcard-study-day-name {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	font-size: var(--fc-font-md);
+}
+
+.flashcard-study-day-today-badge {
+	padding: 3px 8px;
+}
+
+.flashcard-study-day-count {
+	min-width: 62px;
+	padding: 6px 9px;
+	border: 1px solid rgba(139, 159, 181, 0.18);
+	border-radius: var(--fc-radius-pill);
+	background: rgba(5, 7, 13, 0.38);
+	font-size: var(--fc-font-sm);
+	text-align: center;
 }
 
 .flashcard-study-day-item.fc-lift:hover {
-	border-top-color: rgba(var(--fc-cyan-rgb), 0.38);
-	background: rgba(var(--fc-cyan-rgb), 0.065);
-	box-shadow: none;
+	border-color: rgba(var(--fc-cyan-rgb), 0.4);
+	border-left-color: rgba(var(--fc-cyan-rgb), 0.76);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 34%),
+		rgba(16, 21, 33, 0.7);
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .flashcard-study-day-item.current.fc-lift:hover {
-	background: rgba(var(--fc-cyan-rgb), 0.09);
-	box-shadow: inset 3px 0 0 var(--fc-cyan);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.14), transparent 40%),
+		rgba(16, 21, 33, 0.78);
+	box-shadow:
+		inset 3px 0 0 var(--fc-cyan),
+		0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .flashcard-study-day-item.completed.fc-lift:hover {
-	background: rgba(var(--fc-lime-rgb), 0.07);
+	background:
+		linear-gradient(90deg, rgba(var(--fc-lime-rgb), 0.11), transparent 36%),
+		rgba(16, 21, 33, 0.7);
 }
 
 .flashcard-practice-input-group,
@@ -1533,11 +1580,7 @@
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 44%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 44%),
 		rgba(10, 15, 28, 0.64);
 	box-shadow:
 		inset 0 1px 0 rgba(255, 255, 255, 0.025),
@@ -1957,12 +2000,7 @@
 	position: absolute;
 	inset: 0 auto 0 0;
 	border-radius: inherit;
-	background: linear-gradient(
-		90deg,
-		var(--fc-cyan),
-		var(--fc-magenta),
-		var(--fc-lime)
-	);
+	background: linear-gradient(90deg, var(--fc-cyan), var(--fc-magenta), var(--fc-lime));
 	box-shadow:
 		0 0 18px rgba(var(--fc-cyan-rgb), 0.26),
 		0 0 28px rgba(var(--fc-magenta-rgb), 0.12);
@@ -1973,12 +2011,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(255, 255, 255, 0.42),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
 	animation: var(--fc-motion-progress-scan);
 }
 
@@ -2090,12 +2123,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(var(--fc-cyan-rgb), 0.72),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.72), transparent);
 	transform: translateX(-110%);
 	animation: var(--fc-motion-divider);
 }
@@ -2148,8 +2176,7 @@
 	padding: 5px 10px;
 	border-color: rgba(var(--fc-cyan-rgb), 0.16);
 	background:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent),
-		rgba(16, 21, 33, 0.86);
+		linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent), rgba(16, 21, 33, 0.86);
 }
 
 .flashcard-rating-btn:active:not(:disabled),
@@ -2175,8 +2202,7 @@
 .flashcard-rating-3 {
 	border-color: rgba(var(--fc-cyan-rgb), 0.62);
 	background:
-		linear-gradient(180deg, rgba(var(--fc-cyan-rgb), 0.1), transparent),
-		rgba(16, 21, 33, 0.9);
+		linear-gradient(180deg, rgba(var(--fc-cyan-rgb), 0.1), transparent), rgba(16, 21, 33, 0.9);
 	box-shadow:
 		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.08),
 		0 0 18px rgba(var(--fc-cyan-rgb), 0.08);
@@ -2246,12 +2272,7 @@
 	position: relative;
 	height: 100%;
 	border-radius: inherit;
-	background: linear-gradient(
-		90deg,
-		var(--fc-cyan),
-		var(--fc-magenta),
-		var(--fc-lime)
-	);
+	background: linear-gradient(90deg, var(--fc-cyan), var(--fc-magenta), var(--fc-lime));
 	box-shadow:
 		0 0 18px rgba(var(--fc-cyan-rgb), 0.28),
 		0 0 30px rgba(var(--fc-magenta-rgb), 0.12);
@@ -2268,12 +2289,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(255, 255, 255, 0.42),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
 	animation: var(--fc-motion-progress-scan);
 }
 
