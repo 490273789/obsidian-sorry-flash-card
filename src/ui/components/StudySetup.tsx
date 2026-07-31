@@ -13,7 +13,6 @@ import { CardDirection, Deck, StudyDayInfo } from "../../shared/types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
-import { SetupStats } from "./SetupStats";
 import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 interface StudySetupProps {
@@ -144,7 +143,31 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 
 	return (
 		<div className="flashcard-practice-setup">
-			<FlashcardHeader icon={Brain} title={t("study.title")} onBack={onBack} />
+			<FlashcardHeader
+				icon={Brain}
+				title={t("study.title")}
+				onBack={onBack}
+				stats={[
+					{
+						key: "new",
+						value: todayNewCount,
+						label: t("study.todayNew"),
+						tone: "green",
+					},
+					{
+						key: "due",
+						value: todayReviewCount,
+						label: t("study.dueReview"),
+						tone: "purple",
+					},
+					{
+						key: "completed",
+						value: completedDays,
+						label: t("study.completedDays"),
+						tone: "blue",
+					},
+				]}
+			/>
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero">
@@ -155,27 +178,6 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 						</div>
 					</div>
 				</div>
-
-				{/* Today's session stats */}
-				<SetupStats
-					items={[
-						{
-							value: todayNewCount,
-							label: t("study.todayNew"),
-							tone: "green",
-						},
-						{
-							value: todayReviewCount,
-							label: t("study.dueReview"),
-							tone: "purple",
-						},
-						{
-							value: completedDays,
-							label: t("study.completedDays"),
-							tone: "blue",
-						},
-					]}
-				/>
 
 				{/* Study preferences */}
 				<div className="flashcard-study-panel flashcard-setup-controls">

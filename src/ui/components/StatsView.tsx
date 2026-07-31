@@ -24,33 +24,32 @@ export const StatsView: React.FC<StatsViewProps> = ({ history, onBack }) => {
 
 	return (
 		<div className="flashcard-stats-view">
-			<div className="flashcard-stats-top">
-				{/* Header */}
-				<FlashcardHeader
-					icon={ChartBar}
-					title={t("stats.title")}
-					onBack={onBack}
-					right={<span className="flashcard-stats-range">{t("stats.last20Days")}</span>}
-				/>
-
-				{/* Summary bar */}
-				<div className="flashcard-stats-summary">
-					<div className="flashcard-stats-summary-item fc-lift">
-						<div className="flashcard-stats-summary-value">{dayGroups.length}</div>
-						<div className="flashcard-summary-label">{t("stats.daysStudied")}</div>
-					</div>
-					<div className="flashcard-stats-summary-divider" />
-					<div className="flashcard-stats-summary-item fc-lift">
-						<div className="flashcard-stats-summary-value">{totals.durationLabel}</div>
-						<div className="flashcard-summary-label">{t("stats.totalDuration")}</div>
-					</div>
-					<div className="flashcard-stats-summary-divider" />
-					<div className="flashcard-stats-summary-item fc-lift">
-						<div className="flashcard-stats-summary-value">{totals.cards}</div>
-						<div className="flashcard-summary-label">{t("stats.totalCards")}</div>
-					</div>
-				</div>
-			</div>
+			<FlashcardHeader
+				icon={ChartBar}
+				title={t("stats.title")}
+				onBack={onBack}
+				right={<span className="flashcard-stats-range">{t("stats.last20Days")}</span>}
+				stats={[
+					{
+						key: "days",
+						value: dayGroups.length,
+						label: t("stats.daysStudied"),
+						tone: "blue",
+					},
+					{
+						key: "duration",
+						value: totals.durationLabel,
+						label: t("stats.totalDuration"),
+						tone: "purple",
+					},
+					{
+						key: "cards",
+						value: totals.cards,
+						label: t("stats.totalCards"),
+						tone: "green",
+					},
+				]}
+			/>
 
 			{/* Day list */}
 			<div className="flashcard-stats-body">

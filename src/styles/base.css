@@ -12,9 +12,10 @@
 	--fc-font-xl: 24px;
 	--fc-font-display: 32px;
 
-	--fc-radius-xs: 4px;
-	--fc-radius-sm: 6px;
-	--fc-radius-md: 8px;
+	--fc-radius-xs: 6px;
+	--fc-radius-sm: 8px;
+	--fc-radius-md: 10px;
+	--fc-radius-lg: 12px;
 	--fc-radius-pill: 999px;
 
 	--fc-space-1: 4px;
@@ -131,11 +132,19 @@
 	display: flex;
 	flex-direction: column;
 	padding: var(--fc-space-4);
-	border: 0;
-	border-radius: 0;
+	border: 1px solid rgba(var(--fc-cyan-rgb), 0.12);
+	border-radius: var(--fc-radius-md);
 	background:
-		radial-gradient(circle at 12% 0%, rgba(var(--fc-cyan-rgb), 0.07), transparent 34%),
-		radial-gradient(circle at 88% 12%, rgba(var(--fc-violet-rgb), 0.04), transparent 30%),
+		radial-gradient(
+			circle at 12% 0%,
+			rgba(var(--fc-cyan-rgb), 0.07),
+			transparent 34%
+		),
+		radial-gradient(
+			circle at 88% 12%,
+			rgba(var(--fc-violet-rgb), 0.04),
+			transparent 30%
+		),
 		var(--fc-bg);
 	scrollbar-gutter: stable;
 }
@@ -145,7 +154,11 @@
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 24%);
+	background: linear-gradient(
+		180deg,
+		rgba(255, 255, 255, 0.025),
+		transparent 24%
+	);
 	mix-blend-mode: screen;
 	opacity: 0.46;
 }

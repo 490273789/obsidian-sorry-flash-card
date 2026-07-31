@@ -13,7 +13,6 @@ import type { PracticeSessionStartOptions } from "../../sessions/practiceSession
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
-import { SetupStats } from "./SetupStats";
 import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
@@ -145,7 +144,31 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 
 	return (
 		<div className="flashcard-practice-setup">
-			<FlashcardHeader icon={Target} title={t("practice.title")} onBack={onBack} />
+			<FlashcardHeader
+				icon={Target}
+				title={t("practice.title")}
+				onBack={onBack}
+				stats={[
+					{
+						key: "available",
+						value: maxQuestions,
+						label: t("practice.availableQuestions"),
+						tone: "purple",
+					},
+					{
+						key: "selected",
+						value: currentQuestionCount,
+						label: t("practice.currentSelection"),
+						tone: "blue",
+					},
+					{
+						key: "coverage",
+						value: `${coverage}%`,
+						label: t("practice.scanRange"),
+						tone: "green",
+					},
+				]}
+			/>
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
@@ -160,26 +183,6 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 						</div>
 					</div>
 				</div>
-
-				<SetupStats
-					items={[
-						{
-							value: maxQuestions,
-							label: t("practice.availableQuestions"),
-							tone: "purple",
-						},
-						{
-							value: currentQuestionCount,
-							label: t("practice.currentSelection"),
-							tone: "blue",
-						},
-						{
-							value: `${coverage}%`,
-							label: t("practice.scanRange"),
-							tone: "green",
-						},
-					]}
-				/>
 
 				<div className="flashcard-study-panel flashcard-setup-controls">
 					<SetupControlGroup

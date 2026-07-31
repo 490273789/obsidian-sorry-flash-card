@@ -1,7 +1,8 @@
 import React from "react";
-import { ArrowLeft, X, ChevronDown, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Pencil, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardHeader } from "./FlashcardHeader";
 import { SessionTimer } from "./SessionTimer";
 import { useI18n } from "./I18nContext";
 
@@ -57,32 +58,19 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 
 	return (
 		<div className="flashcard-session-shell">
-			<div className="flashcard-common-header flashcard-session-header">
-				<div className="flashcard-session-identity">
-					<span className="flashcard-deck-title">{deckName}</span>
-					<span className="flashcard-badge">
-						<StatusIcon size={14} /> {statusLabel}
-					</span>
-				</div>
-				<FlashcardButton
-					preset="back"
-					icon={X}
-					iconSize={18}
-					onClick={onClose}
-					className="flashcard-session-back flashcard-session-back-desktop"
-					title={closeTitle}
-					aria-label={closeTitle}
-				/>
-				<FlashcardButton
-					preset="back"
-					icon={ArrowLeft}
-					iconSize={20}
-					onClick={onClose}
-					className="flashcard-session-back flashcard-session-back-mobile"
-					title={closeTitle}
-					aria-label={closeTitle}
-				/>
-			</div>
+			<FlashcardHeader
+				className="flashcard-session-header"
+				title={
+					<div className="flashcard-session-identity">
+						<span className="flashcard-deck-title">{deckName}</span>
+						<span className="flashcard-badge">
+							<StatusIcon size={14} /> {statusLabel}
+						</span>
+					</div>
+				}
+				onBack={onClose}
+				backTitle={closeTitle}
+			/>
 			<div className="flashcard-session-toolbar">
 				<div className="flashcard-session-progress" aria-label={t("study.progress")}>
 					<span className="flashcard-session-progress-text">{progress}</span>

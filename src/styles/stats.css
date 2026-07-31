@@ -3,47 +3,6 @@
 	overflow: hidden;
 }
 
-.flashcard-stats-top {
-	position: relative;
-	top: auto;
-	z-index: 20;
-	flex: 0 0 auto;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-}
-
-.flashcard-stats-summary {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	min-height: 76px;
-	padding: var(--fc-space-3);
-	border-top: 1px solid var(--fc-line);
-	background: rgba(5, 7, 13, 0.45);
-}
-
-.flashcard-stats-top .flashcard-common-header {
-	position: relative;
-	top: auto;
-	min-height: 58px;
-	overflow: visible;
-}
-
-.flashcard-stats-summary-divider {
-	display: none;
-}
-
-.flashcard-stats-summary-item {
-	border: 0;
-	border-radius: 0;
-	background: transparent;
-}
-
-.flashcard-stats-summary-item:nth-child(1),
-.flashcard-stats-summary-item:nth-child(3) {
-	border-right: 1px solid var(--fc-line);
-}
-
 .flashcard-stats-body {
 	flex: 1 1 auto;
 	min-height: 0;

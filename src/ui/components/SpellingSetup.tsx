@@ -8,7 +8,6 @@ import type {
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
-import { SetupStats } from "./SetupStats";
 import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 const QUICK_COUNTS = [10, 20, 50];
@@ -45,7 +44,37 @@ export const SpellingSetup: React.FC<SpellingSetupProps> = ({ deck, stats, onSta
 
 	return (
 		<div className="flashcard-practice-setup flashcard-spelling-setup">
-			<FlashcardHeader icon={Keyboard} title={t("spelling.title")} onBack={onBack} />
+			<FlashcardHeader
+				icon={Keyboard}
+				title={t("spelling.title")}
+				onBack={onBack}
+				stats={[
+					{
+						key: "total",
+						value: stats.total,
+						label: t("spelling.totalWords"),
+						tone: "blue",
+					},
+					{
+						key: "unpracticed",
+						value: stats.unpracticed,
+						label: t("spelling.unpracticed"),
+						tone: "orange",
+					},
+					{
+						key: "reinforcement",
+						value: stats.reinforcement,
+						label: t("spelling.reinforcement"),
+						tone: "red",
+					},
+					{
+						key: "stable",
+						value: stats.stable,
+						label: t("spelling.stable"),
+						tone: "green",
+					},
+				]}
+			/>
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-spelling-hero">
@@ -60,32 +89,6 @@ export const SpellingSetup: React.FC<SpellingSetupProps> = ({ deck, stats, onSta
 						</div>
 					</div>
 				</div>
-
-				<SetupStats
-					className="flashcard-spelling-stats"
-					items={[
-						{
-							value: stats.total,
-							label: t("spelling.totalWords"),
-							tone: "blue",
-						},
-						{
-							value: stats.unpracticed,
-							label: t("spelling.unpracticed"),
-							tone: "orange",
-						},
-						{
-							value: stats.reinforcement,
-							label: t("spelling.reinforcement"),
-							tone: "red",
-						},
-						{
-							value: stats.stable,
-							label: t("spelling.stable"),
-							tone: "green",
-						},
-					]}
-				/>
 
 				<div className="flashcard-study-panel flashcard-setup-controls">
 					<SetupControlGroup

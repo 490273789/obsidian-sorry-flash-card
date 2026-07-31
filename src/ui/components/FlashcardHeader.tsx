@@ -4,58 +4,69 @@ import type { LucideIcon } from "lucide-react";
 import { FlashcardButton } from "./FlashcardButton";
 import { useI18n } from "./I18nContext";
 
+export type FlashcardHeaderStatTone = "blue" | "green" | "orange" | "purple" | "red";
+
+export interface FlashcardHeaderStat {
+	key: string;
+	value: React.ReactNode;
+	label: React.ReactNode;
+	tone: FlashcardHeaderStatTone;
+	icon?: LucideIcon;
+}
+
 interface FlashcardHeaderProps {
 	/** Icon displayed next to the title (optional). */
 	icon?: LucideIcon;
-	/** Title text displayed in the center. */
+	/** Main header title. */
 	title: React.ReactNode;
+	/** Compact badge displayed after the title (optional). */
+	badge?: React.ReactNode;
 	/** Content rendered to the left of the title (optional). */
 	left?: React.ReactNode;
 	/** Content rendered to the right of the title (optional). */
 	right?: React.ReactNode;
 	/** When provided, renders a back button on the left that calls this handler. */
 	onBack?: () => void;
+	/** Accessible label for the back/close button. */
+	backTitle?: string;
+	/** Extra CSS class names appended to the header. */
+	className?: string;
+	/** Optional statistics rendered directly below the title row. */
+	stats?: FlashcardHeaderStat[];
 }
 
 /**
- * Unified header for all flashcard views.
+ * Shared compact page header.
  *
- * Supports two primary layouts:
- * - **Navigation header** (setup / overview screens): back button + icon/title + optional right content.
- *   Pass `icon`, `title`, `onBack`, and optionally `right`.
- * - **Session header** (active study / practice): deck info + badge + timer + close.
- *   Pass `left`, `title`, and `right`; omit `onBack`.
+ * Desktop keeps the title at the leading edge and actions at the trailing edge.
+ * Mobile navigation keeps the title centered and swaps the close icon for a back arrow.
  *
- * @example Navigation header
+ * @example
  * ```tsx
  * <FlashcardHeader icon={Brain} title="Study" onBack={onBack} />
- * ```
- *
- * @example Session header
- * ```tsx
- * <FlashcardHeader
- *   left={<><span className="flashcard-deck-title">{name}</span><span className="flashcard-progress">{p}</span></>}
- *   title={<span className="flashcard-badge"><Brain size={18} /> STUDYING</span>}
- *   right={<><span className="flashcard-timer">{t}</span><FlashcardButton preset="icon" icon={X} onClick={onClose} /></>}
- * />
  * ```
  */
 export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 	icon: Icon,
 	title,
+	badge,
 	left,
 	right,
 	onBack,
+	backTitle,
+	className = "",
+	stats,
 }) => {
 	const { t } = useI18n();
+	const navigationLabel = backTitle ?? t("common.back");
 	const desktopBackButton = (
 		<FlashcardButton
 			preset="back"
 			icon={X}
 			iconSize={18}
 			onClick={onBack}
-			title={t("common.back")}
-			aria-label={t("common.back")}
+			title={navigationLabel}
+			aria-label={navigationLabel}
 		/>
 	);
 	const mobileBackButton = (
@@ -64,26 +75,58 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 			icon={ArrowLeft}
 			iconSize={20}
 			onClick={onBack}
-			title={t("common.back")}
-			aria-label={t("common.back")}
+			title={navigationLabel}
+			aria-label={navigationLabel}
 		/>
 	);
+	const classes = [
+		"flashcard-common-header",
+		"flashcard-navigation-header",
+		onBack ? "has-back" : "",
+		className,
+	]
+		.filter(Boolean)
+		.join(" ");
 
-	return (
-		<div className="flashcard-common-header flashcard-navigation-header">
+	const header = (
+		<header className={classes}>
 			<div className="flashcard-header-left">
 				{onBack && <span className="flashcard-header-back-mobile">{mobileBackButton}</span>}
 				{left}
 			</div>
 			<div className="flashcard-header-center">
 				{Icon && <Icon size={18} />}
-				{title}
+				<div className="flashcard-header-title-content">{title}</div>
+				{badge && <span className="flashcard-header-badge">{badge}</span>}
 			</div>
 			<div className="flashcard-header-right">
 				{right}
 				{onBack && (
 					<span className="flashcard-header-back-desktop">{desktopBackButton}</span>
 				)}
+			</div>
+		</header>
+	);
+
+	if (!stats || stats.length === 0) return header;
+
+	return (
+		<div className="flashcard-page-header">
+			{header}
+			<div className="flashcard-header-overview">
+				<ul className={`flashcard-header-stats columns-${stats.length}`}>
+					{stats.map(({ key, value, label, tone, icon: StatIcon }) => (
+						<li className="flashcard-header-stat" key={key}>
+							{StatIcon && <StatIcon size={16} />}
+							<span
+								className={`flashcard-header-stat-value tone-${tone}`}
+							>
+								{value}
+							</span>
+							<span className="flashcard-header-stat-label">{label}</span>
+						</li>
+					))}
+				</ul>
 			</div>
 		</div>
 	);

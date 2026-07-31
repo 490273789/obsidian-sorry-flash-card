@@ -71,10 +71,6 @@
 	color: var(--fc-muted);
 }
 
-.flashcard-spelling-stats {
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
 .flashcard-spelling-input-group {
 	display: flex;
 	flex-direction: column;
@@ -275,19 +271,9 @@
 	color: var(--fc-text);
 }
 
-@media (max-width: 900px) {
-	.flashcard-spelling-stats {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-}
-
 @media (max-width: 640px) {
 	.flashcard-deck-actions2.has-spelling {
 		grid-template-columns: 1fr;
-	}
-
-	.flashcard-spelling-stats {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.flashcard-deck-settings-purpose-heading,
