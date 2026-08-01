@@ -37,9 +37,11 @@ import type {
 import { validateSpellingDeck } from "../../cards/spellingWord";
 import { isStableCardIdentity } from "../../identity/cardIdentity";
 import type { PronunciationRuntime } from "../../pronunciation";
+import { ModalProvider } from "../modal";
 
 interface FlashcardAppProps {
 	app: App;
+	modalHost: HTMLElement;
 	dataStore: DataStore;
 	cardIdentityContinuity: CardIdentityContinuity;
 	sessionLifecycle: SessionLifecycle;
@@ -75,6 +77,7 @@ interface ConfirmationState {
 
 export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	app,
+	modalHost,
 	dataStore,
 	cardIdentityContinuity,
 	sessionLifecycle,
@@ -1018,31 +1021,35 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	return (
 		<I18nProvider language={settings.language}>
-			{renderContent()}
-			{cardEditor && (
-				<CardEditorModal
-					mode={cardEditor.mode}
-					decks={decks}
-					initialDeckId={cardEditor.deckId}
-					initialFront={cardEditor.mode === "edit" ? cardEditor.front : ""}
-					initialBack={cardEditor.mode === "edit" ? cardEditor.back : ""}
-					initialExplanation={cardEditor.mode === "edit" ? cardEditor.explanation : ""}
-					onSave={handleSaveCardEditor}
-					onClose={handleCloseCardEditor}
-				/>
-			)}
-			{confirmation && (
-				<ConfirmDialog
-					title={confirmation.title}
-					message={confirmation.message}
-					confirmText={confirmation.confirmText}
-					cancelText={t("common.cancel")}
-					kicker={t("common.confirmAction")}
-					tone={confirmation.tone}
-					onConfirm={handleConfirmDialogConfirm}
-					onCancel={handleConfirmDialogCancel}
-				/>
-			)}
+			<ModalProvider host={modalHost}>
+				{renderContent()}
+				{cardEditor && (
+					<CardEditorModal
+						mode={cardEditor.mode}
+						decks={decks}
+						initialDeckId={cardEditor.deckId}
+						initialFront={cardEditor.mode === "edit" ? cardEditor.front : ""}
+						initialBack={cardEditor.mode === "edit" ? cardEditor.back : ""}
+						initialExplanation={
+							cardEditor.mode === "edit" ? cardEditor.explanation : ""
+						}
+						onSave={handleSaveCardEditor}
+						onClose={handleCloseCardEditor}
+					/>
+				)}
+				{confirmation && (
+					<ConfirmDialog
+						title={confirmation.title}
+						message={confirmation.message}
+						confirmText={confirmation.confirmText}
+						cancelText={t("common.cancel")}
+						kicker={t("common.confirmAction")}
+						tone={confirmation.tone}
+						onConfirm={handleConfirmDialogConfirm}
+						onCancel={handleConfirmDialogCancel}
+					/>
+				)}
+			</ModalProvider>
 		</I18nProvider>
 	);
 };

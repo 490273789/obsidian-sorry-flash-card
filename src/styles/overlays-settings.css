@@ -56,6 +56,10 @@
 	animation: var(--fc-motion-fade-in);
 }
 
+.flashcard-modal-backdrop[aria-hidden="true"] {
+	pointer-events: none;
+}
+
 .flashcard-modal {
 	width: min(560px, 100%);
 	max-height: calc(100dvh - 32px);
@@ -141,6 +145,11 @@
 	border-color: rgba(var(--fc-red-rgb), 0.48);
 	box-shadow: 0 0 18px rgba(var(--fc-red-rgb), 0.12);
 	outline: none;
+}
+
+.flashcard-modal-close:disabled {
+	cursor: not-allowed;
+	opacity: 0.52;
 }
 
 .flashcard-modal-body {

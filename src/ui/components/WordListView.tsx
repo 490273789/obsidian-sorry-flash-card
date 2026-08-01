@@ -2,12 +2,12 @@ import React, {
 	memo,
 	useCallback,
 	useEffect,
+	useId,
 	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
 } from "react";
-import ReactDOM from "react-dom";
 import { BookOpenText, X } from "lucide-react";
 import type { Deck } from "../../shared/types";
 import { shuffleArray } from "../../shared/utils";
@@ -24,6 +24,7 @@ import {
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
+import { ModalSurface } from "../modal";
 
 interface WordListViewProps {
 	deck: Deck;
@@ -130,76 +131,49 @@ const WordExplanationModal = memo(function WordExplanationModal({
 	onClose,
 }: WordExplanationModalProps) {
 	const { t } = useI18n();
-	const handleBackdropClick = useCallback(
-		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (e.target === e.currentTarget) onClose();
-		},
-		[onClose],
-	);
+	const titleId = useId();
+	const subtitleId = useId();
 
-	const handleBackdropKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLDivElement>) => {
-			if (e.target !== e.currentTarget) return;
-			if (e.key === "Enter" || e.key === " ") {
-				e.preventDefault();
-				onClose();
-			}
-		},
-		[onClose],
-	);
-
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
-		};
-		activeDocument.addEventListener("keydown", handleKeyDown);
-		return () => {
-			activeDocument.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [onClose]);
-
-	const modal = (
-		<div
-			className="flashcard-modal-backdrop"
-			onClick={handleBackdropClick}
-			onKeyDown={handleBackdropKeyDown}
-			role="presentation"
+	return (
+		<ModalSurface
+			className="flashcard-word-explanation-modal"
+			labelledBy={titleId}
+			describedBy={subtitleId}
+			onRequestClose={onClose}
 		>
-			<div className="flashcard-modal flashcard-word-explanation-modal">
-				<div className="flashcard-modal-header">
-					<div className="flashcard-modal-heading">
-						<div className="flashcard-modal-kicker fc-kicker">
-							<BookOpenText size={14} />{" "}
-							{t("wordList.thirdColumn")}
+			{({ requestClose, initialFocusProps }) => (
+				<>
+					<div className="flashcard-modal-header">
+						<div className="flashcard-modal-heading">
+							<div className="flashcard-modal-kicker fc-kicker">
+								<BookOpenText size={14} /> {t("wordList.thirdColumn")}
+							</div>
+							<span id={titleId} className="flashcard-modal-title">
+								{item.front}
+							</span>
+							<span id={subtitleId} className="flashcard-modal-subtitle">
+								{item.back}
+							</span>
 						</div>
-						<span className="flashcard-modal-title">
-							{item.front}
-						</span>
-						<span className="flashcard-modal-subtitle">
-							{item.back}
-						</span>
+						<FlashcardButton
+							preset="icon"
+							icon={X}
+							onClick={requestClose}
+							title={t("common.close")}
+							aria-label={t("common.close")}
+							{...initialFocusProps}
+						/>
 					</div>
-					<FlashcardButton
-						preset="icon"
-						icon={X}
-						onClick={onClose}
-						title={t("common.close")}
-						aria-label={t("common.close")}
-					/>
-				</div>
 
-				<div className="flashcard-modal-body">
-					<div className="flashcard-word-explanation-content">
-						{item.explanation || t("wordList.emptyColumn")}
+					<div className="flashcard-modal-body">
+						<div className="flashcard-word-explanation-content">
+							{item.explanation || t("wordList.emptyColumn")}
+						</div>
 					</div>
-				</div>
-			</div>
-		</div>
+				</>
+			)}
+		</ModalSurface>
 	);
-
-	const container =
-		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
-	return ReactDOM.createPortal(modal, container);
 });
 
 export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {

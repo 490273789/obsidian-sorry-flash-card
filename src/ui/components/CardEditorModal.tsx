@@ -1,10 +1,10 @@
-import React, { memo, useCallback, useMemo, useState } from "react";
-import ReactDOM from "react-dom";
+import React, { memo, useCallback, useId, useMemo, useState } from "react";
 import { FilePlus2, Pencil, Sparkles, X } from "lucide-react";
 import type { Deck } from "../../shared/types";
 import { containsReservedMarkerLine } from "../../cards/cardFormat";
 import { FlashcardButton } from "./FlashcardButton";
 import { useI18n } from "./I18nContext";
+import { ModalSurface } from "../modal";
 
 export type CardEditorMode = "create" | "edit";
 
@@ -44,35 +44,13 @@ export const CardEditorModal = memo(function CardEditorModal({
 	const [explanation, setExplanation] = useState(initialExplanation);
 	const [error, setError] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
+	const titleId = useId();
+	const subtitleId = useId();
 
-	const selectedDeck = useMemo(
-		() => decks.find((deck) => deck.id === deckId),
-		[deckId, decks],
-	);
+	const selectedDeck = useMemo(() => decks.find((deck) => deck.id === deckId), [deckId, decks]);
 
-	const title =
-		mode === "edit"
-			? t("cardEditor.editTitle")
-			: t("cardEditor.createTitle");
+	const title = mode === "edit" ? t("cardEditor.editTitle") : t("cardEditor.createTitle");
 	const Icon = mode === "edit" ? Pencil : FilePlus2;
-
-	const handleBackdropClick = useCallback(
-		(e: React.MouseEvent<HTMLDivElement>) => {
-			if (e.target === e.currentTarget && !isSaving) onClose();
-		},
-		[isSaving, onClose],
-	);
-
-	const handleBackdropKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLDivElement>) => {
-			if (e.target !== e.currentTarget || isSaving) return;
-			if (e.key === "Enter" || e.key === " ") {
-				e.preventDefault();
-				onClose();
-			}
-		},
-		[isSaving, onClose],
-	);
 
 	const handleSave = useCallback(async () => {
 		const trimmedDeckId = deckId.trim();
@@ -92,11 +70,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 			setError(t("cardEditor.backRequired"));
 			return;
 		}
-		if (
-			[trimmedFront, trimmedBack, trimmedExplanation].some(
-				containsReservedMarkerLine,
-			)
-		) {
+		if ([trimmedFront, trimmedBack, trimmedExplanation].some(containsReservedMarkerLine)) {
 			setError(t("cardEditor.markerReserved"));
 			return;
 		}
@@ -111,129 +85,122 @@ export const CardEditorModal = memo(function CardEditorModal({
 				explanation: trimmedExplanation || undefined,
 			});
 		} catch (saveError) {
-			setError(
-				saveError instanceof Error
-					? saveError.message
-					: t("cardEditor.saveFailed"),
-			);
+			setError(saveError instanceof Error ? saveError.message : t("cardEditor.saveFailed"));
 		} finally {
 			setIsSaving(false);
 		}
 	}, [back, deckId, explanation, front, onSave, t]);
 
-	const modal = (
-		<div
-			className="flashcard-modal-backdrop"
-			onClick={handleBackdropClick}
-			onKeyDown={handleBackdropKeyDown}
-			role="presentation"
+	return (
+		<ModalSurface
+			className="flashcard-card-editor-modal"
+			labelledBy={titleId}
+			describedBy={subtitleId}
+			onRequestClose={onClose}
+			isDismissible={!isSaving}
 		>
-			<div className="flashcard-modal flashcard-card-editor-modal">
-				<div className="flashcard-modal-header">
-					<div className="flashcard-modal-heading">
-						<div className="flashcard-modal-kicker fc-kicker">
-							<Sparkles size={14} /> {t("cardEditor.kicker")}
+			{({ requestClose, initialFocusProps }) => (
+				<>
+					<div className="flashcard-modal-header">
+						<div className="flashcard-modal-heading">
+							<div className="flashcard-modal-kicker fc-kicker">
+								<Sparkles size={14} /> {t("cardEditor.kicker")}
+							</div>
+							<span id={titleId} className="flashcard-modal-title">
+								<Icon size={17} /> {title}
+							</span>
+							<span id={subtitleId} className="flashcard-modal-subtitle">
+								{selectedDeck
+									? t("cardEditor.subtitle", {
+											deckName: selectedDeck.name,
+										})
+									: t("cardEditor.selectDeck")}
+							</span>
 						</div>
-						<span className="flashcard-modal-title">
-							<Icon size={17} /> {title}
-						</span>
-						<span className="flashcard-modal-subtitle">
-							{selectedDeck
-								? t("cardEditor.subtitle", {
-										deckName: selectedDeck.name,
-									})
-								: t("cardEditor.selectDeck")}
-						</span>
+						<FlashcardButton
+							preset="icon"
+							icon={X}
+							onClick={requestClose}
+							disabled={isSaving}
+							title={t("common.close")}
+							aria-label={t("common.close")}
+						/>
 					</div>
-					<FlashcardButton
-						preset="icon"
-						icon={X}
-						onClick={onClose}
-						disabled={isSaving}
-						title={t("common.close")}
-						aria-label={t("common.close")}
-					/>
-				</div>
 
-				<div className="flashcard-modal-body flashcard-card-editor-body">
-					{mode === "create" && (
+					<div className="flashcard-modal-body flashcard-card-editor-body">
+						{mode === "create" && (
+							<label className="flashcard-card-editor-field">
+								<span>{t("cardEditor.selectDeck")}</span>
+								<select
+									value={deckId}
+									onChange={(e) => setDeckId(e.target.value)}
+									disabled={isSaving}
+									{...initialFocusProps}
+								>
+									{decks.map((deck) => (
+										<option key={deck.id} value={deck.id}>
+											{deck.name} · {deck.tag}
+										</option>
+									))}
+								</select>
+							</label>
+						)}
+
 						<label className="flashcard-card-editor-field">
-							<span>{t("cardEditor.selectDeck")}</span>
-							<select
-								value={deckId}
-								onChange={(e) => setDeckId(e.target.value)}
+							<span>{t("common.cardFront")}</span>
+							<textarea
+								value={front}
+								onChange={(e) => setFront(e.target.value)}
+								placeholder={t("cardEditor.frontPlaceholder")}
 								disabled={isSaving}
-							>
-								{decks.map((deck) => (
-									<option key={deck.id} value={deck.id}>
-										{deck.name} · {deck.tag}
-									</option>
-								))}
-							</select>
+								rows={7}
+								{...(mode === "edit" ? initialFocusProps : {})}
+							/>
 						</label>
-					)}
 
-					<label className="flashcard-card-editor-field">
-						<span>{t("common.cardFront")}</span>
-						<textarea
-							value={front}
-							onChange={(e) => setFront(e.target.value)}
-							placeholder={t("cardEditor.frontPlaceholder")}
+						<label className="flashcard-card-editor-field">
+							<span>{t("common.cardBack")}</span>
+							<textarea
+								value={back}
+								onChange={(e) => setBack(e.target.value)}
+								placeholder={t("cardEditor.backPlaceholder")}
+								disabled={isSaving}
+								rows={7}
+							/>
+						</label>
+
+						<label className="flashcard-card-editor-field">
+							<span>{t("common.explanationOptional")}</span>
+							<textarea
+								value={explanation}
+								onChange={(e) => setExplanation(e.target.value)}
+								placeholder={t("cardEditor.explanationPlaceholder")}
+								disabled={isSaving}
+								rows={5}
+							/>
+						</label>
+
+						{error && <div className="flashcard-card-editor-error">{error}</div>}
+					</div>
+
+					<div className="flashcard-modal-footer">
+						<FlashcardButton onClick={requestClose} disabled={isSaving}>
+							{t("common.cancel")}
+						</FlashcardButton>
+						<FlashcardButton
+							variant="green"
+							onClick={() => void handleSave()}
 							disabled={isSaving}
-							rows={7}
-						/>
-					</label>
-
-					<label className="flashcard-card-editor-field">
-						<span>{t("common.cardBack")}</span>
-						<textarea
-							value={back}
-							onChange={(e) => setBack(e.target.value)}
-							placeholder={t("cardEditor.backPlaceholder")}
-							disabled={isSaving}
-							rows={7}
-						/>
-					</label>
-
-					<label className="flashcard-card-editor-field">
-						<span>{t("common.explanationOptional")}</span>
-						<textarea
-							value={explanation}
-							onChange={(e) => setExplanation(e.target.value)}
-							placeholder={t("cardEditor.explanationPlaceholder")}
-							disabled={isSaving}
-							rows={5}
-						/>
-					</label>
-
-					{error && (
-						<div className="flashcard-card-editor-error">
-							{error}
-						</div>
-					)}
-				</div>
-
-				<div className="flashcard-modal-footer">
-					<FlashcardButton onClick={onClose} disabled={isSaving}>
-						{t("common.cancel")}
-					</FlashcardButton>
-					<FlashcardButton
-						variant="green"
-						onClick={() => void handleSave()}
-						disabled={isSaving}
-					>
-						{isSaving
-							? t("cardEditor.saving")
-							: mode === "edit"
-								? t("cardEditor.saveEdit")
-								: t("cardEditor.saveCreate")}
-					</FlashcardButton>
-				</div>
-			</div>
-		</div>
+						>
+							{isSaving
+								? t("cardEditor.saving")
+								: mode === "edit"
+									? t("cardEditor.saveEdit")
+									: t("cardEditor.saveCreate")}
+						</FlashcardButton>
+					</div>
+				</>
+			)}
+		</ModalSurface>
 	);
-
-	const container =
-		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
-	return ReactDOM.createPortal(modal, container);
 });

@@ -18,6 +18,7 @@ export class FlashcardView extends ItemView {
 	private cardIdentityContinuity: CardIdentityContinuity;
 	private sessionLifecycle: SessionLifecycle;
 	private pronunciationRuntime: PronunciationRuntime;
+	private modalHost: HTMLElement | null = null;
 	private settings: FlashcardSettings;
 	private onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
 	private onOpenSettings: () => void;
@@ -67,18 +68,20 @@ export class FlashcardView extends ItemView {
 
 		// Create React root
 		const rootEl = container.createDiv({ cls: "flashcard-root" });
+		this.modalHost = rootEl;
 		this.root = createRoot(rootEl);
 
 		this.renderApp();
 	}
 
 	private renderApp(): void {
-		if (!this.root) return;
+		if (!this.root || !this.modalHost) return;
 
 		this.root.render(
 			<React.StrictMode>
 				<FlashcardApp
 					app={this.app}
+					modalHost={this.modalHost}
 					dataStore={this.dataStore}
 					cardIdentityContinuity={this.cardIdentityContinuity}
 					sessionLifecycle={this.sessionLifecycle}
@@ -122,6 +125,7 @@ export class FlashcardView extends ItemView {
 			this.root.unmount();
 			this.root = null;
 		}
+		this.modalHost = null;
 	}
 
 	updateSettings(settings: FlashcardSettings): void {
