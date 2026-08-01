@@ -12,10 +12,13 @@ This repository is an Obsidian plugin named `wsr-flash-card`.
 - Data and persistence: `src/storage/dataStore.ts`.
 - Flashcard content rules: `src/cards/`.
 - Deck home and per-deck settings logic: `src/decks/`.
-- Study, practice, and active-session rules/runtimes: `src/sessions/`.
+- Study, practice, spelling, and active-session rules/runtimes: `src/sessions/`.
+- English word/phrase validation and spelling-answer comparison: `src/cards/spellingWord.ts`.
+- Offline-first pronunciation, online providers, and device audio caching: `src/pronunciation/`.
 - Stable card identity, source editing, and source-change continuity: `src/identity/`, with Markdown mutation helpers in `src/cards/` and Obsidian adapters/modals under `src/obsidian/`.
 - Localization: `src/i18n/` (Chinese and English).
 - History and word-list presentation models: `src/history/` and `src/wordList/`.
+- Desktop deck PDF export and its pure presentation model: `src/decks/deckPdfExporter.ts` and `src/decks/deckPdfViewModel.ts`.
 - Settings view model: `src/settings/settingsViewModel.ts`.
 - Shared types/helpers: `src/shared/`.
 - Tests: Vitest with config in `vitest.config.ts`; place focused tests in each module's `__tests__/` directory.
@@ -77,16 +80,17 @@ npm run format
 
 ## Obsidian Plugin Architecture
 
-- `FlashcardPlugin.onload()` initializes `DataStore` and loads settings/data once, then creates `ActiveSessionStore` and `CardIdentityContinuity` before registering the custom view, localized commands, ribbon icon, and settings tab.
-- `FlashcardPlugin.saveSettings()` persists through `DataStore` and updates active `FlashcardView` instances.
+- `FlashcardPlugin.onload()` initializes `DataStore` and loads settings/data once, then creates the shared `PronunciationRuntime`, `ActiveSessionStore`, and `CardIdentityContinuity` before registering the custom view, localized commands, ribbon icon, and settings tab.
+- `FlashcardPlugin.saveSettings()` persists through `DataStore`, updates the shared pronunciation runtime, refreshes localized controls, and updates active `FlashcardView` instances.
 - `FlashcardView.onOpen()` synchronizes sources through `CardIdentityContinuity`, creates a React root, and renders `FlashcardApp`.
-- `FlashcardApp` owns most navigation state between home, setup, study, practice, summary, word list, and stats views.
+- `FlashcardView.onClose()` stops current pronunciation playback, while `FlashcardPlugin.onunload()` disposes the shared pronunciation runtime.
+- `FlashcardApp` owns most navigation state between home, study/practice/spelling setup and sessions, summaries, word list, and stats views.
 
 When adding plugin capabilities, register Obsidian-facing commands or views in `src/obsidian/main.ts`, but keep feature behavior in the relevant storage, cards, decks, identity, sessions, settings, history/word-list presentation-model, or React component modules.
 
 ## Data Persistence
 
-Markdown source files are authoritative for card content. `DataStore` owns the persisted deck cache, settings, study history, discovered tags, FSRS state, and card-identity continuity state.
+Markdown source files are authoritative for card content. `DataStore` owns the persisted deck cache, settings, study history, spelling progress, discovered tags, FSRS state, and card-identity continuity state.
 
 - Save via `DataStore.saveSettings()` or `DataStore.save()`.
 - Do not bypass `DataStore` with separate plugin data writes.
@@ -94,6 +98,8 @@ Markdown source files are authoritative for card content. `DataStore` owns the p
 - Preserve existing FSRS card state when syncing or reparsing files.
 - Deck IDs are based on source file paths; changing that affects persisted history and card state.
 - Card identities may be stable UUIDs stored in source comments. Route plugin-initiated card additions, edits, and deletions through `CardIdentityContinuity.change()` rather than mutating source Markdown or persisted cards directly.
+- Pronunciation provider credentials belong in Obsidian `SecretStorage`; persist only secret IDs in plugin settings. Do not put API keys in `DataStore`, logs, notices, tests, or source files.
+- Pronunciation audio is a device-local IndexedDB cache with an in-memory fallback, separate from `DataStore`; keep cache keys provider/voice/accent/rate/text-specific and preserve the 100 MiB LRU limit unless the product requirement changes.
 
 ## Settings Tab Guidance
 
@@ -141,6 +147,24 @@ Scheduling lives in `src/sessions/scheduler.ts` and uses `ts-fsrs`.
 - Be cautious when changing date math, due checks, or serialized FSRS card fields.
 - Keep pure transitions in `studySessionEngine.ts`/`sessionEngine.ts`, persistence and scheduling orchestration in the runtime modules, and source-change reconciliation in `activeSessionStore.ts`.
 
+## Spelling and Pronunciation
+
+- Spelling eligibility and answer normalization live in `src/cards/spellingWord.ts`. A spellable front is one single-line Latin word or phrase, optionally wrapped in an ATX heading or one Markdown emphasis wrapper.
+- Keep spelling planning and state transitions pure in `spellingSessionPlanner.ts` and `spellingSessionEngine.ts`; keep persistence and orchestration in `spellingSessionRuntime.ts`.
+- Spelling progress is keyed by stable card identity. Do not fall back to card position for migrated decks or bypass the identity requirement when starting spelling sessions.
+- Pronunciation must remain offline-first: prefer a matching local English `SpeechSynthesisVoice`, then cached audio, then the configured Azure Speech or OpenAI provider.
+- Use Obsidian `requestUrl` for online speech requests. Preserve offline handling, timeouts, provider cooldowns, cancellation, and graceful fallbacks on platforms without browser speech, audio, Web Crypto, or IndexedDB support.
+- Keep the shared `PronunciationRuntime` injected from the plugin/view boundary. UI components should consume its interface rather than create their own runtime or access provider credentials directly.
+- Stop playback when the current card/session changes or the view closes, and dispose subscriptions/timers when the plugin unloads.
+- Add focused tests under `src/cards/__tests__/`, `src/sessions/__tests__/`, and `src/pronunciation/__tests__/` when changing spelling extraction/normalization, session behavior, provider requests, fallback order, caching, or autoplay timing.
+
+## Deck PDF Export
+
+- Keep deck-to-PDF row/file-name derivation in the pure `deckPdfViewModel.ts`; keep Obsidian Markdown rendering, Electron window creation, print styling, save dialogs, and temporary-file cleanup in `deckPdfExporter.ts`.
+- PDF export is desktop-only. Preserve runtime capability checks and avoid top-level Electron or Node imports that would break plugin loading on mobile.
+- Render card content with Obsidian `MarkdownRenderer` and preserve batch rendering/progress reporting for large decks.
+- Add or update focused tests under `src/decks/__tests__/` for export presentation logic. When changing the Electron export path, run the pure tests/build and clearly report whether a real desktop PDF export was manually verified.
+
 ## UI and Styling
 
 - Main UI is React rendered inside the Obsidian view.
@@ -149,19 +173,22 @@ Scheduling lives in `src/sessions/scheduler.ts` and uses `ts-fsrs`.
 - Use `lucide-react` icons when adding icon buttons in React UI.
 - Keep controls keyboard-friendly; existing shortcuts are part of the product behavior.
 - Update `src/styles/` for visual changes and avoid inline style proliferation.
+- Keep `src/styles/index.css` as the only style entry point and preserve its partial import order; pronunciation-specific styles live in `src/styles/pronunciation.css`.
 - Check mobile constraints when touching layout because the README promises mobile compatibility.
 
 ## Validation Checklist
 
 Before finishing a code-change task:
 
-1. Run `npm test` when the change touches testable logic, parsing, scheduling, data helpers, or any area with existing tests.
+1. Run `npm test` when the change touches testable logic, parsing, scheduling, spelling, pronunciation, PDF presentation helpers, data helpers, or any area with existing tests.
 2. Run `npm run build`.
 3. Run `npm run lint` when the change touches TypeScript/React patterns, Obsidian API usage, or shared modules.
 4. Run `npm run format:check` when files were broadly edited or formatting may have changed.
 5. For UI work, inspect the relevant view in Obsidian when feasible, or clearly state that only build/lint validation was run.
 6. For settings-tab changes, explicitly verify that the settings tab is not blank.
-7. Mention any validation command that could not be run.
+7. For pronunciation changes, test the affected fallback path when feasible and state which of local voice, cached audio, Azure, or OpenAI was actually exercised.
+8. For PDF export changes, state whether a real desktop export was manually verified.
+9. Mention any validation command or manual check that could not be run.
 
 ## Files to Treat Carefully
 
@@ -172,6 +199,12 @@ Before finishing a code-change task:
 - `src/identity/cardIdentityContinuity.ts`: migration/repair journaling, persisted identity state, and source/session reconciliation.
 - `src/sessions/activeSessionStore.ts`: behavior when source cards change during active sessions.
 - `src/sessions/scheduler.ts`: review scheduling semantics.
+- `src/cards/spellingWord.ts`: spelling eligibility and normalization rules.
+- `src/sessions/spellingSessionRuntime.ts`: spelling progress persistence and session orchestration.
+- `src/pronunciation/pronunciationRuntime.ts`: cross-platform fallback order, playback lifecycle, provider cooldowns, and secrets access.
+- `src/pronunciation/audioCache.ts`: device-local audio storage, cache-key compatibility, and eviction behavior.
+- `src/pronunciation/providers.ts`: Azure/OpenAI endpoints, authentication headers, voice selection, and request payloads.
+- `src/decks/deckPdfExporter.ts`: desktop-only Electron integration and temporary-file cleanup.
 - `manifest.json` and `versions.json`: plugin release metadata; update intentionally, usually through `npm run version`.
 - `styles.css`: generated CSS bundle; do not hand-edit.
 - `main.js`: generated bundle; do not hand-edit.
