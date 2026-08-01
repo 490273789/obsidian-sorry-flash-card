@@ -637,27 +637,19 @@ const DeckCard = memo(function DeckCard({
 					</div>
 					<div className="flashcard-deck-stats">
 						<div className="flashcard-deck-stat">
-							<span className="flashcard-deck-stat-value orange">
-								{totalCards}
-							</span>
-							<span className="flashcard-deck-stat-label">
-								{t("home.total")}
-							</span>
-						</div>
-						<div className="flashcard-deck-stat">
 							<span className="flashcard-deck-stat-value blue">
 								{newCards}
 							</span>
-							<span className="flashcard-deck-stat-label">
-								{t("home.new")}
+							/
+							<span className="flashcard-deck-stat-value orange">
+								{totalCards}
 							</span>
 						</div>
 						<div className="flashcard-deck-stat">
-							<span className="flashcard-deck-stat-value purple">
-								{deck.studyCount}
-							</span>
 							<span className="flashcard-deck-stat-label">
-								{t("home.studyCount")}
+								{t("home.studyCountValue", {
+									count: deck.studyCount,
+								})}
 							</span>
 						</div>
 					</div>

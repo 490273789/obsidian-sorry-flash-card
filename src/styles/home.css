@@ -9,7 +9,7 @@
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
-	gap: var(--fc-space-4);
+	gap: var(--fc-space-6);
 	overflow: hidden;
 	animation: var(--fc-motion-page-enter);
 }
@@ -288,11 +288,11 @@
 .flashcard-practice-incorrect-list {
 	display: flex;
 	flex-direction: column;
-	gap: var(--fc-space-3);
+	gap: var(--fc-space-4);
 }
 
 .flashcard-deck-list {
-	gap: var(--fc-space-2);
+	gap: var(--fc-space-4);
 	padding-bottom: var(--fc-space-2);
 }
 
@@ -389,8 +389,8 @@
 	min-width: 0;
 	overflow: hidden;
 	color: var(--fc-text);
-	font-size: var(--fc-font-lg);
-	font-weight: 600;
+	font-size: var(--fc-font-md);
+	font-weight: 500;
 	line-height: 1.2;
 	text-overflow: ellipsis;
 	white-space: nowrap;

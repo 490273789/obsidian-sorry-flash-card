@@ -24,6 +24,9 @@ describe("language helpers", () => {
 		expect(createTranslator("en")("practice.startQuestions", { count: 10 })).toBe(
 			"Start · 10 Questions",
 		);
+		expect(translate("zh", "home.studyCountValue", { count: 0 })).toBe(
+			"学习0次",
+		);
 	});
 
 	it("returns cloned default practice message arrays", () => {

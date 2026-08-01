@@ -99,7 +99,7 @@
 .theme-light .flashcard-question,
 .theme-light .flashcard-answer,
 .theme-light .flashcard-explanation,
-.theme-light .flashcard-word-cell,
+.theme-light .flashcard-root button.flashcard-word-cell,
 .theme-light .flashcard-practice-stat-item,
 .theme-light .flashcard-practice-stat-card,
 .theme-light .flashcard-stats-session,
@@ -616,7 +616,7 @@
 	background: rgba(255, 255, 255, 0.68);
 }
 
-.theme-light .flashcard-word-cell.masked {
+.theme-light .flashcard-root button.flashcard-word-cell.masked {
 	background:
 		repeating-linear-gradient(
 			135deg,

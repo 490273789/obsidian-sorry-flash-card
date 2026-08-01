@@ -391,56 +391,52 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 
 	return (
 		<div className="flashcard-word-list-view">
-			<div className="flashcard-word-list-sticky-top">
-				<FlashcardHeader
-					title={
-						<div className="flashcard-word-list-header-main">
-							<div className="flashcard-word-list-title">
-								{t("wordList.title", {
-									deckName: deck.name,
-								})}
-							</div>
-							<div className="flashcard-word-list-subtitle">
-								{t("wordList.subtitle", {
-									count: items.length,
-									tag: deck.tag,
-								})}
-							</div>
-						</div>
-					}
-					onBack={onBack}
-				/>
+			<FlashcardHeader
+				className="flashcard-word-list-header"
+				icon={BookOpenText}
+				title={t("wordList.title", {
+					deckName: deck.name,
+				})}
+				right={
+					<span className="flashcard-word-list-meta">
+						{t("wordList.subtitle", {
+							count: items.length,
+							tag: deck.tag,
+						})}
+					</span>
+				}
+				onBack={onBack}
+			/>
 
-				<div className="flashcard-word-list-toolbar">
-					<FlashcardButton
-						variant="green"
-						className="shuffle"
-						active={isShuffled}
-						onClick={handleShuffleToggle}
-					>
-						{isShuffled
-							? t("wordList.restoreOrder")
-							: t("wordList.shuffle")}
-					</FlashcardButton>
-					{VISIBLE_WORD_COLUMNS.map((column) => {
-						const isMasked = maskedColumns.has(column.key);
-						return (
-							<FlashcardButton
-								key={column.key}
-								variant={column.variant}
-								className={column.buttonClassName}
-								active={isMasked}
-								onClick={() =>
-									handleToggleColumnMask(column.key)
-								}
-							>
-								{isMasked
-									? t(column.unmaskKey)
-									: t(column.maskKey)}
-							</FlashcardButton>
-						);
-					})}
-				</div>
+			<div className="flashcard-word-list-toolbar">
+				<FlashcardButton
+					variant="green"
+					className="shuffle"
+					active={isShuffled}
+					onClick={handleShuffleToggle}
+				>
+					{isShuffled
+						? t("wordList.restoreOrder")
+						: t("wordList.shuffle")}
+				</FlashcardButton>
+				{VISIBLE_WORD_COLUMNS.map((column) => {
+					const isMasked = maskedColumns.has(column.key);
+					return (
+						<FlashcardButton
+							key={column.key}
+							variant={column.variant}
+							className={column.buttonClassName}
+							active={isMasked}
+							onClick={() =>
+								handleToggleColumnMask(column.key)
+							}
+						>
+							{isMasked
+								? t(column.unmaskKey)
+								: t(column.maskKey)}
+						</FlashcardButton>
+					);
+				})}
 			</div>
 
 			<div className="flashcard-word-list-scroll" ref={scrollRef}>

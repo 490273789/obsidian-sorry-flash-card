@@ -6,11 +6,11 @@
 .flashcard-root,
 .flashcard-settings-tab {
 	--fc-font-xs: 12px;
-	--fc-font-sm: 13px;
-	--fc-font-md: 15px;
+	--fc-font-sm: 14px;
+	--fc-font-md: 16px;
 	--fc-font-lg: 18px;
-	--fc-font-xl: 24px;
-	--fc-font-display: 32px;
+	--fc-font-xl: 22px;
+	--fc-font-display: 28px;
 
 	--fc-radius-xs: 6px;
 	--fc-radius-sm: 8px;
@@ -195,8 +195,20 @@
 		100% 100%,
 		100% 100%,
 		22px 22px;
-	-webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
-	mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 14%,
+		#000 86%,
+		transparent
+	);
+	mask-image: linear-gradient(
+		to bottom,
+		transparent,
+		#000 14%,
+		#000 86%,
+		transparent
+	);
 	opacity: 0.46;
 }
 

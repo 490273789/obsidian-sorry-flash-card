@@ -1,39 +1,17 @@
 /* Word list */
-.flashcard-word-list-sticky-top {
-	position: sticky;
-	top: 0;
-	z-index: 20;
+.flashcard-word-list-header .flashcard-header-title-content {
 	overflow: hidden;
-	border-radius: var(--fc-radius-md);
-}
-
-.flashcard-word-list-sticky-top .flashcard-common-header {
-	border: 0;
-	border-radius: 0;
-	background: transparent;
-	box-shadow: none;
-	backdrop-filter: none;
-}
-
-.flashcard-word-list-title {
-	overflow: hidden;
-	color: var(--fc-text);
-	font-size: var(--fc-font-md);
-	font-weight: 600;
-	text-align: left;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
-.flashcard-word-list-header-main {
-	min-width: 0;
-}
-
-.flashcard-word-list-subtitle {
-	margin-top: var(--fc-space-1);
+.flashcard-word-list-meta {
+	overflow: hidden;
 	color: var(--fc-muted);
 	font-size: var(--fc-font-xs);
-	text-align: left;
+	font-weight: 500;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .flashcard-word-list-toolbar {
@@ -41,7 +19,8 @@
 	flex-wrap: wrap;
 	gap: var(--fc-space-2);
 	padding: var(--fc-space-3);
-	border-top: 1px solid var(--fc-line);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-md);
 	background: rgba(5, 7, 13, 0.54);
 }
 
@@ -84,15 +63,15 @@
 
 .flashcard-word-row {
 	content-visibility: auto;
-	contain-intrinsic-size: 0 118px;
+	contain-intrinsic-size: 0 48px;
 	display: grid;
 	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
 	gap: var(--fc-space-3);
 	animation: var(--fc-motion-rise);
 }
 
-.flashcard-word-cell {
-	min-height: 118px;
+.flashcard-root button.flashcard-word-cell {
+	min-height: 48px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -108,26 +87,26 @@
 	appearance: none;
 }
 
-.flashcard-word-cell-first {
+.flashcard-root button.flashcard-word-cell-first {
 	border-left-color: rgba(var(--fc-blue-rgb), 0.36);
 }
 
-.flashcard-word-cell-second {
+.flashcard-root button.flashcard-word-cell-second {
 	border-left-color: rgba(var(--fc-orange-rgb), 0.36);
 }
 
-.flashcard-word-cell:hover,
-.flashcard-word-cell:focus-visible {
+.flashcard-root button.flashcard-word-cell:hover,
+.flashcard-root button.flashcard-word-cell:focus-visible {
 	border-color: rgba(var(--fc-cyan-rgb), 0.46);
 	box-shadow: var(--fc-glow-cyan);
 	outline: none;
 }
 
-.flashcard-word-cell:active {
+.flashcard-root button.flashcard-word-cell:active {
 	transform: translateY(0) scale(0.992);
 }
 
-.flashcard-word-cell.masked {
+.flashcard-root button.flashcard-word-cell.masked {
 	border-style: dashed;
 	color: var(--fc-faint);
 	background:
