@@ -2,6 +2,7 @@ import { createEmptyCard } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
 import type { FlashCard, SpellingCardProgress } from "../../shared/types";
 import {
+	getSpellingDeckProgressStats,
 	planIncorrectSpellingSession,
 	planRangeSpellingSession,
 	planSmartSpellingSession,
@@ -72,5 +73,26 @@ describe("spelling session planner", () => {
 				shuffle: (ids) => ids,
 			}).cardIds,
 		).toEqual(["one", "two"]);
+	});
+
+	it("derives setup mastery buckets without a session runtime", () => {
+		const cards = ["new", "weak", "stable"].map(card);
+		cards.push({ ...card("ignored", 3), front: "science / fair" });
+		expect(
+			getSpellingDeckProgressStats(cards, {
+				weak: {
+					attempts: 2,
+					correctAttempts: 1,
+					correctStreak: 1,
+					lastAttemptAt: 10,
+				},
+				stable: {
+					attempts: 2,
+					correctAttempts: 2,
+					correctStreak: 2,
+					lastAttemptAt: 20,
+				},
+			}),
+		).toEqual({ total: 3, unpracticed: 1, reinforcement: 1, stable: 1 });
 	});
 });

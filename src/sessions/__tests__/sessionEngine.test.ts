@@ -277,4 +277,29 @@ describe("practice session engine", () => {
 			}),
 		);
 	});
+
+	it("keeps deleted answer events while returning to the latest available card", () => {
+		const result = previousPracticeCard(
+			makePracticeSession({
+				cardQueue: ["card-1", "card-3"],
+				currentIndex: 1,
+				answers: {
+					"card-1": true,
+					"card-2": false,
+				},
+				history: ["card-1", "card-2"],
+				unavailableCardIds: ["card-2"],
+			}),
+		);
+
+		expect(result).toEqual(
+			makePracticeSession({
+				cardQueue: ["card-1", "card-3"],
+				currentIndex: 0,
+				answers: { "card-2": false },
+				history: ["card-2"],
+				unavailableCardIds: ["card-2"],
+			}),
+		);
+	});
 });

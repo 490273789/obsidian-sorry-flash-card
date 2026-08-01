@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Brain, PartyPopper, RotateCcw } from "lucide-react";
-import { Deck, FlashCard, StudyRating, StudySession } from "../../shared/types";
+import { Notice } from "obsidian";
+import { StudyRating } from "../../shared/types";
 import { getRatingButtons } from "../../sessions/scheduler";
 import { getDisplayCardContent } from "../../cards/cardDisplay";
-import { canUndoStudyAnswer, getStudyProgress } from "../../sessions/sessionEngine";
-import type { StudySessionRuntime } from "../../sessions/studySessionRuntime";
+import type { ActiveStudySnapshot, SessionLifecycle } from "../../sessions/sessionLifecycle";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -16,11 +16,10 @@ import { extractSpellingWord } from "../../cards/spellingWord";
 import { PronounceableMarkdown } from "./PronounceableMarkdown";
 
 interface CardViewProps {
-	studyRuntime: StudySessionRuntime;
-	deck: Deck;
-	session: StudySession;
-	onSessionUpdate: (session: StudySession) => void;
-	onComplete: () => void | Promise<void>;
+	lifecycle: SessionLifecycle;
+	session: ActiveStudySnapshot;
+	holdPresentation: () => () => void;
+	onComplete: () => void;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
 	onClose: () => void;
@@ -30,10 +29,9 @@ interface CardViewProps {
 }
 
 export const CardView: React.FC<CardViewProps> = ({
-	studyRuntime,
-	deck,
+	lifecycle,
 	session,
-	onSessionUpdate,
+	holdPresentation,
 	onComplete,
 	onEditCard,
 	onDeleteCard,
@@ -48,8 +46,9 @@ export const CardView: React.FC<CardViewProps> = ({
 	// to avoid stale captures; isAnimating state drives the CSS class.
 	const isAnimatingRef = useRef(false);
 	const [isAnimating, setIsAnimating] = useState(false);
+	const pendingPresentationReleaseRef = useRef<(() => void) | null>(null);
 
-	const currentCard: FlashCard | null = studyRuntime.getCurrentCard(session);
+	const currentCard = session.currentCard;
 	const ratingButtons = useMemo(() => getRatingButtons(language), [language]);
 	const displayContent = useMemo(
 		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
@@ -62,7 +61,15 @@ export const CardView: React.FC<CardViewProps> = ({
 		pronunciationRuntime.stop();
 		setShowAnswer(false);
 		return () => pronunciationRuntime.stop();
-	}, [currentCard?.id, pronunciationRuntime, session.currentIndex]);
+	}, [currentCard.identity, pronunciationRuntime]);
+
+	useEffect(
+		() => () => {
+			pendingPresentationReleaseRef.current?.();
+			pendingPresentationReleaseRef.current = null;
+		},
+		[],
+	);
 
 	const handleShowAnswer = useCallback(() => {
 		setShowAnswer(true);
@@ -74,49 +81,57 @@ export const CardView: React.FC<CardViewProps> = ({
 
 			isAnimatingRef.current = true;
 			setIsAnimating(true);
+			const releasePresentation = holdPresentation();
+			pendingPresentationReleaseRef.current = releasePresentation;
 
-			const step = await studyRuntime.answer(session, rating);
-			if (!step) {
+			const outcome = await lifecycle.act(session.reference, { kind: "answer", rating });
+			if (outcome.kind !== "applied") {
+				releasePresentation();
+				pendingPresentationReleaseRef.current = null;
 				isAnimatingRef.current = false;
 				setIsAnimating(false);
+				if (outcome.kind === "failed") new Notice(outcome.failure.message);
 				return;
 			}
-
-			if (step.type === "complete") {
-				window.setTimeout(() => {
-					void onComplete();
-				}, 300);
-				return;
-			}
-
-			window.setTimeout(() => {
-				onSessionUpdate(step.session);
-				isAnimatingRef.current = false;
-				setIsAnimating(false);
-			}, 200);
+			if (outcome.snapshot.kind === "idle") onComplete();
+			window.setTimeout(
+				() => {
+					releasePresentation();
+					pendingPresentationReleaseRef.current = null;
+					isAnimatingRef.current = false;
+					setIsAnimating(false);
+				},
+				outcome.snapshot.kind === "idle" ? 300 : 200,
+			);
 		},
-		[currentCard, onComplete, onSessionUpdate, session, studyRuntime],
+		[currentCard, holdPresentation, lifecycle, onComplete, session],
 	);
 
 	const handlePrevious = useCallback(async () => {
-		if (!canUndoStudyAnswer(session) || isAnimatingRef.current) return;
+		if (!session.canPrevious || isAnimatingRef.current) return;
 
 		isAnimatingRef.current = true;
 		setIsAnimating(true);
+		const releasePresentation = holdPresentation();
+		pendingPresentationReleaseRef.current = releasePresentation;
 
-		const step = await studyRuntime.undo(session);
-		if (!step) {
+		const outcome = await lifecycle.act(session.reference, { kind: "previous" });
+		if (outcome.kind !== "applied") {
+			releasePresentation();
+			pendingPresentationReleaseRef.current = null;
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
+			if (outcome.kind === "failed") new Notice(outcome.failure.message);
 			return;
 		}
 
 		window.setTimeout(() => {
-			onSessionUpdate(step.session);
+			releasePresentation();
+			pendingPresentationReleaseRef.current = null;
 			isAnimatingRef.current = false;
 			setIsAnimating(false);
 		}, 200);
-	}, [onSessionUpdate, session, studyRuntime]);
+	}, [holdPresentation, lifecycle, session]);
 
 	useWindowKeyDown((e) => {
 		// Ignore if in input field
@@ -188,7 +203,7 @@ export const CardView: React.FC<CardViewProps> = ({
 		);
 	}
 
-	const progress = getStudyProgress(session);
+	const progress = session.progress;
 	const directionLabel =
 		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
 
@@ -196,14 +211,14 @@ export const CardView: React.FC<CardViewProps> = ({
 		<div className="flashcard-study">
 			{/* Header */}
 			<SessionToolbar
-				deckName={deck.name}
+				deckName={session.originDeck.name}
 				statusIcon={Brain}
 				statusLabel={`${t("study.studying")} · ${directionLabel}`}
 				progress={progress.label}
 				progressPercent={progress.percent}
 				startTime={session.startTime}
-				onEdit={() => onEditCard(deck.id, currentCard.id)}
-				onDelete={() => onDeleteCard(deck.id, currentCard.id)}
+				onEdit={() => onEditCard(currentCard.currentDeckId, currentCard.identity)}
+				onDelete={() => onDeleteCard(currentCard.currentDeckId, currentCard.identity)}
 				onClose={onClose}
 				editTitle={t("cardEditor.editCurrentTitle")}
 				deleteTitle={t("cardEditor.deleteCurrentTitle")}
@@ -286,7 +301,7 @@ export const CardView: React.FC<CardViewProps> = ({
 							icon={RotateCcw}
 							iconSize={24}
 							onClick={handlePrevious}
-							disabled={!canUndoStudyAnswer(session)}
+							disabled={!session.canPrevious}
 							title={`${t("common.undo")} (6)`}
 						/>
 						<div className="flashcard-rating-grid">

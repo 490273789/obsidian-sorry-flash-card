@@ -1,7 +1,6 @@
 import React, { memo, useMemo } from "react";
 import { FileText, Check, X, Timer, CircleCheck, CircleX, RotateCw, House } from "lucide-react";
-import { Deck, FlashCard, PracticeResult } from "../../shared/types";
-import type { PracticeSessionRuntime } from "../../sessions/practiceSessionRuntime";
+import type { PracticeResultSnapshot, SessionCardSnapshot } from "../../sessions/sessionLifecycle";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
@@ -10,9 +9,7 @@ import { formatCompactDuration } from "../../i18n";
 import { getDisplayCardContent } from "../../cards/cardDisplay";
 
 interface PracticeSummaryProps {
-	deck: Deck;
-	practiceRuntime: PracticeSessionRuntime;
-	result: PracticeResult;
+	result: PracticeResultSnapshot;
 	onRestart: () => void;
 	onPracticeIncorrect: () => void;
 	onHome: () => void;
@@ -27,8 +24,6 @@ function getAccuracyColor(accuracy: number): string {
 }
 
 export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
-	deck,
-	practiceRuntime,
 	result,
 	onRestart,
 	onPracticeIncorrect,
@@ -44,9 +39,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 		return t("practice.completeWithErrors");
 	}, [result.incorrectCount, t]);
 
-	const incorrectCards: FlashCard[] = useMemo(() => {
-		return practiceRuntime.getCards(deck.id, result.incorrectCardIds);
-	}, [deck.id, practiceRuntime, result.incorrectCardIds]);
+	const incorrectCards = result.incorrectCards;
 
 	return (
 		<div className="flashcard-practice-summary">
@@ -57,7 +50,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 					<div className="flashcard-practice-summary-title">{completionMessage}</div>
 					<div className="flashcard-practice-summary-deck">
 						{t("practice.summaryDeck", {
-							deckName: deck.name,
+							deckName: result.originDeck.name,
 							totalQuestions: result.totalQuestions,
 							time: formatCompactDuration(language, result.timeSpent),
 						})}
@@ -128,7 +121,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 						<div className="flashcard-practice-incorrect-list">
 							{incorrectCards.map((card, index) => (
 								<IncorrectCardItem
-									key={card.id}
+									key={card.identity}
 									card={card}
 									index={index + 1}
 									direction={result.direction}
@@ -165,9 +158,9 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 };
 
 interface IncorrectCardItemProps {
-	card: FlashCard;
+	card: SessionCardSnapshot;
 	index: number;
-	direction: PracticeResult["direction"];
+	direction: PracticeResultSnapshot["direction"];
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
 

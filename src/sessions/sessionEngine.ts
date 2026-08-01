@@ -221,18 +221,20 @@ export function answerPracticeCard(params: {
 }
 
 export function previousPracticeCard(session: PracticeSession): PracticeSession | null {
-	if (session.currentIndex === 0) return null;
-
 	const normalized = normalizePracticeSession(session);
-	const previousIndex = normalized.currentIndex - 1;
-	const previousCardId = normalized.cardQueue[previousIndex];
+	const unavailableCardIds = new Set(normalized.unavailableCardIds);
+	const historyIndex = normalized.history.findLastIndex(
+		(cardId) => normalized.cardQueue.includes(cardId) && !unavailableCardIds.has(cardId),
+	);
+	if (historyIndex === -1) return null;
+	const previousCardId = normalized.history[historyIndex];
+	const previousIndex = previousCardId ? normalized.cardQueue.indexOf(previousCardId) : -1;
+	if (!previousCardId || previousIndex === -1) return null;
 	const answers = { ...normalized.answers };
-	if (previousCardId) {
-		delete answers[previousCardId];
-	}
+	delete answers[previousCardId];
 
 	const history = normalized.history.slice();
-	history.pop();
+	history.splice(historyIndex, 1);
 
 	return {
 		...normalized,

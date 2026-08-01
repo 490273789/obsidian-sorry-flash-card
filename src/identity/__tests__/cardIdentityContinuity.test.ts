@@ -6,7 +6,7 @@ import {
 	type ContinuitySourceDocument,
 	type ContinuitySourceStore,
 	type ContinuitySessionChange,
-	type ContinuitySessionStore,
+	type ContinuitySessionAdapter,
 	type ContinuityStateStore,
 } from "../cardIdentityContinuity";
 import type { Deck, FlashCard } from "../../shared/types";
@@ -170,7 +170,7 @@ apple
 			},
 		]);
 		const reconciled: ContinuitySessionChange[] = [];
-		const sessions: ContinuitySessionStore = {
+		const sessions: ContinuitySessionAdapter = {
 			hasActiveSession: () => true,
 			reconcile: async (change) => {
 				reconciled.push(change);
@@ -205,7 +205,7 @@ apple
 		const sourceStore = new MemorySourceStore([
 			{ path, basename: "legacy", content: originalContent },
 		]);
-		const sessions: ContinuitySessionStore = {
+		const sessions: ContinuitySessionAdapter = {
 			hasActiveSession: () => true,
 			reconcile: async () => undefined,
 		};

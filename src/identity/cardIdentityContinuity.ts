@@ -96,7 +96,7 @@ export interface ContinuitySessionChange {
 	spellableIdentitiesByDeck?: ReadonlyMap<string, ReadonlySet<string>>;
 }
 
-export interface ContinuitySessionStore {
+export interface ContinuitySessionAdapter {
 	hasActiveSession(): boolean;
 	reconcile(change: ContinuitySessionChange): Promise<void>;
 }
@@ -173,7 +173,7 @@ export interface CardIdentityContinuity {
 export interface CreateCardIdentityContinuityOptions {
 	sources: ContinuitySourceStore;
 	state: ContinuityStateStore;
-	sessions?: ContinuitySessionStore;
+	sessions?: ContinuitySessionAdapter;
 	createIdentity: () => string;
 }
 

@@ -6,7 +6,7 @@ import { DataStore } from "../storage/dataStore";
 import { FlashcardSettings } from "../shared/types";
 import { translate } from "../i18n";
 import type { CardIdentityContinuity } from "../identity/cardIdentityContinuity";
-import type { ActiveSessionStore } from "../sessions/activeSessionStore";
+import type { SessionLifecycle } from "../sessions/sessionLifecycle";
 import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
 import type { PronunciationRuntime } from "../pronunciation";
 
@@ -16,7 +16,7 @@ export class FlashcardView extends ItemView {
 	private root: Root | null = null;
 	private dataStore: DataStore;
 	private cardIdentityContinuity: CardIdentityContinuity;
-	private activeSessionStore: ActiveSessionStore;
+	private sessionLifecycle: SessionLifecycle;
 	private pronunciationRuntime: PronunciationRuntime;
 	private settings: FlashcardSettings;
 	private onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
@@ -26,7 +26,7 @@ export class FlashcardView extends ItemView {
 		leaf: WorkspaceLeaf,
 		dataStore: DataStore,
 		cardIdentityContinuity: CardIdentityContinuity,
-		activeSessionStore: ActiveSessionStore,
+		sessionLifecycle: SessionLifecycle,
 		pronunciationRuntime: PronunciationRuntime,
 		settings: FlashcardSettings,
 		onSaveSettings: (settings: FlashcardSettings) => Promise<void>,
@@ -35,7 +35,7 @@ export class FlashcardView extends ItemView {
 		super(leaf);
 		this.dataStore = dataStore;
 		this.cardIdentityContinuity = cardIdentityContinuity;
-		this.activeSessionStore = activeSessionStore;
+		this.sessionLifecycle = sessionLifecycle;
 		this.pronunciationRuntime = pronunciationRuntime;
 		this.settings = settings;
 		this.onSaveSettings = onSaveSettings;
@@ -81,7 +81,7 @@ export class FlashcardView extends ItemView {
 					app={this.app}
 					dataStore={this.dataStore}
 					cardIdentityContinuity={this.cardIdentityContinuity}
-					activeSessionStore={this.activeSessionStore}
+					sessionLifecycle={this.sessionLifecycle}
 					pronunciationRuntime={this.pronunciationRuntime}
 					settings={this.settings}
 					onSaveSettings={this.handleSaveSettings}

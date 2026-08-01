@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Check, CornerDownLeft, Keyboard, Lightbulb, X } from "lucide-react";
-import type { Deck, SpellingResult, SpellingSession } from "../../shared/types";
+import { Notice } from "obsidian";
 import type {
-	SpellingRuntimeAnswerOutcome,
-	SpellingSessionRuntime,
-} from "../../sessions/spellingSessionRuntime";
+	ActiveSpellingSnapshot,
+	SessionLifecycle,
+	SpellingLifecycleFeedback,
+} from "../../sessions/sessionLifecycle";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -16,29 +17,23 @@ import {
 } from "../../pronunciation";
 
 interface SpellingViewProps {
-	spellingRuntime: SpellingSessionRuntime;
-	deck: Deck;
-	session: SpellingSession;
-	onSessionUpdate: (session: SpellingSession) => void;
+	lifecycle: SessionLifecycle;
+	session: ActiveSpellingSnapshot;
+	holdPresentation: () => () => void;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
-	onComplete: (result: SpellingResult) => void;
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 	pronunciationRuntime: PronunciationRuntime;
 	autoPronounce: boolean;
 }
 
-type Feedback = SpellingRuntimeAnswerOutcome & { submittedInput: string };
-
 export const SpellingView: React.FC<SpellingViewProps> = ({
-	spellingRuntime,
-	deck,
+	lifecycle,
 	session,
-	onSessionUpdate,
+	holdPresentation,
 	onEditCard,
 	onDeleteCard,
-	onComplete,
 	onClose,
 	markdownRenderer,
 	pronunciationRuntime,
@@ -46,12 +41,13 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 }) => {
 	const { t } = useI18n();
 	const [input, setInput] = useState("");
-	const [feedback, setFeedback] = useState<Feedback | null>(null);
+	const [feedback, setFeedback] = useState<SpellingLifecycleFeedback | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const advanceTimerRef = useRef<number | null>(null);
 	const advanceGenerationRef = useRef(0);
-	const currentCard = spellingRuntime.getCurrentCard(session);
+	const pendingPresentationReleaseRef = useRef<(() => void) | null>(null);
+	const currentCard = session.currentCard;
 
 	useEffect(() => {
 		advanceGenerationRef.current++;
@@ -59,12 +55,14 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 		setInput("");
 		setFeedback(null);
 		window.setTimeout(() => inputRef.current?.focus(), 0);
-	}, [currentCard?.id, pronunciationRuntime, session.currentIndex]);
+	}, [currentCard.identity, pronunciationRuntime]);
 
 	useEffect(
 		() => () => {
 			advanceGenerationRef.current++;
 			pronunciationRuntime.stop();
+			pendingPresentationReleaseRef.current?.();
+			pendingPresentationReleaseRef.current = null;
 			if (advanceTimerRef.current !== null) {
 				window.clearTimeout(advanceTimerRef.current);
 			}
@@ -77,19 +75,27 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 			if (!currentCard || isSubmitting) return;
 			if (!allowEmpty && submittedInput.trim().length === 0) return;
 			setIsSubmitting(true);
-			const outcome = await spellingRuntime.answer(session, submittedInput);
-			if (!outcome) {
+			const releasePresentation = holdPresentation();
+			pendingPresentationReleaseRef.current = releasePresentation;
+			const outcome = await lifecycle.act(session.reference, {
+				kind: "answer",
+				input: submittedInput,
+			});
+			if (outcome.kind !== "applied" || !outcome.feedback) {
+				releasePresentation();
+				pendingPresentationReleaseRef.current = null;
 				setIsSubmitting(false);
+				if (outcome.kind === "failed") new Notice(outcome.failure.message);
 				return;
 			}
-			const nextFeedback: Feedback = { ...outcome, submittedInput };
-			setFeedback(nextFeedback);
+			setFeedback(outcome.feedback);
 
 			if (
-				outcome.feedback === "retrieval-incorrect" ||
-				outcome.feedback === "correction-incorrect"
+				outcome.feedback.kind === "retrieval-incorrect" ||
+				outcome.feedback.kind === "correction-incorrect"
 			) {
-				if (outcome.type === "continue") onSessionUpdate(outcome.session);
+				releasePresentation();
+				pendingPresentationReleaseRef.current = null;
 				setInput("");
 				setIsSubmitting(false);
 				window.setTimeout(() => inputRef.current?.focus(), 0);
@@ -97,19 +103,23 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 			}
 
 			const generation = ++advanceGenerationRef.current;
-			if (autoPronounce && shouldAutoPronounceSpellingFeedback(outcome.feedback)) {
-				await waitForSpellingPronunciation(pronunciationRuntime, outcome.answer);
-				if (generation !== advanceGenerationRef.current) return;
+			if (autoPronounce && shouldAutoPronounceSpellingFeedback(outcome.feedback.kind)) {
+				await waitForSpellingPronunciation(
+					pronunciationRuntime,
+					outcome.feedback.expectedAnswer,
+				);
+				if (generation !== advanceGenerationRef.current) {
+					releasePresentation();
+					pendingPresentationReleaseRef.current = null;
+					return;
+				}
 			}
 
 			advanceTimerRef.current = window.setTimeout(
 				() => {
+					releasePresentation();
+					pendingPresentationReleaseRef.current = null;
 					setIsSubmitting(false);
-					if (outcome.type === "continue") {
-						onSessionUpdate(outcome.session);
-					} else {
-						onComplete(outcome.result);
-					}
 				},
 				autoPronounce ? 0 : 550,
 			);
@@ -117,12 +127,11 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 		[
 			autoPronounce,
 			currentCard,
+			holdPresentation,
 			isSubmitting,
-			onComplete,
-			onSessionUpdate,
+			lifecycle,
 			pronunciationRuntime,
 			session,
-			spellingRuntime,
 		],
 	);
 
@@ -130,27 +139,31 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 		return <div className="flashcard-complete">{t("common.loading")}</div>;
 	}
 
-	const completed = session.completedCardIds.length;
-	const total = session.selectedCardIds.length;
-	const progressPercent = total > 0 ? (completed / total) * 100 : 0;
+	const completed = session.progress.completed;
+	const total = session.progress.total;
+	const progressPercent = session.progress.percent;
 	const isCorrection = session.phase === "correction";
 	const isCorrectFeedback =
-		feedback?.feedback === "retrieval-correct" || feedback?.feedback === "correction-correct";
+		feedback?.kind === "retrieval-correct" || feedback?.kind === "correction-correct";
 
 	return (
 		<div className="flashcard-study flashcard-spelling-view">
 			<SessionToolbar
-				deckName={deck.name}
+				deckName={session.originDeck.name}
 				statusIcon={Keyboard}
 				statusLabel={isCorrection ? t("spelling.correcting") : t("spelling.spelling")}
 				progress={`${completed}/${total}`}
 				progressPercent={progressPercent}
 				startTime={session.startTime}
 				onEdit={() => {
-					if (!isSubmitting) onEditCard(deck.id, currentCard.id);
+					if (!isSubmitting) {
+						onEditCard(currentCard.currentDeckId, currentCard.identity);
+					}
 				}}
 				onDelete={() => {
-					if (!isSubmitting) onDeleteCard(deck.id, currentCard.id);
+					if (!isSubmitting) {
+						onDeleteCard(currentCard.currentDeckId, currentCard.identity);
+					}
 				}}
 				onClose={() => {
 					if (!isSubmitting) onClose();
@@ -174,13 +187,13 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 					</div>
 
 					{feedback &&
-						(feedback.feedback === "retrieval-incorrect" ||
-							feedback.feedback === "correction-incorrect") && (
+						(feedback.kind === "retrieval-incorrect" ||
+							feedback.kind === "correction-incorrect") && (
 							<>
 								<div className="flashcard-spelling-feedback is-wrong">
 									<div className="flashcard-spelling-feedback-title">
 										<X size={18} />
-										{feedback.feedback === "retrieval-incorrect"
+										{feedback.kind === "retrieval-incorrect"
 											? t("spelling.incorrect")
 											: t("spelling.correctionIncorrect")}
 									</div>
@@ -212,7 +225,7 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 									</div>
 									<div className="flashcard-spelling-correct-answer">
 										<span>{t("spelling.correctAnswer")}</span>
-										<strong>{feedback.answer}</strong>
+										<strong>{feedback.expectedAnswer}</strong>
 									</div>
 								</div>
 								{currentCard.explanation && (
@@ -234,7 +247,7 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 						<div className="flashcard-spelling-feedback is-correct">
 							<Check size={20} />
 							<span>{t("spelling.correct")}</span>
-							<strong>{feedback.answer}</strong>
+							<strong>{feedback.expectedAnswer}</strong>
 						</div>
 					)}
 

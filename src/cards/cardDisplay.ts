@@ -7,7 +7,7 @@ export interface DisplayCardContent {
 }
 
 export function getDisplayCardContent(
-	card: FlashCard,
+	card: Pick<FlashCard, "front" | "back" | "explanation">,
 	direction: CardDirection,
 ): DisplayCardContent {
 	return {

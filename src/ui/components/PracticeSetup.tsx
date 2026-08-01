@@ -9,7 +9,6 @@ import {
 	ListOrdered,
 } from "lucide-react";
 import { CardDirection, Deck } from "../../shared/types";
-import type { PracticeSessionStartOptions } from "../../sessions/practiceSessionRuntime";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
@@ -19,9 +18,23 @@ const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
 type PracticeSelectionMode = "random-count" | "range";
 
+export type PracticeSessionStartOptions =
+	| {
+			mode: "random-count";
+			questionCount: number;
+			direction: CardDirection;
+	  }
+	| {
+			mode: "range";
+			startIndex: number;
+			endIndex: number;
+			direction: CardDirection;
+	  };
+
 interface PracticeSetupProps {
 	deck: Deck;
 	defaultDirection: CardDirection;
+	defaultOptions?: PracticeSessionStartOptions;
 	onStartPractice: (options: PracticeSessionStartOptions) => void;
 	onBack: () => void;
 }
@@ -29,20 +42,35 @@ interface PracticeSetupProps {
 export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 	deck,
 	defaultDirection,
+	defaultOptions,
 	onStartPractice,
 	onBack,
 }) => {
 	const { t } = useI18n();
 	const maxQuestions = deck.cards.length;
 	const defaultQuestionCount = Math.min(50, maxQuestions);
-	const [selectionMode, setSelectionMode] = useState<PracticeSelectionMode>("random-count");
-	const [questionCount, setQuestionCount] = useState(defaultQuestionCount);
-	const [inputValue, setInputValue] = useState(defaultQuestionCount.toString());
-	const [rangeStart, setRangeStart] = useState(1);
-	const [rangeEnd, setRangeEnd] = useState(defaultQuestionCount);
-	const [rangeStartInput, setRangeStartInput] = useState("1");
-	const [rangeEndInput, setRangeEndInput] = useState(defaultQuestionCount.toString());
-	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
+	const initialQuestionCount =
+		defaultOptions?.mode === "random-count"
+			? Math.min(defaultOptions.questionCount, maxQuestions)
+			: defaultQuestionCount;
+	const initialRangeStart =
+		defaultOptions?.mode === "range" ? Math.max(1, defaultOptions.startIndex) : 1;
+	const initialRangeEnd =
+		defaultOptions?.mode === "range"
+			? Math.min(defaultOptions.endIndex, maxQuestions)
+			: defaultQuestionCount;
+	const [selectionMode, setSelectionMode] = useState<PracticeSelectionMode>(
+		defaultOptions?.mode ?? "random-count",
+	);
+	const [questionCount, setQuestionCount] = useState(initialQuestionCount);
+	const [inputValue, setInputValue] = useState(initialQuestionCount.toString());
+	const [rangeStart, setRangeStart] = useState(initialRangeStart);
+	const [rangeEnd, setRangeEnd] = useState(initialRangeEnd);
+	const [rangeStartInput, setRangeStartInput] = useState(initialRangeStart.toString());
+	const [rangeEndInput, setRangeEndInput] = useState(initialRangeEnd.toString());
+	const [direction, setDirection] = useState<CardDirection>(
+		defaultOptions?.direction ?? defaultDirection,
+	);
 	const rangeQuestionCount = Math.max(0, rangeEnd - rangeStart + 1);
 	const currentQuestionCount = selectionMode === "range" ? rangeQuestionCount : questionCount;
 	const coverage = maxQuestions > 0 ? Math.round((currentQuestionCount / maxQuestions) * 100) : 0;

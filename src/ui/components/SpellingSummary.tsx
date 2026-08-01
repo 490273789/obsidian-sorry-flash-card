@@ -1,8 +1,9 @@
-import React, { memo, useMemo } from "react";
+import React, { memo } from "react";
 import { Check, CircleX, House, Keyboard, RotateCw, Target, Timer } from "lucide-react";
-import type { Deck, FlashCard, SpellingResult } from "../../shared/types";
-import type { SpellingSessionRuntime } from "../../sessions/spellingSessionRuntime";
-import { getSpellingWord } from "../../cards/spellingWord";
+import type {
+	SpellingIncorrectCardSnapshot,
+	SpellingResultSnapshot,
+} from "../../sessions/sessionLifecycle";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
@@ -10,9 +11,7 @@ import { useI18n } from "./I18nContext";
 import { formatCompactDuration } from "../../i18n";
 
 interface SpellingSummaryProps {
-	deck: Deck;
-	spellingRuntime: SpellingSessionRuntime;
-	result: SpellingResult;
+	result: SpellingResultSnapshot;
 	onRetryIncorrect: () => void;
 	onRestart: () => void;
 	onHome: () => void;
@@ -20,8 +19,6 @@ interface SpellingSummaryProps {
 }
 
 export const SpellingSummary: React.FC<SpellingSummaryProps> = ({
-	deck,
-	spellingRuntime,
 	result,
 	onRetryIncorrect,
 	onRestart,
@@ -29,10 +26,7 @@ export const SpellingSummary: React.FC<SpellingSummaryProps> = ({
 	markdownRenderer,
 }) => {
 	const { t, language } = useI18n();
-	const incorrectCards = useMemo(
-		() => spellingRuntime.getCards(deck.id, result.incorrectCardIds),
-		[deck.id, result.incorrectCardIds, spellingRuntime],
-	);
+	const incorrectCards = result.incorrectCards;
 
 	return (
 		<div className="flashcard-practice-summary flashcard-spelling-summary">
@@ -46,7 +40,7 @@ export const SpellingSummary: React.FC<SpellingSummaryProps> = ({
 					</div>
 					<div className="flashcard-practice-summary-deck">
 						{t("spelling.summaryDeck", {
-							deckName: deck.name,
+							deckName: result.originDeck.name,
 							totalWords: result.totalWords,
 							time: formatCompactDuration(language, result.timeSpent),
 						})}
@@ -95,10 +89,9 @@ export const SpellingSummary: React.FC<SpellingSummaryProps> = ({
 						<div className="flashcard-practice-incorrect-list">
 							{incorrectCards.map((card, index) => (
 								<IncorrectSpellingItem
-									key={card.id}
+									key={card.identity}
 									card={card}
 									index={index + 1}
-									firstInput={result.firstInputs[card.id] ?? ""}
 									markdownRenderer={markdownRenderer}
 								/>
 							))}
@@ -149,12 +142,10 @@ function SummaryStat({
 const IncorrectSpellingItem = memo(function IncorrectSpellingItem({
 	card,
 	index,
-	firstInput,
 	markdownRenderer,
 }: {
-	card: FlashCard;
+	card: SpellingIncorrectCardSnapshot;
 	index: number;
-	firstInput: string;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }) {
 	const { t } = useI18n();
@@ -174,10 +165,10 @@ const IncorrectSpellingItem = memo(function IncorrectSpellingItem({
 				</div>
 				<div className="flashcard-spelling-summary-answer-row">
 					<span>
-						{t("spelling.firstInput")}: <strong>{firstInput || "—"}</strong>
+						{t("spelling.firstInput")}: <strong>{card.firstInput || "—"}</strong>
 					</span>
 					<span>
-						{t("spelling.correctAnswer")}: <strong>{getSpellingWord(card)}</strong>
+						{t("spelling.correctAnswer")}: <strong>{card.expectedAnswer}</strong>
 					</span>
 				</div>
 			</div>

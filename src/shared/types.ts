@@ -229,19 +229,15 @@ export interface RatingButton {
 }
 
 /**
- * View state for React components
+ * React-owned setup and ordinary navigation state. Active sessions and retained
+ * results are represented exclusively by SessionLifecycleSnapshot.
  */
 export type ViewState =
 	| { type: "home" }
 	| { type: "study-setup"; deckId: string }
-	| { type: "study"; deckId: string }
 	| { type: "word-list"; deckId: string }
 	| { type: "practice-setup"; deckId: string }
-	| { type: "practice"; deckId: string }
-	| { type: "practice-summary"; deckId: string }
 	| { type: "spelling-setup"; deckId: string }
-	| { type: "spelling"; deckId: string }
-	| { type: "spelling-summary"; deckId: string }
 	| { type: "stats" };
 
 /**

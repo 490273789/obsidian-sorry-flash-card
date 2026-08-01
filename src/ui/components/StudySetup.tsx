@@ -21,6 +21,7 @@ interface StudySetupProps {
 	todayReviewCount: number;
 	dayList: StudyDayInfo[];
 	defaultStudyOrder: "sequential" | "random";
+	defaultDirection?: CardDirection;
 	onStart: (studyOrder: "sequential" | "random", direction: CardDirection) => void;
 	onStartDay: (
 		dayIndex: number,
@@ -119,6 +120,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	todayReviewCount,
 	dayList,
 	defaultStudyOrder,
+	defaultDirection = "normal",
 	onStart,
 	onStartDay,
 	spellingEnabled,
@@ -127,7 +129,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 }) => {
 	const { t } = useI18n();
 	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(defaultStudyOrder);
-	const [direction, setDirection] = useState<CardDirection>("normal");
+	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
 
 	const completedDays = useMemo(
 		() => dayList.reduce((total, day) => total + (day.isCompleted ? 1 : 0), 0),

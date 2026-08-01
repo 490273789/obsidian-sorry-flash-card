@@ -247,8 +247,15 @@ describe("DataStore settings", () => {
 		await store.loadSettings();
 		const before = store.getDeck(deck.id)?.cards[0]?.fsrsCard;
 
-		await store.recordSpellingAttempt(card.id, false, 1000);
-		await store.recordSpellingAttempt(card.id, true, 2000);
+		await store.commitSessionTransition({
+			cardUpdates: [],
+			spellingAttempts: [
+				{ cardId: card.id, correct: false, attemptedAt: 1000 },
+				{ cardId: card.id, correct: true, attemptedAt: 2000 },
+			],
+			incrementStudyCountFor: [],
+			historyEntries: [],
+		});
 
 		expect(store.getSpellingProgress()[card.id]).toEqual({
 			attempts: 2,
@@ -258,6 +265,69 @@ describe("DataStore settings", () => {
 			lastIncorrectAt: 1000,
 		});
 		expect(store.getDeck(deck.id)?.cards[0]?.fsrsCard).toEqual(before);
+	});
+
+	it("publishes a session transition only after the complete next state is durable", async () => {
+		const card = makeCard(
+			"550e8400-e29b-41d4-a716-446655440000",
+			State.New,
+			new Date("2026-08-01T00:00:00.000Z"),
+			0,
+		);
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [card],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-08-01T00:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+		const reviewedCard = {
+			...card.fsrsCard,
+			state: State.Review,
+			reps: 1,
+		};
+		const transition = {
+			cardUpdates: [{ deckId: deck.id, cardId: card.id, fsrsCard: reviewedCard }],
+			spellingAttempts: [{ cardId: card.id, correct: false, attemptedAt: 2_000 }],
+			incrementStudyCountFor: [deck.id],
+			historyEntries: [
+				{
+					deckId: deck.id,
+					deckName: deck.name,
+					mode: "study" as const,
+					cardCount: 1,
+					duration: 60,
+				},
+			],
+		};
+		plugin.saveData.mockRejectedValueOnce(new Error("disk unavailable"));
+
+		await expect(store.commitSessionTransition(transition)).rejects.toThrow("disk unavailable");
+		expect(store.getDeck(deck.id)).toMatchObject({ studyCount: 0 });
+		expect(store.getCard(deck.id, card.id)?.fsrsCard.state).toBe(State.New);
+		expect(store.getSpellingProgress()).toEqual({});
+		expect(store.getStudyHistory()).toEqual([]);
+
+		await store.commitSessionTransition(transition);
+		expect(store.getDeck(deck.id)).toMatchObject({ studyCount: 1 });
+		expect(store.getCard(deck.id, card.id)?.fsrsCard.state).toBe(State.Review);
+		expect(store.getSpellingProgress()[card.id]).toMatchObject({
+			attempts: 1,
+			correctAttempts: 0,
+			correctStreak: 0,
+		});
+		expect(store.getStudyHistory()).toMatchObject([
+			{ mode: "study", cardCount: 1, duration: 60 },
+		]);
 	});
 
 	it("prunes progress for cards deleted from a retained deck", async () => {
@@ -435,50 +505,6 @@ describe("DataStore deck scanning and study plans", () => {
 		]);
 	});
 
-	it("creates sequential sessions with new cards followed by due reviews", async () => {
-		vi.useFakeTimers();
-		vi.setSystemTime(new Date("2026-07-03T00:00:00.000Z"));
-		const deck: Deck = {
-			id: "notes/deck.md",
-			name: "deck",
-			filePath: "notes/deck.md",
-			tag: "#单词",
-			cards: [
-				makeCard("notes/deck.md::0", State.New, new Date("2026-07-03T00:00:00.000Z"), 0),
-				makeCard("notes/deck.md::1", State.New, new Date("2026-07-03T00:00:00.000Z"), 1),
-				makeCard("notes/deck.md::2", State.New, new Date("2026-07-03T00:00:00.000Z"), 2),
-				makeCard("notes/deck.md::3", State.Review, new Date("2026-07-01T00:00:00.000Z"), 3),
-				makeCard("notes/deck.md::4", State.Review, new Date("2026-08-01T00:00:00.000Z"), 4),
-			],
-			studyCount: 0,
-			lastStudied: null,
-		};
-		const plugin = makePlugin({
-			decks: {
-				[deck.id]: serializeDeck(deck),
-			},
-			lastSync: "2026-07-02T00:00:00.000Z",
-			settings: makeSettings({
-				dailyNewCards: 2,
-				dailyReviewCards: 1,
-				studyOrder: "sequential",
-			}),
-		} satisfies StoredData);
-		const store = new DataStore(plugin as never);
-
-		await store.loadSettings();
-		const session = store.createStudySession(deck.id, undefined, "reversed");
-
-		expect(session).toMatchObject({
-			deckId: deck.id,
-			direction: "reversed",
-			cardQueue: ["notes/deck.md::0", "notes/deck.md::1", "notes/deck.md::3"],
-			currentIndex: 0,
-			repeatQueue: [],
-			history: [],
-		});
-	});
-
 	it("records study history and keeps only the latest 20 distinct days", async () => {
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date("2026-07-03T08:00:00.000Z"));
@@ -503,7 +529,7 @@ describe("DataStore deck scanning and study plans", () => {
 		const store = new DataStore(plugin as never);
 
 		await store.loadSettings();
-		await store.recordStudySession("notes/deck.md", "deck", "practice", 5, 120);
+		await store.recordWordListSession("notes/deck.md", "deck", 120);
 
 		const dates = new Set(store.getStudyHistory().map((entry) => entry.date));
 		expect(dates.size).toBe(20);

@@ -4,27 +4,23 @@ import {
 	Deck,
 	FlashCard,
 	DeckStats,
-	StudySession,
 	StudyDayInfo,
 	FlashcardSettings,
 	StudySettings,
 	StudyHistoryEntry,
 	SpellingCardProgress,
 	DEFAULT_SETTINGS,
-	CardDirection,
 	StudyRating,
 } from "../shared/types";
 import { FSRSScheduler, toFSRSRating } from "../sessions/scheduler";
 import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "../i18n";
-import {
-	createStudySession as createStudySessionState,
-	type StudyCardSchedule,
-} from "../sessions/sessionEngine";
+import type { StudyCardSchedule } from "../sessions/sessionEngine";
 import type {
 	CardIdentityContinuityState,
 	ContinuityStateStore,
 	PersistedCardIdentityContinuityState,
 } from "../identity/cardIdentityContinuity";
+import type { SessionPersistenceTransition } from "../sessions/sessionLifecycle";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -254,20 +250,81 @@ export class DataStore {
 	 * Save data to disk (includes both decks and settings)
 	 */
 	async save(): Promise<void> {
+		await this.plugin.saveData(
+			this.buildStoredData(this.decks, this.studyHistory, this.spellingProgress),
+		);
+	}
+
+	/**
+	 * Atomically applies every persisted effect produced by one session lifecycle transition.
+	 * The visible in-memory state changes only after the complete next state is durable.
+	 */
+	async commitSessionTransition(transition: SessionPersistenceTransition): Promise<void> {
+		const nextDecks = cloneDecks(this.decks);
+		const nextHistory = [...this.studyHistory];
+		const nextSpellingProgress = cloneSpellingProgress(this.spellingProgress);
+		const now = new Date();
+
+		for (const update of transition.cardUpdates) {
+			const location = findCardLocation(nextDecks, update.deckId, update.cardId);
+			if (!location) continue;
+			location.deck.cards[location.cardIndex] = {
+				...location.deck.cards[location.cardIndex]!,
+				fsrsCard: update.fsrsCard,
+			};
+		}
+
+		for (const deckId of transition.incrementStudyCountFor) {
+			const deck = nextDecks.get(deckId);
+			if (!deck) continue;
+			deck.studyCount++;
+			deck.lastStudied = now.toISOString();
+		}
+
+		for (const attempt of transition.spellingAttempts) {
+			applySpellingAttempt(
+				nextSpellingProgress,
+				attempt.cardId,
+				attempt.correct,
+				attempt.attemptedAt,
+			);
+		}
+
+		for (const entry of transition.historyEntries) {
+			nextHistory.push({
+				...entry,
+				date: formatLocalDate(now),
+				timestamp: now.getTime(),
+			});
+		}
+		pruneStudyHistory(nextHistory);
+
+		await this.plugin.saveData(
+			this.buildStoredData(nextDecks, nextHistory, nextSpellingProgress),
+		);
+		this.decks = nextDecks;
+		this.studyHistory = nextHistory;
+		this.spellingProgress = nextSpellingProgress;
+	}
+
+	private buildStoredData(
+		decks: ReadonlyMap<string, Deck>,
+		studyHistory: StudyHistoryEntry[],
+		spellingProgress: Record<string, SpellingCardProgress>,
+	): StoredData {
 		const data: StoredData = {
 			decks: {},
 			lastSync: new Date().toISOString(),
 			settings: this.settings,
-			studyHistory: this.studyHistory,
-			spellingProgress: this.spellingProgress,
+			studyHistory,
+			spellingProgress,
 			continuity: this.continuity,
 		};
 
-		for (const [id, deck] of this.decks) {
+		for (const [id, deck] of decks) {
 			data.decks[id] = this.serializeDeck(deck);
 		}
-
-		await this.plugin.saveData(data);
+		return data;
 	}
 
 	createContinuityStateStore(): ContinuityStateStore {
@@ -536,26 +593,6 @@ export class DataStore {
 		return sortedCards.slice(start, end);
 	}
 
-	/**
-	 * Create a study session for a deck
-	 */
-	createStudySession(
-		deckId: string,
-		studyOrderOverride?: "sequential" | "random",
-		direction: CardDirection = "normal",
-	): StudySession | null {
-		const deck = this.decks.get(deckId);
-		if (!deck) return null;
-
-		return createStudySessionState({
-			deckId,
-			cards: deck.cards,
-			settings: this.getEffectiveStudySettings(deckId),
-			studyOrderOverride,
-			direction,
-		});
-	}
-
 	rateStudyCard(card: Card, rating: StudyRating): StudyCardSchedule {
 		if (rating === 5) {
 			return {
@@ -585,54 +622,8 @@ export class DataStore {
 		return undefined;
 	}
 
-	/**
-	 * Update a card after rating
-	 */
-	async updateCard(deckId: string, cardId: string, updatedCard: Card): Promise<void> {
-		let deck = this.decks.get(deckId);
-		let cardIndex = deck?.cards.findIndex((card) => card.id === cardId) ?? -1;
-		if (!deck || cardIndex === -1) {
-			for (const candidateDeck of this.decks.values()) {
-				const candidateIndex = candidateDeck.cards.findIndex((card) => card.id === cardId);
-				if (candidateIndex === -1) continue;
-				deck = candidateDeck;
-				cardIndex = candidateIndex;
-				break;
-			}
-		}
-		if (!deck || cardIndex === -1) return;
-
-		deck.cards[cardIndex] = {
-			...deck.cards[cardIndex]!,
-			fsrsCard: updatedCard,
-		};
-
-		await this.save();
-	}
-
-	/**
-	 * Increment study count for a deck
-	 */
-	async incrementStudyCount(deckId: string): Promise<void> {
-		const deck = this.decks.get(deckId);
-		if (!deck) return;
-
-		deck.studyCount++;
-		deck.lastStudied = new Date().toISOString();
-		await this.save();
-	}
-
-	/**
-	 * Record a completed study session and persist it.
-	 * Keeps only the most recent 20 distinct days of history.
-	 */
-	async recordStudySession(
-		deckId: string,
-		deckName: string,
-		mode: StudyHistoryEntry["mode"],
-		cardCount: number,
-		duration: number,
-	): Promise<void> {
+	/** Record a word-list visit, which is outside SessionLifecycle. */
+	async recordWordListSession(deckId: string, deckName: string, duration: number): Promise<void> {
 		const now = new Date();
 		// Local YYYY-MM-DD
 		const date = [
@@ -645,8 +636,8 @@ export class DataStore {
 			date,
 			deckId,
 			deckName,
-			mode,
-			cardCount,
+			mode: "word-list",
+			cardCount: 0,
 			duration,
 			timestamp: Date.now(),
 		});
@@ -675,28 +666,6 @@ export class DataStore {
 				{ ...progress },
 			]),
 		);
-	}
-
-	async recordSpellingAttempt(
-		cardId: string,
-		correct: boolean,
-		attemptedAt: number = Date.now(),
-	): Promise<void> {
-		const current = this.spellingProgress[cardId] ?? {
-			attempts: 0,
-			correctAttempts: 0,
-			correctStreak: 0,
-			lastAttemptAt: attemptedAt,
-		};
-		this.spellingProgress[cardId] = {
-			...current,
-			attempts: current.attempts + 1,
-			correctAttempts: current.correctAttempts + (correct ? 1 : 0),
-			correctStreak: correct ? current.correctStreak + 1 : 0,
-			lastAttemptAt: attemptedAt,
-			...(correct ? {} : { lastIncorrectAt: attemptedAt }),
-		};
-		await this.save();
 	}
 
 	/**
@@ -772,4 +741,79 @@ function normalizeSpellingProgress(
 		};
 	}
 	return normalized;
+}
+
+function cloneDecks(decks: ReadonlyMap<string, Deck>): Map<string, Deck> {
+	return new Map(
+		Array.from(decks.entries()).map(([deckId, deck]) => [
+			deckId,
+			{
+				...deck,
+				cards: deck.cards.map((card) => ({ ...card })),
+			},
+		]),
+	);
+}
+
+function cloneSpellingProgress(
+	progress: Readonly<Record<string, SpellingCardProgress>>,
+): Record<string, SpellingCardProgress> {
+	return Object.fromEntries(
+		Object.entries(progress).map(([cardId, value]) => [cardId, { ...value }]),
+	);
+}
+
+function findCardLocation(
+	decks: ReadonlyMap<string, Deck>,
+	deckId: string,
+	cardId: string,
+): { deck: Deck; cardIndex: number } | null {
+	const originDeck = decks.get(deckId);
+	const originIndex = originDeck?.cards.findIndex((card) => card.id === cardId) ?? -1;
+	if (originDeck && originIndex !== -1) {
+		return { deck: originDeck, cardIndex: originIndex };
+	}
+	for (const deck of decks.values()) {
+		const cardIndex = deck.cards.findIndex((card) => card.id === cardId);
+		if (cardIndex !== -1) return { deck, cardIndex };
+	}
+	return null;
+}
+
+function applySpellingAttempt(
+	progress: Record<string, SpellingCardProgress>,
+	cardId: string,
+	correct: boolean,
+	attemptedAt: number,
+): void {
+	const current = progress[cardId] ?? {
+		attempts: 0,
+		correctAttempts: 0,
+		correctStreak: 0,
+		lastAttemptAt: attemptedAt,
+	};
+	progress[cardId] = {
+		...current,
+		attempts: current.attempts + 1,
+		correctAttempts: current.correctAttempts + (correct ? 1 : 0),
+		correctStreak: correct ? current.correctStreak + 1 : 0,
+		lastAttemptAt: attemptedAt,
+		...(correct ? {} : { lastIncorrectAt: attemptedAt }),
+	};
+}
+
+function formatLocalDate(date: Date): string {
+	return [
+		date.getFullYear(),
+		String(date.getMonth() + 1).padStart(2, "0"),
+		String(date.getDate()).padStart(2, "0"),
+	].join("-");
+}
+
+function pruneStudyHistory(history: StudyHistoryEntry[]): void {
+	const days = [...new Set(history.map((entry) => entry.date))].sort().reverse();
+	if (days.length <= 20) return;
+	const keep = new Set(days.slice(0, 20));
+	const retained = history.filter((entry) => keep.has(entry.date));
+	history.splice(0, history.length, ...retained);
 }

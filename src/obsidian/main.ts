@@ -11,7 +11,7 @@ import {
 	type ResolutionOutcome,
 } from "../identity/cardIdentityContinuity";
 import { createCardIdentity } from "../identity/cardIdentity";
-import { createActiveSessionStore, type ActiveSessionStore } from "../sessions/activeSessionStore";
+import { createSessionLifecycle, type SessionLifecycle } from "../sessions/sessionLifecycle";
 import { createObsidianContinuitySourceStore } from "./cardIdentityContinuityAdapters";
 import {
 	CardIdentityMigrationModal,
@@ -34,7 +34,7 @@ export default class FlashcardPlugin extends Plugin {
 	settings: FlashcardSettings = DEFAULT_SETTINGS;
 	dataStore!: DataStore;
 	cardIdentityContinuity!: CardIdentityContinuity;
-	activeSessionStore!: ActiveSessionStore;
+	sessionLifecycle!: SessionLifecycle;
 	pronunciationRuntime!: PronunciationRuntime;
 	private ribbonIconEl: HTMLElement | null = null;
 
@@ -49,22 +49,12 @@ export default class FlashcardPlugin extends Plugin {
 			this.settings.pronunciation,
 		);
 		await this.dataStore.load();
-		this.activeSessionStore = createActiveSessionStore({
-			onSourceChangeEnd: async (ending) => {
-				if (ending.answerEventCount === 0) return;
-				await this.dataStore.recordStudySession(
-					ending.originDeck.id,
-					ending.originDeck.name,
-					ending.type,
-					ending.answerEventCount,
-					ending.duration,
-				);
-			},
-		});
+		const sessionLifecycleWiring = createSessionLifecycle(this.dataStore);
+		this.sessionLifecycle = sessionLifecycleWiring.lifecycle;
 		this.cardIdentityContinuity = createCardIdentityContinuity({
 			sources: createObsidianContinuitySourceStore(this.app.vault),
 			state: this.dataStore.createContinuityStateStore(),
-			sessions: this.activeSessionStore,
+			sessions: sessionLifecycleWiring.continuitySessions,
 			createIdentity: createCardIdentity,
 		});
 
@@ -76,7 +66,7 @@ export default class FlashcardPlugin extends Plugin {
 					leaf,
 					this.dataStore,
 					this.cardIdentityContinuity,
-					this.activeSessionStore,
+					this.sessionLifecycle,
 					this.pronunciationRuntime,
 					this.settings,
 					this.saveSettings.bind(this),

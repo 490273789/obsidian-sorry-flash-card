@@ -1,5 +1,6 @@
 import type { FlashCard, SpellingCardProgress } from "../shared/types";
 import { shuffleArray } from "../shared/utils";
+import { extractSpellingWord } from "../cards/spellingWord";
 
 export type SpellingSessionPlanSource = "smart" | "range" | "incorrect-retry";
 
@@ -9,7 +10,35 @@ export interface SpellingSessionPlan {
 	cardIds: string[];
 }
 
+export interface SpellingDeckProgressStats {
+	total: number;
+	unpracticed: number;
+	reinforcement: number;
+	stable: number;
+}
+
 export type SpellingShuffle = (cardIds: string[]) => string[];
+
+export function getSpellingDeckProgressStats(
+	cards: readonly FlashCard[],
+	progress: Readonly<Record<string, SpellingCardProgress>>,
+): SpellingDeckProgressStats {
+	const eligibleCards = cards.filter((card) => extractSpellingWord(card.front) !== null);
+	let unpracticed = 0;
+	let reinforcement = 0;
+	let stable = 0;
+	for (const card of eligibleCards) {
+		const cardProgress = progress[card.id];
+		if (!cardProgress || cardProgress.attempts === 0) {
+			unpracticed++;
+		} else if (cardProgress.correctStreak >= 2) {
+			stable++;
+		} else {
+			reinforcement++;
+		}
+	}
+	return { total: eligibleCards.length, unpracticed, reinforcement, stable };
+}
 
 export function planSmartSpellingSession(params: {
 	deckId: string;
