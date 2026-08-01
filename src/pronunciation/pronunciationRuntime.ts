@@ -9,13 +9,19 @@ import {
 	synthesizeOpenAiSpeech,
 	type PronunciationRequester,
 } from "./providers";
+import { normalizePronunciationSettings } from "./pronunciationSettings";
 import type {
 	PronunciationAudioCache,
+	PronunciationCacheClearOutcome,
+	PronunciationCacheUsage,
+	PronunciationConfigureOutcome,
 	PronunciationFailureReason,
+	PronunciationManagementAction,
 	PronunciationOutcome,
 	PronunciationRequestDescriptor,
 	PronunciationRuntime,
 	PronunciationSnapshot,
+	PronunciationTestOutcome,
 	SynthesizedAudio,
 } from "./types";
 
@@ -38,6 +44,7 @@ export interface PronunciationRuntimeDependencies {
 	voiceLoadTimeoutMs?: number;
 	getSystemLanguage?: () => string;
 	subscribeConnectivity?: (listener: () => void) => () => void;
+	persistSettings?: (settings: PronunciationSettings) => Promise<void>;
 }
 
 export function createPronunciationRuntime(
@@ -90,6 +97,7 @@ export function createPronunciationRuntime(
 					window.removeEventListener("offline", listener);
 				};
 			}),
+		persistSettings: dependencies.persistSettings ?? (() => Promise.resolve()),
 	});
 }
 
@@ -99,10 +107,20 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 	private voices: SpeechSynthesisVoice[] = [];
 	private voicesLoaded = false;
 	private speakingText: string | null = null;
-	private cacheUsageBytes: number | null = null;
+	private cacheUsage: PronunciationCacheUsage = { status: "loading" };
+	private management: "idle" | PronunciationManagementAction = "idle";
 	private revision = 0;
+	private snapshot: PronunciationSnapshot | null = null;
 	private activePlayback: ActivePlayback | null = null;
 	private operationId = 0;
+	private configureQueue: Promise<void> = Promise.resolve();
+	private queuedConfigurations = 0;
+	private activeTestPromise: Promise<PronunciationTestOutcome> | null = null;
+	private cancelActiveTest: (() => void) | null = null;
+	private activeClearPromise: Promise<PronunciationCacheClearOutcome> | null = null;
+	private cacheRefreshPromise: Promise<PronunciationCacheUsage> | null = null;
+	private cacheRefreshQueued = false;
+	private cacheUsageEpoch = 0;
 	private readonly voiceLoadWaiters = new Set<() => void>();
 	private providerBlockedUntil = new Map<"azure" | "openai", number>();
 	private readonly providerCooldownTimers = new Map<
@@ -116,7 +134,7 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		settings: PronunciationSettings,
 		private readonly dependencies: Required<PronunciationRuntimeDependencies>,
 	) {
-		this.settings = settings;
+		this.settings = normalizePronunciationSettings(settings);
 		this.refreshVoices();
 		this.dependencies.speechSynthesis?.addEventListener(
 			"voiceschanged",
@@ -127,13 +145,17 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 	}
 
 	getSnapshot(): PronunciationSnapshot {
-		return {
+		if (this.snapshot) return this.snapshot;
+		this.snapshot = Object.freeze({
 			revision: this.revision,
+			settings: Object.freeze({ ...this.settings }),
+			management: this.management,
 			hasLocalEnglishVoice: this.hasLocalEnglishVoice(),
 			voicesLoaded: this.voicesLoaded,
 			speakingText: this.speakingText,
-			cacheUsageBytes: this.cacheUsageBytes,
-		};
+			cacheUsage: Object.freeze({ ...this.cacheUsage }),
+		});
+		return this.snapshot;
 	}
 
 	subscribe(listener: () => void): () => void {
@@ -141,12 +163,55 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		return () => this.listeners.delete(listener);
 	}
 
-	updateSettings(settings: PronunciationSettings): void {
+	configure(patch: Partial<PronunciationSettings>): Promise<PronunciationConfigureOutcome> {
+		if (this.management === "clearing-cache") {
+			return Promise.resolve({
+				status: "busy",
+				operation: "clearing-cache",
+			});
+		}
+
 		this.stop();
-		this.settings = settings;
-		this.providerBlockedUntil.clear();
-		this.clearProviderCooldownTimers();
-		this.bump();
+		this.queuedConfigurations++;
+		if (this.management !== "configuring") {
+			this.management = "configuring";
+			this.bump();
+		}
+
+		const pending = this.configureQueue.then(
+			async (): Promise<PronunciationConfigureOutcome> => {
+				const nextSettings = normalizePronunciationSettings({
+					...this.settings,
+					...patch,
+				});
+				try {
+					await this.dependencies.persistSettings({ ...nextSettings });
+				} catch {
+					return { status: "failed", reason: "persistence" };
+				}
+
+				this.stop();
+				this.settings = nextSettings;
+				this.providerBlockedUntil.clear();
+				this.clearProviderCooldownTimers();
+				this.bump();
+				return {
+					status: "applied",
+					settings: { ...nextSettings },
+				};
+			},
+		);
+		this.configureQueue = pending.then(
+			() => undefined,
+			() => undefined,
+		);
+		return pending.finally(() => {
+			this.queuedConfigurations--;
+			if (this.queuedConfigurations === 0 && this.management === "configuring") {
+				this.management = "idle";
+				this.bump();
+			}
+		});
 	}
 
 	async canSpeak(text: string): Promise<boolean> {
@@ -216,7 +281,7 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 					data: audio.data,
 					mimeType: audio.mimeType,
 				});
-				void this.refreshCacheUsage();
+				this.requestCacheUsageRefresh();
 			}
 			if (operationId !== this.operationId) return { status: "cancelled" };
 			return this.playAudio(
@@ -233,9 +298,46 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		}
 	}
 
-	async testOnlineProvider(text: string): Promise<PronunciationOutcome> {
+	testOnlineProvider(text: string): Promise<PronunciationTestOutcome> {
+		if (this.management === "testing-provider" && this.activeTestPromise) {
+			return this.activeTestPromise;
+		}
+		if (this.management !== "idle") {
+			return Promise.resolve({
+				status: "busy",
+				operation: this.management,
+			});
+		}
+
 		this.stop();
 		const operationId = ++this.operationId;
+		this.management = "testing-provider";
+		this.bump();
+		let cancelTest: (() => void) | null = null;
+		const cancelled = new Promise<PronunciationTestOutcome>((resolve) => {
+			cancelTest = () => resolve({ status: "cancelled" });
+		});
+		this.cancelActiveTest = () => cancelTest?.();
+		const active = Promise.race([
+			this.runOnlineProviderTest(text, operationId),
+			cancelled,
+		]).finally(() => {
+			if (this.activeTestPromise !== active) return;
+			this.activeTestPromise = null;
+			this.cancelActiveTest = null;
+			if (this.management === "testing-provider") {
+				this.management = "idle";
+				this.bump();
+			}
+		});
+		this.activeTestPromise = active;
+		return active;
+	}
+
+	private async runOnlineProviderTest(
+		text: string,
+		operationId: number,
+	): Promise<PronunciationOutcome> {
 		const testWord = extractSpellingWord(text);
 		if (!testWord) return { status: "unavailable", reason: "unsupported" };
 		const descriptor = this.createOnlineDescriptor(testWord);
@@ -267,6 +369,7 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 
 	stop(): void {
 		this.operationId++;
+		this.cancelActiveTest?.();
 		this.activePlayback?.cancel();
 		this.activePlayback = null;
 		if (this.speakingText !== null) {
@@ -275,17 +378,72 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		}
 	}
 
-	async getCacheUsageBytes(): Promise<number> {
-		const usage = await this.dependencies.cache.getUsageBytes();
-		this.cacheUsageBytes = usage;
-		this.bump();
-		return usage;
+	refreshCacheUsage(): Promise<PronunciationCacheUsage> {
+		if (this.cacheRefreshPromise) return this.cacheRefreshPromise;
+		const epoch = this.cacheUsageEpoch;
+		if (this.cacheUsage.status !== "loading") {
+			this.cacheUsage = { status: "loading" };
+			this.bump();
+		}
+		const active = this.dependencies.cache
+			.getUsageBytes()
+			.then((bytes): PronunciationCacheUsage => {
+				if (epoch !== this.cacheUsageEpoch) return this.cacheUsage;
+				this.cacheUsage = { status: "ready", bytes };
+				this.bump();
+				return this.cacheUsage;
+			})
+			.catch((): PronunciationCacheUsage => {
+				if (epoch !== this.cacheUsageEpoch) return this.cacheUsage;
+				this.cacheUsage = { status: "failed" };
+				this.bump();
+				return this.cacheUsage;
+			})
+			.finally(() => {
+				if (this.cacheRefreshPromise !== active) return;
+				this.cacheRefreshPromise = null;
+				if (this.cacheRefreshQueued) {
+					this.cacheRefreshQueued = false;
+					void this.refreshCacheUsage();
+				}
+			});
+		this.cacheRefreshPromise = active;
+		return active;
 	}
 
-	async clearCache(): Promise<void> {
-		await this.dependencies.cache.clear();
-		this.cacheUsageBytes = 0;
+	clearCache(): Promise<PronunciationCacheClearOutcome> {
+		if (this.management === "clearing-cache" && this.activeClearPromise) {
+			return this.activeClearPromise;
+		}
+		if (this.management !== "idle") {
+			return Promise.resolve({
+				status: "busy",
+				operation: this.management,
+			});
+		}
+
+		this.management = "clearing-cache";
 		this.bump();
+		const active = this.dependencies.cache
+			.clear()
+			.then((): PronunciationCacheClearOutcome => {
+				this.cacheUsageEpoch++;
+				this.cacheRefreshQueued = false;
+				this.cacheUsage = { status: "ready", bytes: 0 };
+				this.bump();
+				return { status: "cleared" };
+			})
+			.catch((): PronunciationCacheClearOutcome => ({ status: "failed", reason: "storage" }))
+			.finally(() => {
+				if (this.activeClearPromise !== active) return;
+				this.activeClearPromise = null;
+				if (this.management === "clearing-cache") {
+					this.management = "idle";
+					this.bump();
+				}
+			});
+		this.activeClearPromise = active;
+		return active;
 	}
 
 	dispose(): void {
@@ -555,14 +713,25 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		}
 	}
 
-	private async refreshCacheUsage(): Promise<void> {
-		this.cacheUsageBytes = await this.dependencies.cache.getUsageBytes();
-		this.bump();
+	private requestCacheUsageRefresh(): void {
+		this.cacheUsageEpoch++;
+		if (this.cacheRefreshPromise) {
+			this.cacheRefreshQueued = true;
+			return;
+		}
+		void this.refreshCacheUsage();
 	}
 
 	private bump(): void {
 		this.revision++;
-		for (const listener of this.listeners) listener();
+		this.snapshot = null;
+		for (const listener of this.listeners) {
+			try {
+				listener();
+			} catch {
+				// A presentation listener must not break runtime state transitions.
+			}
+		}
 	}
 }
 

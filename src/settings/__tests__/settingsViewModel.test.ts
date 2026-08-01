@@ -19,9 +19,15 @@ function makeSettings(overrides: Partial<FlashcardSettings> = {}): FlashcardSett
 }
 
 const DEFAULT_PRONUNCIATION_STATE = {
-	pronunciationCacheUsageBytes: 0,
-	isTestingPronunciation: false,
-	isClearingPronunciationCache: false,
+	pronunciation: {
+		revision: 0,
+		settings: { ...DEFAULT_SETTINGS.pronunciation },
+		management: "idle",
+		hasLocalEnglishVoice: false,
+		voicesLoaded: true,
+		speakingText: null,
+		cacheUsage: { status: "ready", bytes: 0 },
+	},
 } as const;
 
 function makeActions(): SettingsViewModelActions {
@@ -261,14 +267,16 @@ describe("buildSettingsViewModel", () => {
 		const model = buildSettingsViewModel(
 			{
 				...DEFAULT_PRONUNCIATION_STATE,
-				pronunciationCacheUsageBytes: 1024 * 1024,
-				settings: makeSettings({
-					pronunciation: {
+				pronunciation: {
+					...DEFAULT_PRONUNCIATION_STATE.pronunciation,
+					settings: {
 						...DEFAULT_SETTINGS.pronunciation,
 						onlineProvider: "openai",
 						openaiSecretId: "openai-flashcard",
 					},
-				}),
+					cacheUsage: { status: "ready", bytes: 1024 * 1024 },
+				},
+				settings: makeSettings(),
 				availableTags: [],
 				isLoadingTags: false,
 				hasLoadedTags: true,
@@ -292,5 +300,44 @@ describe("buildSettingsViewModel", () => {
 		expect(actions.setOnlinePronunciationProvider).toHaveBeenCalledWith("azure");
 		expect(openAiSecret?.visible).toBe(true);
 		expect(cacheStatus).toMatchObject({ type: "status", text: "1.0 MB" });
+	});
+
+	it("disables every pronunciation action while management is busy and exposes cache failure", () => {
+		const model = buildSettingsViewModel(
+			{
+				...DEFAULT_PRONUNCIATION_STATE,
+				pronunciation: {
+					...DEFAULT_PRONUNCIATION_STATE.pronunciation,
+					management: "configuring",
+					cacheUsage: { status: "failed" },
+				},
+				settings: makeSettings({
+					pronunciation: {
+						...DEFAULT_SETTINGS.pronunciation,
+						spellingAutoPlay: true,
+					},
+				}),
+				availableTags: [],
+				isLoadingTags: false,
+				hasLoadedTags: true,
+				language: "zh",
+			},
+			makeActions(),
+		);
+		const pronunciation = model[3]!;
+		const actionableControls = pronunciation.items
+			.flatMap((item) => item.controls ?? [])
+			.filter((control) => control.type !== "status");
+		const cacheStatus = pronunciation.items.find((item) => item.name === "设备音频缓存")
+			?.controls?.[0];
+
+		expect(
+			actionableControls.every(
+				(control) => "disabled" in control && control.disabled === true,
+			),
+		).toBe(true);
+		expect(cacheStatus).toMatchObject({ type: "status", text: "读取失败" });
+		const autoPlay = pronunciation.items[0]!.controls?.[0];
+		expect(autoPlay).toMatchObject({ type: "toggle", value: false });
 	});
 });

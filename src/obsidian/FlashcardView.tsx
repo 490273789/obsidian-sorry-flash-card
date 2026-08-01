@@ -20,7 +20,7 @@ export class FlashcardView extends ItemView {
 	private pronunciationRuntime: PronunciationRuntime;
 	private modalHost: HTMLElement | null = null;
 	private settings: FlashcardSettings;
-	private onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
+	private onSaveSettings: (settings: FlashcardSettings) => Promise<FlashcardSettings>;
 	private onOpenSettings: () => void;
 
 	constructor(
@@ -30,7 +30,7 @@ export class FlashcardView extends ItemView {
 		sessionLifecycle: SessionLifecycle,
 		pronunciationRuntime: PronunciationRuntime,
 		settings: FlashcardSettings,
-		onSaveSettings: (settings: FlashcardSettings) => Promise<void>,
+		onSaveSettings: (settings: FlashcardSettings) => Promise<FlashcardSettings>,
 		onOpenSettings: () => void,
 	) {
 		super(leaf);
@@ -96,9 +96,7 @@ export class FlashcardView extends ItemView {
 	}
 
 	private handleSaveSettings = async (newSettings: FlashcardSettings): Promise<void> => {
-		this.settings = newSettings;
-		await this.onSaveSettings(newSettings);
-		this.dataStore.updateSettings(newSettings);
+		this.settings = await this.onSaveSettings(newSettings);
 		this.renderApp();
 	};
 

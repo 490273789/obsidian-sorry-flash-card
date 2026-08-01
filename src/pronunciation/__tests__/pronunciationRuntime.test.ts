@@ -4,6 +4,8 @@ import { DEFAULT_SETTINGS, type PronunciationSettings } from "../../shared/types
 import { MemoryPronunciationAudioCache, createPronunciationCacheKey } from "../audioCache";
 import { createPronunciationRequestDescriptor, type PronunciationRequester } from "../providers";
 import { createPronunciationRuntime, selectLocalEnglishVoice } from "../pronunciationRuntime";
+import { normalizePronunciationSettings } from "../pronunciationSettings";
+import type { PronunciationAudioCache } from "../types";
 
 vi.mock("obsidian", () => ({
 	requestUrl: vi.fn(),
@@ -112,6 +114,16 @@ function makeRequester(status = 200): ReturnType<typeof vi.fn<PronunciationReque
 	});
 }
 
+function deferred<T>() {
+	let resolve!: (value: T | PromiseLike<T>) => void;
+	let reject!: (reason?: unknown) => void;
+	const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+		resolve = resolvePromise;
+		reject = rejectPromise;
+	});
+	return { promise, resolve, reject };
+}
+
 afterEach(() => {
 	vi.useRealTimers();
 });
@@ -149,6 +161,222 @@ describe("local voice selection", () => {
 			voicesLoaded: true,
 			hasLocalEnglishVoice: true,
 		});
+		runtime.dispose();
+	});
+});
+
+describe("pronunciation configuration", () => {
+	it("keeps snapshots stable and immutable until the runtime changes", async () => {
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
+			speechSynthesis: null,
+		});
+		await vi.waitFor(() => expect(runtime.getSnapshot().cacheUsage.status).toBe("ready"));
+		const first = runtime.getSnapshot();
+
+		expect(runtime.getSnapshot()).toBe(first);
+		expect(Object.isFrozen(first)).toBe(true);
+		expect(Object.isFrozen(first.settings)).toBe(true);
+
+		await runtime.configure({ rate: "slow" });
+		expect(runtime.getSnapshot()).not.toBe(first);
+		runtime.dispose();
+	});
+
+	it("normalizes persisted and patched configuration in one module", () => {
+		expect(
+			normalizePronunciationSettings({
+				...makeSettings(),
+				accent: "invalid" as PronunciationSettings["accent"],
+				azureCloud: "china",
+				azureRegion: " EASTUS ",
+				azureSecretId: " secret-id ",
+			}),
+		).toMatchObject({
+			accent: "system",
+			azureCloud: "china",
+			azureRegion: "chinaeast2",
+			azureSecretId: " secret-id ",
+		});
+		expect(
+			normalizePronunciationSettings({
+				...makeSettings(),
+				azureCloud: "global",
+				azureRegion: " ChinaNorth2 ",
+			}),
+		).toMatchObject({
+			azureCloud: "global",
+			azureRegion: "eastus",
+		});
+	});
+
+	it("publishes configuration only after persistence succeeds", async () => {
+		const gate = deferred<void>();
+		const persistSettings = vi.fn(() => gate.promise);
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings({ rate: "normal" }), {
+			speechSynthesis: null,
+			persistSettings,
+		});
+
+		const pending = runtime.configure({ rate: "slow" });
+		expect(runtime.getSnapshot()).toMatchObject({
+			management: "configuring",
+			settings: { rate: "normal" },
+		});
+		await vi.waitFor(() => expect(persistSettings).toHaveBeenCalledTimes(1));
+		gate.resolve();
+
+		await expect(pending).resolves.toMatchObject({
+			status: "applied",
+			settings: { rate: "slow" },
+		});
+		expect(runtime.getSnapshot()).toMatchObject({
+			management: "idle",
+			settings: { rate: "slow" },
+		});
+		runtime.dispose();
+	});
+
+	it("keeps the committed configuration when persistence fails", async () => {
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings({ rate: "normal" }), {
+			speechSynthesis: null,
+			persistSettings: () => Promise.reject(new Error("disk unavailable")),
+		});
+
+		await expect(runtime.configure({ rate: "slow" })).resolves.toEqual({
+			status: "failed",
+			reason: "persistence",
+		});
+		expect(runtime.getSnapshot()).toMatchObject({
+			management: "idle",
+			settings: { rate: "normal" },
+		});
+		runtime.dispose();
+	});
+
+	it("serializes patches against the last successful configuration", async () => {
+		const gates = [deferred<void>(), deferred<void>()];
+		const writes: PronunciationSettings[] = [];
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
+			speechSynthesis: null,
+			persistSettings: (settings) => {
+				writes.push(settings);
+				return gates[writes.length - 1]!.promise;
+			},
+		});
+
+		const first = runtime.configure({ rate: "slow" });
+		const second = runtime.configure({ accent: "en-GB" });
+		await vi.waitFor(() => expect(writes).toHaveLength(1));
+		expect(writes[0]).toMatchObject({ rate: "slow", accent: "system" });
+		gates[0]!.resolve();
+		await expect(first).resolves.toMatchObject({ status: "applied" });
+		await vi.waitFor(() => expect(writes).toHaveLength(2));
+		expect(writes[1]).toMatchObject({ rate: "slow", accent: "en-GB" });
+		gates[1]!.resolve();
+		await expect(second).resolves.toMatchObject({ status: "applied" });
+		runtime.dispose();
+	});
+});
+
+describe("pronunciation management lifecycle", () => {
+	it("shares online tests and lets configuration cancel the active test", async () => {
+		const response = deferred<{
+			status: number;
+			arrayBuffer: ArrayBuffer;
+			headers: Record<string, string>;
+		}>();
+		const requester = vi.fn<PronunciationRequester>(() => response.promise);
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
+			speechSynthesis: null,
+			requester,
+			createAudio: makeAudioFactory(),
+			createObjectUrl: () => "blob:test",
+			revokeObjectUrl: vi.fn(),
+		});
+
+		const firstTest = runtime.testOnlineProvider("hello");
+		const secondTest = runtime.testOnlineProvider("hello");
+		expect(secondTest).toBe(firstTest);
+		const configured = runtime.configure({ rate: "slow" });
+		await expect(firstTest).resolves.toEqual({ status: "cancelled" });
+		await expect(configured).resolves.toMatchObject({ status: "applied" });
+		response.resolve({
+			status: 200,
+			arrayBuffer: new Uint8Array([1]).buffer,
+			headers: { "content-type": "audio/mpeg" },
+		});
+		runtime.dispose();
+	});
+
+	it("returns busy when configuration conflicts with cache clearing", async () => {
+		const clearing = deferred<void>();
+		const cache: PronunciationAudioCache = {
+			get: async () => null,
+			put: async () => undefined,
+			getUsageBytes: async () => 0,
+			clear: () => clearing.promise,
+		};
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
+			speechSynthesis: null,
+			cache,
+		});
+
+		const firstClear = runtime.clearCache();
+		const secondClear = runtime.clearCache();
+		expect(secondClear).toBe(firstClear);
+		await expect(runtime.configure({ rate: "slow" })).resolves.toEqual({
+			status: "busy",
+			operation: "clearing-cache",
+		});
+		clearing.resolve();
+		await expect(firstClear).resolves.toEqual({ status: "cleared" });
+		runtime.dispose();
+	});
+
+	it("models cache failures and ignores stale usage after clearing", async () => {
+		const initialUsage = deferred<number>();
+		const cache: PronunciationAudioCache = {
+			get: async () => null,
+			put: async () => undefined,
+			getUsageBytes: vi.fn().mockImplementationOnce(() => initialUsage.promise),
+			clear: async () => undefined,
+		};
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
+			speechSynthesis: null,
+			cache,
+		});
+
+		await expect(runtime.clearCache()).resolves.toEqual({ status: "cleared" });
+		initialUsage.resolve(999);
+		await vi.waitFor(() =>
+			expect(runtime.getSnapshot().cacheUsage).toEqual({ status: "ready", bytes: 0 }),
+		);
+		runtime.dispose();
+	});
+
+	it("exposes cache usage failures and retries them explicitly", async () => {
+		const cache: PronunciationAudioCache = {
+			get: async () => null,
+			put: async () => undefined,
+			getUsageBytes: vi
+				.fn()
+				.mockRejectedValueOnce(new Error("IndexedDB unavailable"))
+				.mockResolvedValueOnce(42),
+			clear: async () => undefined,
+		};
+		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
+			speechSynthesis: null,
+			cache,
+		});
+
+		await vi.waitFor(() =>
+			expect(runtime.getSnapshot().cacheUsage).toEqual({ status: "failed" }),
+		);
+		await expect(runtime.refreshCacheUsage()).resolves.toEqual({
+			status: "ready",
+			bytes: 42,
+		});
+		expect(runtime.getSnapshot().cacheUsage).toEqual({ status: "ready", bytes: 42 });
 		runtime.dispose();
 	});
 });
@@ -324,7 +552,7 @@ describe("pronunciation runtime order and resilience", () => {
 			reason: "unauthorized",
 		});
 		expect(await runtime.canSpeak("hello")).toBe(false);
-		runtime.updateSettings({ ...settings });
+		await runtime.configure({ ...settings });
 		expect(await runtime.canSpeak("hello")).toBe(true);
 		runtime.dispose();
 	});

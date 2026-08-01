@@ -21,6 +21,7 @@ import type {
 	PersistedCardIdentityContinuityState,
 } from "../identity/cardIdentityContinuity";
 import type { SessionPersistenceTransition } from "../sessions/sessionLifecycle";
+import { normalizePronunciationSettings } from "../pronunciation/pronunciationSettings";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -152,11 +153,19 @@ export class DataStore {
 	 * Save settings to disk
 	 */
 	async saveSettings(newSettings?: FlashcardSettings): Promise<void> {
+		const nextSettings = newSettings ?? this.settings;
+		await this.plugin.saveData(
+			this.buildStoredData(
+				this.decks,
+				this.studyHistory,
+				this.spellingProgress,
+				nextSettings,
+			),
+		);
 		if (newSettings) {
-			this.settings = newSettings;
+			this.settings = nextSettings;
 			this.scheduler = new FSRSScheduler(this.settings);
 		}
-		await this.save();
 	}
 
 	/**
@@ -187,10 +196,7 @@ export class DataStore {
 				...DEFAULT_SETTINGS.fsrsParameters,
 				...settings.fsrsParameters,
 			},
-			pronunciation: {
-				...DEFAULT_SETTINGS.pronunciation,
-				...settings.pronunciation,
-			},
+			pronunciation: normalizePronunciationSettings(settings.pronunciation),
 			practiceMessagesCustomized: messagesCustomized,
 			practicePerfectMessages: messagesCustomized
 				? [...(settings.practicePerfectMessages ?? defaultMessages.perfect)]
@@ -311,11 +317,12 @@ export class DataStore {
 		decks: ReadonlyMap<string, Deck>,
 		studyHistory: StudyHistoryEntry[],
 		spellingProgress: Record<string, SpellingCardProgress>,
+		settings: FlashcardSettings = this.settings,
 	): StoredData {
 		const data: StoredData = {
 			decks: {},
 			lastSync: new Date().toISOString(),
-			settings: this.settings,
+			settings,
 			studyHistory,
 			spellingProgress,
 			continuity: this.continuity,
@@ -666,14 +673,6 @@ export class DataStore {
 				{ ...progress },
 			]),
 		);
-	}
-
-	/**
-	 * Update settings reference (does not save to disk)
-	 */
-	updateSettings(settings: FlashcardSettings): void {
-		this.settings = settings;
-		this.scheduler = new FSRSScheduler(settings);
 	}
 
 	/**

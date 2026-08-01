@@ -17,6 +17,8 @@ export type PronunciationFailureReason =
 	| "playback"
 	| "unsupported";
 
+export type PronunciationManagementAction = "configuring" | "testing-provider" | "clearing-cache";
+
 export type PronunciationOutcome =
 	| {
 			status: "success";
@@ -34,12 +36,53 @@ export type PronunciationOutcome =
 			status: "cancelled";
 	  };
 
+export type PronunciationTestOutcome =
+	| PronunciationOutcome
+	| {
+			status: "busy";
+			operation: PronunciationManagementAction;
+	  };
+
+export type PronunciationConfigureOutcome =
+	| {
+			status: "applied";
+			settings: PronunciationSettings;
+	  }
+	| {
+			status: "busy";
+			operation: PronunciationManagementAction;
+	  }
+	| {
+			status: "failed";
+			reason: "persistence";
+	  };
+
+export type PronunciationCacheClearOutcome =
+	| {
+			status: "cleared";
+	  }
+	| {
+			status: "busy";
+			operation: PronunciationManagementAction;
+	  }
+	| {
+			status: "failed";
+			reason: "storage";
+	  };
+
+export type PronunciationCacheUsage =
+	| { readonly status: "loading" }
+	| { readonly status: "ready"; readonly bytes: number }
+	| { readonly status: "failed" };
+
 export interface PronunciationSnapshot {
-	revision: number;
-	hasLocalEnglishVoice: boolean;
-	voicesLoaded: boolean;
-	speakingText: string | null;
-	cacheUsageBytes: number | null;
+	readonly revision: number;
+	readonly settings: Readonly<PronunciationSettings>;
+	readonly management: "idle" | PronunciationManagementAction;
+	readonly hasLocalEnglishVoice: boolean;
+	readonly voicesLoaded: boolean;
+	readonly speakingText: string | null;
+	readonly cacheUsage: PronunciationCacheUsage;
 }
 
 export interface PronunciationRequestDescriptor {
@@ -59,13 +102,13 @@ export interface SynthesizedAudio {
 export interface PronunciationRuntime {
 	getSnapshot(): PronunciationSnapshot;
 	subscribe(listener: () => void): () => void;
-	updateSettings(settings: PronunciationSettings): void;
+	configure(patch: Partial<PronunciationSettings>): Promise<PronunciationConfigureOutcome>;
 	canSpeak(text: string): Promise<boolean>;
 	speak(text: string, intent: "manual" | "auto"): Promise<PronunciationOutcome>;
-	testOnlineProvider(text: string): Promise<PronunciationOutcome>;
+	testOnlineProvider(text: string): Promise<PronunciationTestOutcome>;
 	stop(): void;
-	getCacheUsageBytes(): Promise<number>;
-	clearCache(): Promise<void>;
+	refreshCacheUsage(): Promise<PronunciationCacheUsage>;
+	clearCache(): Promise<PronunciationCacheClearOutcome>;
 	dispose(): void;
 }
 

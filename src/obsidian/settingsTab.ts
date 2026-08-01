@@ -27,7 +27,7 @@ import {
 	type SettingsViewModelDefinition,
 	type SettingsViewModelSetting,
 } from "../settings/settingsViewModel";
-import type { Language } from "../shared/types";
+import type { Language, PronunciationSettings } from "../shared/types";
 
 type VisibleDefinition = { visible?: boolean | (() => boolean) };
 type FlashcardSettingDefinition = VisibleDefinition & {
@@ -47,11 +47,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	private availableTags: string[] = [];
 	private isLoadingTags = false;
 	private hasLoadedTags = false;
-	private pronunciationCacheUsageBytes: number | null = null;
-	private isLoadingPronunciationCacheUsage = false;
-	private hasLoadedPronunciationCacheUsage = false;
-	private isTestingPronunciation = false;
-	private isClearingPronunciationCache = false;
+	private pronunciationUnsubscribe: (() => void) | null = null;
+	private didRetryFailedCacheUsage = false;
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
@@ -60,16 +57,26 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	display(): void {
+		this.activatePronunciationState();
 		this.renderSettings();
 	}
 
+	hide(): void {
+		this.pronunciationUnsubscribe?.();
+		this.pronunciationUnsubscribe = null;
+		this.didRetryFailedCacheUsage = false;
+		super.hide();
+	}
+
 	getSettingDefinitions(): SettingDefinitionItem[] {
+		if (this.containerEl.isShown()) {
+			this.activatePronunciationState();
+		}
 		this.ensureAvailableTagsLoaded();
 		return this.getRenderableDefinitions() as SettingDefinitionItem[];
 	}
 
 	private getRenderableDefinitions(): FlashcardSettingItem[] {
-		this.ensurePronunciationCacheUsageLoaded();
 		return buildSettingsViewModel(
 			{
 				settings: this.plugin.settings,
@@ -77,9 +84,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				isLoadingTags: this.isLoadingTags,
 				hasLoadedTags: this.hasLoadedTags,
 				language: this.getSelectedLanguage(),
-				pronunciationCacheUsageBytes: this.pronunciationCacheUsageBytes,
-				isTestingPronunciation: this.isTestingPronunciation,
-				isClearingPronunciationCache: this.isClearingPronunciationCache,
+				pronunciation: this.plugin.pronunciationRuntime.getSnapshot(),
 			},
 			this.createSettingsActions(),
 		).map((definition) => this.toRenderableDefinition(definition));
@@ -128,46 +133,16 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				this.plugin.settings.fsrsParameters.maximumInterval = value;
 				return this.saveSettings();
 			},
-			setPronunciationAutoPlay: (value) => {
-				this.plugin.settings.pronunciation.spellingAutoPlay = value;
-				return this.saveSettings();
-			},
-			setPronunciationAccent: (value) => {
-				this.plugin.settings.pronunciation.accent = value;
-				return this.saveSettings();
-			},
-			setPronunciationRate: (value) => {
-				this.plugin.settings.pronunciation.rate = value;
-				return this.saveSettings();
-			},
-			setOnlinePronunciationProvider: (value) => {
-				this.plugin.settings.pronunciation.onlineProvider = value;
-				return this.saveSettings(true);
-			},
-			setAzureCloud: (value) => {
-				const pronunciation = this.plugin.settings.pronunciation;
-				pronunciation.azureCloud = value;
-				const chinaRegions = ["chinaeast2", "chinanorth2", "chinanorth3"];
-				if (value === "china" && !chinaRegions.includes(pronunciation.azureRegion)) {
-					pronunciation.azureRegion = "chinaeast2";
-				}
-				if (value === "global" && chinaRegions.includes(pronunciation.azureRegion)) {
-					pronunciation.azureRegion = "eastus";
-				}
-				return this.saveSettings(true);
-			},
-			setAzureRegion: (value) => {
-				this.plugin.settings.pronunciation.azureRegion = value.trim().toLowerCase();
-				return this.saveSettings();
-			},
-			setAzureSecretId: (value) => {
-				this.plugin.settings.pronunciation.azureSecretId = value;
-				return this.saveSettings();
-			},
-			setOpenAiSecretId: (value) => {
-				this.plugin.settings.pronunciation.openaiSecretId = value;
-				return this.saveSettings();
-			},
+			setPronunciationAutoPlay: (value) =>
+				this.configurePronunciation({ spellingAutoPlay: value }),
+			setPronunciationAccent: (value) => this.configurePronunciation({ accent: value }),
+			setPronunciationRate: (value) => this.configurePronunciation({ rate: value }),
+			setOnlinePronunciationProvider: (value) =>
+				this.configurePronunciation({ onlineProvider: value }),
+			setAzureCloud: (value) => this.configurePronunciation({ azureCloud: value }),
+			setAzureRegion: (value) => this.configurePronunciation({ azureRegion: value }),
+			setAzureSecretId: (value) => this.configurePronunciation({ azureSecretId: value }),
+			setOpenAiSecretId: (value) => this.configurePronunciation({ openaiSecretId: value }),
 			testOnlinePronunciation: () => this.testOnlinePronunciation(),
 			clearPronunciationCache: () => this.clearPronunciationCache(),
 		};
@@ -207,31 +182,34 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			});
 	}
 
-	private ensurePronunciationCacheUsageLoaded(): void {
-		if (this.hasLoadedPronunciationCacheUsage || this.isLoadingPronunciationCacheUsage) {
-			return;
+	private activatePronunciationState(): void {
+		if (!this.pronunciationUnsubscribe) {
+			this.pronunciationUnsubscribe = this.plugin.pronunciationRuntime.subscribe(() =>
+				this.refreshDefinitions(),
+			);
 		}
-		this.isLoadingPronunciationCacheUsage = true;
-		void this.plugin.pronunciationRuntime
-			.getCacheUsageBytes()
-			.then((usage) => {
-				this.pronunciationCacheUsageBytes = usage;
-			})
-			.catch(() => {
-				this.pronunciationCacheUsageBytes = 0;
-			})
-			.finally(() => {
-				this.isLoadingPronunciationCacheUsage = false;
-				this.hasLoadedPronunciationCacheUsage = true;
-				this.refreshDefinitions();
-			});
+		if (
+			!this.didRetryFailedCacheUsage &&
+			this.plugin.pronunciationRuntime.getSnapshot().cacheUsage.status === "failed"
+		) {
+			this.didRetryFailedCacheUsage = true;
+			void this.plugin.pronunciationRuntime.refreshCacheUsage();
+		}
+	}
+
+	private async configurePronunciation(patch: Partial<PronunciationSettings>): Promise<void> {
+		const outcome = await this.plugin.pronunciationRuntime.configure(patch);
+		if (outcome.status === "applied") return;
+		const t = createTranslator(this.getSelectedLanguage());
+		new Notice(
+			outcome.status === "busy"
+				? t("settings.pronunciationBusy")
+				: t("settings.pronunciationSaveFailed"),
+		);
 	}
 
 	private async testOnlinePronunciation(): Promise<void> {
-		if (this.isTestingPronunciation) return;
 		const t = createTranslator(this.getSelectedLanguage());
-		this.isTestingPronunciation = true;
-		this.refreshDefinitions();
 		try {
 			const outcome = await this.plugin.pronunciationRuntime.testOnlineProvider("hello");
 			if (outcome.status === "success") {
@@ -239,6 +217,10 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				return;
 			}
 			if (outcome.status === "cancelled") return;
+			if (outcome.status === "busy") {
+				new Notice(t("settings.pronunciationBusy"));
+				return;
+			}
 			const key =
 				outcome.reason === "offline"
 					? "settings.pronunciationTestOffline"
@@ -252,26 +234,22 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			new Notice(t(key));
 		} catch {
 			new Notice(t("settings.pronunciationTestFailed"));
-		} finally {
-			this.isTestingPronunciation = false;
-			this.refreshDefinitions();
 		}
 	}
 
 	private async clearPronunciationCache(): Promise<void> {
-		if (this.isClearingPronunciationCache) return;
 		const t = createTranslator(this.getSelectedLanguage());
-		this.isClearingPronunciationCache = true;
-		this.refreshDefinitions();
 		try {
-			await this.plugin.pronunciationRuntime.clearCache();
-			this.pronunciationCacheUsageBytes = 0;
-			new Notice(t("settings.pronunciationCacheCleared"));
+			const outcome = await this.plugin.pronunciationRuntime.clearCache();
+			new Notice(
+				outcome.status === "cleared"
+					? t("settings.pronunciationCacheCleared")
+					: outcome.status === "busy"
+						? t("settings.pronunciationBusy")
+						: t("settings.pronunciationCacheClearFailed"),
+			);
 		} catch {
 			new Notice(t("settings.pronunciationCacheClearFailed"));
-		} finally {
-			this.isClearingPronunciationCache = false;
-			this.refreshDefinitions();
 		}
 	}
 
@@ -491,9 +469,12 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			for (const option of control.options) {
 				dropdown.addOption(option.value, option.label);
 			}
-			dropdown.setValue(control.value).onChange((value) => {
-				void control.onChange(value);
-			});
+			dropdown
+				.setValue(control.value)
+				.setDisabled(control.disabled ?? false)
+				.onChange((value) => {
+					void control.onChange(value);
+				});
 		});
 	}
 
@@ -524,28 +505,34 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	private renderToggleControl(setting: Setting, control: SettingsToggleControl): void {
 		setting.addToggle((toggle) =>
-			toggle.setValue(control.value).onChange((value) => {
-				void control.onChange(value);
-			}),
-		);
-	}
-
-	private renderTextControl(setting: Setting, control: SettingsTextControl): void {
-		setting.addText((text) =>
-			text
-				.setPlaceholder(control.placeholder)
+			toggle
 				.setValue(control.value)
+				.setDisabled(control.disabled ?? false)
 				.onChange((value) => {
 					void control.onChange(value);
 				}),
 		);
 	}
 
+	private renderTextControl(setting: Setting, control: SettingsTextControl): void {
+		setting.addText((text) => {
+			text.setPlaceholder(control.placeholder)
+				.setValue(control.value)
+				.setDisabled(control.disabled ?? false);
+			text.inputEl.addEventListener("change", () => {
+				void control.onChange(text.getValue());
+			});
+		});
+	}
+
 	private renderSecretControl(setting: Setting, control: SettingsSecretControl): void {
 		const component = new SecretComponent(this.app, setting.controlEl);
-		component.setValue(control.value).onChange((value) => {
-			void control.onChange(value);
-		});
+		component
+			.setValue(control.value)
+			.setDisabled(control.disabled ?? false)
+			.onChange((value) => {
+				void control.onChange(value);
+			});
 	}
 
 	private renderStatusControl(setting: Setting, control: SettingsStatusControl): void {

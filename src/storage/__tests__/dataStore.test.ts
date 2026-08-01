@@ -222,6 +222,40 @@ describe("DataStore settings", () => {
 		expect(JSON.stringify(saved.settings.pronunciation)).not.toContain("sk-");
 	});
 
+	it("normalizes loaded pronunciation settings through the pronunciation module", async () => {
+		const plugin = makePlugin({
+			settings: makeSettings({
+				pronunciation: {
+					...DEFAULT_SETTINGS.pronunciation,
+					azureCloud: "global",
+					azureRegion: " ChinaEast2 ",
+					azureSecretId: " secret-id ",
+				},
+			}),
+		});
+		const store = new DataStore(plugin as never);
+
+		const settings = await store.loadSettings();
+
+		expect(settings.pronunciation).toMatchObject({
+			azureCloud: "global",
+			azureRegion: "eastus",
+			azureSecretId: " secret-id ",
+		});
+	});
+
+	it("does not publish new settings in memory when durable saving fails", async () => {
+		const plugin = makePlugin();
+		const store = new DataStore(plugin as never);
+		const previous = await store.loadSettings();
+		plugin.saveData.mockRejectedValueOnce(new Error("disk unavailable"));
+
+		await expect(
+			store.saveSettings(makeSettings({ dailyNewCards: previous.dailyNewCards + 1 })),
+		).rejects.toThrow("disk unavailable");
+		expect(store.getSettings().dailyNewCards).toBe(previous.dailyNewCards);
+	});
+
 	it("persists independent spelling progress without changing FSRS state", async () => {
 		const card = makeCard(
 			"550e8400-e29b-41d4-a716-446655440000",

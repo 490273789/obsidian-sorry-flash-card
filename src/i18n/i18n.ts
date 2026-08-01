@@ -245,10 +245,13 @@ const translations = {
 		"settings.pronunciationCacheDesc":
 			"云端音频仅缓存在当前设备的 IndexedDB 中，上限 100 MB，不写入题库、学习数据或 Vault。",
 		"settings.pronunciationCacheLoading": "计算中…",
+		"settings.pronunciationCacheReadFailed": "读取失败",
 		"settings.pronunciationCacheClear": "清理缓存",
 		"settings.pronunciationCacheClearing": "清理中…",
 		"settings.pronunciationCacheCleared": "发音缓存已清理",
 		"settings.pronunciationCacheClearFailed": "发音缓存清理失败",
+		"settings.pronunciationSaveFailed": "发音设置保存失败，已保留原设置",
+		"settings.pronunciationBusy": "另一项发音操作正在进行，请稍后再试",
 		"settings.retentionName": "目标记忆保持率",
 		"settings.retentionDesc": "期望的长期记忆保持率 (0.7-0.99)",
 		"settings.maxIntervalName": "最大复习间隔 (天)",
@@ -749,10 +752,15 @@ const translations = {
 		"settings.pronunciationCacheDesc":
 			"Cloud audio is cached only in IndexedDB on this device, up to 100 MB. It is not written to decks, study data, or the Vault.",
 		"settings.pronunciationCacheLoading": "Calculating…",
+		"settings.pronunciationCacheReadFailed": "Failed to read cache usage",
 		"settings.pronunciationCacheClear": "Clear cache",
 		"settings.pronunciationCacheClearing": "Clearing…",
 		"settings.pronunciationCacheCleared": "Pronunciation cache cleared",
 		"settings.pronunciationCacheClearFailed": "Failed to clear the pronunciation cache",
+		"settings.pronunciationSaveFailed":
+			"Failed to save pronunciation settings. The previous settings were kept.",
+		"settings.pronunciationBusy":
+			"Another pronunciation action is in progress. Try again later.",
 		"settings.retentionName": "Target retention rate",
 		"settings.retentionDesc": "Expected long-term retention (0.7-0.99)",
 		"settings.maxIntervalName": "Maximum review interval (days)",

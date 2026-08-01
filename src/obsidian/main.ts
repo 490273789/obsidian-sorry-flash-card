@@ -37,6 +37,7 @@ export default class FlashcardPlugin extends Plugin {
 	sessionLifecycle!: SessionLifecycle;
 	pronunciationRuntime!: PronunciationRuntime;
 	private ribbonIconEl: HTMLElement | null = null;
+	private settingsWriteQueue: Promise<void> = Promise.resolve();
 
 	async onload() {
 		this.dataStore = new DataStore(this);
@@ -47,6 +48,7 @@ export default class FlashcardPlugin extends Plugin {
 		this.pronunciationRuntime = createPronunciationRuntime(
 			this.app,
 			this.settings.pronunciation,
+			{ persistSettings: this.persistPronunciationSettings },
 		);
 		await this.dataStore.load();
 		const sessionLifecycleWiring = createSessionLifecycle(this.dataStore);
@@ -258,25 +260,59 @@ export default class FlashcardPlugin extends Plugin {
 
 	t = createTranslator(DEFAULT_SETTINGS.language);
 
-	async saveSettings(newSettings?: FlashcardSettings) {
-		if (newSettings) {
-			this.settings = newSettings;
+	async saveSettings(newSettings?: FlashcardSettings): Promise<FlashcardSettings> {
+		const requestedSettings = cloneFlashcardSettings(newSettings ?? this.settings);
+		return this.enqueueSettingsWrite(() => ({
+			...requestedSettings,
+			pronunciation: { ...this.settings.pronunciation },
+		}));
+	}
+
+	private persistPronunciationSettings = async (
+		pronunciation: FlashcardSettings["pronunciation"],
+	): Promise<void> => {
+		await this.enqueueSettingsWrite(() => ({
+			...this.settings,
+			pronunciation: { ...pronunciation },
+		}));
+	};
+
+	private enqueueSettingsWrite(
+		createNextSettings: () => FlashcardSettings,
+	): Promise<FlashcardSettings> {
+		const write = this.settingsWriteQueue.then(async () => {
+			const nextSettings = createNextSettings();
+			await this.dataStore.saveSettings(nextSettings);
+			this.publishSettings(nextSettings);
+			return nextSettings;
+		});
+		this.settingsWriteQueue = write.then(
+			() => undefined,
+			() => undefined,
+		);
+		return write;
+	}
+
+	private publishSettings(settings: FlashcardSettings): void {
+		this.settings = settings;
+		this.t = createTranslator(settings.language);
+		try {
+			this.updateLocalizedControls();
+		} catch (error) {
+			console.error("Failed to refresh localized plugin controls:", error);
 		}
 
-		// Save through DataStore to preserve all data (decks + settings)
-		if (this.dataStore) {
-			await this.dataStore.saveSettings(this.settings);
-		}
-
-		this.t = createTranslator(this.settings.language);
-		this.pronunciationRuntime.updateSettings(this.settings.pronunciation);
-		this.updateLocalizedControls();
-
-		// Update active views
 		this.app.workspace.getLeavesOfType(VIEW_TYPE_FLASHCARD).forEach((leaf) => {
 			const view = leaf.view as FlashcardView;
 			if (view && typeof view.updateSettings === "function") {
-				view.updateSettings(this.settings);
+				try {
+					view.updateSettings(settings);
+				} catch (error) {
+					console.error(
+						"Failed to refresh a flashcard view after saving settings:",
+						error,
+					);
+				}
 			}
 		});
 	}
@@ -302,4 +338,25 @@ export default class FlashcardPlugin extends Plugin {
 		// Focus the leaf
 		await workspace.revealLeaf(leaf);
 	}
+}
+
+function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings {
+	return {
+		...settings,
+		flashcardTags: [...settings.flashcardTags],
+		wordLearningDecks: { ...settings.wordLearningDecks },
+		practicePerfectMessages: [...settings.practicePerfectMessages],
+		practiceErrorMessages: [...settings.practiceErrorMessages],
+		fsrsParameters: { ...settings.fsrsParameters },
+		deckStudySettings: Object.fromEntries(
+			Object.entries(settings.deckStudySettings).map(([deckId, overrides]) => [
+				deckId,
+				{
+					...overrides,
+					fsrsParameters: overrides.fsrsParameters && { ...overrides.fsrsParameters },
+				},
+			]),
+		),
+		pronunciation: { ...settings.pronunciation },
+	};
 }

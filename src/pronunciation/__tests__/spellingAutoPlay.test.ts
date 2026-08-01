@@ -11,12 +11,12 @@ function makeRuntime(
 	return {
 		getSnapshot: vi.fn(),
 		subscribe: vi.fn(),
-		updateSettings: vi.fn(),
+		configure: vi.fn(),
 		canSpeak: vi.fn(),
 		speak: vi.fn().mockResolvedValue(outcome),
 		testOnlineProvider: vi.fn(),
 		stop: vi.fn(),
-		getCacheUsageBytes: vi.fn(),
+		refreshCacheUsage: vi.fn(),
 		clearCache: vi.fn(),
 		dispose: vi.fn(),
 	} as unknown as PronunciationRuntime;

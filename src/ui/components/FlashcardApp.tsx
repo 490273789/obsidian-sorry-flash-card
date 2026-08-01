@@ -893,7 +893,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					onClose={() => void handleExitActive("spelling")}
 					markdownRenderer={renderMarkdown}
 					pronunciationRuntime={pronunciationRuntime}
-					autoPronounce={settings.pronunciation.spellingAutoPlay}
 				/>
 			);
 		}

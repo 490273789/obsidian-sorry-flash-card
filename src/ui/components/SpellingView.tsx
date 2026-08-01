@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Check, CornerDownLeft, Keyboard, Lightbulb, X } from "lucide-react";
 import { Notice } from "obsidian";
 import type {
@@ -25,7 +25,6 @@ interface SpellingViewProps {
 	onClose: () => void;
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 	pronunciationRuntime: PronunciationRuntime;
-	autoPronounce: boolean;
 }
 
 export const SpellingView: React.FC<SpellingViewProps> = ({
@@ -37,7 +36,6 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 	onClose,
 	markdownRenderer,
 	pronunciationRuntime,
-	autoPronounce,
 }) => {
 	const { t } = useI18n();
 	const [input, setInput] = useState("");
@@ -48,6 +46,12 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 	const advanceGenerationRef = useRef(0);
 	const pendingPresentationReleaseRef = useRef<(() => void) | null>(null);
 	const currentCard = session.currentCard;
+	const pronunciationSnapshot = useSyncExternalStore(
+		(listener) => pronunciationRuntime.subscribe(listener),
+		() => pronunciationRuntime.getSnapshot(),
+		() => pronunciationRuntime.getSnapshot(),
+	);
+	const autoPronounce = pronunciationSnapshot.settings.spellingAutoPlay;
 
 	useEffect(() => {
 		advanceGenerationRef.current++;
