@@ -45,14 +45,31 @@ export const CardEditorModal = memo(function CardEditorModal({
 	const [error, setError] = useState<string | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
 
-	const selectedDeck = useMemo(() => decks.find((deck) => deck.id === deckId), [deckId, decks]);
+	const selectedDeck = useMemo(
+		() => decks.find((deck) => deck.id === deckId),
+		[deckId, decks],
+	);
 
-	const title = mode === "edit" ? t("cardEditor.editTitle") : t("cardEditor.createTitle");
+	const title =
+		mode === "edit"
+			? t("cardEditor.editTitle")
+			: t("cardEditor.createTitle");
 	const Icon = mode === "edit" ? Pencil : FilePlus2;
 
 	const handleBackdropClick = useCallback(
 		(e: React.MouseEvent<HTMLDivElement>) => {
 			if (e.target === e.currentTarget && !isSaving) onClose();
+		},
+		[isSaving, onClose],
+	);
+
+	const handleBackdropKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLDivElement>) => {
+			if (e.target !== e.currentTarget || isSaving) return;
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				onClose();
+			}
 		},
 		[isSaving, onClose],
 	);
@@ -75,7 +92,11 @@ export const CardEditorModal = memo(function CardEditorModal({
 			setError(t("cardEditor.backRequired"));
 			return;
 		}
-		if ([trimmedFront, trimmedBack, trimmedExplanation].some(containsReservedMarkerLine)) {
+		if (
+			[trimmedFront, trimmedBack, trimmedExplanation].some(
+				containsReservedMarkerLine,
+			)
+		) {
 			setError(t("cardEditor.markerReserved"));
 			return;
 		}
@@ -90,14 +111,23 @@ export const CardEditorModal = memo(function CardEditorModal({
 				explanation: trimmedExplanation || undefined,
 			});
 		} catch (saveError) {
-			setError(saveError instanceof Error ? saveError.message : t("cardEditor.saveFailed"));
+			setError(
+				saveError instanceof Error
+					? saveError.message
+					: t("cardEditor.saveFailed"),
+			);
 		} finally {
 			setIsSaving(false);
 		}
 	}, [back, deckId, explanation, front, onSave, t]);
 
 	const modal = (
-		<div className="flashcard-modal-backdrop" onClick={handleBackdropClick}>
+		<div
+			className="flashcard-modal-backdrop"
+			onClick={handleBackdropClick}
+			onKeyDown={handleBackdropKeyDown}
+			role="presentation"
+		>
 			<div className="flashcard-modal flashcard-card-editor-modal">
 				<div className="flashcard-modal-header">
 					<div className="flashcard-modal-heading">
@@ -176,7 +206,11 @@ export const CardEditorModal = memo(function CardEditorModal({
 						/>
 					</label>
 
-					{error && <div className="flashcard-card-editor-error">{error}</div>}
+					{error && (
+						<div className="flashcard-card-editor-error">
+							{error}
+						</div>
+					)}
 				</div>
 
 				<div className="flashcard-modal-footer">
@@ -199,6 +233,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 		</div>
 	);
 
-	const container = activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
+	const container =
+		activeDocument.querySelector(".flashcard-root") ?? activeDocument.body;
 	return ReactDOM.createPortal(modal, container);
 });

@@ -30,16 +30,6 @@ interface WordListViewProps {
 	onBack: () => void;
 }
 
-function activateOnKey(
-	e: React.KeyboardEvent<HTMLDivElement>,
-	action: () => void,
-): void {
-	if (e.key === "Enter" || e.key === " ") {
-		e.preventDefault();
-		action();
-	}
-}
-
 interface WordRowProps {
 	item: WordListItem;
 	maskedColumns: ReadonlySet<VisibleWordColumnKey>;
@@ -73,7 +63,9 @@ const WordRow = memo(function WordRow({
 				const isRevealed = revealedIdsByColumn[column.key].has(item.id);
 				const showContent = !isMasked || isRevealed;
 				const value = item[column.key];
-				const handleReveal = (e: React.MouseEvent<HTMLDivElement>) => {
+				const handleReveal = (
+					e: React.MouseEvent<HTMLButtonElement>,
+				) => {
 					if (e.detail > 1) return;
 					if (revealTimerRef.current !== null) {
 						window.clearTimeout(revealTimerRef.current);
@@ -83,8 +75,6 @@ const WordRow = memo(function WordRow({
 						onReveal(column.key, item.id);
 					}, 160);
 				};
-				const handleRevealFromKeyboard = () =>
-					onReveal(column.key, item.id);
 				const handleShowExplanation = () => {
 					if (revealTimerRef.current !== null) {
 						window.clearTimeout(revealTimerRef.current);
@@ -94,18 +84,14 @@ const WordRow = memo(function WordRow({
 				};
 
 				return (
-					<div
+					<button
+						type="button"
 						key={column.key}
-						role="button"
-						tabIndex={0}
 						className={`flashcard-word-cell ${column.className} ${
 							!showContent ? "masked" : ""
 						}`}
 						onClick={handleReveal}
 						onDoubleClick={handleShowExplanation}
-						onKeyDown={(e) =>
-							activateOnKey(e, handleRevealFromKeyboard)
-						}
 						title={
 							isMasked
 								? `${t(column.toggleKey)} · ${t("wordList.openThirdColumnHint")}`
@@ -127,7 +113,7 @@ const WordRow = memo(function WordRow({
 								{t("wordList.clickToShow")}
 							</span>
 						)}
-					</div>
+					</button>
 				);
 			})}
 		</div>
@@ -151,6 +137,17 @@ const WordExplanationModal = memo(function WordExplanationModal({
 		[onClose],
 	);
 
+	const handleBackdropKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLDivElement>) => {
+			if (e.target !== e.currentTarget) return;
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				onClose();
+			}
+		},
+		[onClose],
+	);
+
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === "Escape") onClose();
@@ -162,7 +159,12 @@ const WordExplanationModal = memo(function WordExplanationModal({
 	}, [onClose]);
 
 	const modal = (
-		<div className="flashcard-modal-backdrop" onClick={handleBackdropClick}>
+		<div
+			className="flashcard-modal-backdrop"
+			onClick={handleBackdropClick}
+			onKeyDown={handleBackdropKeyDown}
+			role="presentation"
+		>
 			<div className="flashcard-modal flashcard-word-explanation-modal">
 				<div className="flashcard-modal-header">
 					<div className="flashcard-modal-heading">

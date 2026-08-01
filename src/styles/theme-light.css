@@ -172,32 +172,6 @@
 		rgba(255, 255, 255, 0.98);
 }
 
-.theme-light .flashcard-deck-review-chip {
-	border-color: rgba(var(--fc-cyan-rgb), 0.24);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.075),
-			rgba(var(--fc-blue-rgb), 0.045)
-		),
-		rgba(255, 255, 255, 0.82);
-	color: var(--fc-muted);
-	box-shadow: none;
-}
-
-.theme-light .flashcard-deck-review-chip.has-due {
-	border-color: rgba(var(--fc-red-rgb), 0.34);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-red-rgb), 0.11),
-			rgba(var(--fc-violet-rgb), 0.055)
-		),
-		rgba(255, 255, 255, 0.84);
-	color: var(--fc-text);
-	box-shadow: 0 8px 18px rgba(var(--fc-red-rgb), 0.08);
-}
-
 .theme-light .flashcard-answer {
 	border-color: rgba(var(--fc-magenta-rgb), 0.2);
 	background:
@@ -335,7 +309,11 @@
 .theme-light .flashcard-root button.flashcard-pronunciation-button {
 	border-color: rgba(var(--fc-cyan-rgb), 0.3);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 72%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.12),
+			transparent 72%
+		),
 		rgba(255, 255, 255, 0.82);
 	color: var(--fc-cyan);
 	box-shadow:
@@ -347,7 +325,11 @@
 .theme-light .flashcard-root button.flashcard-pronunciation-button.is-speaking {
 	border-color: rgba(var(--fc-cyan-rgb), 0.58);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.18), transparent 72%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.18),
+			transparent 72%
+		),
 		rgba(255, 255, 255, 0.94);
 }
 
