@@ -547,6 +547,12 @@
 		border-radius: var(--fc-radius-md);
 	}
 
+	.flashcard-deck-settings-modal,
+	.flashcard-card-editor-modal {
+		max-height: 80svh;
+		max-height: 80dvh;
+	}
+
 	.flashcard-card-editor-modal {
 		width: min(100%, 680px);
 		height: min(680px, calc(100svh - 16px));

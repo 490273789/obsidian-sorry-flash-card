@@ -222,6 +222,12 @@
 	flex-wrap: wrap;
 }
 
+.flashcard-deck-settings-modal,
+.flashcard-card-editor-modal {
+	max-height: 80vh;
+	max-height: 80dvh;
+}
+
 .flashcard-card-editor-modal {
 	width: min(680px, 100%);
 }

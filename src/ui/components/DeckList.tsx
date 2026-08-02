@@ -130,6 +130,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 
 	return (
 		<ModalSurface
+			className="flashcard-deck-settings-modal"
 			labelledBy={titleId}
 			describedBy={subtitleId}
 			onRequestClose={onClose}
