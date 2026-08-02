@@ -9,11 +9,14 @@ import type {
 type Translator = ReturnType<typeof createTranslator>;
 
 export class CardIdentityMigrationModal extends Modal {
+	private submitted = false;
+
 	constructor(
 		app: App,
 		private readonly preview: MigrationPreview,
 		private readonly t: Translator,
 		private readonly onConfirm: (deckIds: string[]) => void,
+		private readonly onCancel?: () => void,
 	) {
 		super(app);
 	}
@@ -41,6 +44,7 @@ export class CardIdentityMigrationModal extends Modal {
 					.setCta()
 					.setButtonText(this.t("identity.migrateNow"))
 					.onClick(() => {
+						this.submitted = true;
 						this.close();
 						this.onConfirm(this.preview.sources.map((source) => source.deckId));
 					}),
@@ -49,6 +53,7 @@ export class CardIdentityMigrationModal extends Modal {
 
 	onClose(): void {
 		this.contentEl.empty();
+		if (!this.submitted) this.onCancel?.();
 	}
 }
 

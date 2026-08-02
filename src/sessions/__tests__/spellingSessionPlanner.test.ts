@@ -2,11 +2,15 @@ import { createEmptyCard } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
 import type { FlashCard, SpellingCardProgress } from "../../shared/types";
 import {
+	evaluateSpellingDeckEligibility,
 	getSpellingDeckProgressStats,
 	planIncorrectSpellingSession,
 	planRangeSpellingSession,
 	planSmartSpellingSession,
 } from "../spellingSessionPlanner";
+
+const STABLE_ONE = "550e8400-e29b-41d4-a716-446655440000";
+const STABLE_TWO = "7d444840-9dc0-11d1-b245-5ffdce74fad2";
 
 function card(id: string, indexInFile: number): FlashCard {
 	return {
@@ -20,6 +24,41 @@ function card(id: string, indexInFile: number): FlashCard {
 }
 
 describe("spelling session planner", () => {
+	it("derives complete deck eligibility from enablement, identity, and content", () => {
+		const eligible = { ...card(STABLE_ONE, 0), front: "hello world" };
+		const invalid = { ...card(STABLE_TWO, 1), front: "science / fair" };
+
+		expect(evaluateSpellingDeckEligibility({ cards: [eligible, invalid] }, true)).toEqual({
+			enabled: true,
+			hasStableIdentities: true,
+			canStart: true,
+			valid: false,
+			ready: true,
+			issueCount: 1,
+			eligibleCardIds: [STABLE_ONE],
+			invalidCards: [
+				{
+					cardId: STABLE_TWO,
+					indexInFile: 1,
+					front: "science / fair",
+				},
+			],
+		});
+
+		expect(
+			evaluateSpellingDeckEligibility(
+				{ cards: [{ ...eligible, id: "notes/deck.md::0" }] },
+				true,
+			),
+		).toMatchObject({
+			hasStableIdentities: false,
+			canStart: true,
+			ready: false,
+			issueCount: 1,
+		});
+		expect(evaluateSpellingDeckEligibility({ cards: [eligible] }, false).ready).toBe(false);
+	});
+
 	it("prioritizes last-wrong, unseen, then weaker and older cards", () => {
 		const cards = ["wrong", "new", "weak", "strong"].map(card);
 		const progress: Record<string, SpellingCardProgress> = {

@@ -1,4 +1,4 @@
-import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
+import { Notice, Platform, Plugin, WorkspaceLeaf } from "obsidian";
 import "../styles/index.css";
 import { FlashcardSettings, DEFAULT_SETTINGS } from "../shared/types";
 import { DataStore } from "../storage/dataStore";
@@ -19,6 +19,13 @@ import {
 } from "./cardIdentityContinuityModals";
 import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
 import { createPronunciationRuntime, type PronunciationRuntime } from "../pronunciation";
+import {
+	createDeckHome,
+	type DeckHome,
+	type DeckHomeEvent,
+	type DeckHomeSettingsPatch,
+} from "../decks/deckHome";
+import { exportDeckToPdf } from "../decks/deckPdfExporter";
 
 const OPEN_COMMAND_ID = "open-flashcard-view";
 const SYNC_COMMAND_ID = "sync-flashcard-decks";
@@ -36,8 +43,10 @@ export default class FlashcardPlugin extends Plugin {
 	cardIdentityContinuity!: CardIdentityContinuity;
 	sessionLifecycle!: SessionLifecycle;
 	pronunciationRuntime!: PronunciationRuntime;
+	deckHome!: DeckHome;
 	private ribbonIconEl: HTMLElement | null = null;
 	private settingsWriteQueue: Promise<void> = Promise.resolve();
+	private deckExportProgressNotice: Notice | null = null;
 
 	async onload() {
 		this.dataStore = new DataStore(this);
@@ -59,6 +68,28 @@ export default class FlashcardPlugin extends Plugin {
 			sessions: sessionLifecycleWiring.continuitySessions,
 			createIdentity: createCardIdentity,
 		});
+		this.deckHome = createDeckHome({
+			repository: this.dataStore,
+			identity: this.cardIdentityContinuity,
+			saveSettingsPatch: this.saveDeckSettingsPatch,
+			exportDeck: async (deck, onProgress) => {
+				if (!Platform.isDesktopApp) {
+					throw new Error(this.t("notice.pdfExportDesktopOnly"));
+				}
+				return exportDeckToPdf(
+					this.app,
+					deck,
+					{
+						frontColumn: this.t("common.cardFront"),
+						backColumn: this.t("common.cardBack"),
+						cardCount: (count) => this.t("pdf.cardCount", { count }),
+						saveDialogTitle: this.t("pdf.saveDialogTitle"),
+					},
+					{ onProgress },
+				);
+			},
+			report: this.reportDeckHomeEvent,
+		});
 
 		// Register view
 		this.registerView(
@@ -70,8 +101,8 @@ export default class FlashcardPlugin extends Plugin {
 					this.cardIdentityContinuity,
 					this.sessionLifecycle,
 					this.pronunciationRuntime,
+					this.deckHome,
 					this.settings,
-					this.saveSettings.bind(this),
 					this.openSettings,
 				),
 		);
@@ -90,6 +121,8 @@ export default class FlashcardPlugin extends Plugin {
 	};
 
 	onunload() {
+		this.deckHome?.dispose();
+		this.deckExportProgressNotice?.hide();
 		this.pronunciationRuntime?.dispose();
 	}
 
@@ -144,38 +177,54 @@ export default class FlashcardPlugin extends Plugin {
 	}
 
 	private async runIdentitySynchronization(): Promise<void> {
-		const outcome = await this.cardIdentityContinuity.synchronize();
-		const feedback = describeSynchronizationOutcome(
-			outcome,
-			this.cardIdentityContinuity.inspect(),
-			this.settings.language,
-		);
-		new Notice(feedback ?? this.t("identity.syncCurrent"), feedback ? 12000 : undefined);
-		if (outcome.kind === "failed") return;
-		await this.refreshFlashcardViews();
+		const outcome = await this.deckHome.act({ kind: "refresh" });
+		if (
+			outcome.kind === "applied" &&
+			this.cardIdentityContinuity.inspect().issues.length === 0
+		) {
+			new Notice(this.t("identity.syncCurrent"));
+		}
 	}
 
 	private async openIdentityMigration(): Promise<void> {
-		const outcome = await this.cardIdentityContinuity.synchronize();
-		if (outcome.kind === "failed") {
-			new Notice(this.t("identity.syncFailed", { message: outcome.message }));
-			return;
-		}
-		const preview = this.cardIdentityContinuity.inspect().migration;
-		if (!preview) {
+		const ownerId = "command:migrate-card-identities";
+		const request = await this.deckHome.act({ kind: "request-migration", ownerId });
+		if (request.kind === "rejected" && request.reason === "migration-unavailable") {
 			new Notice(this.t("identity.noMigration"));
 			return;
 		}
-		new CardIdentityMigrationModal(this.app, preview, this.t, (deckIds) => {
-			void this.applyIdentityResolution(
-				this.cardIdentityContinuity.resolve({
-					kind: "migrate",
-					ticket: preview.ticket,
-					deckIds,
-				}),
-				"migration",
-			);
-		}).open();
+		if (request.kind !== "confirmation-required") return;
+		const preview = this.cardIdentityContinuity.inspect().migration;
+		if (!preview) {
+			await this.deckHome.act({
+				kind: "continue",
+				ownerId,
+				continuation: request.continuation,
+				confirmed: false,
+			});
+			return;
+		}
+		new CardIdentityMigrationModal(
+			this.app,
+			preview,
+			this.t,
+			() => {
+				void this.deckHome.act({
+					kind: "continue",
+					ownerId,
+					continuation: request.continuation,
+					confirmed: true,
+				});
+			},
+			() => {
+				void this.deckHome.act({
+					kind: "continue",
+					ownerId,
+					continuation: request.continuation,
+					confirmed: false,
+				});
+			},
+		).open();
 	}
 
 	private async openIdentityRepair(): Promise<void> {
@@ -219,7 +268,6 @@ export default class FlashcardPlugin extends Plugin {
 					type === "migration" ? "identity.migrationApplied" : "identity.repairApplied",
 				),
 			);
-			await this.refreshFlashcardViews();
 			return;
 		}
 		if (outcome.kind === "resumable") {
@@ -241,15 +289,6 @@ export default class FlashcardPlugin extends Plugin {
 		);
 	}
 
-	private async refreshFlashcardViews(): Promise<void> {
-		await Promise.all(
-			this.app.workspace.getLeavesOfType(VIEW_TYPE_FLASHCARD).map((leaf) => {
-				const view = leaf.view as FlashcardView;
-				return view.refresh();
-			}),
-		);
-	}
-
 	private updateLocalizedControls(): void {
 		if (this.ribbonIconEl) {
 			this.ribbonIconEl.setAttr("aria-label", this.t("main.ribbonOpenFlashcards"));
@@ -264,6 +303,8 @@ export default class FlashcardPlugin extends Plugin {
 		const requestedSettings = cloneFlashcardSettings(newSettings ?? this.settings);
 		return this.enqueueSettingsWrite(() => ({
 			...requestedSettings,
+			deckStudySettings: cloneDeckStudySettings(this.settings.deckStudySettings),
+			wordLearningDecks: { ...this.settings.wordLearningDecks },
 			pronunciation: { ...this.settings.pronunciation },
 		}));
 	}
@@ -276,6 +317,99 @@ export default class FlashcardPlugin extends Plugin {
 			pronunciation: { ...pronunciation },
 		}));
 	};
+
+	private saveDeckSettingsPatch = async (patch: DeckHomeSettingsPatch): Promise<void> => {
+		await this.enqueueSettingsWrite(() => {
+			const deckStudySettings = { ...this.settings.deckStudySettings };
+			if (patch.overrides === null) {
+				delete deckStudySettings[patch.deckId];
+			} else {
+				deckStudySettings[patch.deckId] = patch.overrides;
+			}
+			const wordLearningDecks = { ...this.settings.wordLearningDecks };
+			if (patch.wordLearningEnabled) {
+				wordLearningDecks[patch.deckId] = true;
+			} else {
+				delete wordLearningDecks[patch.deckId];
+			}
+			return {
+				...this.settings,
+				deckStudySettings,
+				wordLearningDecks,
+			};
+		});
+	};
+
+	private reportDeckHomeEvent = (event: DeckHomeEvent): void => {
+		if (event.kind === "refresh-completed") {
+			const message = describeSynchronizationOutcome(
+				event.outcome,
+				this.cardIdentityContinuity.inspect(),
+				this.settings.language,
+			);
+			if (message) new Notice(message, 12000);
+			return;
+		}
+		if (event.kind === "migration-completed") {
+			this.showIdentityResolutionOutcome(event.outcome);
+			return;
+		}
+		if (event.kind === "settings-save-failed") {
+			new Notice(this.t("notice.deckSettingsSaveFailed", { message: event.message }));
+			return;
+		}
+		if (event.kind === "export-progress") {
+			const message =
+				event.progress.phase === "rendering"
+					? this.t("notice.pdfExportRendering", {
+							completed: event.progress.completed,
+							total: event.progress.total,
+						})
+					: this.t("notice.pdfExportGenerating");
+			if (this.deckExportProgressNotice) {
+				this.deckExportProgressNotice.setMessage(message);
+			} else {
+				this.deckExportProgressNotice = new Notice(message, 0);
+			}
+			return;
+		}
+		this.deckExportProgressNotice?.hide();
+		this.deckExportProgressNotice = null;
+		if (event.kind === "export-completed") {
+			if (event.result.kind === "saved") {
+				new Notice(
+					this.t("notice.pdfExportSaved", { filePath: event.result.filePath }),
+					8000,
+				);
+			}
+			return;
+		}
+		new Notice(this.t("notice.pdfExportFailed", { message: event.message }));
+	};
+
+	private showIdentityResolutionOutcome(outcome: ResolutionOutcome): void {
+		if (outcome.kind === "applied") {
+			new Notice(this.t("identity.migrationApplied"));
+			return;
+		}
+		if (outcome.kind === "resumable") {
+			new Notice(this.t("identity.operationResumable"));
+			return;
+		}
+		if (outcome.kind === "failed") {
+			new Notice(this.t("identity.operationFailed", { message: outcome.message }));
+			return;
+		}
+		new Notice(
+			this.t(
+				outcome.reason === "active-session"
+					? "identity.migrationBlocked"
+					: outcome.reason === "legacy-source-mismatch"
+						? "identity.migrationSourceMismatch"
+						: "identity.previewExpired",
+			),
+		);
+	}
 
 	private enqueueSettingsWrite(
 		createNextSettings: () => FlashcardSettings,
@@ -348,15 +482,21 @@ function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings 
 		practicePerfectMessages: [...settings.practicePerfectMessages],
 		practiceErrorMessages: [...settings.practiceErrorMessages],
 		fsrsParameters: { ...settings.fsrsParameters },
-		deckStudySettings: Object.fromEntries(
-			Object.entries(settings.deckStudySettings).map(([deckId, overrides]) => [
-				deckId,
-				{
-					...overrides,
-					fsrsParameters: overrides.fsrsParameters && { ...overrides.fsrsParameters },
-				},
-			]),
-		),
+		deckStudySettings: cloneDeckStudySettings(settings.deckStudySettings),
 		pronunciation: { ...settings.pronunciation },
 	};
+}
+
+function cloneDeckStudySettings(
+	settings: FlashcardSettings["deckStudySettings"],
+): FlashcardSettings["deckStudySettings"] {
+	return Object.fromEntries(
+		Object.entries(settings).map(([deckId, overrides]) => [
+			deckId,
+			{
+				...overrides,
+				fsrsParameters: overrides.fsrsParameters && { ...overrides.fsrsParameters },
+			},
+		]),
+	);
 }

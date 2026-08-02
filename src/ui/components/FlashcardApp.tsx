@@ -3,15 +3,14 @@ import React, {
 	useCallback,
 	useRef,
 	useMemo,
-	useReducer,
 	useEffect,
+	useId,
 	useSyncExternalStore,
 } from "react";
-import { App, Component, MarkdownRenderer, Notice, Platform, TFile } from "obsidian";
-import { ViewState, FlashcardSettings, StudySettings, CardDirection } from "../../shared/types";
+import { App, Component, MarkdownRenderer, Notice, TFile } from "obsidian";
+import { ViewState, FlashcardSettings, CardDirection } from "../../shared/types";
 import { DataStore } from "../../storage/dataStore";
-import { createDeckHomeRuntime } from "../../decks/deckHomeRuntime";
-import { exportDeckToPdf } from "../../decks/deckPdfExporter";
+import type { DeckHome, DeckHomeDestination, DeckHomeOutcome } from "../../decks/deckHome";
 import type { LifecycleOutcome, SessionLifecycle } from "../../sessions/sessionLifecycle";
 import { getSpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
 import { DeckList } from "./DeckList";
@@ -32,10 +31,7 @@ import { ConfirmDialog, type ConfirmDialogTone } from "./ConfirmDialog";
 import type {
 	CardChangeOutcome,
 	CardIdentityContinuity,
-	ResolutionOutcome,
 } from "../../identity/cardIdentityContinuity";
-import { validateSpellingDeck } from "../../cards/spellingWord";
-import { isStableCardIdentity } from "../../identity/cardIdentity";
 import type { PronunciationRuntime } from "../../pronunciation";
 import { ModalProvider } from "../modal";
 
@@ -46,9 +42,8 @@ interface FlashcardAppProps {
 	cardIdentityContinuity: CardIdentityContinuity;
 	sessionLifecycle: SessionLifecycle;
 	pronunciationRuntime: PronunciationRuntime;
+	deckHome: DeckHome;
 	settings: FlashcardSettings;
-	onSaveSettings: (settings: FlashcardSettings) => Promise<void>;
-	onRefresh: () => Promise<void>;
 	onOpenSettings: () => void;
 }
 
@@ -82,11 +77,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	cardIdentityContinuity,
 	sessionLifecycle,
 	pronunciationRuntime,
+	deckHome,
 	settings,
-	onSaveSettings,
-	onRefresh,
 	onOpenSettings,
 }) => {
+	const deckHomeOwnerId = useId();
 	const t = useMemo(() => createTranslator(settings.language), [settings.language]);
 	const [viewState, setViewState] = useState<ViewState>({ type: "home" });
 	const lifecycleSnapshot = useSyncExternalStore(
@@ -124,7 +119,16 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			noticeId: lifecycleSnapshot.lastEnd.id,
 		});
 	}, [lifecycleSnapshot, sessionLifecycle, t]);
-	const [, bumpSnapshotVersion] = useReducer((version: number) => version + 1, 0);
+	const subscribeDeckHome = useCallback(
+		(listener: () => void) => deckHome.subscribe(listener),
+		[deckHome],
+	);
+	const readDeckHomeSnapshot = useCallback(() => deckHome.getSnapshot(), [deckHome]);
+	const deckHomeSnapshot = useSyncExternalStore(
+		subscribeDeckHome,
+		readDeckHomeSnapshot,
+		readDeckHomeSnapshot,
+	);
 	const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
 	const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null);
 	const confirmationRef = useRef<ConfirmationState | null>(null);
@@ -141,9 +145,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const wordListStartTime = useRef<number | null>(null);
 
 	const decks = dataStore.getAllDecks();
-	const deckHomeRuntime = useMemo(() => createDeckHomeRuntime(dataStore), [dataStore]);
-	const deckHomeSnapshot = deckHomeRuntime.getSnapshot();
-	const migrationPreview = cardIdentityContinuity.inspect().migration;
 
 	// Markdown renderer function
 	const renderMarkdown = useCallback(
@@ -217,99 +218,64 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			confirmationRef.current = null;
 		};
 	}, []);
+	useEffect(() => {
+		return () => {
+			void deckHome.act({ kind: "release-owner", ownerId: deckHomeOwnerId });
+		};
+	}, [deckHome, deckHomeOwnerId]);
+
+	const handleRequestHomeMigration = useCallback(
+		async (deckId?: string): Promise<boolean> => {
+			const request = await deckHome.act({
+				kind: "request-migration",
+				ownerId: deckHomeOwnerId,
+				deckId,
+			});
+			if (request.kind !== "confirmation-required") {
+				if (request.kind === "rejected" && request.reason === "migration-unavailable") {
+					new Notice(t(deckId ? "identity.editNeedsMigration" : "identity.noMigration"));
+				} else if (request.kind === "rejected" && request.reason === "busy") {
+					new Notice(t("identity.sourceChanging"));
+				}
+				return false;
+			}
+			const confirmed = await confirmAction(
+				t("identity.migrationTitle"),
+				request.scope.kind === "all"
+					? t("identity.migrationDescription", {
+							sources: request.sourceCount,
+							cards: request.cardCount,
+						})
+					: t("identity.editMigrationDescription", {
+							deckName: request.deckName ?? request.scope.deckId,
+							cards: request.cardCount,
+						}),
+				request.scope.kind === "all"
+					? t("identity.migrateAllNow")
+					: t("identity.migrateNow"),
+			);
+			const outcome = await deckHome.act({
+				kind: "continue",
+				ownerId: deckHomeOwnerId,
+				continuation: request.continuation,
+				confirmed,
+			});
+			return outcome.kind === "applied";
+		},
+		[confirmAction, deckHome, deckHomeOwnerId, t],
+	);
 
 	const ensureDeckEditable = useCallback(
 		async (deckId: string): Promise<boolean> => {
-			const snapshot = cardIdentityContinuity.inspect();
-			const condition = snapshot.sources[deckId];
+			const condition = cardIdentityContinuity.inspect().sources[deckId];
 			if (!condition || condition.type === "current") return true;
 			if (condition.type === "last-known-good") {
 				new Notice(t("identity.editNeedsRepair"));
 				return false;
 			}
-
-			const preview = snapshot.migration;
-			const source = preview?.sources.find((candidate) => candidate.deckId === deckId);
-			if (!preview || !source) {
-				new Notice(t("identity.editNeedsMigration"));
-				return false;
-			}
-			const confirmed = await confirmAction(
-				t("identity.migrationTitle"),
-				t("identity.editMigrationDescription", {
-					deckName: source.deckName,
-					cards: source.cardCount,
-				}),
-				t("identity.migrateNow"),
-			);
-			if (!confirmed) return false;
-
-			const outcome = await cardIdentityContinuity.resolve({
-				kind: "migrate",
-				ticket: preview.ticket,
-				deckIds: [deckId],
-			});
-			if (outcome.kind === "applied") return true;
-			new Notice(getIdentityResolutionFailureMessage(outcome, t));
-			return false;
+			return handleRequestHomeMigration(deckId);
 		},
-		[cardIdentityContinuity, confirmAction, t],
-	);
-
-	const handleMigrateAllLegacyDecks = useCallback(async (): Promise<void> => {
-		for (let attempt = 0; attempt < 2; attempt++) {
-			const syncOutcome = await cardIdentityContinuity.synchronize();
-			if (syncOutcome.kind === "failed") {
-				new Notice(t("identity.syncFailed", { message: syncOutcome.message }));
-				return;
-			}
-			bumpSnapshotVersion();
-
-			const preview = cardIdentityContinuity.inspect().migration;
-			if (!preview) {
-				new Notice(t("identity.noMigration"));
-				return;
-			}
-			if (attempt > 0) new Notice(t("identity.migrationPlanRefreshed"));
-			const confirmed = await confirmAction(
-				t("identity.migrationTitle"),
-				t("identity.migrationDescription", {
-					sources: preview.sourceCount,
-					cards: preview.cardCount,
-				}),
-				t("identity.migrateAllNow"),
-			);
-			if (!confirmed) return;
-
-			const outcome = await cardIdentityContinuity.resolve({
-				kind: "migrate",
-				ticket: preview.ticket,
-				deckIds: preview.sources.map((source) => source.deckId),
-			});
-			if (outcome.kind === "applied") {
-				new Notice(t("identity.migrationApplied"));
-				bumpSnapshotVersion();
-				return;
-			}
-			if (
-				attempt === 0 &&
-				outcome.kind === "blocked" &&
-				(outcome.reason === "preview-expired" || outcome.reason === "source-changing")
-			) {
-				continue;
-			}
-			new Notice(getIdentityResolutionFailureMessage(outcome, t));
-			return;
-		}
-	}, [cardIdentityContinuity, confirmAction, t]);
-
-	const handleEnsureDeckIdentity = useCallback(
-		async (deckId: string): Promise<boolean> => {
-			const ready = await ensureDeckEditable(deckId);
-			if (ready) bumpSnapshotVersion();
-			return ready;
-		},
-		[ensureDeckEditable],
+		[cardIdentityContinuity, handleRequestHomeMigration, t],
 	);
 
 	const handleOpenEditCard = useCallback(
@@ -377,7 +343,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				} else {
 					new Notice(t("notice.cardAdded"));
 				}
-				bumpSnapshotVersion();
 				setCardEditor(null);
 			} catch (error) {
 				const message = error instanceof Error ? error.message : t("cardEditor.saveFailed");
@@ -386,19 +351,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			}
 		},
 		[cardEditor, cardIdentityContinuity, dataStore, ensureDeckEditable, t],
-	);
-
-	const handleSelectDeck = useCallback(
-		(deckId: string) => {
-			const deck = dataStore.getDeck(deckId);
-			if (deck && deck.cards.length > 0) {
-				setStudySetupDefaults(null);
-				setViewState({ type: "study-setup", deckId });
-			} else {
-				new Notice(deck ? t("notice.deckEmpty") : t("notice.deckMissing"));
-			}
-		},
-		[dataStore, t],
 	);
 
 	const reportLifecycleOutcome = useCallback(
@@ -420,6 +372,52 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			return false;
 		},
 		[t],
+	);
+
+	const reportDeckHomeOutcome = useCallback(
+		(outcome: DeckHomeOutcome): boolean => {
+			if (outcome.kind === "applied" || outcome.kind === "navigation") return true;
+			if (outcome.kind !== "rejected") return false;
+			if (outcome.reason === "deck-missing") {
+				new Notice(t("notice.deckMissing"));
+			} else if (outcome.reason === "deck-empty") {
+				new Notice(t("notice.deckEmpty"));
+			} else if (outcome.reason === "spelling-not-enabled") {
+				new Notice(t("spelling.deckNotEnabled"));
+			} else if (outcome.reason === "spelling-invalid") {
+				new Notice(t("spelling.deckInvalid"));
+			} else if (outcome.reason === "stable-card-identity-required") {
+				new Notice(t("spelling.identityRequired"));
+			}
+			return false;
+		},
+		[t],
+	);
+
+	const handleHomeNavigate = useCallback(
+		(destination: DeckHomeDestination, deckId: string): void => {
+			void (async () => {
+				const outcome = await deckHome.act({ kind: "navigate", destination, deckId });
+				if (outcome.kind !== "navigation") {
+					reportDeckHomeOutcome(outcome);
+					return;
+				}
+				if (destination === "study") {
+					setStudySetupDefaults(null);
+					setViewState({ type: "study-setup", deckId });
+				} else if (destination === "practice") {
+					setPracticeSetupDefaults(null);
+					setViewState({ type: "practice-setup", deckId });
+				} else if (destination === "spelling") {
+					setSpellingSetupDefaults(null);
+					setViewState({ type: "spelling-setup", deckId });
+				} else {
+					wordListStartTime.current = Date.now();
+					setViewState({ type: "word-list", deckId });
+				}
+			})();
+		},
+		[deckHome, reportDeckHomeOutcome],
 	);
 
 	const handleStartStudyFromSetup = useCallback(
@@ -455,15 +453,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handleSpellingDay = useCallback(
 		async (deckId: string, dayIndex: number) => {
-			const deck = dataStore.getDeck(deckId);
-			if (!deck || !settings.wordLearningDecks[deckId]) {
-				new Notice(t("spelling.deckNotEnabled"));
-				return;
-			}
-			if (!deck.cards.every((card) => isStableCardIdentity(card.id))) {
-				new Notice(t("spelling.identityRequired"));
-				return;
-			}
 			const outcome = await sessionLifecycle.start({
 				mode: "spelling",
 				deckId,
@@ -471,7 +460,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			});
 			reportLifecycleOutcome(outcome, t("spelling.dayInvalid"));
 		},
-		[dataStore, reportLifecycleOutcome, sessionLifecycle, settings.wordLearningDecks, t],
+		[reportLifecycleOutcome, sessionLifecycle, t],
 	);
 
 	const handleExitActive = useCallback(
@@ -491,11 +480,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[confirmAction, reportLifecycleOutcome, sessionLifecycle, t],
 	);
 
-	const handleOpenWordList = useCallback((deckId: string) => {
-		wordListStartTime.current = Date.now();
-		setViewState({ type: "word-list", deckId });
-	}, []);
-
 	const handleCloseWordList = useCallback(
 		(deckId: string) => {
 			if (wordListStartTime.current !== null) {
@@ -512,19 +496,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	);
 
 	// Practice mode handlers
-	const handleStartPracticeSetup = useCallback(
-		(deckId: string) => {
-			const deck = dataStore.getDeck(deckId);
-			if (deck && deck.cards.length > 0) {
-				setPracticeSetupDefaults(null);
-				setViewState({ type: "practice-setup", deckId });
-			} else {
-				new Notice(t("notice.deckEmpty"));
-			}
-		},
-		[dataStore, t],
-	);
-
 	const handleStartPractice = useCallback(
 		async (deckId: string, options: PracticeSessionStartOptions) => {
 			const outcome = await sessionLifecycle.start({
@@ -545,44 +516,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[reportLifecycleOutcome, sessionLifecycle, t],
 	);
 
-	const handleStartSpellingSetup = useCallback(
-		(deckId: string) => {
-			const deck = dataStore.getDeck(deckId);
-			if (!deck || !settings.wordLearningDecks[deckId]) {
-				new Notice(t("spelling.deckNotEnabled"));
-				return;
-			}
-			const validation = validateSpellingDeck(deck);
-			if (!validation.canStart) {
-				new Notice(t("spelling.deckInvalid"));
-				return;
-			}
-			if (!deck.cards.every((card) => isStableCardIdentity(card.id))) {
-				new Notice(t("spelling.identityRequired"));
-				return;
-			}
-			setSpellingSetupDefaults(null);
-			setViewState({ type: "spelling-setup", deckId });
-		},
-		[dataStore, settings.wordLearningDecks, t],
-	);
-
 	const handleStartSpelling = useCallback(
 		async (deckId: string, options: SpellingSessionStartOptions) => {
-			const deck = dataStore.getDeck(deckId);
-			if (!deck || !settings.wordLearningDecks[deckId]) {
-				new Notice(t("spelling.deckNotEnabled"));
-				return;
-			}
-			const validation = validateSpellingDeck(deck);
-			if (!validation.canStart) {
-				new Notice(t("spelling.deckInvalid"));
-				return;
-			}
-			if (!deck.cards.every((card) => isStableCardIdentity(card.id))) {
-				new Notice(t("spelling.identityRequired"));
-				return;
-			}
 			const outcome = await sessionLifecycle.start({
 				mode: "spelling",
 				deckId,
@@ -597,7 +532,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			});
 			reportLifecycleOutcome(outcome, t("notice.deckEmpty"));
 		},
-		[dataStore, reportLifecycleOutcome, sessionLifecycle, settings.wordLearningDecks, t],
+		[reportLifecycleOutcome, sessionLifecycle, t],
 	);
 
 	const handleRetryIncorrect = useCallback(async () => {
@@ -695,7 +630,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				if (outcome.kind !== "applied") {
 					throw new Error(getCardChangeFailureMessage(outcome, t));
 				}
-				bumpSnapshotVersion();
 				new Notice(t("notice.cardDeleted"));
 			} catch (error) {
 				const message =
@@ -725,120 +659,17 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[app, t],
 	);
 
-	const handleExportDeck = useCallback(
-		async (deckId: string) => {
-			const deck = dataStore.getDeck(deckId);
-			if (!deck) {
-				new Notice(t("notice.deckMissing"));
-				return;
-			}
-			if (deck.cards.length === 0) {
-				new Notice(t("notice.deckEmpty"));
-				return;
-			}
-			if (!Platform.isDesktopApp) {
-				new Notice(t("notice.pdfExportDesktopOnly"));
-				return;
-			}
-
-			const progressNotice = { current: null as Notice | null };
-			try {
-				const result = await exportDeckToPdf(
-					app,
-					deck,
-					{
-						frontColumn: t("common.cardFront"),
-						backColumn: t("common.cardBack"),
-						cardCount: (count) => t("pdf.cardCount", { count }),
-						saveDialogTitle: t("pdf.saveDialogTitle"),
-					},
-					{
-						onProgress: ({ phase, completed, total }) => {
-							const message =
-								phase === "rendering"
-									? t("notice.pdfExportRendering", { completed, total })
-									: t("notice.pdfExportGenerating");
-							if (progressNotice.current) {
-								progressNotice.current.setMessage(message);
-							} else {
-								progressNotice.current = new Notice(message, 0);
-							}
-						},
-					},
-				);
-				if (result.kind === "saved") {
-					new Notice(t("notice.pdfExportSaved", { filePath: result.filePath }), 8000);
-				}
-			} catch (error) {
-				const message =
-					error instanceof Error ? error.message : t("notice.pdfExportUnknownError");
-				new Notice(t("notice.pdfExportFailed", { message }));
-			} finally {
-				progressNotice.current?.hide();
-			}
-		},
-		[app, dataStore, t],
-	);
-
-	const handleUpdateDeckSettings = useCallback(
-		async (
-			deckId: string,
-			overrides: Partial<StudySettings> | null,
-			wordLearningEnabled: boolean,
-		) => {
-			const newDeckStudySettings = {
-				...settings.deckStudySettings,
-			};
-			if (overrides === null) {
-				delete newDeckStudySettings[deckId];
-			} else {
-				newDeckStudySettings[deckId] = overrides;
-			}
-			const wordLearningDecks = {
-				...settings.wordLearningDecks,
-			};
-			if (wordLearningEnabled) {
-				wordLearningDecks[deckId] = true;
-			} else {
-				delete wordLearningDecks[deckId];
-			}
-			await onSaveSettings({
-				...settings,
-				deckStudySettings: newDeckStudySettings,
-				wordLearningDecks,
-			});
-		},
-		[onSaveSettings, settings],
-	);
-
 	const renderHome = () => (
 		<DeckList
 			snapshot={deckHomeSnapshot}
-			settings={settings}
-			legacyMigration={
-				migrationPreview
-					? {
-							sourceCount: migrationPreview.sourceCount,
-							cardCount: migrationPreview.cardCount,
-						}
-					: null
-			}
-			onSelectDeck={handleSelectDeck}
-			onOpenWordList={handleOpenWordList}
-			onStartPractice={handleStartPracticeSetup}
-			onStartSpelling={handleStartSpellingSetup}
-			onExportDeck={handleExportDeck}
-			onRefresh={async () => {
-				await onRefresh();
-				bumpSnapshotVersion();
-			}}
-			onUpdateDeckSettings={handleUpdateDeckSettings}
-			onMigrateDeckIdentity={handleEnsureDeckIdentity}
+			home={deckHome}
+			ownerId={deckHomeOwnerId}
+			onNavigate={handleHomeNavigate}
+			onRequestMigration={handleRequestHomeMigration}
 			onOpenSourceFile={handleOpenSourceFile}
 			onOpenStats={handleOpenStats}
 			onOpenSettings={onOpenSettings}
 			onOpenAddCard={handleOpenAddCard}
-			onMigrateLegacyDecks={handleMigrateAllLegacyDecks}
 		/>
 	);
 
@@ -1066,23 +897,5 @@ function getCardChangeFailureMessage(
 			return t("identity.sourceChanging");
 		case "failed":
 			return outcome.message;
-	}
-}
-
-function getIdentityResolutionFailureMessage(
-	outcome: Exclude<ResolutionOutcome, { kind: "applied" }>,
-	t: ReturnType<typeof createTranslator>,
-): string {
-	switch (outcome.kind) {
-		case "resumable":
-			return t("identity.operationResumable");
-		case "blocked":
-			if (outcome.reason === "active-session") return t("identity.migrationBlocked");
-			if (outcome.reason === "legacy-source-mismatch") {
-				return t("identity.migrationSourceMismatch");
-			}
-			return t("identity.previewExpired");
-		case "failed":
-			return t("identity.operationFailed", { message: outcome.message });
 	}
 }

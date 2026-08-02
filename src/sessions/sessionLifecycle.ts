@@ -5,7 +5,6 @@ import {
 	isSpellingAnswerCorrect,
 	type SpellingDiffSegment,
 } from "../cards/spellingWord";
-import { isStableCardIdentity } from "../identity/cardIdentity";
 import type {
 	ContinuitySessionAdapter,
 	ContinuitySessionChange,
@@ -52,6 +51,7 @@ import {
 	getCurrentSpellingCardId,
 } from "./spellingSessionEngine";
 import {
+	evaluateSpellingDeckEligibility,
 	planIncorrectSpellingSession,
 	planRangeSpellingSession,
 	planSmartSpellingSession,
@@ -620,13 +620,18 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 			};
 		}
 
-		if (!this.repository.getSettings().wordLearningDecks[request.deckId]) {
+		const spellingEligibility = evaluateSpellingDeckEligibility(
+			deck,
+			Boolean(this.repository.getSettings().wordLearningDecks[request.deckId]),
+		);
+		if (!spellingEligibility.enabled) {
 			throw new StartRejectionError("spelling-not-enabled");
 		}
-		if (!deck.cards.every((card) => isStableCardIdentity(card.id))) {
+		if (!spellingEligibility.hasStableIdentities) {
 			throw new StartRejectionError("stable-card-identity-required");
 		}
-		const eligibleCards = deck.cards.filter((card) => extractSpellingWord(card.front) !== null);
+		const eligibleCardIds = new Set(spellingEligibility.eligibleCardIds);
+		const eligibleCards = deck.cards.filter((card) => eligibleCardIds.has(card.id));
 		const plan =
 			request.selection.kind === "study-day"
 				? {

@@ -91,10 +91,12 @@ export class DataStore {
 	private continuity: PersistedCardIdentityContinuityState = createEmptyContinuityState();
 	/** Set to true after loadSettings() has already populated decks/history */
 	private dataLoaded = false;
+	private revision = 0;
+	private readonly revisionListeners = new Set<() => void>();
 
 	constructor(plugin: Plugin, settings?: FlashcardSettings) {
 		this.plugin = plugin;
-		this.settings = settings ?? DEFAULT_SETTINGS;
+		this.settings = cloneFlashcardSettings(settings ?? DEFAULT_SETTINGS);
 		this.scheduler = new FSRSScheduler(this.settings);
 	}
 
@@ -146,14 +148,15 @@ export class DataStore {
 
 		this.scheduler = new FSRSScheduler(this.settings);
 		this.dataLoaded = true;
-		return this.settings;
+		this.publishRevision();
+		return cloneFlashcardSettings(this.settings);
 	}
 
 	/**
 	 * Save settings to disk
 	 */
 	async saveSettings(newSettings?: FlashcardSettings): Promise<void> {
-		const nextSettings = newSettings ?? this.settings;
+		const nextSettings = cloneFlashcardSettings(newSettings ?? this.settings);
 		await this.plugin.saveData(
 			this.buildStoredData(
 				this.decks,
@@ -165,6 +168,7 @@ export class DataStore {
 		if (newSettings) {
 			this.settings = nextSettings;
 			this.scheduler = new FSRSScheduler(this.settings);
+			this.publishRevision();
 		}
 	}
 
@@ -172,7 +176,16 @@ export class DataStore {
 	 * Get current settings
 	 */
 	getSettings(): FlashcardSettings {
-		return this.settings;
+		return cloneFlashcardSettings(this.settings);
+	}
+
+	getRevision(): number {
+		return this.revision;
+	}
+
+	subscribe(listener: () => void): () => void {
+		this.revisionListeners.add(listener);
+		return () => this.revisionListeners.delete(listener);
 	}
 
 	/**
@@ -250,6 +263,7 @@ export class DataStore {
 		this.spellingProgress = normalizeSpellingProgress(data?.spellingProgress);
 		this.continuity = cloneContinuityState(data?.continuity ?? createEmptyContinuityState());
 		this.dataLoaded = true;
+		this.publishRevision();
 	}
 
 	/**
@@ -311,6 +325,7 @@ export class DataStore {
 		this.decks = nextDecks;
 		this.studyHistory = nextHistory;
 		this.spellingProgress = nextSpellingProgress;
+		this.publishRevision();
 	}
 
 	private buildStoredData(
@@ -318,6 +333,7 @@ export class DataStore {
 		studyHistory: StudyHistoryEntry[],
 		spellingProgress: Record<string, SpellingCardProgress>,
 		settings: FlashcardSettings = this.settings,
+		continuity: PersistedCardIdentityContinuityState = this.continuity,
 	): StoredData {
 		const data: StoredData = {
 			decks: {},
@@ -325,7 +341,7 @@ export class DataStore {
 			settings,
 			studyHistory,
 			spellingProgress,
-			continuity: this.continuity,
+			continuity,
 		};
 
 		for (const [id, deck] of decks) {
@@ -343,11 +359,24 @@ export class DataStore {
 				continuity: cloneContinuityState(this.continuity),
 			}),
 			commit: async (state: CardIdentityContinuityState): Promise<void> => {
-				this.pruneSpellingProgress(this.decks, state.decks);
-				this.decks = new Map(state.decks);
+				const nextDecks = new Map(state.decks);
+				const nextSpellingProgress = cloneSpellingProgress(this.spellingProgress);
+				this.pruneSpellingProgress(this.decks, nextDecks, nextSpellingProgress);
+				const nextContinuity = cloneContinuityState(state.continuity);
+				await this.plugin.saveData(
+					this.buildStoredData(
+						nextDecks,
+						this.studyHistory,
+						nextSpellingProgress,
+						this.settings,
+						nextContinuity,
+					),
+				);
+				this.decks = nextDecks;
+				this.spellingProgress = nextSpellingProgress;
 				this.availableTags = [...(state.availableTags ?? this.availableTags)];
-				this.continuity = cloneContinuityState(state.continuity);
-				await this.save();
+				this.continuity = nextContinuity;
+				this.publishRevision();
 			},
 		};
 	}
@@ -458,8 +487,7 @@ export class DataStore {
 	/**
 	 * Get deck statistics
 	 */
-	getDeckStats(deck: Deck): DeckStats {
-		const now = new Date();
+	getDeckStats(deck: Deck, now: Date = new Date()): DeckStats {
 		let newCards = 0;
 		let dueCards = 0;
 		let learningCards = 0;
@@ -639,7 +667,8 @@ export class DataStore {
 			String(now.getDate()).padStart(2, "0"),
 		].join("-");
 
-		this.studyHistory.push({
+		const nextHistory = [...this.studyHistory];
+		nextHistory.push({
 			date,
 			deckId,
 			deckName,
@@ -650,13 +679,18 @@ export class DataStore {
 		});
 
 		// Prune to last 20 distinct days
-		const days = [...new Set(this.studyHistory.map((e) => e.date))].sort().reverse();
+		const days = [...new Set(nextHistory.map((e) => e.date))].sort().reverse();
 		if (days.length > 20) {
 			const keep = new Set(days.slice(0, 20));
-			this.studyHistory = this.studyHistory.filter((e) => keep.has(e.date));
+			const retained = nextHistory.filter((e) => keep.has(e.date));
+			nextHistory.splice(0, nextHistory.length, ...retained);
 		}
 
-		await this.save();
+		await this.plugin.saveData(
+			this.buildStoredData(this.decks, nextHistory, this.spellingProgress),
+		);
+		this.studyHistory = nextHistory;
+		this.publishRevision();
 	}
 
 	/**
@@ -685,6 +719,7 @@ export class DataStore {
 	private pruneSpellingProgress(
 		previousDecks: ReadonlyMap<string, Deck>,
 		nextDecks: ReadonlyMap<string, Deck>,
+		progress: Record<string, SpellingCardProgress>,
 	): void {
 		const availableIdentities = new Set(
 			Array.from(nextDecks.values()).flatMap((deck) => deck.cards.map((card) => card.id)),
@@ -694,10 +729,42 @@ export class DataStore {
 		);
 		for (const cardId of previousIdentities) {
 			if (!availableIdentities.has(cardId)) {
-				delete this.spellingProgress[cardId];
+				delete progress[cardId];
 			}
 		}
 	}
+
+	private publishRevision(): void {
+		this.revision++;
+		for (const listener of this.revisionListeners) {
+			try {
+				listener();
+			} catch (error) {
+				console.error("Failed to publish a committed flashcard data revision:", error);
+			}
+		}
+	}
+}
+
+function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings {
+	return {
+		...settings,
+		flashcardTags: [...settings.flashcardTags],
+		wordLearningDecks: { ...settings.wordLearningDecks },
+		practicePerfectMessages: [...settings.practicePerfectMessages],
+		practiceErrorMessages: [...settings.practiceErrorMessages],
+		fsrsParameters: { ...settings.fsrsParameters },
+		deckStudySettings: Object.fromEntries(
+			Object.entries(settings.deckStudySettings).map(([deckId, overrides]) => [
+				deckId,
+				{
+					...overrides,
+					fsrsParameters: overrides.fsrsParameters && { ...overrides.fsrsParameters },
+				},
+			]),
+		),
+		pronunciation: { ...settings.pronunciation },
+	};
 }
 
 function createEmptyContinuityState(): PersistedCardIdentityContinuityState {

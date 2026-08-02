@@ -1,6 +1,7 @@
-import type { FlashCard, SpellingCardProgress } from "../shared/types";
+import type { Deck, FlashCard, SpellingCardProgress } from "../shared/types";
 import { shuffleArray } from "../shared/utils";
-import { extractSpellingWord } from "../cards/spellingWord";
+import { extractSpellingWord, validateSpellingDeck } from "../cards/spellingWord";
+import { isStableCardIdentity } from "../identity/cardIdentity";
 
 export type SpellingSessionPlanSource = "smart" | "range" | "incorrect-retry";
 
@@ -17,7 +18,44 @@ export interface SpellingDeckProgressStats {
 	stable: number;
 }
 
+export interface SpellingDeckEligibility {
+	enabled: boolean;
+	hasStableIdentities: boolean;
+	canStart: boolean;
+	valid: boolean;
+	ready: boolean;
+	issueCount: number;
+	eligibleCardIds: string[];
+	invalidCards: Array<{ cardId: string; indexInFile: number; front: string }>;
+}
+
 export type SpellingShuffle = (cardIds: string[]) => string[];
+
+export function evaluateSpellingDeckEligibility(
+	deck: Pick<Deck, "cards">,
+	enabled: boolean,
+): SpellingDeckEligibility {
+	const validation = validateSpellingDeck(deck);
+	const unstableCardIds = deck.cards
+		.filter((card) => !isStableCardIdentity(card.id))
+		.map((card) => card.id);
+	const issueCount = new Set([
+		...validation.invalidCards.map((card) => card.cardId),
+		...unstableCardIds,
+	]).size;
+	const hasStableIdentities = unstableCardIds.length === 0;
+
+	return {
+		enabled,
+		hasStableIdentities,
+		canStart: validation.canStart,
+		valid: validation.valid,
+		ready: enabled && hasStableIdentities && validation.canStart,
+		issueCount,
+		eligibleCardIds: validation.eligibleCardIds,
+		invalidCards: validation.invalidCards,
+	};
+}
 
 export function getSpellingDeckProgressStats(
 	cards: readonly FlashCard[],

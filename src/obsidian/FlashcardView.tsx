@@ -1,4 +1,4 @@
-import { ItemView, Notice, WorkspaceLeaf } from "obsidian";
+import { ItemView, WorkspaceLeaf } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import React from "react";
 import { FlashcardApp } from "../ui/components/FlashcardApp";
@@ -7,8 +7,8 @@ import { FlashcardSettings } from "../shared/types";
 import { translate } from "../i18n";
 import type { CardIdentityContinuity } from "../identity/cardIdentityContinuity";
 import type { SessionLifecycle } from "../sessions/sessionLifecycle";
-import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
 import type { PronunciationRuntime } from "../pronunciation";
+import type { DeckHome } from "../decks/deckHome";
 
 export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
@@ -18,9 +18,9 @@ export class FlashcardView extends ItemView {
 	private cardIdentityContinuity: CardIdentityContinuity;
 	private sessionLifecycle: SessionLifecycle;
 	private pronunciationRuntime: PronunciationRuntime;
+	private deckHome: DeckHome;
 	private modalHost: HTMLElement | null = null;
 	private settings: FlashcardSettings;
-	private onSaveSettings: (settings: FlashcardSettings) => Promise<FlashcardSettings>;
 	private onOpenSettings: () => void;
 
 	constructor(
@@ -29,8 +29,8 @@ export class FlashcardView extends ItemView {
 		cardIdentityContinuity: CardIdentityContinuity,
 		sessionLifecycle: SessionLifecycle,
 		pronunciationRuntime: PronunciationRuntime,
+		deckHome: DeckHome,
 		settings: FlashcardSettings,
-		onSaveSettings: (settings: FlashcardSettings) => Promise<FlashcardSettings>,
 		onOpenSettings: () => void,
 	) {
 		super(leaf);
@@ -38,8 +38,8 @@ export class FlashcardView extends ItemView {
 		this.cardIdentityContinuity = cardIdentityContinuity;
 		this.sessionLifecycle = sessionLifecycle;
 		this.pronunciationRuntime = pronunciationRuntime;
+		this.deckHome = deckHome;
 		this.settings = settings;
-		this.onSaveSettings = onSaveSettings;
 		this.onOpenSettings = onOpenSettings;
 	}
 
@@ -63,8 +63,7 @@ export class FlashcardView extends ItemView {
 		container.addClass("flashcard-container");
 
 		// Single vault scan: syncs decks and caches available tags
-		const outcome = await this.cardIdentityContinuity.synchronize();
-		this.showSynchronizationFeedback(outcome);
+		await this.deckHome.act({ kind: "refresh" });
 
 		// Create React root
 		const rootEl = container.createDiv({ cls: "flashcard-root" });
@@ -86,35 +85,12 @@ export class FlashcardView extends ItemView {
 					cardIdentityContinuity={this.cardIdentityContinuity}
 					sessionLifecycle={this.sessionLifecycle}
 					pronunciationRuntime={this.pronunciationRuntime}
+					deckHome={this.deckHome}
 					settings={this.settings}
-					onSaveSettings={this.handleSaveSettings}
-					onRefresh={this.handleRefresh}
 					onOpenSettings={this.onOpenSettings}
 				/>
 			</React.StrictMode>,
 		);
-	}
-
-	private handleSaveSettings = async (newSettings: FlashcardSettings): Promise<void> => {
-		this.settings = await this.onSaveSettings(newSettings);
-		this.renderApp();
-	};
-
-	private handleRefresh = async (): Promise<void> => {
-		const outcome = await this.cardIdentityContinuity.synchronize();
-		this.showSynchronizationFeedback(outcome);
-		this.renderApp();
-	};
-
-	private showSynchronizationFeedback(
-		outcome: Awaited<ReturnType<CardIdentityContinuity["synchronize"]>>,
-	): void {
-		const message = describeSynchronizationOutcome(
-			outcome,
-			this.cardIdentityContinuity.inspect(),
-			this.settings.language,
-		);
-		if (message) new Notice(message, 12000);
 	}
 
 	async onClose(): Promise<void> {
@@ -132,7 +108,6 @@ export class FlashcardView extends ItemView {
 	}
 
 	async refresh(): Promise<void> {
-		await this.cardIdentityContinuity.synchronize();
-		this.renderApp();
+		await this.deckHome.act({ kind: "refresh" });
 	}
 }

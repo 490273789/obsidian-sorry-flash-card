@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useId, useRef, useState } from "react";
 import {
 	BookOpen,
 	Brain,
@@ -20,99 +20,69 @@ import {
 	Target,
 	TriangleAlert,
 } from "lucide-react";
-import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../../shared/types";
-import type { DeckHomeSnapshot } from "../../decks/deckHomeRuntime";
-import {
-	applyDailyNewCardsToDeckSettingsDraft,
-	applyDaysToCompleteToDeckSettingsDraft,
-	buildDeckSettingsSavePayload,
-	calculateDaysToComplete,
-	createDeckSettingsDraft,
-} from "../../decks/deckSettingsViewModel";
+import type {
+	DeckHome,
+	DeckHomeDeckSnapshot,
+	DeckHomeDestination,
+	DeckHomeSettingsChange,
+	DeckHomeSettingsDraft,
+	DeckHomeSnapshot,
+} from "../../decks/deckHome";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
 import { formatStudyOrder } from "../../i18n";
-import { validateSpellingDeck } from "../../cards/spellingWord";
-import { isStableCardIdentity } from "../../identity/cardIdentity";
 import { ModalSurface } from "../modal";
 
 // ── Per-deck settings modal ───────────────────────────────────────────────────
 
 interface DeckSettingsModalProps {
-	deck: Deck;
-	globalSettings: FlashcardSettings;
-	deckOverrides: Partial<StudySettings> | undefined;
-	wordLearningEnabled: boolean;
-	onSave: (
-		overrides: Partial<StudySettings> | null,
-		wordLearningEnabled: boolean,
-	) => Promise<void>;
+	draft: DeckHomeSettingsDraft;
+	isSaving: boolean;
+	isMigratingIdentity: boolean;
+	onChange: (change: DeckHomeSettingsChange) => void;
+	onSave: () => Promise<void>;
 	onOpenSourceFile: () => void;
 	onMigrateIdentity: () => Promise<boolean>;
 	onClose: () => void;
 }
 
 const DeckSettingsModal = memo(function DeckSettingsModal({
-	deck,
-	globalSettings,
-	deckOverrides,
-	wordLearningEnabled,
+	draft,
+	isSaving,
+	isMigratingIdentity,
+	onChange,
 	onSave,
 	onOpenSourceFile,
 	onMigrateIdentity,
 	onClose,
 }: DeckSettingsModalProps) {
 	const { t, language } = useI18n();
-	const totalCards = deck.cards.length;
-	const [draft, setDraft] = useState(() =>
-		createDeckSettingsDraft({
-			totalCards,
-			globalSettings,
-			deckOverrides,
-		}),
-	);
-	const [wordLearningDraft, setWordLearningDraft] = useState(wordLearningEnabled);
-	const [isMigratingIdentity, setIsMigratingIdentity] = useState(false);
-	const [isSaving, setIsSaving] = useState(false);
+	const totalCards = draft.totalCards;
 	const titleId = useId();
 	const subtitleId = useId();
-	const spellingValidation = useMemo(() => validateSpellingDeck(deck), [deck]);
-	const hasStableIdentities = useMemo(
-		() => deck.cards.every((card) => isStableCardIdentity(card.id)),
-		[deck.cards],
-	);
+	const spellingValidation = draft.spelling;
+	const hasStableIdentities = draft.spelling.hasStableIdentities;
 	const spellingBlocked =
-		wordLearningDraft && (!spellingValidation.canStart || !hasStableIdentities);
+		draft.wordLearningEnabled && (!spellingValidation.canStart || !hasStableIdentities);
 	const isBusy = isMigratingIdentity || isSaving;
 
 	const handleDailyNewCardsChange = (val: number) => {
-		setDraft((current) => applyDailyNewCardsToDeckSettingsDraft(current, totalCards, val));
+		onChange({ field: "dailyNewCards", value: val });
 	};
 
 	const handleDaysToCompleteChange = (raw: string) => {
-		setDraft((current) => applyDaysToCompleteToDeckSettingsDraft(current, totalCards, raw));
+		onChange({ field: "daysToComplete", value: raw });
 	};
 
 	const handleSave = async () => {
 		if (spellingBlocked || isBusy) return;
-		setIsSaving(true);
-		try {
-			await onSave(buildDeckSettingsSavePayload(draft, globalSettings), wordLearningDraft);
-			onClose();
-		} finally {
-			setIsSaving(false);
-		}
+		await onSave();
 	};
 
 	const handleMigrateIdentity = async () => {
 		if (isBusy) return;
-		setIsMigratingIdentity(true);
-		try {
-			await onMigrateIdentity();
-		} finally {
-			setIsMigratingIdentity(false);
-		}
+		await onMigrateIdentity();
 	};
 
 	return (
@@ -131,7 +101,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								<Sparkles size={14} /> {t("deckSettings.kicker")}
 							</div>
 							<span id={titleId} className="flashcard-modal-title">
-								{t("deckSettings.title", { deckName: deck.name })}
+								{t("deckSettings.title", { deckName: draft.deckName })}
 							</span>
 							<span id={subtitleId} className="flashcard-modal-subtitle">
 								{t("deckSettings.subtitle", {
@@ -163,17 +133,20 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								<label className="flashcard-deck-settings-toggle-label">
 									<input
 										type="checkbox"
-										checked={wordLearningDraft}
+										checked={draft.wordLearningEnabled}
 										{...initialFocusProps}
 										onChange={(event) =>
-											setWordLearningDraft(event.target.checked)
+											onChange({
+												field: "wordLearningEnabled",
+												value: event.target.checked,
+											})
 										}
 									/>
 									<span>{t("deckSettings.wordLearningToggle")}</span>
 								</label>
 							</div>
 
-							{wordLearningDraft && !hasStableIdentities && (
+							{draft.wordLearningEnabled && !hasStableIdentities && (
 								<div className="flashcard-deck-settings-warning">
 									<TriangleAlert size={16} />
 									<span>{t("deckSettings.identityRequired")}</span>
@@ -189,7 +162,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								</div>
 							)}
 
-							{wordLearningDraft &&
+							{draft.wordLearningEnabled &&
 								(!spellingValidation.canStart ||
 									spellingValidation.invalidCards.length > 0) && (
 									<div className="flashcard-deck-settings-warning">
@@ -244,10 +217,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									type="checkbox"
 									checked={draft.useCustom}
 									onChange={(e) =>
-										setDraft((current) => ({
-											...current,
-											useCustom: e.target.checked,
-										}))
+										onChange({ field: "useCustom", value: e.target.checked })
 									}
 								/>
 								<span>{t("deckSettings.useCustom")}</span>
@@ -260,21 +230,20 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						{!draft.useCustom ? (
 							<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
 								{t("deckSettings.globalHint", {
-									dailyNewCards: globalSettings.dailyNewCards,
-									dailyReviewCards: globalSettings.dailyReviewCards,
-									studyOrder: formatStudyOrder(
-										language,
-										globalSettings.studyOrder,
-									),
+									dailyNewCards: draft.global.dailyNewCards,
+									dailyReviewCards: draft.global.dailyReviewCards,
+									studyOrder: formatStudyOrder(language, draft.global.studyOrder),
 								})}
 								{totalCards > 0 && (
 									<span>
 										&nbsp;
 										{t("deckSettings.estimatedDays", {
-											days: calculateDaysToComplete(
-												totalCards,
-												globalSettings.dailyNewCards,
-											),
+											days:
+												totalCards <= 0
+													? 0
+													: Math.ceil(
+															totalCards / draft.global.dailyNewCards,
+														),
 										})}
 									</span>
 								)}
@@ -350,10 +319,10 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										step={10}
 										value={draft.dailyReviewCards}
 										onChange={(e) =>
-											setDraft((current) => ({
-												...current,
-												dailyReviewCards: parseInt(e.target.value),
-											}))
+											onChange({
+												field: "dailyReviewCards",
+												value: parseInt(e.target.value),
+											})
 										}
 									/>
 								</div>
@@ -362,11 +331,10 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									<select
 										value={draft.studyOrder}
 										onChange={(e) =>
-											setDraft((current) => ({
-												...current,
-												studyOrder: e.target
-													.value as StudySettings["studyOrder"],
-											}))
+											onChange({
+												field: "studyOrder",
+												value: e.target.value as "sequential" | "random",
+											})
 										}
 									>
 										<option value="sequential">{t("order.sequential")}</option>
@@ -385,10 +353,10 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										step={0.01}
 										value={draft.requestRetention}
 										onChange={(e) =>
-											setDraft((current) => ({
-												...current,
-												requestRetention: parseFloat(e.target.value),
-											}))
+											onChange({
+												field: "requestRetention",
+												value: parseFloat(e.target.value),
+											})
 										}
 									/>
 								</div>
@@ -400,10 +368,10 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										max={3650}
 										value={draft.maximumInterval}
 										onChange={(e) =>
-											setDraft((current) => ({
-												...current,
-												maximumInterval: e.target.value,
-											}))
+											onChange({
+												field: "maximumInterval",
+												value: e.target.value,
+											})
 										}
 									/>
 								</div>
@@ -430,8 +398,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 });
 
 interface DeckCardProps {
-	deck: Deck;
-	deckStats: DeckStats | undefined;
+	deck: DeckHomeDeckSnapshot;
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
@@ -439,13 +406,13 @@ interface DeckCardProps {
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenSettings: (deckId: string) => void;
 	onStartSpelling: (deckId: string) => void;
-	wordLearningEnabled: boolean;
 	isExporting: boolean;
+	isExportBusy: boolean;
+	isSettingsLocked: boolean;
 }
 
 const DeckCard = memo(function DeckCard({
 	deck,
-	deckStats,
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
@@ -453,31 +420,17 @@ const DeckCard = memo(function DeckCard({
 	onOpenSourceFile,
 	onOpenSettings,
 	onStartSpelling,
-	wordLearningEnabled,
 	isExporting,
+	isExportBusy,
+	isSettingsLocked,
 }: DeckCardProps) {
 	const { t } = useI18n();
-	const totalCards = deckStats?.totalCards ?? 0;
-	const newCards = deckStats?.newCards ?? 0;
+	const totalCards = deck.stats.totalCards;
+	const newCards = deck.stats.newCards;
 	const [showMoreActions, setShowMoreActions] = useState(false);
 	const actionsMenuId = useId();
 	const actionsRef = useRef<HTMLDivElement>(null);
-	const spellingValidation = useMemo(() => validateSpellingDeck(deck), [deck]);
-	const unstableCardIds = useMemo(
-		() => deck.cards.filter((card) => !isStableCardIdentity(card.id)).map((card) => card.id),
-		[deck.cards],
-	);
-	const spellingIssueCount = useMemo(
-		() =>
-			new Set([
-				...(spellingValidation.canStart
-					? []
-					: spellingValidation.invalidCards.map((card) => card.cardId)),
-				...unstableCardIds,
-			]).size,
-		[spellingValidation.canStart, spellingValidation.invalidCards, unstableCardIds],
-	);
-	const spellingReady = spellingValidation.canStart && unstableCardIds.length === 0;
+	const spellingReady = deck.spelling.ready;
 
 	useEffect(() => {
 		if (!showMoreActions) return;
@@ -510,7 +463,7 @@ const DeckCard = memo(function DeckCard({
 					<div className="flashcard-deck-name">{deck.name}</div>
 					<div className="flashcard-deck-name-wrapper">
 						<span className="flashcard-deck-tag">{deck.tag}</span>
-						{wordLearningEnabled && (
+						{deck.spelling.enabled && (
 							<span
 								className={`flashcard-word-learning-badge${
 									spellingReady ? "" : " is-invalid"
@@ -596,7 +549,7 @@ const DeckCard = memo(function DeckCard({
 						role="toolbar"
 						aria-label={t("home.moreActions")}
 					>
-						{wordLearningEnabled && (
+						{deck.spelling.enabled && (
 							<FlashcardButton
 								variant="green"
 								className="flashcard-deck-more-action"
@@ -609,13 +562,13 @@ const DeckCard = memo(function DeckCard({
 								disabled={!spellingReady}
 								title={
 									spellingReady
-										? spellingValidation.invalidCards.length > 0
+										? deck.spelling.ignoredCardCount > 0
 											? t("home.spellingModeIgnoredTitle", {
-													count: spellingValidation.invalidCards.length,
+													count: deck.spelling.ignoredCardCount,
 												})
 											: t("home.spellingModeTitle")
 										: t("home.spellingUnavailableTitle", {
-												count: spellingIssueCount,
+												count: deck.spelling.issueCount,
 											})
 								}
 							>
@@ -631,7 +584,7 @@ const DeckCard = memo(function DeckCard({
 								setShowMoreActions(false);
 								void onExportDeck(deck.id);
 							}}
-							disabled={isExporting}
+							disabled={isExportBusy}
 							title={t("home.exportPdfTitle")}
 						>
 							<span>{t("home.exportPdfTitle")}</span>
@@ -666,6 +619,7 @@ const DeckCard = memo(function DeckCard({
 								setShowMoreActions(false);
 								onOpenSettings(deck.id);
 							}}
+							disabled={isSettingsLocked}
 						>
 							<span>{t("home.setting")}</span>
 						</FlashcardButton>
@@ -680,97 +634,52 @@ const DeckCard = memo(function DeckCard({
 
 interface DeckListProps {
 	snapshot: DeckHomeSnapshot;
-	settings: FlashcardSettings;
-	legacyMigration: { sourceCount: number; cardCount: number } | null;
-	onSelectDeck: (deckId: string) => void;
-	onOpenWordList: (deckId: string) => void;
-	onStartPractice: (deckId: string) => void;
-	onStartSpelling: (deckId: string) => void;
-	onExportDeck: (deckId: string) => Promise<void>;
-	onRefresh: () => Promise<void>;
-	onUpdateDeckSettings: (
-		deckId: string,
-		overrides: Partial<StudySettings> | null,
-		wordLearningEnabled: boolean,
-	) => Promise<void>;
-	onMigrateDeckIdentity: (deckId: string) => Promise<boolean>;
+	home: DeckHome;
+	ownerId: string;
+	onNavigate: (destination: DeckHomeDestination, deckId: string) => void;
+	onRequestMigration: (deckId?: string) => Promise<boolean>;
 	onOpenSourceFile: (filePath: string) => void;
 	onOpenStats: () => void;
 	onOpenSettings: () => void;
 	onOpenAddCard: () => void;
-	onMigrateLegacyDecks: () => Promise<void>;
 }
 
 export const DeckList: React.FC<DeckListProps> = ({
 	snapshot,
-	settings,
-	legacyMigration,
-	onSelectDeck,
-	onOpenWordList,
-	onStartPractice,
-	onStartSpelling,
-	onExportDeck,
-	onRefresh,
-	onUpdateDeckSettings,
-	onMigrateDeckIdentity,
+	home,
+	ownerId,
+	onNavigate,
+	onRequestMigration,
 	onOpenSourceFile,
 	onOpenStats,
 	onOpenSettings,
 	onOpenAddCard,
-	onMigrateLegacyDecks,
 }) => {
 	const { t } = useI18n();
-	const [isLoading, setIsLoading] = useState(false);
-	const [isMigrating, setIsMigrating] = useState(false);
-	const [exportingDeckId, setExportingDeckId] = useState<string | null>(null);
-	const [modalDeckId, setModalDeckId] = useState<string | null>(null);
-
-	const handleRefresh = useCallback(async () => {
-		setIsLoading(true);
-		try {
-			await onRefresh();
-		} finally {
-			setIsLoading(false);
-		}
-	}, [onRefresh]);
+	const isLoading = snapshot.mutation.kind === "refreshing";
+	const isMutationBusy = snapshot.mutation.kind !== "idle";
+	const isMigrating =
+		snapshot.mutation.kind === "preparing-migration" ||
+		snapshot.mutation.kind === "awaiting-confirmation" ||
+		snapshot.mutation.kind === "migrating";
+	const draft = snapshot.settingsDraft?.ownerId === ownerId ? snapshot.settingsDraft : null;
 
 	const handleCloseModal = useCallback(() => {
-		setModalDeckId(null);
-	}, []);
-
-	const handleMigrateLegacyDecks = useCallback(async () => {
-		setIsMigrating(true);
-		try {
-			await onMigrateLegacyDecks();
-		} finally {
-			setIsMigrating(false);
-		}
-	}, [onMigrateLegacyDecks]);
+		void home.act({ kind: "cancel-settings", ownerId });
+	}, [home, ownerId]);
 
 	const handleExportDeck = useCallback(
 		async (deckId: string) => {
-			if (exportingDeckId !== null) return;
-			setExportingDeckId(deckId);
-			try {
-				await onExportDeck(deckId);
-			} finally {
-				setExportingDeckId(null);
-			}
+			await home.act({ kind: "export", deckId });
 		},
-		[exportingDeckId, onExportDeck],
+		[home],
 	);
 
-	const handleSaveDeckSettings = useCallback(
-		async (overrides: Partial<StudySettings> | null, wordLearningEnabled: boolean) => {
-			if (modalDeckId === null) return;
-			await onUpdateDeckSettings(modalDeckId, overrides, wordLearningEnabled);
+	const handleOpenDeckSettings = useCallback(
+		(deckId: string) => {
+			void home.act({ kind: "open-settings", ownerId, deckId });
 		},
-		[modalDeckId, onUpdateDeckSettings],
-	);
-
-	const modalDeck = useMemo(
-		() => snapshot.decks.find((deck) => deck.id === modalDeckId),
-		[modalDeckId, snapshot.decks],
+		[home, ownerId],
 	);
 
 	return (
@@ -822,8 +731,8 @@ export const DeckList: React.FC<DeckListProps> = ({
 							<FlashcardButton
 								preset="icon"
 								icon={RefreshCcw}
-								onClick={() => void handleRefresh()}
-								disabled={isLoading}
+								onClick={() => void home.act({ kind: "refresh" })}
+								disabled={isMutationBusy}
 								title={t("home.refreshTitle")}
 								iconClassName={isLoading ? "spinning" : ""}
 							/>
@@ -837,7 +746,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 					}
 				/>
 
-				{legacyMigration && (
+				{snapshot.migration && (
 					<section className="flashcard-identity-migration-card">
 						<div className="flashcard-identity-migration-copy">
 							<div className="flashcard-identity-migration-icon">
@@ -847,8 +756,8 @@ export const DeckList: React.FC<DeckListProps> = ({
 								<strong>{t("identity.oneClickMigrationTitle")}</strong>
 								<p>
 									{t("identity.oneClickMigrationDescription", {
-										sources: legacyMigration.sourceCount,
-										cards: legacyMigration.cardCount,
+										sources: snapshot.migration.sourceCount,
+										cards: snapshot.migration.cardCount,
 									})}
 								</p>
 							</div>
@@ -856,8 +765,8 @@ export const DeckList: React.FC<DeckListProps> = ({
 						<FlashcardButton
 							variant="green"
 							icon={Sparkles}
-							onClick={() => void handleMigrateLegacyDecks()}
-							disabled={isMigrating}
+							onClick={() => void onRequestMigration()}
+							disabled={isMutationBusy}
 						>
 							{isMigrating ? t("identity.migrating") : t("identity.migrateAllNow")}
 						</FlashcardButton>
@@ -880,31 +789,50 @@ export const DeckList: React.FC<DeckListProps> = ({
 							<DeckCard
 								key={deck.id}
 								deck={deck}
-								deckStats={snapshot.statsByDeckId.get(deck.id)}
-								onSelectDeck={onSelectDeck}
-								onOpenWordList={onOpenWordList}
-								onStartPractice={onStartPractice}
-								onStartSpelling={onStartSpelling}
+								onSelectDeck={(deckId) => onNavigate("study", deckId)}
+								onOpenWordList={(deckId) => onNavigate("word-list", deckId)}
+								onStartPractice={(deckId) => onNavigate("practice", deckId)}
+								onStartSpelling={(deckId) => onNavigate("spelling", deckId)}
 								onExportDeck={handleExportDeck}
 								onOpenSourceFile={onOpenSourceFile}
-								onOpenSettings={setModalDeckId}
-								wordLearningEnabled={settings.wordLearningDecks[deck.id] === true}
-								isExporting={exportingDeckId === deck.id}
+								onOpenSettings={handleOpenDeckSettings}
+								isExporting={
+									snapshot.export.kind === "exporting" &&
+									snapshot.export.deckId === deck.id
+								}
+								isExportBusy={snapshot.export.kind === "exporting"}
+								isSettingsLocked={
+									snapshot.settingsDraft !== null &&
+									snapshot.settingsDraft.ownerId !== ownerId &&
+									(snapshot.settingsDraft.ownerId !== "" ||
+										snapshot.settingsDraft.deckId !== deck.id)
+								}
 							/>
 						))}
 					</div>
 				)}
 			</div>
 
-			{modalDeckId !== null && modalDeck && (
+			{draft && (
 				<DeckSettingsModal
-					deck={modalDeck}
-					globalSettings={settings}
-					deckOverrides={settings.deckStudySettings?.[modalDeckId]}
-					wordLearningEnabled={settings.wordLearningDecks[modalDeckId] === true}
-					onSave={handleSaveDeckSettings}
-					onOpenSourceFile={() => onOpenSourceFile(modalDeck.filePath)}
-					onMigrateIdentity={() => onMigrateDeckIdentity(modalDeck.id)}
+					draft={draft}
+					isSaving={
+						snapshot.mutation.kind === "saving-settings" &&
+						snapshot.mutation.deckId === draft.deckId
+					}
+					isMigratingIdentity={
+						snapshot.mutation.kind === "preparing-migration" ||
+						snapshot.mutation.kind === "awaiting-confirmation" ||
+						snapshot.mutation.kind === "migrating"
+					}
+					onChange={(change) => {
+						void home.act({ kind: "change-settings", ownerId, change });
+					}}
+					onSave={async () => {
+						await home.act({ kind: "save-settings", ownerId });
+					}}
+					onOpenSourceFile={() => onOpenSourceFile(draft.filePath)}
+					onMigrateIdentity={() => onRequestMigration(draft.deckId)}
 					onClose={handleCloseModal}
 				/>
 			)}

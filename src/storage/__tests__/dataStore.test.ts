@@ -248,12 +248,44 @@ describe("DataStore settings", () => {
 		const plugin = makePlugin();
 		const store = new DataStore(plugin as never);
 		const previous = await store.loadSettings();
+		const revision = store.getRevision();
+		const listener = vi.fn();
+		store.subscribe(listener);
 		plugin.saveData.mockRejectedValueOnce(new Error("disk unavailable"));
 
 		await expect(
 			store.saveSettings(makeSettings({ dailyNewCards: previous.dailyNewCards + 1 })),
 		).rejects.toThrow("disk unavailable");
 		expect(store.getSettings().dailyNewCards).toBe(previous.dailyNewCards);
+		expect(store.getRevision()).toBe(revision);
+		expect(listener).not.toHaveBeenCalled();
+
+		await store.saveSettings(makeSettings({ dailyNewCards: previous.dailyNewCards + 1 }));
+		expect(store.getRevision()).toBe(revision + 1);
+		expect(listener).toHaveBeenCalledTimes(1);
+	});
+
+	it("keeps externally edited settings detached until they are durably saved", async () => {
+		const plugin = makePlugin();
+		const store = new DataStore(plugin as never);
+		const editable = await store.loadSettings();
+		const revision = store.getRevision();
+
+		editable.dailyNewCards += 7;
+		editable.wordLearningDecks["notes/deck.md"] = true;
+
+		expect(store.getSettings()).toMatchObject({
+			dailyNewCards: DEFAULT_SETTINGS.dailyNewCards,
+			wordLearningDecks: {},
+		});
+		expect(store.getRevision()).toBe(revision);
+
+		await store.saveSettings(editable);
+		expect(store.getSettings()).toMatchObject({
+			dailyNewCards: DEFAULT_SETTINGS.dailyNewCards + 7,
+			wordLearningDecks: { "notes/deck.md": true },
+		});
+		expect(store.getRevision()).toBe(revision + 1);
 	});
 
 	it("persists independent spelling progress without changing FSRS state", async () => {
@@ -324,6 +356,9 @@ describe("DataStore settings", () => {
 		} satisfies StoredData);
 		const store = new DataStore(plugin as never);
 		await store.loadSettings();
+		const revision = store.getRevision();
+		const listener = vi.fn();
+		store.subscribe(listener);
 		const reviewedCard = {
 			...card.fsrsCard,
 			state: State.Review,
@@ -350,6 +385,8 @@ describe("DataStore settings", () => {
 		expect(store.getCard(deck.id, card.id)?.fsrsCard.state).toBe(State.New);
 		expect(store.getSpellingProgress()).toEqual({});
 		expect(store.getStudyHistory()).toEqual([]);
+		expect(store.getRevision()).toBe(revision);
+		expect(listener).not.toHaveBeenCalled();
 
 		await store.commitSessionTransition(transition);
 		expect(store.getDeck(deck.id)).toMatchObject({ studyCount: 1 });
@@ -362,6 +399,8 @@ describe("DataStore settings", () => {
 		expect(store.getStudyHistory()).toMatchObject([
 			{ mode: "study", cardCount: 1, duration: 60 },
 		]);
+		expect(store.getRevision()).toBe(revision + 1);
+		expect(listener).toHaveBeenCalledTimes(1);
 	});
 
 	it("prunes progress for cards deleted from a retained deck", async () => {
@@ -412,6 +451,48 @@ describe("DataStore settings", () => {
 		expect(store.getSpellingProgress()).toEqual({
 			[retained.id]: progress,
 		});
+	});
+
+	it("does not publish continuity changes before their complete state is durable", async () => {
+		const card = makeCard(
+			"550e8400-e29b-41d4-a716-446655440000",
+			State.New,
+			new Date("2026-07-01T00:00:00.000Z"),
+			0,
+		);
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [card],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-07-02T00:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+		const revision = store.getRevision();
+		const listener = vi.fn();
+		store.subscribe(listener);
+		const continuityStore = store.createContinuityStateStore();
+		const state = await continuityStore.load();
+		state.decks = new Map();
+		plugin.saveData.mockRejectedValueOnce(new Error("disk unavailable"));
+
+		await expect(continuityStore.commit(state)).rejects.toThrow("disk unavailable");
+		expect(store.getAllDecks()).toHaveLength(1);
+		expect(store.getRevision()).toBe(revision);
+		expect(listener).not.toHaveBeenCalled();
+
+		await continuityStore.commit(state);
+		expect(store.getAllDecks()).toHaveLength(0);
+		expect(store.getRevision()).toBe(revision + 1);
+		expect(listener).toHaveBeenCalledTimes(1);
 	});
 
 	it("keeps spelling progress when a stable card identity moves between decks", async () => {
