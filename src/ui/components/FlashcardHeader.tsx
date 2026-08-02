@@ -118,9 +118,7 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 					{stats.map(({ key, value, label, tone, icon: StatIcon }) => (
 						<li className="flashcard-header-stat" key={key}>
 							{StatIcon && <StatIcon size={16} />}
-							<span
-								className={`flashcard-header-stat-value tone-${tone}`}
-							>
+							<span className={`flashcard-header-stat-value tone-${tone}`}>
 								{value}
 							</span>
 							<span className="flashcard-header-stat-label">{label}</span>

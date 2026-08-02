@@ -1,12 +1,4 @@
-import React, {
-	memo,
-	useCallback,
-	useEffect,
-	useId,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import React, { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
 	BookOpen,
 	Brain,
@@ -28,12 +20,7 @@ import {
 	Target,
 	TriangleAlert,
 } from "lucide-react";
-import {
-	Deck,
-	DeckStats,
-	FlashcardSettings,
-	StudySettings,
-} from "../../shared/types";
+import { Deck, DeckStats, FlashcardSettings, StudySettings } from "../../shared/types";
 import type { DeckHomeSnapshot } from "../../decks/deckHomeRuntime";
 import {
 	applyDailyNewCardsToDeckSettingsDraft,
@@ -475,15 +462,9 @@ const DeckCard = memo(function DeckCard({
 	const [showMoreActions, setShowMoreActions] = useState(false);
 	const actionsMenuId = useId();
 	const actionsRef = useRef<HTMLDivElement>(null);
-	const spellingValidation = useMemo(
-		() => validateSpellingDeck(deck),
-		[deck],
-	);
+	const spellingValidation = useMemo(() => validateSpellingDeck(deck), [deck]);
 	const unstableCardIds = useMemo(
-		() =>
-			deck.cards
-				.filter((card) => !isStableCardIdentity(card.id))
-				.map((card) => card.id),
+		() => deck.cards.filter((card) => !isStableCardIdentity(card.id)).map((card) => card.id),
 		[deck.cards],
 	);
 	const spellingIssueCount = useMemo(
@@ -491,19 +472,12 @@ const DeckCard = memo(function DeckCard({
 			new Set([
 				...(spellingValidation.canStart
 					? []
-					: spellingValidation.invalidCards.map(
-							(card) => card.cardId,
-						)),
+					: spellingValidation.invalidCards.map((card) => card.cardId)),
 				...unstableCardIds,
 			]).size,
-		[
-			spellingValidation.canStart,
-			spellingValidation.invalidCards,
-			unstableCardIds,
-		],
+		[spellingValidation.canStart, spellingValidation.invalidCards, unstableCardIds],
 	);
-	const spellingReady =
-		spellingValidation.canStart && unstableCardIds.length === 0;
+	const spellingReady = spellingValidation.canStart && unstableCardIds.length === 0;
 
 	useEffect(() => {
 		if (!showMoreActions) return;
@@ -522,10 +496,7 @@ const DeckCard = memo(function DeckCard({
 		activeDocument.addEventListener("pointerdown", handlePointerDown);
 		activeDocument.addEventListener("keydown", handleKeyDown);
 		return () => {
-			activeDocument.removeEventListener(
-				"pointerdown",
-				handlePointerDown,
-			);
+			activeDocument.removeEventListener("pointerdown", handlePointerDown);
 			activeDocument.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [showMoreActions]);
@@ -558,13 +529,8 @@ const DeckCard = memo(function DeckCard({
 					</div>
 					<div className="flashcard-deck-stats">
 						<div className="flashcard-deck-stat">
-							<span className="flashcard-deck-stat-value blue">
-								{newCards}
-							</span>
-							/
-							<span className="flashcard-deck-stat-value orange">
-								{totalCards}
-							</span>
+							<span className="flashcard-deck-stat-value blue">{newCards}</span>/
+							<span className="flashcard-deck-stat-value orange">{totalCards}</span>
 						</div>
 						<div className="flashcard-deck-stat">
 							<span className="flashcard-deck-stat-label">
@@ -613,14 +579,10 @@ const DeckCard = memo(function DeckCard({
 						}}
 						active={showMoreActions}
 						title={
-							showMoreActions
-								? t("home.hideMoreActions")
-								: t("home.showMoreActions")
+							showMoreActions ? t("home.hideMoreActions") : t("home.showMoreActions")
 						}
 						aria-label={
-							showMoreActions
-								? t("home.hideMoreActions")
-								: t("home.showMoreActions")
+							showMoreActions ? t("home.hideMoreActions") : t("home.showMoreActions")
 						}
 						aria-expanded={showMoreActions}
 						aria-controls={actionsMenuId}
@@ -647,16 +609,10 @@ const DeckCard = memo(function DeckCard({
 								disabled={!spellingReady}
 								title={
 									spellingReady
-										? spellingValidation.invalidCards
-												.length > 0
-											? t(
-													"home.spellingModeIgnoredTitle",
-													{
-														count: spellingValidation
-															.invalidCards
-															.length,
-													},
-												)
+										? spellingValidation.invalidCards.length > 0
+											? t("home.spellingModeIgnoredTitle", {
+													count: spellingValidation.invalidCards.length,
+												})
 											: t("home.spellingModeTitle")
 										: t("home.spellingUnavailableTitle", {
 												count: spellingIssueCount,
@@ -805,16 +761,9 @@ export const DeckList: React.FC<DeckListProps> = ({
 	);
 
 	const handleSaveDeckSettings = useCallback(
-		async (
-			overrides: Partial<StudySettings> | null,
-			wordLearningEnabled: boolean,
-		) => {
+		async (overrides: Partial<StudySettings> | null, wordLearningEnabled: boolean) => {
 			if (modalDeckId === null) return;
-			await onUpdateDeckSettings(
-				modalDeckId,
-				overrides,
-				wordLearningEnabled,
-			);
+			await onUpdateDeckSettings(modalDeckId, overrides, wordLearningEnabled);
 		},
 		[modalDeckId, onUpdateDeckSettings],
 	);
@@ -895,18 +844,12 @@ export const DeckList: React.FC<DeckListProps> = ({
 								<Sparkles size={20} />
 							</div>
 							<div>
-								<strong>
-									{t("identity.oneClickMigrationTitle")}
-								</strong>
+								<strong>{t("identity.oneClickMigrationTitle")}</strong>
 								<p>
-									{t(
-										"identity.oneClickMigrationDescription",
-										{
-											sources:
-												legacyMigration.sourceCount,
-											cards: legacyMigration.cardCount,
-										},
-									)}
+									{t("identity.oneClickMigrationDescription", {
+										sources: legacyMigration.sourceCount,
+										cards: legacyMigration.cardCount,
+									})}
 								</p>
 							</div>
 						</div>
@@ -916,9 +859,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 							onClick={() => void handleMigrateLegacyDecks()}
 							disabled={isMigrating}
 						>
-							{isMigrating
-								? t("identity.migrating")
-								: t("identity.migrateAllNow")}
+							{isMigrating ? t("identity.migrating") : t("identity.migrateAllNow")}
 						</FlashcardButton>
 					</section>
 				)}
@@ -947,9 +888,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 								onExportDeck={handleExportDeck}
 								onOpenSourceFile={onOpenSourceFile}
 								onOpenSettings={setModalDeckId}
-								wordLearningEnabled={
-									settings.wordLearningDecks[deck.id] === true
-								}
+								wordLearningEnabled={settings.wordLearningDecks[deck.id] === true}
 								isExporting={exportingDeckId === deck.id}
 							/>
 						))}
@@ -962,16 +901,10 @@ export const DeckList: React.FC<DeckListProps> = ({
 					deck={modalDeck}
 					globalSettings={settings}
 					deckOverrides={settings.deckStudySettings?.[modalDeckId]}
-					wordLearningEnabled={
-						settings.wordLearningDecks[modalDeckId] === true
-					}
+					wordLearningEnabled={settings.wordLearningDecks[modalDeckId] === true}
 					onSave={handleSaveDeckSettings}
-					onOpenSourceFile={() =>
-						onOpenSourceFile(modalDeck.filePath)
-					}
-					onMigrateIdentity={() =>
-						onMigrateDeckIdentity(modalDeck.id)
-					}
+					onOpenSourceFile={() => onOpenSourceFile(modalDeck.filePath)}
+					onMigrateIdentity={() => onMigrateDeckIdentity(modalDeck.id)}
 					onClose={handleCloseModal}
 				/>
 			)}

@@ -64,9 +64,7 @@ const WordRow = memo(function WordRow({
 				const isRevealed = revealedIdsByColumn[column.key].has(item.id);
 				const showContent = !isMasked || isRevealed;
 				const value = item[column.key];
-				const handleReveal = (
-					e: React.MouseEvent<HTMLButtonElement>,
-				) => {
+				const handleReveal = (e: React.MouseEvent<HTMLButtonElement>) => {
 					if (e.detail > 1) return;
 					if (revealTimerRef.current !== null) {
 						window.clearTimeout(revealTimerRef.current);
@@ -100,13 +98,7 @@ const WordRow = memo(function WordRow({
 						}
 					>
 						{showContent ? (
-							<span
-								className={
-									value
-										? column.textClassName
-										: "flashcard-word-empty"
-								}
-							>
+							<span className={value ? column.textClassName : "flashcard-word-empty"}>
 								{value || t("wordList.emptyColumn")}
 							</span>
 						) : (
@@ -180,27 +172,17 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	const { t } = useI18n();
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 	const listRef = useRef<HTMLDivElement | null>(null);
-	const sourceItems = useMemo(
-		() => buildWordListItems(deck.cards),
-		[deck.cards],
-	);
-	const [maskedColumns, setMaskedColumns] = useState<
-		Set<VisibleWordColumnKey>
-	>(new Set());
-	const [shuffledItems, setShuffledItems] = useState<WordListItem[] | null>(
-		null,
-	);
+	const sourceItems = useMemo(() => buildWordListItems(deck.cards), [deck.cards]);
+	const [maskedColumns, setMaskedColumns] = useState<Set<VisibleWordColumnKey>>(new Set());
+	const [shuffledItems, setShuffledItems] = useState<WordListItem[] | null>(null);
 	const [revealedIdsByColumn, setRevealedIdsByColumn] = useState<
 		Record<VisibleWordColumnKey, Set<string>>
 	>({
 		front: new Set(),
 		back: new Set(),
 	});
-	const [activeExplanationItem, setActiveExplanationItem] =
-		useState<WordListItem | null>(null);
-	const [rowHeights, setRowHeights] = useState<Map<string, number>>(
-		new Map(),
-	);
+	const [activeExplanationItem, setActiveExplanationItem] = useState<WordListItem | null>(null);
+	const [rowHeights, setRowHeights] = useState<Map<string, number>>(new Map());
 	const [rowGap, setRowGap] = useState(DEFAULT_WORD_ROW_GAP);
 	const [viewport, setViewport] = useState({
 		scrollTop: 0,
@@ -260,13 +242,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 
 				const listEl = listRef.current;
 				if (!listEl) return;
-				const parsedGap = Number.parseFloat(
-					window.getComputedStyle(listEl).gap,
-				);
+				const parsedGap = Number.parseFloat(window.getComputedStyle(listEl).gap);
 				if (!Number.isFinite(parsedGap)) return;
-				setRowGap((prev) =>
-					Math.abs(prev - parsedGap) > 0.5 ? parsedGap : prev,
-				);
+				setRowGap((prev) => (Math.abs(prev - parsedGap) > 0.5 ? parsedGap : prev));
 			});
 		};
 
@@ -290,9 +268,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 	}, [viewport.width]);
 
 	const handleShuffleToggle = useCallback(() => {
-		setShuffledItems((currentItems) =>
-			currentItems ? null : shuffleArray(sourceItems),
-		);
+		setShuffledItems((currentItems) => (currentItems ? null : shuffleArray(sourceItems)));
 	}, [sourceItems]);
 
 	const handleReveal = useCallback(
@@ -314,24 +290,21 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		[maskedColumns],
 	);
 
-	const handleToggleColumnMask = useCallback(
-		(columnKey: VisibleWordColumnKey) => {
-			setMaskedColumns((prev) => {
-				const next = new Set(prev);
-				if (next.has(columnKey)) {
-					next.delete(columnKey);
-				} else {
-					next.add(columnKey);
-				}
-				return next;
-			});
-			setRevealedIdsByColumn((prev) => ({
-				...prev,
-				[columnKey]: new Set(),
-			}));
-		},
-		[],
-	);
+	const handleToggleColumnMask = useCallback((columnKey: VisibleWordColumnKey) => {
+		setMaskedColumns((prev) => {
+			const next = new Set(prev);
+			if (next.has(columnKey)) {
+				next.delete(columnKey);
+			} else {
+				next.add(columnKey);
+			}
+			return next;
+		});
+		setRevealedIdsByColumn((prev) => ({
+			...prev,
+			[columnKey]: new Set(),
+		}));
+	}, []);
 
 	const handleShowExplanation = useCallback((item: WordListItem) => {
 		setActiveExplanationItem(item);
@@ -341,27 +314,21 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		setActiveExplanationItem(null);
 	}, []);
 
-	const handleMeasureRow = useCallback(
-		(itemId: string, element: HTMLDivElement | null) => {
-			if (!element) return;
-			const measuredHeight = element.getBoundingClientRect().height;
-			if (measuredHeight <= 0) return;
+	const handleMeasureRow = useCallback((itemId: string, element: HTMLDivElement | null) => {
+		if (!element) return;
+		const measuredHeight = element.getBoundingClientRect().height;
+		if (measuredHeight <= 0) return;
 
-			setRowHeights((prev) => {
-				const currentHeight = prev.get(itemId);
-				if (
-					currentHeight !== undefined &&
-					Math.abs(currentHeight - measuredHeight) <= 1
-				) {
-					return prev;
-				}
-				const next = new Map(prev);
-				next.set(itemId, measuredHeight);
-				return next;
-			});
-		},
-		[],
-	);
+		setRowHeights((prev) => {
+			const currentHeight = prev.get(itemId);
+			if (currentHeight !== undefined && Math.abs(currentHeight - measuredHeight) <= 1) {
+				return prev;
+			}
+			const next = new Map(prev);
+			next.set(itemId, measuredHeight);
+			return next;
+		});
+	}, []);
 
 	return (
 		<div className="flashcard-word-list-view">
@@ -389,9 +356,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 					active={isShuffled}
 					onClick={handleShuffleToggle}
 				>
-					{isShuffled
-						? t("wordList.restoreOrder")
-						: t("wordList.shuffle")}
+					{isShuffled ? t("wordList.restoreOrder") : t("wordList.shuffle")}
 				</FlashcardButton>
 				{VISIBLE_WORD_COLUMNS.map((column) => {
 					const isMasked = maskedColumns.has(column.key);
@@ -401,13 +366,9 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 							variant={column.variant}
 							className={column.buttonClassName}
 							active={isMasked}
-							onClick={() =>
-								handleToggleColumnMask(column.key)
-							}
+							onClick={() => handleToggleColumnMask(column.key)}
 						>
-							{isMasked
-								? t(column.unmaskKey)
-								: t(column.maskKey)}
+							{isMasked ? t(column.unmaskKey) : t(column.maskKey)}
 						</FlashcardButton>
 					);
 				})}
@@ -422,9 +383,7 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 					{visibleRows.map((row) => (
 						<div
 							key={row.item.id}
-							ref={(element) =>
-								handleMeasureRow(row.item.id, element)
-							}
+							ref={(element) => handleMeasureRow(row.item.id, element)}
 							className="flashcard-word-row-frame"
 							style={{
 								transform: `translateY(${row.top}px)`,
