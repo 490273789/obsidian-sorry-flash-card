@@ -22,7 +22,10 @@ interface StudySetupProps {
 	dayList: StudyDayInfo[];
 	defaultStudyOrder: "sequential" | "random";
 	defaultDirection?: CardDirection;
-	onStart: (studyOrder: "sequential" | "random", direction: CardDirection) => void;
+	onStart: (
+		studyOrder: "sequential" | "random",
+		direction: CardDirection,
+	) => void;
 	onStartDay: (
 		dayIndex: number,
 		studyOrder: "sequential" | "random",
@@ -63,7 +66,11 @@ const StudyDayRow = memo(function StudyDayRow({
 	return (
 		<div
 			className={`flashcard-study-day-item fc-lift ${
-				day.isCompleted ? "completed" : day.isCurrent ? "current" : "locked"
+				day.isCompleted
+					? "completed"
+					: day.isCurrent
+						? "current"
+						: "locked"
 			}`}
 		>
 			<div className="flashcard-study-day-info">
@@ -79,7 +86,9 @@ const StudyDayRow = memo(function StudyDayRow({
 				<span className="flashcard-study-day-name">
 					{t("study.day", { day: day.dayIndex + 1 })}
 					{day.isCurrent && (
-						<span className="flashcard-study-day-today-badge">{t("study.today")}</span>
+						<span className="flashcard-study-day-today-badge">
+							{t("study.today")}
+						</span>
 					)}
 				</span>
 			</div>
@@ -128,11 +137,17 @@ export const StudySetup = React.memo(function StudySetup({
 	onBack,
 }: StudySetupProps) {
 	const { t } = useI18n();
-	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(defaultStudyOrder);
+	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(
+		defaultStudyOrder,
+	);
 	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
 
 	const completedDays = useMemo(
-		() => dayList.reduce((total, day) => total + (day.isCompleted ? 1 : 0), 0),
+		() =>
+			dayList.reduce(
+				(total, day) => total + (day.isCompleted ? 1 : 0),
+				0,
+			),
 		[dayList],
 	);
 	const allCompleted = dayList.length > 0 && completedDays === dayList.length;
@@ -175,7 +190,9 @@ export const StudySetup = React.memo(function StudySetup({
 				<div className="flashcard-study-hero">
 					<div className="flashcard-study-hero-copy">
 						<div className="flashcard-deck-name-wrapper">
-							<div className="flashcard-deck-name">{deck.name}</div>
+							<div className="flashcard-deck-name">
+								{deck.name}
+							</div>
 							<div className="flashcard-deck-tag">{deck.tag}</div>
 						</div>
 					</div>
@@ -201,7 +218,11 @@ export const StudySetup = React.memo(function StudySetup({
 									label: t("study.sequentialOrder"),
 									icon: AudioWaveform,
 								},
-								{ value: "random", label: t("study.randomOrder"), icon: Dices },
+								{
+									value: "random",
+									label: t("study.randomOrder"),
+									icon: Dices,
+								},
 							]}
 							onChange={setStudyOrder}
 						/>
@@ -211,15 +232,25 @@ export const StudySetup = React.memo(function StudySetup({
 						icon={Repeat2}
 						title={t("mode.direction")}
 						note={
-							direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")
+							direction === "normal"
+								? t("mode.normalNote")
+								: t("mode.reversedNote")
 						}
 					>
 						<SetupSelector
 							value={direction}
 							ariaLabel={t("mode.direction")}
 							options={[
-								{ value: "normal", label: t("mode.normal"), icon: Brain },
-								{ value: "reversed", label: t("mode.reversed"), icon: Repeat2 },
+								{
+									value: "normal",
+									label: t("mode.normal"),
+									icon: Brain,
+								},
+								{
+									value: "reversed",
+									label: t("mode.reversed"),
+									icon: Repeat2,
+								},
 							]}
 							onChange={setDirection}
 						/>
@@ -262,7 +293,9 @@ export const StudySetup = React.memo(function StudySetup({
 								? t("study.startReviewStage")
 								: hasAnythingToStudy
 									? t("study.readyToStart", {
-											count: todayNewCount + todayReviewCount,
+											count:
+												todayNewCount +
+												todayReviewCount,
 										})
 									: t("study.tasksCompleted")}
 						</div>

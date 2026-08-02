@@ -82,7 +82,8 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 	constructor(
 		private readonly databaseName = "wsr-flash-card-pronunciation-cache",
 		private readonly limitBytes = PRONUNCIATION_CACHE_LIMIT_BYTES,
-		private readonly indexedDb: IDBFactory | null = typeof indexedDB === "undefined"
+		private readonly indexedDb: IDBFactory | null = typeof indexedDB ===
+		"undefined"
 			? null
 			: indexedDB,
 	) {
@@ -174,7 +175,8 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 
 	private open(): Promise<IDBDatabase> {
 		if (this.databasePromise) return this.databasePromise;
-		if (!this.indexedDb) return Promise.reject(new Error("IndexedDB is unavailable"));
+		if (!this.indexedDb)
+			return Promise.reject(new Error("IndexedDB is unavailable"));
 		this.databasePromise = new Promise((resolve, reject) => {
 			const request = this.indexedDb!.open(this.databaseName, 1);
 			request.onupgradeneeded = () => {
@@ -184,7 +186,9 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 			};
 			request.onsuccess = () => resolve(request.result);
 			request.onerror = () =>
-				reject(request.error ?? new Error("Failed to open audio cache"));
+				reject(
+					request.error ?? new Error("Failed to open audio cache"),
+				);
 		});
 		return this.databasePromise;
 	}
@@ -213,8 +217,13 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 	private async ensureUsageSynced(database: IDBDatabase): Promise<void> {
 		if (this.usageSynced) return;
 		const records = await getAllRecords(database);
-		this.memoryUsageBytes = records.reduce((total, record) => total + record.size, 0);
-		this.memoryRecordSizes = new Map(records.map((record) => [record.key, record.size]));
+		this.memoryUsageBytes = records.reduce(
+			(total, record) => total + record.size,
+			0,
+		);
+		this.memoryRecordSizes = new Map(
+			records.map((record) => [record.key, record.size]),
+		);
 		this.usageSynced = true;
 	}
 
@@ -223,7 +232,9 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 		// persisted even if the in-memory accounting drifted.
 		const records = await getAllRecords(database);
 		let usage = records.reduce((total, record) => total + record.size, 0);
-		this.memoryRecordSizes = new Map(records.map((record) => [record.key, record.size]));
+		this.memoryRecordSizes = new Map(
+			records.map((record) => [record.key, record.size]),
+		);
 		if (usage <= this.limitBytes) {
 			this.memoryUsageBytes = usage;
 			this.usageSynced = true;
@@ -250,7 +261,9 @@ const TOUCH_FLUSH_INTERVAL_MS = 5000;
 
 export async function createPronunciationCacheKey(
 	descriptor: PronunciationRequestDescriptor,
-	cryptoProvider: Crypto | null = typeof crypto === "undefined" ? null : crypto,
+	cryptoProvider: Crypto | null = typeof crypto === "undefined"
+		? null
+		: crypto,
 ): Promise<string> {
 	if (!cryptoProvider?.subtle) {
 		throw new Error("Web Crypto is unavailable");
@@ -263,33 +276,55 @@ export async function createPronunciationCacheKey(
 		rate: descriptor.rate,
 		text: descriptor.text,
 	});
-	const digest = await cryptoProvider.subtle.digest("SHA-256", new TextEncoder().encode(payload));
+	const digest = await cryptoProvider.subtle.digest(
+		"SHA-256",
+		new TextEncoder().encode(payload),
+	);
 	return Array.from(new Uint8Array(digest))
 		.map((byte) => byte.toString(16).padStart(2, "0"))
 		.join("");
 }
 
-function getRecord(database: IDBDatabase, key: string): Promise<AudioCacheRecord | null> {
+function getRecord(
+	database: IDBDatabase,
+	key: string,
+): Promise<AudioCacheRecord | null> {
 	return new Promise((resolve, reject) => {
-		const request = database.transaction("audio", "readonly").objectStore("audio").get(key);
-		request.onsuccess = () => resolve((request.result as AudioCacheRecord | undefined) ?? null);
-		request.onerror = () => reject(request.error ?? new Error("Failed to read audio cache"));
+		const request = database
+			.transaction("audio", "readonly")
+			.objectStore("audio")
+			.get(key);
+		request.onsuccess = () =>
+			resolve((request.result as AudioCacheRecord | undefined) ?? null);
+		request.onerror = () =>
+			reject(request.error ?? new Error("Failed to read audio cache"));
 	});
 }
 
 function getAllRecords(database: IDBDatabase): Promise<AudioCacheRecord[]> {
 	return new Promise((resolve, reject) => {
-		const request = database.transaction("audio", "readonly").objectStore("audio").getAll();
+		const request = database
+			.transaction("audio", "readonly")
+			.objectStore("audio")
+			.getAll();
 		request.onsuccess = () => resolve(request.result as AudioCacheRecord[]);
-		request.onerror = () => reject(request.error ?? new Error("Failed to list audio cache"));
+		request.onerror = () =>
+			reject(request.error ?? new Error("Failed to list audio cache"));
 	});
 }
 
-function putRecord(database: IDBDatabase, record: AudioCacheRecord): Promise<void> {
+function putRecord(
+	database: IDBDatabase,
+	record: AudioCacheRecord,
+): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const request = database.transaction("audio", "readwrite").objectStore("audio").put(record);
+		const request = database
+			.transaction("audio", "readwrite")
+			.objectStore("audio")
+			.put(record);
 		request.onsuccess = () => resolve();
-		request.onerror = () => reject(request.error ?? new Error("Failed to write audio cache"));
+		request.onerror = () =>
+			reject(request.error ?? new Error("Failed to write audio cache"));
 	});
 }
 
@@ -297,41 +332,61 @@ function putRecord(database: IDBDatabase, record: AudioCacheRecord): Promise<voi
  * Updates `lastAccess` for many keys in a single read-write transaction,
  * re-reading each record so the whole record is preserved.
  */
-function touchRecords(database: IDBDatabase, touches: ReadonlyMap<string, number>): Promise<void> {
+function touchRecords(
+	database: IDBDatabase,
+	touches: ReadonlyMap<string, number>,
+): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const transaction = database.transaction("audio", "readwrite");
 		const store = transaction.objectStore("audio");
 		for (const [key, lastAccess] of touches) {
 			const getRequest = store.get(key);
 			getRequest.onsuccess = () => {
-				const record = getRequest.result as AudioCacheRecord | undefined;
+				const record = getRequest.result as
+					| AudioCacheRecord
+					| undefined;
 				if (!record) return;
 				record.lastAccess = lastAccess;
 				store.put(record);
 			};
 			getRequest.onerror = () =>
-				reject(getRequest.error ?? new Error("Failed to touch audio cache"));
+				reject(
+					getRequest.error ??
+						new Error("Failed to touch audio cache"),
+				);
 		}
 		transaction.oncomplete = () => resolve();
 		transaction.onerror = () =>
-			reject(transaction.error ?? new Error("Failed to touch audio cache"));
+			reject(
+				transaction.error ?? new Error("Failed to touch audio cache"),
+			);
 		transaction.onabort = () =>
-			reject(transaction.error ?? new Error("Failed to touch audio cache"));
+			reject(
+				transaction.error ?? new Error("Failed to touch audio cache"),
+			);
 	});
 }
 
 function deleteRecord(database: IDBDatabase, key: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const request = database.transaction("audio", "readwrite").objectStore("audio").delete(key);
+		const request = database
+			.transaction("audio", "readwrite")
+			.objectStore("audio")
+			.delete(key);
 		request.onsuccess = () => resolve();
-		request.onerror = () => reject(request.error ?? new Error("Failed to evict audio cache"));
+		request.onerror = () =>
+			reject(request.error ?? new Error("Failed to evict audio cache"));
 	});
 }
 
 function clearRecords(database: IDBDatabase): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const request = database.transaction("audio", "readwrite").objectStore("audio").clear();
+		const request = database
+			.transaction("audio", "readwrite")
+			.objectStore("audio")
+			.clear();
 		request.onsuccess = () => resolve();
-		request.onerror = () => reject(request.error ?? new Error("Failed to clear audio cache"));
+		request.onerror = () =>
+			reject(request.error ?? new Error("Failed to clear audio cache"));
 	});
 }

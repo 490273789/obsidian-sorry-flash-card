@@ -14,7 +14,10 @@ interface StatsViewProps {
 	onBack: () => void;
 }
 
-export const StatsView = React.memo(function StatsView({ history, onBack }: StatsViewProps) {
+export const StatsView = React.memo(function StatsView({
+	history,
+	onBack,
+}: StatsViewProps) {
 	const { t, language } = useI18n();
 	const presentation = useMemo(
 		() => buildStudyHistoryPresentationModel(history, { language, t }),
@@ -28,7 +31,11 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 				icon={ChartBar}
 				title={t("stats.title")}
 				onBack={onBack}
-				right={<span className="flashcard-stats-range">{t("stats.last20Days")}</span>}
+				right={
+					<span className="flashcard-stats-range">
+						{t("stats.last20Days")}
+					</span>
+				}
 				stats={[
 					{
 						key: "days",
@@ -59,13 +66,24 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 							<Sprout size={48} />
 						</div>
 						<p>{t("stats.noRecords")}</p>
-						<p className="flashcard-empty-hint">{t("stats.noRecordsHint")}</p>
+						<p className="flashcard-empty-hint">
+							{t("stats.noRecordsHint")}
+						</p>
 					</div>
 				) : (
 					<div className="flashcard-stats-days">
 						{dayGroups.map(
-							({ date, displayDate, entries, totalDurationLabel, totalCards }) => (
-								<div key={date} className="flashcard-stats-day fc-lift">
+							({
+								date,
+								displayDate,
+								entries,
+								totalDurationLabel,
+								totalCards,
+							}) => (
+								<div
+									key={date}
+									className="flashcard-stats-day fc-lift"
+								>
 									<div className="flashcard-stats-day-header">
 										<span className="flashcard-stats-day-date">
 											{displayDate}
@@ -87,13 +105,16 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 											<div
 												key={idx}
 												className={`flashcard-stats-session ${
-													STUDY_HISTORY_MODE_PRESENTATION[entry.mode].cls
+													STUDY_HISTORY_MODE_PRESENTATION[
+														entry.mode
+													].cls
 												} fc-lift`}
 											>
 												<span className="flashcard-stats-session-mode">
 													{t(
-														STUDY_HISTORY_MODE_PRESENTATION[entry.mode]
-															.labelKey,
+														STUDY_HISTORY_MODE_PRESENTATION[
+															entry.mode
+														].labelKey,
 													)}
 												</span>
 												<span className="flashcard-stats-session-deck">

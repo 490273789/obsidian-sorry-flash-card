@@ -41,11 +41,16 @@ export const PracticeView = React.memo(function PracticeView({
 
 	const currentCard = session.currentCard;
 	const displayContent = useMemo(
-		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
+		() =>
+			currentCard
+				? getDisplayCardContent(currentCard, session.direction)
+				: null,
 		[currentCard, session.direction],
 	);
 	const pronunciationWord =
-		pronunciationEnabled && currentCard ? extractSpellingWord(currentCard.front) : null;
+		pronunciationEnabled && currentCard
+			? extractSpellingWord(currentCard.front)
+			: null;
 
 	useEffect(() => {
 		pronunciationRuntime.stop();
@@ -80,7 +85,10 @@ export const PracticeView = React.memo(function PracticeView({
 	}, [isTransitioning, session.canPrevious, session.reference, transition]);
 
 	useWindowKeyDown((e) => {
-		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+		if (
+			e.target instanceof HTMLInputElement ||
+			e.target instanceof HTMLTextAreaElement
+		) {
 			return;
 		}
 
@@ -126,7 +134,9 @@ export const PracticeView = React.memo(function PracticeView({
 	const progress = session.progress.label;
 	const progressPercent = session.progress.percent;
 	const directionLabel =
-		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
+		session.direction === "normal"
+			? t("mode.normalShort")
+			: t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
@@ -138,8 +148,15 @@ export const PracticeView = React.memo(function PracticeView({
 				progress={progress}
 				progressPercent={progressPercent}
 				startTime={session.startTime}
-				onEdit={() => onEditCard(currentCard.currentDeckId, currentCard.identity)}
-				onDelete={() => onDeleteCard(currentCard.currentDeckId, currentCard.identity)}
+				onEdit={() =>
+					onEditCard(currentCard.currentDeckId, currentCard.identity)
+				}
+				onDelete={() =>
+					onDeleteCard(
+						currentCard.currentDeckId,
+						currentCard.identity,
+					)
+				}
 				onClose={onClose}
 				editTitle={t("cardEditor.editCurrentTitle")}
 				deleteTitle={t("cardEditor.deleteCurrentTitle")}
@@ -147,7 +164,9 @@ export const PracticeView = React.memo(function PracticeView({
 			/>
 
 			{/* Content */}
-			<div className={`flashcard-content ${isTransitioning ? "animating" : ""}`}>
+			<div
+				className={`flashcard-content ${isTransitioning ? "animating" : ""}`}
+			>
 				<div className="flashcard-card-stack">
 					<div className="flashcard-question">
 						<div className="flashcard-label flashcard-label-question">
@@ -176,7 +195,8 @@ export const PracticeView = React.memo(function PracticeView({
 								<div className="flashcard-label flashcard-label-answer">
 									{t("common.answer")}
 								</div>
-								{session.direction === "reversed" && pronunciationWord ? (
+								{session.direction === "reversed" &&
+								pronunciationWord ? (
 									<PronounceableMarkdown
 										content={displayContent?.answer ?? ""}
 										word={pronunciationWord}
@@ -213,7 +233,9 @@ export const PracticeView = React.memo(function PracticeView({
 				{!showAnswer ? (
 					<FlashcardButton preset="show" onClick={handleShowAnswer}>
 						{t("common.showAnswer")}
-						<span className="flashcard-shortcut">({t("common.space")})</span>
+						<span className="flashcard-shortcut">
+							({t("common.space")})
+						</span>
 					</FlashcardButton>
 				) : (
 					<div className="flashcard-practice-response-controls">

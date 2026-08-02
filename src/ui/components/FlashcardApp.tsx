@@ -8,20 +8,37 @@ import React, {
 	useSyncExternalStore,
 } from "react";
 import { App, Component, MarkdownRenderer, Notice, TFile } from "obsidian";
-import { ViewState, FlashcardSettings, CardDirection } from "../../shared/types";
+import {
+	ViewState,
+	FlashcardSettings,
+	CardDirection,
+} from "../../shared/types";
 import { DataStore } from "../../storage/dataStore";
-import type { DeckHome, DeckHomeDestination, DeckHomeOutcome } from "../../decks/deckHome";
-import type { LifecycleOutcome, SessionLifecycle } from "../../sessions/sessionLifecycle";
+import type {
+	DeckHome,
+	DeckHomeDestination,
+	DeckHomeOutcome,
+} from "../../decks/deckHome";
+import type {
+	LifecycleOutcome,
+	SessionLifecycle,
+} from "../../sessions/sessionLifecycle";
 import { getSpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
-import { PracticeSetup, type PracticeSessionStartOptions } from "./PracticeSetup";
+import {
+	PracticeSetup,
+	type PracticeSessionStartOptions,
+} from "./PracticeSetup";
 import { PracticeView } from "./PracticeView";
 import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
 import { StudySetup } from "./StudySetup";
 import { StatsView } from "./StatsView";
-import { SpellingSetup, type SpellingSessionStartOptions } from "./SpellingSetup";
+import {
+	SpellingSetup,
+	type SpellingSessionStartOptions,
+} from "./SpellingSetup";
 import { SpellingView } from "./SpellingView";
 import { SpellingSummary } from "./SpellingSummary";
 import { I18nProvider } from "./I18nContext";
@@ -87,15 +104,23 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	onOpenSettings,
 }) => {
 	const deckHomeOwnerId = useId();
-	const t = useMemo(() => createTranslator(settings.language), [settings.language]);
+	const t = useMemo(
+		() => createTranslator(settings.language),
+		[settings.language],
+	);
 	const [viewState, setViewState] = useState<ViewState>({ type: "home" });
 	const answerPresentationTransition = useMemo(
 		() =>
 			createAnswerPresentationTransition({
 				lifecycle: sessionLifecycle,
 				prepareSpellingAdvance: async (feedback) => {
-					const autoPlay = pronunciationRuntime.getSnapshot().settings.spellingAutoPlay;
-					if (autoPlay && shouldAutoPronounceSpellingFeedback(feedback.kind)) {
+					const autoPlay =
+						pronunciationRuntime.getSnapshot().settings
+							.spellingAutoPlay;
+					if (
+						autoPlay &&
+						shouldAutoPronounceSpellingFeedback(feedback.kind)
+					) {
 						await waitForSpellingPronunciation(
 							pronunciationRuntime,
 							feedback.expectedAnswer,
@@ -108,7 +133,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[pronunciationRuntime, sessionLifecycle],
 	);
 	const subscribeAnswerPresentation = useCallback(
-		(listener: () => void) => answerPresentationTransition.subscribe(listener),
+		(listener: () => void) =>
+			answerPresentationTransition.subscribe(listener),
 		[answerPresentationTransition],
 	);
 	const readAnswerPresentation = useCallback(
@@ -121,22 +147,31 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		readAnswerPresentation,
 	);
 	const presentedLifecycleSnapshot = answerPresentationSnapshot.lifecycle;
-	const isAnswerTransitioning = answerPresentationSnapshot.activity.kind === "transitioning";
+	const isAnswerTransitioning =
+		answerPresentationSnapshot.activity.kind === "transitioning";
 	// Subscribe to the data store revision so cached derivations (decks array,
 	// rendered markdown) stay fresh without recomputing on unrelated renders.
 	const subscribeRevision = useCallback(
 		(listener: () => void) => dataStore.subscribe(listener),
 		[dataStore],
 	);
-	const readRevision = useCallback(() => dataStore.getRevision(), [dataStore]);
-	const revision = useSyncExternalStore(subscribeRevision, readRevision, readRevision);
+	const readRevision = useCallback(
+		() => dataStore.getRevision(),
+		[dataStore],
+	);
+	const revision = useSyncExternalStore(
+		subscribeRevision,
+		readRevision,
+		readRevision,
+	);
 	const lifecycleSnapshot = useSyncExternalStore(
 		(listener) => sessionLifecycle.subscribe(listener),
 		() => sessionLifecycle.getSnapshot(),
 		() => sessionLifecycle.getSnapshot(),
 	);
 	useEffect(() => {
-		if (lifecycleSnapshot.kind !== "idle" || !lifecycleSnapshot.lastEnd) return;
+		if (lifecycleSnapshot.kind !== "idle" || !lifecycleSnapshot.lastEnd)
+			return;
 		new Notice(t("identity.sessionEndedBySourceChange"));
 		setViewState({ type: "home" });
 		void sessionLifecycle.act(lifecycleSnapshot.reference, {
@@ -148,14 +183,19 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		(listener: () => void) => deckHome.subscribe(listener),
 		[deckHome],
 	);
-	const readDeckHomeSnapshot = useCallback(() => deckHome.getSnapshot(), [deckHome]);
+	const readDeckHomeSnapshot = useCallback(
+		() => deckHome.getSnapshot(),
+		[deckHome],
+	);
 	const deckHomeSnapshot = useSyncExternalStore(
 		subscribeDeckHome,
 		readDeckHomeSnapshot,
 		readDeckHomeSnapshot,
 	);
 	const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
-	const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null);
+	const [confirmation, setConfirmation] = useState<ConfirmationState | null>(
+		null,
+	);
 	const confirmationRef = useRef<ConfirmationState | null>(null);
 	const [practiceSetupDefaults, setPracticeSetupDefaults] =
 		useState<PracticeSessionStartOptions | null>(null);
@@ -185,7 +225,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (!markdownComponentRef.current) {
 				markdownComponentRef.current = new Component();
 			}
-			await MarkdownRenderer.render(app, content, el, "", markdownComponentRef.current);
+			await MarkdownRenderer.render(
+				app,
+				content,
+				el,
+				"",
+				markdownComponentRef.current,
+			);
 		},
 		[app],
 	);
@@ -239,7 +285,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		): Promise<boolean> => {
 			return new Promise((resolve) => {
 				confirmationRef.current?.resolve(false);
-				const nextConfirmation = { title, message, confirmText, tone, resolve };
+				const nextConfirmation = {
+					title,
+					message,
+					confirmText,
+					tone,
+					resolve,
+				};
 				confirmationRef.current = nextConfirmation;
 				setConfirmation(nextConfirmation);
 			});
@@ -261,7 +313,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	}, []);
 	useEffect(() => {
 		return () => {
-			void deckHome.act({ kind: "release-owner", ownerId: deckHomeOwnerId });
+			void deckHome.act({
+				kind: "release-owner",
+				ownerId: deckHomeOwnerId,
+			});
 		};
 	}, [deckHome, deckHomeOwnerId]);
 
@@ -273,9 +328,21 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				deckId,
 			});
 			if (request.kind !== "confirmation-required") {
-				if (request.kind === "rejected" && request.reason === "migration-unavailable") {
-					new Notice(t(deckId ? "identity.editNeedsMigration" : "identity.noMigration"));
-				} else if (request.kind === "rejected" && request.reason === "busy") {
+				if (
+					request.kind === "rejected" &&
+					request.reason === "migration-unavailable"
+				) {
+					new Notice(
+						t(
+							deckId
+								? "identity.editNeedsMigration"
+								: "identity.noMigration",
+						),
+					);
+				} else if (
+					request.kind === "rejected" &&
+					request.reason === "busy"
+				) {
 					new Notice(t("identity.sourceChanging"));
 				}
 				return false;
@@ -358,8 +425,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			try {
 				const currentCardIdentity =
 					cardEditor.mode === "edit"
-						? (dataStore.getCard(cardEditor.deckId, cardEditor.cardId)?.id ??
-							dataStore.getDeck(cardEditor.deckId)?.cards[cardEditor.cardIndex]?.id)
+						? (dataStore.getCard(
+								cardEditor.deckId,
+								cardEditor.cardId,
+							)?.id ??
+							dataStore.getDeck(cardEditor.deckId)?.cards[
+								cardEditor.cardIndex
+							]?.id)
 						: undefined;
 				if (cardEditor.mode === "edit" && !currentCardIdentity) {
 					throw new Error(t("notice.cardMissing"));
@@ -368,7 +440,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					cardEditor.mode === "edit"
 						? await cardIdentityContinuity.change({
 								kind: "edit",
-								cardIdentity: currentCardIdentity ?? cardEditor.cardId,
+								cardIdentity:
+									currentCardIdentity ?? cardEditor.cardId,
 								content: { front, back, explanation },
 							})
 						: await cardIdentityContinuity.change({
@@ -386,7 +459,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				}
 				setCardEditor(null);
 			} catch (error) {
-				const message = error instanceof Error ? error.message : t("cardEditor.saveFailed");
+				const message =
+					error instanceof Error
+						? error.message
+						: t("cardEditor.saveFailed");
 				new Notice(t("notice.cardSaveFailed", { message }));
 				throw error;
 			}
@@ -417,7 +493,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const reportDeckHomeOutcome = useCallback(
 		(outcome: DeckHomeOutcome): boolean => {
-			if (outcome.kind === "applied" || outcome.kind === "navigation") return true;
+			if (outcome.kind === "applied" || outcome.kind === "navigation")
+				return true;
 			if (outcome.kind !== "rejected") return false;
 			if (outcome.reason === "deck-missing") {
 				new Notice(t("notice.deckMissing"));
@@ -438,7 +515,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleHomeNavigate = useCallback(
 		(destination: DeckHomeDestination, deckId: string): void => {
 			void (async () => {
-				const outcome = await deckHome.act({ kind: "navigate", destination, deckId });
+				const outcome = await deckHome.act({
+					kind: "navigate",
+					destination,
+					deckId,
+				});
 				if (outcome.kind !== "navigation") {
 					reportDeckHomeOutcome(outcome);
 					return;
@@ -462,7 +543,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	);
 
 	const handleStartStudyFromSetup = useCallback(
-		async (deckId: string, studyOrder: "sequential" | "random", direction: CardDirection) => {
+		async (
+			deckId: string,
+			studyOrder: "sequential" | "random",
+			direction: CardDirection,
+		) => {
 			const outcome = await sessionLifecycle.start({
 				mode: "study",
 				deckId,
@@ -510,12 +595,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (active.kind !== "active" || active.mode !== mode) return;
 			const confirmed = await confirmAction(
 				t(`${mode}.exitTitle`),
-				t(mode === "practice" ? "practice.exitConfirm" : `${mode}.exitConfirm`),
+				t(
+					mode === "practice"
+						? "practice.exitConfirm"
+						: `${mode}.exitConfirm`,
+				),
 				t("common.confirm"),
 				"danger",
 			);
 			if (!confirmed) return;
-			const outcome = await sessionLifecycle.act(active.reference, { kind: "exit" });
+			const outcome = await sessionLifecycle.act(active.reference, {
+				kind: "exit",
+			});
 			if (reportLifecycleOutcome(outcome)) setViewState({ type: "home" });
 		},
 		[confirmAction, reportLifecycleOutcome, sessionLifecycle, t],
@@ -524,10 +615,16 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleCloseWordList = useCallback(
 		(deckId: string) => {
 			if (wordListStartTime.current !== null) {
-				const duration = Math.floor((Date.now() - wordListStartTime.current) / 1000);
+				const duration = Math.floor(
+					(Date.now() - wordListStartTime.current) / 1000,
+				);
 				if (duration >= 5) {
 					const deck = dataStore.getDeck(deckId);
-					void dataStore.recordWordListSession(deckId, deck?.name ?? deckId, duration);
+					void dataStore.recordWordListSession(
+						deckId,
+						deck?.name ?? deckId,
+						duration,
+					);
 				}
 				wordListStartTime.current = null;
 			}
@@ -541,7 +638,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleSessionComplete = useCallback(() => {
 		setViewState({ type: "home" });
 	}, []);
-	const handleExitStudy = useCallback(() => void handleExitActive("study"), [handleExitActive]);
+	const handleExitStudy = useCallback(
+		() => void handleExitActive("study"),
+		[handleExitActive],
+	);
 	const handleExitPractice = useCallback(
 		() => void handleExitActive("practice"),
 		[handleExitActive],
@@ -569,7 +669,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 								startIndex: options.startIndex,
 								endIndex: options.endIndex,
 							}
-						: { kind: "random", questionCount: options.questionCount },
+						: {
+								kind: "random",
+								questionCount: options.questionCount,
+							},
 			});
 			reportLifecycleOutcome(outcome, t("notice.deckEmpty"));
 		},
@@ -588,7 +691,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 								startIndex: options.startIndex,
 								endIndex: options.endIndex,
 							}
-						: { kind: "smart", questionCount: options.questionCount },
+						: {
+								kind: "smart",
+								questionCount: options.questionCount,
+							},
 			});
 			reportLifecycleOutcome(outcome, t("notice.deckEmpty"));
 		},
@@ -608,7 +714,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		const result = sessionLifecycle.getSnapshot();
 		if (result.kind !== "result") return;
 		const defaults = result.setupDefaults;
-		const outcome = await sessionLifecycle.act(result.reference, { kind: "dismiss" });
+		const outcome = await sessionLifecycle.act(result.reference, {
+			kind: "dismiss",
+		});
 		if (!reportLifecycleOutcome(outcome)) return;
 		if (defaults.selection.kind === "study-day") {
 			if (defaults.mode === "practice") {
@@ -646,7 +754,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						startIndex: defaults.selection.startIndex,
 						endIndex: defaults.selection.endIndex,
 					}
-				: { mode: "smart", questionCount: defaults.selection.questionCount },
+				: {
+						mode: "smart",
+						questionCount: defaults.selection.questionCount,
+					},
 		);
 		setViewState({ type: "spelling-setup", deckId: defaults.deckId });
 	}, [reportLifecycleOutcome, sessionLifecycle]);
@@ -654,7 +765,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleResultHome = useCallback(async () => {
 		const result = sessionLifecycle.getSnapshot();
 		if (result.kind !== "result") return;
-		const outcome = await sessionLifecycle.act(result.reference, { kind: "dismiss" });
+		const outcome = await sessionLifecycle.act(result.reference, {
+			kind: "dismiss",
+		});
 		if (reportLifecycleOutcome(outcome)) setViewState({ type: "home" });
 	}, [reportLifecycleOutcome, sessionLifecycle]);
 
@@ -667,7 +780,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		() => void handleRetryIncorrect(),
 		[handleRetryIncorrect],
 	);
-	const handleResultHomeClick = useCallback(() => void handleResultHome(), [handleResultHome]);
+	const handleResultHomeClick = useCallback(
+		() => void handleResultHome(),
+		[handleResultHome],
+	);
 	const handleStudyStart = useCallback(
 		(order: "sequential" | "random", direction: CardDirection) => {
 			if (viewState.type !== "study-setup") return;
@@ -676,7 +792,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[handleStartStudyFromSetup, viewState],
 	);
 	const handleStudyDayStart = useCallback(
-		(dayIndex: number, order: "sequential" | "random", direction: CardDirection) => {
+		(
+			dayIndex: number,
+			order: "sequential" | "random",
+			direction: CardDirection,
+		) => {
 			if (viewState.type !== "study-setup") return;
 			void handleStudyDay(viewState.deckId, dayIndex, order, direction);
 		},
@@ -718,7 +838,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (viewState.type !== "spelling-setup") return null;
 		const deck = dataStore.getDeck(viewState.deckId);
 		if (!deck) return null;
-		return getSpellingDeckProgressStats(deck.cards, dataStore.getSpellingProgress());
+		return getSpellingDeckProgressStats(
+			deck.cards,
+			dataStore.getSpellingProgress(),
+		);
 	}, [dataStore, revision, viewState]);
 
 	const handleDeleteCard = useCallback(
@@ -756,11 +879,19 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				new Notice(t("notice.cardDeleted"));
 			} catch (error) {
 				const message =
-					error instanceof Error ? error.message : t("cardEditor.deleteFailed");
+					error instanceof Error
+						? error.message
+						: t("cardEditor.deleteFailed");
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[cardIdentityContinuity, confirmAction, dataStore, ensureDeckEditable, t],
+		[
+			cardIdentityContinuity,
+			confirmAction,
+			dataStore,
+			ensureDeckEditable,
+			t,
+		],
 	);
 
 	const handleDeleteCardRequest = useCallback(
@@ -812,7 +943,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						pronunciationRuntime={pronunciationRuntime}
 						pronunciationEnabled={Boolean(
 							settings.wordLearningDecks[
-								presentedLifecycleSnapshot.currentCard.currentDeckId
+								presentedLifecycleSnapshot.currentCard
+									.currentDeckId
 							],
 						)}
 					/>
@@ -831,7 +963,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						pronunciationRuntime={pronunciationRuntime}
 						pronunciationEnabled={Boolean(
 							settings.wordLearningDecks[
-								presentedLifecycleSnapshot.currentCard.currentDeckId
+								presentedLifecycleSnapshot.currentCard
+									.currentDeckId
 							],
 						)}
 					/>
@@ -879,8 +1012,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					return renderHome();
 				}
 				const dayList = dataStore.getDayList(viewState.deckId);
-				const { newCount, reviewCount } = dataStore.getTodayStudyCounts(viewState.deckId);
-				const effectiveSettings = dataStore.getEffectiveStudySettings(viewState.deckId);
+				const { newCount, reviewCount } = dataStore.getTodayStudyCounts(
+					viewState.deckId,
+				);
+				const effectiveSettings = dataStore.getEffectiveStudySettings(
+					viewState.deckId,
+				);
 				return (
 					<StudySetup
 						key={deck.id}
@@ -900,7 +1037,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						}
 						onStart={handleStudyStart}
 						onStartDay={handleStudyDayStart}
-						spellingEnabled={Boolean(settings.wordLearningDecks[viewState.deckId])}
+						spellingEnabled={Boolean(
+							settings.wordLearningDecks[viewState.deckId],
+						)}
 						onStartDaySpelling={handleStudyDaySpelling}
 						onBack={handleBackHome}
 					/>
@@ -916,7 +1055,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					<PracticeSetup
 						key={deck.id}
 						deck={deck}
-						defaultDirection={practiceSetupDefaults?.direction ?? "normal"}
+						defaultDirection={
+							practiceSetupDefaults?.direction ?? "normal"
+						}
 						defaultOptions={practiceSetupDefaults ?? undefined}
 						onStartPractice={handlePracticeStart}
 						onBack={handleBackHome}
@@ -950,11 +1091,19 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				if (!deck) {
 					return renderHome();
 				}
-				return <WordListView key={deck.id} deck={deck} onBack={handleWordListBack} />;
+				return (
+					<WordListView
+						key={deck.id}
+						deck={deck}
+						onBack={handleWordListBack}
+					/>
+				);
 			}
 
 			case "stats":
-				return <StatsView history={studyHistory} onBack={handleBackHome} />;
+				return (
+					<StatsView history={studyHistory} onBack={handleBackHome} />
+				);
 
 			case "home":
 			default:
@@ -971,10 +1120,16 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						mode={cardEditor.mode}
 						decks={decks}
 						initialDeckId={cardEditor.deckId}
-						initialFront={cardEditor.mode === "edit" ? cardEditor.front : ""}
-						initialBack={cardEditor.mode === "edit" ? cardEditor.back : ""}
+						initialFront={
+							cardEditor.mode === "edit" ? cardEditor.front : ""
+						}
+						initialBack={
+							cardEditor.mode === "edit" ? cardEditor.back : ""
+						}
 						initialExplanation={
-							cardEditor.mode === "edit" ? cardEditor.explanation : ""
+							cardEditor.mode === "edit"
+								? cardEditor.explanation
+								: ""
 						}
 						onSave={handleSaveCardEditor}
 						onClose={handleCloseCardEditor}

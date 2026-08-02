@@ -4,7 +4,11 @@ import type {
 	CardIdentityContinuity,
 	CardIdentityContinuitySnapshot,
 } from "../../identity/cardIdentityContinuity";
-import { DEFAULT_SETTINGS, type Deck, type FlashcardSettings } from "../../shared/types";
+import {
+	DEFAULT_SETTINGS,
+	type Deck,
+	type FlashcardSettings,
+} from "../../shared/types";
 import {
 	createDeckHome,
 	type DeckHomeClock,
@@ -15,7 +19,10 @@ import {
 const STABLE_ONE = "550e8400-e29b-41d4-a716-446655440000";
 const STABLE_TWO = "7d444840-9dc0-11d1-b245-5ffdce74fad2";
 
-function makeDeck(id = "notes/words.md", due = new Date("2026-08-02T12:01:00.000Z")): Deck {
+function makeDeck(
+	id = "notes/words.md",
+	due = new Date("2026-08-02T12:01:00.000Z"),
+): Deck {
 	return {
 		id,
 		name: "Words",
@@ -26,7 +33,12 @@ function makeDeck(id = "notes/words.md", due = new Date("2026-08-02T12:01:00.000
 				id: STABLE_ONE,
 				front: "hello world",
 				back: "你好，世界",
-				fsrsCard: { ...createEmptyCard(), state: State.Review, due, reps: 1 },
+				fsrsCard: {
+					...createEmptyCard(),
+					state: State.Review,
+					due,
+					reps: 1,
+				},
 				sourceFile: id,
 				indexInFile: 0,
 			},
@@ -44,7 +56,9 @@ function makeDeck(id = "notes/words.md", due = new Date("2026-08-02T12:01:00.000
 	};
 }
 
-function makeSettings(overrides: Partial<FlashcardSettings> = {}): FlashcardSettings {
+function makeSettings(
+	overrides: Partial<FlashcardSettings> = {},
+): FlashcardSettings {
 	return {
 		...DEFAULT_SETTINGS,
 		...overrides,
@@ -82,9 +96,13 @@ class MemoryRepository implements DeckHomeRepository {
 		this.statsReads.set(deck.id, (this.statsReads.get(deck.id) ?? 0) + 1);
 		return {
 			totalCards: deck.cards.length,
-			newCards: deck.cards.filter((card) => card.fsrsCard.state === State.New).length,
+			newCards: deck.cards.filter(
+				(card) => card.fsrsCard.state === State.New,
+			).length,
 			dueCards: deck.cards.filter(
-				(card) => card.fsrsCard.state !== State.New && card.fsrsCard.due <= now,
+				(card) =>
+					card.fsrsCard.state !== State.New &&
+					card.fsrsCard.due <= now,
 			).length,
 			learningCards: 0,
 			reviewCards: 1,
@@ -146,11 +164,17 @@ class FakeClock implements DeckHomeClock {
 }
 
 function makeIdentity(
-	snapshot: CardIdentityContinuitySnapshot = { sources: {}, issues: [], journal: null },
+	snapshot: CardIdentityContinuitySnapshot = {
+		sources: {},
+		issues: [],
+		journal: null,
+	},
 	resolve = vi.fn().mockResolvedValue({ kind: "applied" }),
 ): CardIdentityContinuity {
 	return {
-		synchronize: vi.fn().mockResolvedValue({ kind: "current", changedDeckIds: [] }),
+		synchronize: vi
+			.fn()
+			.mockResolvedValue({ kind: "current", changedDeckIds: [] }),
 		change: vi.fn(),
 		inspect: vi.fn(() => snapshot),
 		resolve,
@@ -268,7 +292,9 @@ describe("DeckHome", () => {
 	it("owns one settings draft, submits a narrow patch, and retains it after failure", async () => {
 		const deck = makeDeck();
 		const repository = new MemoryRepository([deck]);
-		const save = vi.fn().mockRejectedValueOnce(new Error("disk unavailable"));
+		const save = vi
+			.fn()
+			.mockRejectedValueOnce(new Error("disk unavailable"));
 		const home = createDeckHome({
 			repository,
 			identity: makeIdentity(),
@@ -278,12 +304,20 @@ describe("DeckHome", () => {
 		});
 
 		expect(
-			await home.act({ kind: "open-settings", ownerId: "view-a", deckId: deck.id }),
+			await home.act({
+				kind: "open-settings",
+				ownerId: "view-a",
+				deckId: deck.id,
+			}),
 		).toEqual({
 			kind: "applied",
 		});
 		expect(
-			await home.act({ kind: "open-settings", ownerId: "view-b", deckId: deck.id }),
+			await home.act({
+				kind: "open-settings",
+				ownerId: "view-b",
+				deckId: deck.id,
+			}),
 		).toEqual({ kind: "rejected", reason: "draft-owned-by-another-view" });
 		await home.act({
 			kind: "change-settings",
@@ -291,7 +325,9 @@ describe("DeckHome", () => {
 			change: { field: "dailyNewCards", value: 12 },
 		});
 
-		expect(await home.act({ kind: "save-settings", ownerId: "view-a" })).toEqual({
+		expect(
+			await home.act({ kind: "save-settings", ownerId: "view-a" }),
+		).toEqual({
 			kind: "failed",
 			message: "disk unavailable",
 		});
@@ -330,14 +366,24 @@ describe("DeckHome", () => {
 			exportDeck,
 			report: (event) => events.push(event),
 		});
-		await home.act({ kind: "open-settings", ownerId: "view-a", deckId: deck.id });
+		await home.act({
+			kind: "open-settings",
+			ownerId: "view-a",
+			deckId: deck.id,
+		});
 
-		const savePromise = home.act({ kind: "save-settings", ownerId: "view-a" });
+		const savePromise = home.act({
+			kind: "save-settings",
+			ownerId: "view-a",
+		});
 		expect(home.getSnapshot().mutation).toEqual({
 			kind: "saving-settings",
 			deckId: deck.id,
 		});
-		expect(await home.act({ kind: "refresh" })).toEqual({ kind: "rejected", reason: "busy" });
+		expect(await home.act({ kind: "refresh" })).toEqual({
+			kind: "rejected",
+			reason: "busy",
+		});
 		expect(await home.act({ kind: "export", deckId: deck.id })).toEqual({
 			kind: "cancelled",
 		});
@@ -386,7 +432,8 @@ describe("DeckHome", () => {
 
 		await home.act({ kind: "release-owner", ownerId: "view-a" });
 		expect(home.getSnapshot().mutation).toEqual({ kind: "idle" });
-		if (request.kind !== "confirmation-required") throw new Error("Expected confirmation");
+		if (request.kind !== "confirmation-required")
+			throw new Error("Expected confirmation");
 		expect(
 			await home.act({
 				kind: "continue",
@@ -413,9 +460,13 @@ describe("DeckHome", () => {
 		});
 
 		repository.decks = [];
-		expect(await home.act({ kind: "navigate", destination: "study", deckId: deck.id })).toEqual(
-			{ kind: "rejected", reason: "deck-missing" },
-		);
+		expect(
+			await home.act({
+				kind: "navigate",
+				destination: "study",
+				deckId: deck.id,
+			}),
+		).toEqual({ kind: "rejected", reason: "deck-missing" });
 	});
 
 	it("refreshes due counts at the earliest due time and stops the clock without subscribers", () => {

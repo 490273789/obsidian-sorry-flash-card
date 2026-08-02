@@ -35,7 +35,10 @@ export type ContinuitySourceCondition =
 	| { type: "legacy"; cardCount: number }
 	| {
 			type: "last-known-good";
-			reason: "identity-conflict" | "identity-ambiguity" | "source-failure";
+			reason:
+				| "identity-conflict"
+				| "identity-ambiguity"
+				| "source-failure";
 	  };
 
 export type CardIdentityIssue =
@@ -124,7 +127,11 @@ export interface MigrationPreview {
 
 export type SynchronizeOutcome =
 	| { kind: "current"; changedDeckIds: string[] }
-	| { kind: "attention-required"; changedDeckIds: string[]; issueIds: string[] }
+	| {
+			kind: "attention-required";
+			changedDeckIds: string[];
+			issueIds: string[];
+	  }
 	| { kind: "failed"; retryable: boolean; message: string };
 
 export type ContinuityResolution =
@@ -137,12 +144,19 @@ export type ContinuityResolution =
 			kind: "repair";
 			ticket: string;
 			issueId: string;
-			successors: Array<{ cardIdentity: string; occurrence: string | null }>;
+			successors: Array<{
+				cardIdentity: string;
+				occurrence: string | null;
+			}>;
 	  };
 
 export type ResolutionOutcome =
 	| { kind: "applied" }
-	| { kind: "resumable"; completedDeckIds: string[]; pendingDeckIds: string[] }
+	| {
+			kind: "resumable";
+			completedDeckIds: string[];
+			pendingDeckIds: string[];
+	  }
 	| {
 			kind: "blocked";
 			reason:
@@ -166,7 +180,11 @@ export type PluginCardChange =
 
 export type CardChangeOutcome =
 	| { kind: "applied"; cardIdentity?: string }
-	| { kind: "blocked"; reason: "source-needs-repair" | "migration-required"; issueId?: string }
+	| {
+			kind: "blocked";
+			reason: "source-needs-repair" | "migration-required";
+			issueId?: string;
+	  }
 	| { kind: "source-changing"; deckId: string }
 	| { kind: "failed"; retryable: boolean; message: string };
 
@@ -206,7 +224,9 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 	};
 	private operationTail: Promise<void> = Promise.resolve();
 
-	constructor(private readonly options: CreateCardIdentityContinuityOptions) {}
+	constructor(
+		private readonly options: CreateCardIdentityContinuityOptions,
+	) {}
 
 	synchronize(): Promise<SynchronizeOutcome> {
 		return this.enqueue(() => this.synchronizeNow());
@@ -215,13 +235,20 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 	private async synchronizeNow(): Promise<SynchronizeOutcome> {
 		try {
 			let currentState = await this.options.state.load();
-			let documents = await this.options.sources.list(currentState.configuredTags);
+			let documents = await this.options.sources.list(
+				currentState.configuredTags,
+			);
 			if (currentState.continuity.journal) {
-				const recovery = await this.executeJournal(documents, currentState);
+				const recovery = await this.executeJournal(
+					documents,
+					currentState,
+				);
 				if (recovery.kind !== "applied") {
 					return {
 						kind: "failed",
-						retryable: recovery.kind === "resumable" || recovery.kind === "failed",
+						retryable:
+							recovery.kind === "resumable" ||
+							recovery.kind === "failed",
 						message:
 							recovery.kind === "failed"
 								? recovery.message
@@ -229,7 +256,9 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 					};
 				}
 				currentState = await this.options.state.load();
-				documents = await this.options.sources.list(currentState.configuredTags);
+				documents = await this.options.sources.list(
+					currentState.configuredTags,
+				);
 			}
 			const configuredTags = new Set(
 				currentState.configuredTags.map((tag) => tag.toLowerCase()),
@@ -246,7 +275,11 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				const hasCards = hasFlashcardSyntax(document.content);
 				if (tag && hasCards) availableTags.add(tag);
 				if (document.discoveryOnly) continue;
-				if (!tag || !configuredTags.has(tag.toLowerCase()) || !hasCards) {
+				if (
+					!tag ||
+					!configuredTags.has(tag.toLowerCase()) ||
+					!hasCards
+				) {
 					continue;
 				}
 
@@ -254,7 +287,9 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				const existingDeck = currentState.decks.get(document.path);
 				if (
 					existingDeck &&
-					existingDeck.cards.some((card) => isLegacyIdentity(document.path, card.id))
+					existingDeck.cards.some((card) =>
+						isLegacyIdentity(document.path, card.id),
+					)
 				) {
 					nextDecks.set(document.path, existingDeck);
 					nextSources[document.path] = {
@@ -270,11 +305,12 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 						this.options.createIdentity,
 					);
 					if (registration.registeredIdentities.length > 0) {
-						const writeResult = await this.options.sources.replaceIfUnchanged(
-							document.path,
-							document.content,
-							registration.nextContent,
-						);
+						const writeResult =
+							await this.options.sources.replaceIfUnchanged(
+								document.path,
+								document.content,
+								registration.nextContent,
+							);
 						if (writeResult === "stale") {
 							return {
 								kind: "failed",
@@ -286,15 +322,31 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 					}
 				}
 
-				const cards = parseFlashcards(sourceContent, document.path, existingCards);
+				const cards = parseFlashcards(
+					sourceContent,
+					document.path,
+					existingCards,
+				);
 				if (cards.length === 0) continue;
-				preparedSources.push({ document, tag, cards, existingDeck, sourceContent });
+				preparedSources.push({
+					document,
+					tag,
+					cards,
+					existingDeck,
+					sourceContent,
+				});
 			}
 
 			const currentStableIdentities = new Set(
 				preparedSources.flatMap((source) =>
 					source.cards
-						.filter((card) => !isLegacyIdentity(source.document.path, card.id))
+						.filter(
+							(card) =>
+								!isLegacyIdentity(
+									source.document.path,
+									card.id,
+								),
+						)
 						.map((card) => card.id),
 				),
 			);
@@ -308,14 +360,22 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 
 				const missingIdentities = source.existingDeck.cards
 					.map((card) => card.id)
-					.filter((identity) => !currentStableIdentities.has(identity));
+					.filter(
+						(identity) => !currentStableIdentities.has(identity),
+					);
 				if (missingIdentities.length > 0) {
 					const candidates = source.cards
-						.filter((card) => isLegacyIdentity(source.document.path, card.id))
-						.map((card, index) => makeCandidate(source, card, index));
+						.filter((card) =>
+							isLegacyIdentity(source.document.path, card.id),
+						)
+						.map((card, index) =>
+							makeCandidate(source, card, index),
+						);
 					ambiguities.push({
 						id: `identity-ambiguity:${source.document.path}`,
-						ticket: buildIssueTicket("identity-ambiguity", [source]),
+						ticket: buildIssueTicket("identity-ambiguity", [
+							source,
+						]),
 						type: "identity-ambiguity",
 						missingIdentities,
 						affectedSources: [source.document.path],
@@ -328,11 +388,12 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 					source.sourceContent,
 					this.options.createIdentity,
 				);
-				const writeResult = await this.options.sources.replaceIfUnchanged(
-					source.document.path,
-					source.document.content,
-					registration.nextContent,
-				);
+				const writeResult =
+					await this.options.sources.replaceIfUnchanged(
+						source.document.path,
+						source.document.content,
+						registration.nextContent,
+					);
 				if (writeResult === "stale") {
 					return {
 						kind: "failed",
@@ -355,7 +416,8 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			const ambiguityPaths = new Set(
 				ambiguities.flatMap((ambiguity) => ambiguity.affectedSources),
 			);
-			if (conflicts.length > 0 || ambiguities.length > 0) attentionRequired = true;
+			if (conflicts.length > 0 || ambiguities.length > 0)
+				attentionRequired = true;
 
 			for (const source of preparedSources) {
 				if (
@@ -363,7 +425,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 					ambiguityPaths.has(source.document.path)
 				) {
 					if (source.existingDeck) {
-						nextDecks.set(source.document.path, source.existingDeck);
+						nextDecks.set(
+							source.document.path,
+							source.existingDeck,
+						);
 					}
 					nextSources[source.document.path] = {
 						type: "last-known-good",
@@ -407,7 +472,9 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				? {
 						kind: "attention-required",
 						changedDeckIds: Array.from(nextDecks.keys()),
-						issueIds: [...conflicts, ...ambiguities].map((issue) => issue.id),
+						issueIds: [...conflicts, ...ambiguities].map(
+							(issue) => issue.id,
+						),
 					}
 				: {
 						kind: "current",
@@ -417,7 +484,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			return {
 				kind: "failed",
 				retryable: true,
-				message: error instanceof Error ? error.message : "Card identity sync failed",
+				message:
+					error instanceof Error
+						? error.message
+						: "Card identity sync failed",
 			};
 		}
 	}
@@ -426,30 +496,47 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 		return this.enqueue(() => this.changeNow(change));
 	}
 
-	private async changeNow(change: PluginCardChange): Promise<CardChangeOutcome> {
+	private async changeNow(
+		change: PluginCardChange,
+	): Promise<CardChangeOutcome> {
 		try {
 			let currentState = await this.options.state.load();
-			let documents = await this.options.sources.list(currentState.configuredTags);
+			let documents = await this.options.sources.list(
+				currentState.configuredTags,
+			);
 			if (currentState.continuity.journal) {
-				const recovery = await this.executeJournal(documents, currentState);
+				const recovery = await this.executeJournal(
+					documents,
+					currentState,
+				);
 				if (recovery.kind !== "applied") {
 					return {
 						kind: "failed",
 						retryable: true,
-						message: "An unfinished card identity operation is waiting to resume",
+						message:
+							"An unfinished card identity operation is waiting to resume",
 					};
 				}
 				currentState = await this.options.state.load();
-				documents = await this.options.sources.list(currentState.configuredTags);
+				documents = await this.options.sources.list(
+					currentState.configuredTags,
+				);
 			}
 			const deck =
 				change.kind === "add"
 					? currentState.decks.get(change.deckId)
-					: Array.from(currentState.decks.values()).find((candidate) =>
-							candidate.cards.some((card) => card.id === change.cardIdentity),
+					: Array.from(currentState.decks.values()).find(
+							(candidate) =>
+								candidate.cards.some(
+									(card) => card.id === change.cardIdentity,
+								),
 						);
 			if (!deck) {
-				return { kind: "failed", retryable: false, message: "Deck or card not found" };
+				return {
+					kind: "failed",
+					retryable: false,
+					message: "Deck or card not found",
+				};
 			}
 
 			const condition = currentState.continuity.sources[deck.filePath];
@@ -467,18 +554,31 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				};
 			}
 
-			const document = documents.find((candidate) => candidate.path === deck.filePath);
+			const document = documents.find(
+				(candidate) => candidate.path === deck.filePath,
+			);
 			if (!document) {
-				return { kind: "failed", retryable: false, message: "Source file not found" };
+				return {
+					kind: "failed",
+					retryable: false,
+					message: "Source file not found",
+				};
 			}
-			const newIdentity = change.kind === "add" ? this.options.createIdentity() : undefined;
+			const newIdentity =
+				change.kind === "add"
+					? this.options.createIdentity()
+					: undefined;
 			const editResult = editDeckSource(
 				document.content,
 				deck,
 				change.kind === "add"
 					? { type: "add", cardId: newIdentity, ...change.content }
 					: change.kind === "edit"
-						? { type: "update", cardId: change.cardIdentity, ...change.content }
+						? {
+								type: "update",
+								cardId: change.cardIdentity,
+								...change.content,
+							}
 						: { type: "delete", cardId: change.cardIdentity },
 			);
 			const writeResult = await this.options.sources.replaceIfUnchanged(
@@ -499,7 +599,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			return {
 				kind: "failed",
 				retryable: false,
-				message: error instanceof Error ? error.message : "Card source change failed",
+				message:
+					error instanceof Error
+						? error.message
+						: "Card source change failed",
 			};
 		}
 	}
@@ -508,17 +611,26 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 		return this.enqueue(() => this.resolveNow(resolution));
 	}
 
-	private async resolveNow(resolution: ContinuityResolution): Promise<ResolutionOutcome> {
+	private async resolveNow(
+		resolution: ContinuityResolution,
+	): Promise<ResolutionOutcome> {
 		if (resolution.kind === "repair") return this.resolveRepair(resolution);
 
 		try {
 			let currentState = await this.options.state.load();
-			let documents = await this.options.sources.list(currentState.configuredTags);
+			let documents = await this.options.sources.list(
+				currentState.configuredTags,
+			);
 			if (currentState.continuity.journal) {
-				const recovery = await this.executeJournal(documents, currentState);
+				const recovery = await this.executeJournal(
+					documents,
+					currentState,
+				);
 				if (recovery.kind !== "applied") return recovery;
 				currentState = await this.options.state.load();
-				documents = await this.options.sources.list(currentState.configuredTags);
+				documents = await this.options.sources.list(
+					currentState.configuredTags,
+				);
 			}
 			if (this.options.sessions?.hasActiveSession()) {
 				return { kind: "blocked", reason: "active-session" };
@@ -536,7 +648,9 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			const plans: ContinuityJournalSource[] = [];
 			for (const source of preview.sources) {
 				if (!selected.has(source.deckId)) continue;
-				const document = documents.find((candidate) => candidate.path === source.deckId);
+				const document = documents.find(
+					(candidate) => candidate.path === source.deckId,
+				);
 				const deck = currentState.decks.get(source.deckId);
 				if (!document || !deck) continue;
 
@@ -544,19 +658,30 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 					document.content,
 					this.options.createIdentity,
 				);
-				const migratedCards = parseFlashcards(registration.nextContent, document.path);
+				const migratedCards = parseFlashcards(
+					registration.nextContent,
+					document.path,
+				);
 				if (
 					!canMigrateLegacyCards(deck.cards, migratedCards) ||
-					migratedCards.some((card) => isLegacyIdentity(document.path, card.id))
+					migratedCards.some((card) =>
+						isLegacyIdentity(document.path, card.id),
+					)
 				) {
-					return { kind: "blocked", reason: "legacy-source-mismatch" };
+					return {
+						kind: "blocked",
+						reason: "legacy-source-mismatch",
+					};
 				}
 				plans.push({
 					path: source.deckId,
 					expectedContent: document.content,
 					nextContent: registration.nextContent,
 					identityMap: Object.fromEntries(
-						deck.cards.map((card, index) => [card.id, migratedCards[index]?.id ?? ""]),
+						deck.cards.map((card, index) => [
+							card.id,
+							migratedCards[index]?.id ?? "",
+						]),
 					),
 				});
 			}
@@ -580,7 +705,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			return {
 				kind: "failed",
 				retryable: true,
-				message: error instanceof Error ? error.message : "Card identity migration failed",
+				message:
+					error instanceof Error
+						? error.message
+						: "Card identity migration failed",
 			};
 		}
 	}
@@ -590,12 +718,19 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 	): Promise<ResolutionOutcome> {
 		try {
 			let currentState = await this.options.state.load();
-			let documents = await this.options.sources.list(currentState.configuredTags);
+			let documents = await this.options.sources.list(
+				currentState.configuredTags,
+			);
 			if (currentState.continuity.journal) {
-				const recovery = await this.executeJournal(documents, currentState);
+				const recovery = await this.executeJournal(
+					documents,
+					currentState,
+				);
 				if (recovery.kind !== "applied") return recovery;
 				currentState = await this.options.state.load();
-				documents = await this.options.sources.list(currentState.configuredTags);
+				documents = await this.options.sources.list(
+					currentState.configuredTags,
+				);
 			}
 			const issue = currentState.continuity.issues.find(
 				(candidate) => candidate.id === resolution.issueId,
@@ -604,11 +739,15 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				return { kind: "blocked", reason: "preview-expired" };
 			}
 
-			const documentsByPath = new Map(documents.map((document) => [document.path, document]));
+			const documentsByPath = new Map(
+				documents.map((document) => [document.path, document]),
+			);
 			const ticketMaterial = issue.affectedSources
 				.map((path) => {
 					const document = documentsByPath.get(path);
-					return document ? `${path}:${hashText(document.content)}` : `${path}:missing`;
+					return document
+						? `${path}:${hashText(document.content)}`
+						: `${path}:missing`;
 				})
 				.sort()
 				.join("|");
@@ -616,11 +755,16 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				return { kind: "blocked", reason: "preview-expired" };
 			}
 			const expectedIdentities = new Set(
-				issue.type === "identity-conflict" ? [issue.identity] : issue.missingIdentities,
+				issue.type === "identity-conflict"
+					? [issue.identity]
+					: issue.missingIdentities,
 			);
-			const candidateTokens = new Set(issue.candidates.map((candidate) => candidate.token));
-			const selectedOccurrences = resolution.successors.flatMap((successor) =>
-				successor.occurrence ? [successor.occurrence] : [],
+			const candidateTokens = new Set(
+				issue.candidates.map((candidate) => candidate.token),
+			);
+			const selectedOccurrences = resolution.successors.flatMap(
+				(successor) =>
+					successor.occurrence ? [successor.occurrence] : [],
 			);
 			if (
 				resolution.successors.length !== expectedIdentities.size ||
@@ -630,8 +774,11 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 						(successor.occurrence !== null &&
 							!candidateTokens.has(successor.occurrence)),
 				) ||
-				new Set(resolution.successors.map((successor) => successor.cardIdentity)).size !==
-					expectedIdentities.size ||
+				new Set(
+					resolution.successors.map(
+						(successor) => successor.cardIdentity,
+					),
+				).size !== expectedIdentities.size ||
 				new Set(selectedOccurrences).size !== selectedOccurrences.length
 			) {
 				return { kind: "blocked", reason: "preview-expired" };
@@ -640,7 +787,12 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			const successorByOccurrence = new Map(
 				resolution.successors.flatMap((successor) =>
 					successor.occurrence
-						? [[successor.occurrence, successor.cardIdentity] as const]
+						? [
+								[
+									successor.occurrence,
+									successor.cardIdentity,
+								] as const,
+							]
 						: [],
 				),
 			);
@@ -648,16 +800,25 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			const plans: ContinuityJournalSource[] = [];
 			for (const path of issue.affectedSources) {
 				const document = documentsByPath.get(path);
-				if (!document) return { kind: "blocked", reason: "preview-expired" };
-				const cards = parseFlashcards(document.content, path, existingCards);
+				if (!document)
+					return { kind: "blocked", reason: "preview-expired" };
+				const cards = parseFlashcards(
+					document.content,
+					path,
+					existingCards,
+				);
 				const contentHash = hashText(document.content);
 				const desiredIdentities = cards.map((card, index) => {
 					const occurrence = `${path}:${contentHash}:${index}`;
-					const assignedIdentity = successorByOccurrence.get(occurrence);
+					const assignedIdentity =
+						successorByOccurrence.get(occurrence);
 					if (assignedIdentity) return assignedIdentity;
 					if (
 						!isLegacyIdentity(path, card.id) &&
-						!(issue.type === "identity-conflict" && card.id === issue.identity)
+						!(
+							issue.type === "identity-conflict" &&
+							card.id === issue.identity
+						)
 					) {
 						return card.id;
 					}
@@ -666,7 +827,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				plans.push({
 					path,
 					expectedContent: document.content,
-					nextContent: rewriteCardIdentityMarkers(document.content, desiredIdentities),
+					nextContent: rewriteCardIdentityMarkers(
+						document.content,
+						desiredIdentities,
+					),
 					identityMap: Object.fromEntries(
 						resolution.successors.map((successor) => [
 							successor.cardIdentity,
@@ -696,7 +860,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			return {
 				kind: "failed",
 				retryable: true,
-				message: error instanceof Error ? error.message : "Card identity repair failed",
+				message:
+					error instanceof Error
+						? error.message
+						: "Card identity repair failed",
 			};
 		}
 	}
@@ -716,7 +883,9 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				identityMap: { ...source.identityMap },
 			})),
 		};
-		const documentsByPath = new Map(documents.map((document) => [document.path, document]));
+		const documentsByPath = new Map(
+			documents.map((document) => [document.path, document]),
+		);
 
 		for (const plan of journal.sources) {
 			const document = documentsByPath.get(plan.path);
@@ -735,11 +904,12 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 						pendingDeckIds: journal.pendingSources,
 					};
 				}
-				const writeResult = await this.options.sources.replaceIfUnchanged(
-					plan.path,
-					plan.expectedContent,
-					plan.nextContent,
-				);
+				const writeResult =
+					await this.options.sources.replaceIfUnchanged(
+						plan.path,
+						plan.expectedContent,
+						plan.nextContent,
+					);
 				if (writeResult === "stale") {
 					return {
 						kind: "resumable",
@@ -753,10 +923,15 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			if (!journal.completedSources.includes(plan.path)) {
 				journal.completedSources.push(plan.path);
 			}
-			journal.pendingSources = journal.pendingSources.filter((path) => path !== plan.path);
+			journal.pendingSources = journal.pendingSources.filter(
+				(path) => path !== plan.path,
+			);
 			await this.options.state.commit({
 				...currentState,
-				continuity: { ...currentState.continuity, journal: cloneJournal(journal) },
+				continuity: {
+					...currentState.continuity,
+					journal: cloneJournal(journal),
+				},
 			});
 		}
 
@@ -765,7 +940,9 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 		const nextSources = { ...currentState.continuity.sources };
 		const remainingIssues =
 			journal.type === "repair" && journal.issueId
-				? currentState.continuity.issues.filter((issue) => issue.id !== journal.issueId)
+				? currentState.continuity.issues.filter(
+						(issue) => issue.id !== journal.issueId,
+					)
 				: currentState.continuity.issues;
 		const existingCards =
 			journal.type === "migration"
@@ -794,7 +971,11 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				name: document.basename,
 				filePath: plan.path,
 				tag,
-				cards: parseFlashcards(plan.nextContent, plan.path, existingCards),
+				cards: parseFlashcards(
+					plan.nextContent,
+					plan.path,
+					existingCards,
+				),
 				studyCount: existingDeck?.studyCount ?? 0,
 				lastStudied: existingDeck?.lastStudied ?? null,
 			});
@@ -838,20 +1019,28 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 	): Promise<void> {
 		if (!this.options.sessions) return;
 		const previousIdentities = new Set(
-			Array.from(previousDecks.values()).flatMap((deck) => deck.cards.map((card) => card.id)),
+			Array.from(previousDecks.values()).flatMap((deck) =>
+				deck.cards.map((card) => card.id),
+			),
 		);
 		const availableIdentities = new Set(
-			Array.from(nextDecks.values()).flatMap((deck) => deck.cards.map((card) => card.id)),
+			Array.from(nextDecks.values()).flatMap((deck) =>
+				deck.cards.map((card) => card.id),
+			),
 		);
 		const deletedIdentities = new Set(
-			Array.from(previousIdentities).filter((identity) => !availableIdentities.has(identity)),
+			Array.from(previousIdentities).filter(
+				(identity) => !availableIdentities.has(identity),
+			),
 		);
 		const spellableIdentitiesByDeck = new Map(
 			Array.from(nextDecks.entries()).map(([deckId, deck]) => [
 				deckId,
 				new Set(
 					deck.cards
-						.filter((card) => extractSpellingWord(card.front) !== null)
+						.filter(
+							(card) => extractSpellingWord(card.front) !== null,
+						)
 						.map((card) => card.id),
 				),
 			]),
@@ -911,7 +1100,10 @@ function findIdentityConflicts(sources: PreparedSource[]): CardIdentityIssue[] {
 		);
 		issues.push({
 			id: `identity-conflict:${identity}`,
-			ticket: buildIssueTicket("identity-conflict", affectedPreparedSources),
+			ticket: buildIssueTicket(
+				"identity-conflict",
+				affectedPreparedSources,
+			),
 			type: "identity-conflict",
 			identity,
 			affectedSources,
@@ -936,15 +1128,23 @@ function makeCandidate(
 	};
 }
 
-function buildIssueTicket(type: CardIdentityIssue["type"], sources: PreparedSource[]): string {
+function buildIssueTicket(
+	type: CardIdentityIssue["type"],
+	sources: PreparedSource[],
+): string {
 	const material = sources
-		.map((source) => `${source.document.path}:${hashText(source.sourceContent)}`)
+		.map(
+			(source) =>
+				`${source.document.path}:${hashText(source.sourceContent)}`,
+		)
 		.sort()
 		.join("|");
 	return `${type}:${hashText(material)}`;
 }
 
-function buildExistingCardMap(decks: ReadonlyMap<string, Deck>): Map<string, FlashCard> {
+function buildExistingCardMap(
+	decks: ReadonlyMap<string, Deck>,
+): Map<string, FlashCard> {
 	const cards = new Map<string, FlashCard>();
 	for (const deck of decks.values()) {
 		for (const card of deck.cards) {
@@ -959,7 +1159,9 @@ function buildMigratedCardMap(
 	plans: ContinuityJournalSource[],
 ): Map<string, FlashCard> {
 	const mapped = new Map<string, FlashCard>();
-	const mapsByPath = new Map(plans.map((plan) => [plan.path, plan.identityMap]));
+	const mapsByPath = new Map(
+		plans.map((plan) => [plan.path, plan.identityMap]),
+	);
 	for (const deck of decks.values()) {
 		const identityMap = mapsByPath.get(deck.filePath);
 		for (const card of deck.cards) {
@@ -979,17 +1181,22 @@ function buildMigrationPreview(
 		.filter(([, condition]) => condition.type === "legacy")
 		.map(([path]) => {
 			const deck = decks.get(path);
-			const document = documents.find((candidate) => candidate.path === path);
+			const document = documents.find(
+				(candidate) => candidate.path === path,
+			);
 			return deck && document
 				? {
 						deckId: path,
 						deckName: deck.name,
-						cardCount: parseFlashcards(document.content, path).length,
+						cardCount: parseFlashcards(document.content, path)
+							.length,
 						content: document.content,
 					}
 				: null;
 		})
-		.filter((source): source is NonNullable<typeof source> => source !== null)
+		.filter(
+			(source): source is NonNullable<typeof source> => source !== null,
+		)
 		.sort((left, right) => left.deckId.localeCompare(right.deckId));
 	if (legacySources.length === 0) return undefined;
 
@@ -999,7 +1206,10 @@ function buildMigrationPreview(
 	return {
 		ticket: `migration:${hashText(ticketMaterial)}`,
 		sourceCount: legacySources.length,
-		cardCount: legacySources.reduce((total, source) => total + source.cardCount, 0),
+		cardCount: legacySources.reduce(
+			(total, source) => total + source.cardCount,
+			0,
+		),
 		sources: legacySources.map(({ deckId, deckName, cardCount }) => ({
 			deckId,
 			deckName,

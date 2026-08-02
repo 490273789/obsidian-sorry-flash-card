@@ -10,7 +10,9 @@ function normalizeTag(tag: string): string {
 	return tag.startsWith("#") ? tag : `#${tag}`;
 }
 
-export function createObsidianContinuitySourceStore(app: App): ContinuitySourceStore {
+export function createObsidianContinuitySourceStore(
+	app: App,
+): ContinuitySourceStore {
 	return new ObsidianContinuitySourceStore(app);
 }
 
@@ -22,7 +24,9 @@ class ObsidianContinuitySourceStore implements ContinuitySourceStore {
 		if (files.length === 0) return [];
 
 		const configuredLower = new Set(
-			(configuredTags ?? []).map((tag) => normalizeTag(tag).toLowerCase()),
+			(configuredTags ?? []).map((tag) =>
+				normalizeTag(tag).toLowerCase(),
+			),
 		);
 		const metadataCache = this.app.metadataCache;
 		// When no tags are configured (or metadata cache is unavailable) we must
@@ -69,8 +73,9 @@ class ObsidianContinuitySourceStore implements ContinuitySourceStore {
 				};
 			}
 		};
-		const workers = Array.from({ length: Math.min(LIST_CONCURRENCY, candidates.length) }, () =>
-			worker(),
+		const workers = Array.from(
+			{ length: Math.min(LIST_CONCURRENCY, candidates.length) },
+			() => worker(),
 		);
 		await Promise.all(workers);
 		return documents;

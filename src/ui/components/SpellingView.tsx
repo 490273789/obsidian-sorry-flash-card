@@ -82,25 +82,36 @@ export const SpellingView = React.memo(function SpellingView({
 	const progressPercent = session.progress.percent;
 	const isCorrection = session.phase === "correction";
 	const isCorrectFeedback =
-		feedback?.kind === "retrieval-correct" || feedback?.kind === "correction-correct";
+		feedback?.kind === "retrieval-correct" ||
+		feedback?.kind === "correction-correct";
 
 	return (
 		<div className="flashcard-study flashcard-spelling-view">
 			<SessionToolbar
 				deckName={session.originDeck.name}
 				statusIcon={Keyboard}
-				statusLabel={isCorrection ? t("spelling.correcting") : t("spelling.spelling")}
+				statusLabel={
+					isCorrection
+						? t("spelling.correcting")
+						: t("spelling.spelling")
+				}
 				progress={`${completed}/${total}`}
 				progressPercent={progressPercent}
 				startTime={session.startTime}
 				onEdit={() => {
 					if (!isTransitioning) {
-						onEditCard(currentCard.currentDeckId, currentCard.identity);
+						onEditCard(
+							currentCard.currentDeckId,
+							currentCard.identity,
+						);
 					}
 				}}
 				onDelete={() => {
 					if (!isTransitioning) {
-						onDeleteCard(currentCard.currentDeckId, currentCard.identity);
+						onDeleteCard(
+							currentCard.currentDeckId,
+							currentCard.identity,
+						);
 					}
 				}}
 				onClose={() => {
@@ -138,7 +149,8 @@ export const SpellingView = React.memo(function SpellingView({
 									<div className="flashcard-spelling-submitted-answer">
 										<span>{t("spelling.yourInput")}</span>
 										<strong>
-											{feedback.submittedInput || t("spelling.noAnswer")}
+											{feedback.submittedInput ||
+												t("spelling.noAnswer")}
 										</strong>
 									</div>
 									<div
@@ -146,15 +158,17 @@ export const SpellingView = React.memo(function SpellingView({
 										aria-label={t("spelling.yourInput")}
 									>
 										{feedback.diff.length > 0 ? (
-											feedback.diff.map((segment, index) => (
-												<span
-													key={`${segment.kind}-${index}`}
-													className={`flashcard-spelling-diff-${segment.kind}`}
-													title={segment.expected}
-												>
-													{segment.value || " "}
-												</span>
-											))
+											feedback.diff.map(
+												(segment, index) => (
+													<span
+														key={`${segment.kind}-${index}`}
+														className={`flashcard-spelling-diff-${segment.kind}`}
+														title={segment.expected}
+													>
+														{segment.value || " "}
+													</span>
+												),
+											)
 										) : (
 											<span className="flashcard-spelling-empty-answer">
 												{t("spelling.noAnswer")}
@@ -162,8 +176,12 @@ export const SpellingView = React.memo(function SpellingView({
 										)}
 									</div>
 									<div className="flashcard-spelling-correct-answer">
-										<span>{t("spelling.correctAnswer")}</span>
-										<strong>{feedback.expectedAnswer}</strong>
+										<span>
+											{t("spelling.correctAnswer")}
+										</span>
+										<strong>
+											{feedback.expectedAnswer}
+										</strong>
 									</div>
 								</div>
 								{currentCard.explanation && (
@@ -235,7 +253,9 @@ export const SpellingView = React.memo(function SpellingView({
 					onClick={() => void submit(input)}
 					disabled={isTransitioning || input.trim().length === 0}
 				>
-					{isCorrection ? t("spelling.confirmCorrection") : t("spelling.submit")}
+					{isCorrection
+						? t("spelling.confirmCorrection")
+						: t("spelling.submit")}
 				</FlashcardButton>
 			</div>
 		</div>

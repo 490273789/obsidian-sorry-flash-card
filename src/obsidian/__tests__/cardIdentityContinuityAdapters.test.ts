@@ -64,8 +64,12 @@ good morning
 ;;`,
 			],
 		]);
-		const read = vi.fn(async (file: TFile) => contents.get(file.path) ?? "");
-		const cachedRead = vi.fn(async (file: TFile) => contents.get(file.path) ?? "");
+		const read = vi.fn(
+			async (file: TFile) => contents.get(file.path) ?? "",
+		);
+		const cachedRead = vi.fn(
+			async (file: TFile) => contents.get(file.path) ?? "",
+		);
 		const app = {
 			vault: {
 				getMarkdownFiles: () => [configuredFile, discoveredFile],
@@ -76,7 +80,9 @@ good morning
 			},
 			metadataCache: {
 				getFileCache: (file: TFile) => ({
-					tags: [{ tag: file === configuredFile ? "#单词" : "#短语" }],
+					tags: [
+						{ tag: file === configuredFile ? "#单词" : "#短语" },
+					],
 				}),
 			},
 		} as unknown as App;
@@ -92,7 +98,9 @@ good morning
 			createIdentity: () => CARD_ID,
 		});
 
-		expect(await continuity.synchronize()).toMatchObject({ kind: "current" });
+		expect(await continuity.synchronize()).toMatchObject({
+			kind: "current",
+		});
 		expect(state.state.availableTags).toEqual(["#单词", "#短语"]);
 		expect(state.state.decks.has(configuredPath)).toBe(true);
 		expect(state.state.decks.has(discoveredPath)).toBe(false);
@@ -118,7 +126,10 @@ apple
 			read,
 			cachedRead,
 			getAbstractFileByPath: () => file,
-			process: async (_file: TFile, transform: (content: string) => string) => {
+			process: async (
+				_file: TFile,
+				transform: (content: string) => string,
+			) => {
 				diskContent = transform(diskContent);
 				return diskContent;
 			},
@@ -137,7 +148,11 @@ apple
 					id: `${path}::0`,
 					front: "苹果",
 					back: "apple",
-					fsrsCard: { ...createEmptyCard(), state: State.Review, reps: 7 },
+					fsrsCard: {
+						...createEmptyCard(),
+						state: State.Review,
+						reps: 7,
+					},
 					sourceFile: path,
 					indexInFile: 0,
 				},
