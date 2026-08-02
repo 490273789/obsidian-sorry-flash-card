@@ -32,8 +32,13 @@ import type {
 	CardChangeOutcome,
 	CardIdentityContinuity,
 } from "../../identity/cardIdentityContinuity";
-import type { PronunciationRuntime } from "../../pronunciation";
+import {
+	shouldAutoPronounceSpellingFeedback,
+	waitForSpellingPronunciation,
+	type PronunciationRuntime,
+} from "../../pronunciation";
 import { ModalProvider } from "../modal";
+import { createAnswerPresentationTransition } from "../answerPresentationTransition";
 
 interface FlashcardAppProps {
 	app: App;
@@ -84,32 +89,44 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const deckHomeOwnerId = useId();
 	const t = useMemo(() => createTranslator(settings.language), [settings.language]);
 	const [viewState, setViewState] = useState<ViewState>({ type: "home" });
+	const answerPresentationTransition = useMemo(
+		() =>
+			createAnswerPresentationTransition({
+				lifecycle: sessionLifecycle,
+				prepareSpellingAdvance: async (feedback) => {
+					const autoPlay = pronunciationRuntime.getSnapshot().settings.spellingAutoPlay;
+					if (autoPlay && shouldAutoPronounceSpellingFeedback(feedback.kind)) {
+						await waitForSpellingPronunciation(
+							pronunciationRuntime,
+							feedback.expectedAnswer,
+						);
+						return 0;
+					}
+					return 550;
+				},
+			}),
+		[pronunciationRuntime, sessionLifecycle],
+	);
+	const subscribeAnswerPresentation = useCallback(
+		(listener: () => void) => answerPresentationTransition.subscribe(listener),
+		[answerPresentationTransition],
+	);
+	const readAnswerPresentation = useCallback(
+		() => answerPresentationTransition.getSnapshot(),
+		[answerPresentationTransition],
+	);
+	const answerPresentationSnapshot = useSyncExternalStore(
+		subscribeAnswerPresentation,
+		readAnswerPresentation,
+		readAnswerPresentation,
+	);
+	const presentedLifecycleSnapshot = answerPresentationSnapshot.lifecycle;
+	const isAnswerTransitioning = answerPresentationSnapshot.activity.kind === "transitioning";
 	const lifecycleSnapshot = useSyncExternalStore(
 		(listener) => sessionLifecycle.subscribe(listener),
 		() => sessionLifecycle.getSnapshot(),
 		() => sessionLifecycle.getSnapshot(),
 	);
-	const latestLifecycleSnapshotRef = useRef(lifecycleSnapshot);
-	latestLifecycleSnapshotRef.current = lifecycleSnapshot;
-	const presentationHoldCountRef = useRef(0);
-	const [presentedLifecycleSnapshot, setPresentedLifecycleSnapshot] = useState(lifecycleSnapshot);
-	useEffect(() => {
-		if (presentationHoldCountRef.current === 0) {
-			setPresentedLifecycleSnapshot(lifecycleSnapshot);
-		}
-	}, [lifecycleSnapshot]);
-	const holdLifecyclePresentation = useCallback((): (() => void) => {
-		presentationHoldCountRef.current++;
-		let released = false;
-		return () => {
-			if (released) return;
-			released = true;
-			presentationHoldCountRef.current = Math.max(0, presentationHoldCountRef.current - 1);
-			if (presentationHoldCountRef.current === 0) {
-				setPresentedLifecycleSnapshot(latestLifecycleSnapshotRef.current);
-			}
-		};
-	}, []);
 	useEffect(() => {
 		if (lifecycleSnapshot.kind !== "idle" || !lifecycleSnapshot.lastEnd) return;
 		new Notice(t("identity.sessionEndedBySourceChange"));
@@ -678,9 +695,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (presentedLifecycleSnapshot.mode === "study") {
 				return (
 					<CardView
-						lifecycle={sessionLifecycle}
 						session={presentedLifecycleSnapshot}
-						holdPresentation={holdLifecyclePresentation}
+						transition={answerPresentationTransition}
+						isTransitioning={isAnswerTransitioning}
 						onComplete={() => setViewState({ type: "home" })}
 						onEditCard={handleOpenEditCard}
 						onDeleteCard={handleDeleteCardRequest}
@@ -698,9 +715,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			if (presentedLifecycleSnapshot.mode === "practice") {
 				return (
 					<PracticeView
-						lifecycle={sessionLifecycle}
 						session={presentedLifecycleSnapshot}
-						holdPresentation={holdLifecyclePresentation}
+						transition={answerPresentationTransition}
+						isTransitioning={isAnswerTransitioning}
 						onEditCard={handleOpenEditCard}
 						onDeleteCard={handleDeleteCardRequest}
 						onClose={() => void handleExitActive("practice")}
@@ -716,9 +733,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			}
 			return (
 				<SpellingView
-					lifecycle={sessionLifecycle}
 					session={presentedLifecycleSnapshot}
-					holdPresentation={holdLifecyclePresentation}
+					transition={answerPresentationTransition}
+					isTransitioning={isAnswerTransitioning}
+					feedback={answerPresentationSnapshot.spellingFeedback}
 					onEditCard={handleOpenEditCard}
 					onDeleteCard={handleDeleteCardRequest}
 					onClose={() => void handleExitActive("spelling")}

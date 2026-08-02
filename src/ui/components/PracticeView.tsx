@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RotateCcw, Target, X, Check } from "lucide-react";
 import { Notice } from "obsidian";
 import { getDisplayCardContent } from "../../cards/cardDisplay";
-import type { ActivePracticeSnapshot, SessionLifecycle } from "../../sessions/sessionLifecycle";
+import type { ActivePracticeSnapshot } from "../../sessions/sessionLifecycle";
+import type { AnswerPresentationTransition } from "../answerPresentationTransition";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -13,9 +14,9 @@ import { extractSpellingWord } from "../../cards/spellingWord";
 import { PronounceableMarkdown } from "./PronounceableMarkdown";
 
 interface PracticeViewProps {
-	lifecycle: SessionLifecycle;
 	session: ActivePracticeSnapshot;
-	holdPresentation: () => () => void;
+	transition: AnswerPresentationTransition;
+	isTransitioning: boolean;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
 	onClose: () => void;
@@ -25,9 +26,9 @@ interface PracticeViewProps {
 }
 
 export const PracticeView: React.FC<PracticeViewProps> = ({
-	lifecycle,
 	session,
-	holdPresentation,
+	transition,
+	isTransitioning,
 	onEditCard,
 	onDeleteCard,
 	onClose,
@@ -37,9 +38,6 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 }) => {
 	const { t } = useI18n();
 	const [showAnswer, setShowAnswer] = useState(false);
-	const isAnimatingRef = useRef(false);
-	const [isAnimating, setIsAnimating] = useState(false);
-	const pendingPresentationReleaseRef = useRef<(() => void) | null>(null);
 
 	const currentCard = session.currentCard;
 	const displayContent = useMemo(
@@ -55,77 +53,31 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 		return () => pronunciationRuntime.stop();
 	}, [currentCard.identity, pronunciationRuntime]);
 
-	useEffect(
-		() => () => {
-			pendingPresentationReleaseRef.current?.();
-			pendingPresentationReleaseRef.current = null;
-		},
-		[],
-	);
-
 	const handleShowAnswer = useCallback(() => {
 		setShowAnswer(true);
 	}, []);
 
 	const handleAnswer = useCallback(
 		async (isCorrect: boolean) => {
-			if (!currentCard || isAnimatingRef.current) return;
-
-			isAnimatingRef.current = true;
-			setIsAnimating(true);
-			const releasePresentation = holdPresentation();
-			pendingPresentationReleaseRef.current = releasePresentation;
-
-			const outcome = await lifecycle.act(session.reference, {
-				kind: "answer",
+			if (!currentCard || isTransitioning) return;
+			const outcome = await transition.act({
+				kind: "practice-answer",
+				reference: session.reference,
 				correct: isCorrect,
 			});
-			if (outcome.kind !== "applied") {
-				releasePresentation();
-				pendingPresentationReleaseRef.current = null;
-				isAnimatingRef.current = false;
-				setIsAnimating(false);
-				if (outcome.kind === "failed") new Notice(outcome.failure.message);
-				return;
-			}
-			window.setTimeout(
-				() => {
-					releasePresentation();
-					pendingPresentationReleaseRef.current = null;
-					isAnimatingRef.current = false;
-					setIsAnimating(false);
-				},
-				outcome.snapshot.kind === "result" ? 300 : 200,
-			);
+			if (outcome.kind === "failed") new Notice(outcome.message);
 		},
-		[currentCard, holdPresentation, lifecycle, session],
+		[currentCard, isTransitioning, session.reference, transition],
 	);
 
 	const handlePrevious = useCallback(async () => {
-		if (!session.canPrevious || isAnimatingRef.current) return;
-
-		isAnimatingRef.current = true;
-		setIsAnimating(true);
-		const releasePresentation = holdPresentation();
-		pendingPresentationReleaseRef.current = releasePresentation;
-
-		const outcome = await lifecycle.act(session.reference, { kind: "previous" });
-		if (outcome.kind !== "applied") {
-			releasePresentation();
-			pendingPresentationReleaseRef.current = null;
-			isAnimatingRef.current = false;
-			setIsAnimating(false);
-			if (outcome.kind === "failed") new Notice(outcome.failure.message);
-			return;
-		}
-
-		window.setTimeout(() => {
-			releasePresentation();
-			pendingPresentationReleaseRef.current = null;
-			isAnimatingRef.current = false;
-			setIsAnimating(false);
-		}, 200);
-	}, [holdPresentation, lifecycle, session]);
+		if (!session.canPrevious || isTransitioning) return;
+		const outcome = await transition.act({
+			kind: "practice-previous",
+			reference: session.reference,
+		});
+		if (outcome.kind === "failed") new Notice(outcome.message);
+	}, [isTransitioning, session.canPrevious, session.reference, transition]);
 
 	useWindowKeyDown((e) => {
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -195,7 +147,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			/>
 
 			{/* Content */}
-			<div className={`flashcard-content ${isAnimating ? "animating" : ""}`}>
+			<div className={`flashcard-content ${isTransitioning ? "animating" : ""}`}>
 				<div className="flashcard-card-stack">
 					<div className="flashcard-question">
 						<div className="flashcard-label flashcard-label-question">

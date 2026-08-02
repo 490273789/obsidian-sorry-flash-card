@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Brain, PartyPopper, RotateCcw } from "lucide-react";
 import { Notice } from "obsidian";
 import { StudyRating } from "../../shared/types";
 import { getRatingButtons } from "../../sessions/scheduler";
 import { getDisplayCardContent } from "../../cards/cardDisplay";
-import type { ActiveStudySnapshot, SessionLifecycle } from "../../sessions/sessionLifecycle";
+import type { ActiveStudySnapshot } from "../../sessions/sessionLifecycle";
+import type { AnswerPresentationTransition } from "../answerPresentationTransition";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
@@ -16,9 +17,9 @@ import { extractSpellingWord } from "../../cards/spellingWord";
 import { PronounceableMarkdown } from "./PronounceableMarkdown";
 
 interface CardViewProps {
-	lifecycle: SessionLifecycle;
 	session: ActiveStudySnapshot;
-	holdPresentation: () => () => void;
+	transition: AnswerPresentationTransition;
+	isTransitioning: boolean;
 	onComplete: () => void;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
@@ -29,9 +30,9 @@ interface CardViewProps {
 }
 
 export const CardView: React.FC<CardViewProps> = ({
-	lifecycle,
 	session,
-	holdPresentation,
+	transition,
+	isTransitioning,
 	onComplete,
 	onEditCard,
 	onDeleteCard,
@@ -42,11 +43,6 @@ export const CardView: React.FC<CardViewProps> = ({
 }) => {
 	const { t, language } = useI18n();
 	const [showAnswer, setShowAnswer] = useState(false);
-	// isAnimatingRef is the source of truth used inside callbacks/closures
-	// to avoid stale captures; isAnimating state drives the CSS class.
-	const isAnimatingRef = useRef(false);
-	const [isAnimating, setIsAnimating] = useState(false);
-	const pendingPresentationReleaseRef = useRef<(() => void) | null>(null);
 
 	const currentCard = session.currentCard;
 	const ratingButtons = useMemo(() => getRatingButtons(language), [language]);
@@ -63,75 +59,32 @@ export const CardView: React.FC<CardViewProps> = ({
 		return () => pronunciationRuntime.stop();
 	}, [currentCard.identity, pronunciationRuntime]);
 
-	useEffect(
-		() => () => {
-			pendingPresentationReleaseRef.current?.();
-			pendingPresentationReleaseRef.current = null;
-		},
-		[],
-	);
-
 	const handleShowAnswer = useCallback(() => {
 		setShowAnswer(true);
 	}, []);
 
 	const handleRating = useCallback(
 		async (rating: StudyRating) => {
-			if (!currentCard || isAnimatingRef.current) return;
-
-			isAnimatingRef.current = true;
-			setIsAnimating(true);
-			const releasePresentation = holdPresentation();
-			pendingPresentationReleaseRef.current = releasePresentation;
-
-			const outcome = await lifecycle.act(session.reference, { kind: "answer", rating });
-			if (outcome.kind !== "applied") {
-				releasePresentation();
-				pendingPresentationReleaseRef.current = null;
-				isAnimatingRef.current = false;
-				setIsAnimating(false);
-				if (outcome.kind === "failed") new Notice(outcome.failure.message);
-				return;
-			}
-			if (outcome.snapshot.kind === "idle") onComplete();
-			window.setTimeout(
-				() => {
-					releasePresentation();
-					pendingPresentationReleaseRef.current = null;
-					isAnimatingRef.current = false;
-					setIsAnimating(false);
-				},
-				outcome.snapshot.kind === "idle" ? 300 : 200,
-			);
+			if (!currentCard || isTransitioning) return;
+			const outcome = await transition.act({
+				kind: "study-answer",
+				reference: session.reference,
+				rating,
+			});
+			if (outcome.kind === "failed") new Notice(outcome.message);
+			if (outcome.kind === "applied" && outcome.studyCompleted) onComplete();
 		},
-		[currentCard, holdPresentation, lifecycle, onComplete, session],
+		[currentCard, isTransitioning, onComplete, session.reference, transition],
 	);
 
 	const handlePrevious = useCallback(async () => {
-		if (!session.canPrevious || isAnimatingRef.current) return;
-
-		isAnimatingRef.current = true;
-		setIsAnimating(true);
-		const releasePresentation = holdPresentation();
-		pendingPresentationReleaseRef.current = releasePresentation;
-
-		const outcome = await lifecycle.act(session.reference, { kind: "previous" });
-		if (outcome.kind !== "applied") {
-			releasePresentation();
-			pendingPresentationReleaseRef.current = null;
-			isAnimatingRef.current = false;
-			setIsAnimating(false);
-			if (outcome.kind === "failed") new Notice(outcome.failure.message);
-			return;
-		}
-
-		window.setTimeout(() => {
-			releasePresentation();
-			pendingPresentationReleaseRef.current = null;
-			isAnimatingRef.current = false;
-			setIsAnimating(false);
-		}, 200);
-	}, [holdPresentation, lifecycle, session]);
+		if (!session.canPrevious || isTransitioning) return;
+		const outcome = await transition.act({
+			kind: "study-previous",
+			reference: session.reference,
+		});
+		if (outcome.kind === "failed") new Notice(outcome.message);
+	}, [isTransitioning, session.canPrevious, session.reference, transition]);
 
 	useWindowKeyDown((e) => {
 		// Ignore if in input field
@@ -226,7 +179,7 @@ export const CardView: React.FC<CardViewProps> = ({
 			/>
 
 			{/* Content */}
-			<div className={`flashcard-content ${isAnimating ? "animating" : ""}`}>
+			<div className={`flashcard-content ${isTransitioning ? "animating" : ""}`}>
 				<div className="flashcard-card-stack">
 					<div className="flashcard-question">
 						<div className="flashcard-label flashcard-label-question">

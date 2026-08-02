@@ -1,25 +1,22 @@
-import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Check, CornerDownLeft, Keyboard, Lightbulb, X } from "lucide-react";
 import { Notice } from "obsidian";
 import type {
 	ActiveSpellingSnapshot,
-	SessionLifecycle,
 	SpellingLifecycleFeedback,
 } from "../../sessions/sessionLifecycle";
+import type { AnswerPresentationTransition } from "../answerPresentationTransition";
 import { FlashcardButton } from "./FlashcardButton";
 import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
 import { useI18n } from "./I18nContext";
-import {
-	shouldAutoPronounceSpellingFeedback,
-	waitForSpellingPronunciation,
-	type PronunciationRuntime,
-} from "../../pronunciation";
+import type { PronunciationRuntime } from "../../pronunciation";
 
 interface SpellingViewProps {
-	lifecycle: SessionLifecycle;
 	session: ActiveSpellingSnapshot;
-	holdPresentation: () => () => void;
+	transition: AnswerPresentationTransition;
+	isTransitioning: boolean;
+	feedback: Readonly<SpellingLifecycleFeedback> | null;
 	onEditCard: (deckId: string, cardId: string) => void;
 	onDeleteCard: (deckId: string, cardId: string) => void;
 	onClose: () => void;
@@ -28,9 +25,10 @@ interface SpellingViewProps {
 }
 
 export const SpellingView: React.FC<SpellingViewProps> = ({
-	lifecycle,
 	session,
-	holdPresentation,
+	transition,
+	isTransitioning,
+	feedback,
 	onEditCard,
 	onDeleteCard,
 	onClose,
@@ -39,104 +37,40 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 }) => {
 	const { t } = useI18n();
 	const [input, setInput] = useState("");
-	const [feedback, setFeedback] = useState<SpellingLifecycleFeedback | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
-	const advanceTimerRef = useRef<number | null>(null);
-	const advanceGenerationRef = useRef(0);
-	const pendingPresentationReleaseRef = useRef<(() => void) | null>(null);
 	const currentCard = session.currentCard;
-	const pronunciationSnapshot = useSyncExternalStore(
-		(listener) => pronunciationRuntime.subscribe(listener),
-		() => pronunciationRuntime.getSnapshot(),
-		() => pronunciationRuntime.getSnapshot(),
-	);
-	const autoPronounce = pronunciationSnapshot.settings.spellingAutoPlay;
 
 	useEffect(() => {
-		advanceGenerationRef.current++;
 		pronunciationRuntime.stop();
 		setInput("");
-		setFeedback(null);
 		window.setTimeout(() => inputRef.current?.focus(), 0);
 	}, [currentCard.identity, pronunciationRuntime]);
 
-	useEffect(
-		() => () => {
-			advanceGenerationRef.current++;
-			pronunciationRuntime.stop();
-			pendingPresentationReleaseRef.current?.();
-			pendingPresentationReleaseRef.current = null;
-			if (advanceTimerRef.current !== null) {
-				window.clearTimeout(advanceTimerRef.current);
-			}
-		},
-		[pronunciationRuntime],
-	);
+	useEffect(() => () => pronunciationRuntime.stop(), [pronunciationRuntime]);
 
 	const submit = useCallback(
 		async (submittedInput: string, allowEmpty = false) => {
-			if (!currentCard || isSubmitting) return;
+			if (!currentCard || isTransitioning) return;
 			if (!allowEmpty && submittedInput.trim().length === 0) return;
-			setIsSubmitting(true);
-			const releasePresentation = holdPresentation();
-			pendingPresentationReleaseRef.current = releasePresentation;
-			const outcome = await lifecycle.act(session.reference, {
-				kind: "answer",
+			const outcome = await transition.act({
+				kind: "spelling-answer",
+				reference: session.reference,
 				input: submittedInput,
 			});
 			if (outcome.kind !== "applied" || !outcome.feedback) {
-				releasePresentation();
-				pendingPresentationReleaseRef.current = null;
-				setIsSubmitting(false);
-				if (outcome.kind === "failed") new Notice(outcome.failure.message);
+				if (outcome.kind === "failed") new Notice(outcome.message);
 				return;
 			}
-			setFeedback(outcome.feedback);
 
 			if (
 				outcome.feedback.kind === "retrieval-incorrect" ||
 				outcome.feedback.kind === "correction-incorrect"
 			) {
-				releasePresentation();
-				pendingPresentationReleaseRef.current = null;
 				setInput("");
-				setIsSubmitting(false);
 				window.setTimeout(() => inputRef.current?.focus(), 0);
-				return;
 			}
-
-			const generation = ++advanceGenerationRef.current;
-			if (autoPronounce && shouldAutoPronounceSpellingFeedback(outcome.feedback.kind)) {
-				await waitForSpellingPronunciation(
-					pronunciationRuntime,
-					outcome.feedback.expectedAnswer,
-				);
-				if (generation !== advanceGenerationRef.current) {
-					releasePresentation();
-					pendingPresentationReleaseRef.current = null;
-					return;
-				}
-			}
-
-			advanceTimerRef.current = window.setTimeout(
-				() => {
-					releasePresentation();
-					pendingPresentationReleaseRef.current = null;
-					setIsSubmitting(false);
-				},
-				autoPronounce ? 0 : 550,
-			);
 		},
-		[
-			autoPronounce,
-			currentCard,
-			holdPresentation,
-			isSubmitting,
-			lifecycle,
-			pronunciationRuntime,
-			session,
-		],
+		[currentCard, isTransitioning, session.reference, transition],
 	);
 
 	if (!currentCard) {
@@ -160,17 +94,17 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 				progressPercent={progressPercent}
 				startTime={session.startTime}
 				onEdit={() => {
-					if (!isSubmitting) {
+					if (!isTransitioning) {
 						onEditCard(currentCard.currentDeckId, currentCard.identity);
 					}
 				}}
 				onDelete={() => {
-					if (!isSubmitting) {
+					if (!isTransitioning) {
 						onDeleteCard(currentCard.currentDeckId, currentCard.identity);
 					}
 				}}
 				onClose={() => {
-					if (!isSubmitting) onClose();
+					if (!isTransitioning) onClose();
 				}}
 				editTitle={t("cardEditor.editCurrentTitle")}
 				deleteTitle={t("cardEditor.deleteCurrentTitle")}
@@ -272,7 +206,7 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 									void submit(input);
 								}
 							}}
-							disabled={isSubmitting}
+							disabled={isTransitioning}
 							spellCheck={false}
 							autoComplete="off"
 							autoCapitalize="none"
@@ -290,7 +224,7 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 						variant="gray"
 						icon={Lightbulb}
 						onClick={() => void submit("", true)}
-						disabled={isSubmitting}
+						disabled={isTransitioning}
 					>
 						{t("spelling.dontKnow")}
 					</FlashcardButton>
@@ -299,7 +233,7 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 					variant="green"
 					icon={CornerDownLeft}
 					onClick={() => void submit(input)}
-					disabled={isSubmitting || input.trim().length === 0}
+					disabled={isTransitioning || input.trim().length === 0}
 				>
 					{isCorrection ? t("spelling.confirmCorrection") : t("spelling.submit")}
 				</FlashcardButton>
