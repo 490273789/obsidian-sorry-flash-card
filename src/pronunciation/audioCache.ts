@@ -13,6 +13,7 @@ interface AudioCacheRecord extends CachedPronunciationAudio {
 
 export class MemoryPronunciationAudioCache implements PronunciationAudioCache {
 	private records = new Map<string, AudioCacheRecord>();
+	private usageBytes = 0;
 
 	constructor(
 		private readonly limitBytes = PRONUNCIATION_CACHE_LIMIT_BYTES,
@@ -30,37 +31,38 @@ export class MemoryPronunciationAudioCache implements PronunciationAudioCache {
 	}
 
 	async put(key: string, audio: CachedPronunciationAudio): Promise<void> {
+		const size = audio.data.byteLength;
+		const previous = this.records.get(key);
+		if (previous) this.usageBytes -= previous.size;
 		this.records.set(key, {
 			key,
 			data: audio.data.slice(0),
 			mimeType: audio.mimeType,
-			size: audio.data.byteLength,
+			size,
 			lastAccess: this.now(),
 		});
+		this.usageBytes += size;
 		this.evict();
 	}
 
 	async getUsageBytes(): Promise<number> {
-		return Array.from(this.records.values()).reduce((total, record) => total + record.size, 0);
+		return this.usageBytes;
 	}
 
 	async clear(): Promise<void> {
 		this.records.clear();
+		this.usageBytes = 0;
 	}
 
 	private evict(): void {
-		let usage = Array.from(this.records.values()).reduce(
-			(total, record) => total + record.size,
-			0,
-		);
-		if (usage <= this.limitBytes) return;
+		if (this.usageBytes <= this.limitBytes) return;
 		const records = Array.from(this.records.values()).sort(
 			(left, right) => left.lastAccess - right.lastAccess,
 		);
 		for (const record of records) {
-			if (usage <= this.limitBytes) break;
+			if (this.usageBytes <= this.limitBytes) break;
 			this.records.delete(record.key);
-			usage -= record.size;
+			this.usageBytes -= record.size;
 		}
 	}
 }
@@ -69,6 +71,13 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 	private readonly memoryFallback: MemoryPronunciationAudioCache;
 	private disabled = false;
 	private databasePromise: Promise<IDBDatabase> | null = null;
+	// In-memory usage bookkeeping so hot paths never touch the full table.
+	private memoryUsageBytes = 0;
+	private memoryRecordSizes = new Map<string, number>();
+	private usageSynced = false;
+	// Pending lastAccess touches, flushed to IndexedDB on a throttle.
+	private pendingTouches = new Map<string, number>();
+	private touchFlushTimer: ReturnType<typeof setTimeout> | null = null;
 
 	constructor(
 		private readonly databaseName = "wsr-flash-card-pronunciation-cache",
@@ -87,8 +96,11 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 			const database = await this.open();
 			const record = await getRecord(database, key);
 			if (!record) return this.memoryFallback.get(key);
-			record.lastAccess = Date.now();
-			await putRecord(database, record);
+			// Throttle lastAccess writebacks: accumulate in memory and flush in
+			// one batch so cache hits do not each open a write transaction.
+			const now = Date.now();
+			this.pendingTouches.set(key, now);
+			this.scheduleTouchFlush();
 			return {
 				data: record.data.slice(0),
 				mimeType: record.mimeType,
@@ -106,14 +118,24 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 		}
 		try {
 			const database = await this.open();
+			await this.ensureUsageSynced(database);
+			const size = audio.data.byteLength;
+			const previousSize = this.memoryRecordSizes.get(key) ?? 0;
 			await putRecord(database, {
 				key,
 				data: audio.data.slice(0),
 				mimeType: audio.mimeType,
-				size: audio.data.byteLength,
+				size,
 				lastAccess: Date.now(),
 			});
-			await this.evict(database);
+			this.pendingTouches.delete(key);
+			this.memoryUsageBytes += size - previousSize;
+			this.memoryRecordSizes.set(key, size);
+			// Only scan the full table when our in-memory accounting says we are
+			// over the limit, avoiding a getAll+sort on every single write.
+			if (this.memoryUsageBytes > this.limitBytes) {
+				await this.evict(database);
+			}
 		} catch {
 			this.disabled = true;
 			await this.memoryFallback.put(key, audio);
@@ -123,8 +145,8 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 	async getUsageBytes(): Promise<number> {
 		if (this.disabled) return this.memoryFallback.getUsageBytes();
 		try {
-			const records = await getAllRecords(await this.open());
-			return records.reduce((total, record) => total + record.size, 0);
+			await this.ensureUsageSynced(await this.open());
+			return this.memoryUsageBytes;
 		} catch {
 			this.disabled = true;
 			return this.memoryFallback.getUsageBytes();
@@ -133,9 +155,18 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 
 	async clear(): Promise<void> {
 		await this.memoryFallback.clear();
+		this.pendingTouches.clear();
+		if (this.touchFlushTimer !== null) {
+			clearTimeout(this.touchFlushTimer);
+			this.touchFlushTimer = null;
+		}
+		this.memoryUsageBytes = 0;
+		this.memoryRecordSizes.clear();
+		this.usageSynced = false;
 		if (this.disabled) return;
 		try {
 			await clearRecords(await this.open());
+			this.usageSynced = true;
 		} catch {
 			this.disabled = true;
 		}
@@ -158,18 +189,64 @@ export class IndexedDbPronunciationAudioCache implements PronunciationAudioCache
 		return this.databasePromise;
 	}
 
+	private scheduleTouchFlush(): void {
+		if (this.touchFlushTimer !== null) return;
+		// Batch all touches that arrive within one throttle window into a
+		// single read-write transaction when the window elapses.
+		this.touchFlushTimer = setTimeout(() => {
+			this.touchFlushTimer = null;
+			const touches = this.pendingTouches;
+			this.pendingTouches = new Map();
+			if (touches.size === 0 || this.disabled) return;
+			void (async () => {
+				try {
+					const database = await this.open();
+					await touchRecords(database, touches);
+				} catch {
+					// Touches are best-effort LRU metadata; a failed flush does
+					// not break playback, only slightly stale eviction order.
+				}
+			})();
+		}, TOUCH_FLUSH_INTERVAL_MS);
+	}
+
+	private async ensureUsageSynced(database: IDBDatabase): Promise<void> {
+		if (this.usageSynced) return;
+		const records = await getAllRecords(database);
+		this.memoryUsageBytes = records.reduce((total, record) => total + record.size, 0);
+		this.memoryRecordSizes = new Map(records.map((record) => [record.key, record.size]));
+		this.usageSynced = true;
+	}
+
 	private async evict(database: IDBDatabase): Promise<void> {
+		// Re-sync usage from the store so eviction matches what is really
+		// persisted even if the in-memory accounting drifted.
 		const records = await getAllRecords(database);
 		let usage = records.reduce((total, record) => total + record.size, 0);
-		if (usage <= this.limitBytes) return;
-		records.sort((left, right) => left.lastAccess - right.lastAccess);
+		this.memoryRecordSizes = new Map(records.map((record) => [record.key, record.size]));
+		if (usage <= this.limitBytes) {
+			this.memoryUsageBytes = usage;
+			this.usageSynced = true;
+			return;
+		}
+		records.sort(
+			(left, right) =>
+				(this.pendingTouches.get(left.key) ?? left.lastAccess) -
+				(this.pendingTouches.get(right.key) ?? right.lastAccess),
+		);
 		for (const record of records) {
 			if (usage <= this.limitBytes) break;
 			await deleteRecord(database, record.key);
 			usage -= record.size;
+			this.memoryRecordSizes.delete(record.key);
+			this.pendingTouches.delete(record.key);
 		}
+		this.memoryUsageBytes = usage;
+		this.usageSynced = true;
 	}
 }
+
+const TOUCH_FLUSH_INTERVAL_MS = 5000;
 
 export async function createPronunciationCacheKey(
 	descriptor: PronunciationRequestDescriptor,
@@ -213,6 +290,33 @@ function putRecord(database: IDBDatabase, record: AudioCacheRecord): Promise<voi
 		const request = database.transaction("audio", "readwrite").objectStore("audio").put(record);
 		request.onsuccess = () => resolve();
 		request.onerror = () => reject(request.error ?? new Error("Failed to write audio cache"));
+	});
+}
+
+/**
+ * Updates `lastAccess` for many keys in a single read-write transaction,
+ * re-reading each record so the whole record is preserved.
+ */
+function touchRecords(database: IDBDatabase, touches: ReadonlyMap<string, number>): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const transaction = database.transaction("audio", "readwrite");
+		const store = transaction.objectStore("audio");
+		for (const [key, lastAccess] of touches) {
+			const getRequest = store.get(key);
+			getRequest.onsuccess = () => {
+				const record = getRequest.result as AudioCacheRecord | undefined;
+				if (!record) return;
+				record.lastAccess = lastAccess;
+				store.put(record);
+			};
+			getRequest.onerror = () =>
+				reject(getRequest.error ?? new Error("Failed to touch audio cache"));
+		}
+		transaction.oncomplete = () => resolve();
+		transaction.onerror = () =>
+			reject(transaction.error ?? new Error("Failed to touch audio cache"));
+		transaction.onabort = () =>
+			reject(transaction.error ?? new Error("Failed to touch audio cache"));
 	});
 }
 

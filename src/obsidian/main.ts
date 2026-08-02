@@ -63,7 +63,7 @@ export default class FlashcardPlugin extends Plugin {
 		const sessionLifecycleWiring = createSessionLifecycle(this.dataStore);
 		this.sessionLifecycle = sessionLifecycleWiring.lifecycle;
 		this.cardIdentityContinuity = createCardIdentityContinuity({
-			sources: createObsidianContinuitySourceStore(this.app.vault),
+			sources: createObsidianContinuitySourceStore(this.app),
 			state: this.dataStore.createContinuityStateStore(),
 			sessions: sessionLifecycleWiring.continuitySessions,
 			createIdentity: createCardIdentity,

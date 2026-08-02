@@ -644,7 +644,7 @@ interface DeckListProps {
 	onOpenAddCard: () => void;
 }
 
-export const DeckList: React.FC<DeckListProps> = ({
+export const DeckList = React.memo(function DeckList({
 	snapshot,
 	home,
 	ownerId,
@@ -654,7 +654,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 	onOpenStats,
 	onOpenSettings,
 	onOpenAddCard,
-}) => {
+}: DeckListProps) {
 	const { t } = useI18n();
 	const isLoading = snapshot.mutation.kind === "refreshing";
 	const isMutationBusy = snapshot.mutation.kind !== "idle";
@@ -848,4 +848,4 @@ export const DeckList: React.FC<DeckListProps> = ({
 			/>
 		</>
 	);
-};
+});

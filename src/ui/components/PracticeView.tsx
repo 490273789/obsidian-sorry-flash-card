@@ -25,7 +25,7 @@ interface PracticeViewProps {
 	pronunciationEnabled: boolean;
 }
 
-export const PracticeView: React.FC<PracticeViewProps> = ({
+export const PracticeView = React.memo(function PracticeView({
 	session,
 	transition,
 	isTransitioning,
@@ -35,7 +35,7 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 	markdownRenderer,
 	pronunciationRuntime,
 	pronunciationEnabled,
-}) => {
+}: PracticeViewProps) {
 	const { t } = useI18n();
 	const [showAnswer, setShowAnswer] = useState(false);
 
@@ -260,4 +260,4 @@ export const PracticeView: React.FC<PracticeViewProps> = ({
 			</div>
 		</div>
 	);
-};
+});

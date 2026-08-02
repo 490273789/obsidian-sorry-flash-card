@@ -403,6 +403,74 @@ describe("DataStore settings", () => {
 		expect(listener).toHaveBeenCalledTimes(1);
 	});
 
+	it("atomically persists a study update after its card moves to another deck", async () => {
+		const card = makeCard(
+			"550e8400-e29b-41d4-a716-446655440000",
+			State.New,
+			new Date("2026-08-01T00:00:00.000Z"),
+			0,
+			{ sourceFile: "notes/source.md" },
+		);
+		const sourceDeck: Deck = {
+			id: "notes/source.md",
+			name: "source",
+			filePath: "notes/source.md",
+			tag: "#单词",
+			cards: [card],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const plugin = makePlugin({
+			decks: { [sourceDeck.id]: serializeDeck(sourceDeck) },
+			lastSync: "2026-08-01T00:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+
+		const targetDeckId = "notes/target.md";
+		const continuityStore = store.createContinuityStateStore();
+		const state = await continuityStore.load();
+		state.decks = new Map([
+			[
+				targetDeckId,
+				{
+					...sourceDeck,
+					id: targetDeckId,
+					name: "target",
+					filePath: targetDeckId,
+					cards: [{ ...card, sourceFile: targetDeckId }],
+				},
+			],
+		]);
+		await continuityStore.commit(state);
+
+		const reviewedCard = {
+			...card.fsrsCard,
+			state: State.Review,
+			reps: 1,
+		};
+		const transition = {
+			cardUpdates: [{ deckId: sourceDeck.id, cardId: card.id, fsrsCard: reviewedCard }],
+			spellingAttempts: [],
+			incrementStudyCountFor: [],
+			historyEntries: [],
+		};
+		const revision = store.getRevision();
+		plugin.saveData.mockRejectedValueOnce(new Error("disk unavailable"));
+
+		await expect(store.commitSessionTransition(transition)).rejects.toThrow("disk unavailable");
+		expect(store.getCard(sourceDeck.id, card.id)?.fsrsCard.state).toBe(State.New);
+		expect(store.getRevision()).toBe(revision);
+
+		await store.commitSessionTransition(transition);
+		expect(store.getCard(sourceDeck.id, card.id)?.fsrsCard.state).toBe(State.Review);
+		const saved = plugin.saveData.mock.calls[
+			plugin.saveData.mock.calls.length - 1
+		]?.[0] as StoredData;
+		expect(saved.decks[targetDeckId]?.cards[0]?.fsrsCard.state).toBe(State.Review);
+	});
+
 	it("prunes progress for cards deleted from a retained deck", async () => {
 		const retained = makeCard(
 			"550e8400-e29b-41d4-a716-446655440000",
@@ -618,6 +686,32 @@ describe("DataStore deck scanning and study plans", () => {
 			"notes/deck.md::2",
 			"notes/deck.md::3",
 		]);
+	});
+
+	it("returns the earliest future due time when another card is already overdue", async () => {
+		const now = new Date("2026-08-02T12:00:00.000Z");
+		const futureDue = new Date("2026-08-02T12:30:00.000Z");
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [
+				makeCard("overdue", State.Review, new Date("2026-08-02T11:00:00.000Z"), 0),
+				makeCard("future", State.Review, futureDue, 1),
+			],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-08-02T10:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+
+		expect(store.getNextDueTime(now)).toBe(futureDue.getTime());
 	});
 
 	it("records study history and keeps only the latest 20 distinct days", async () => {

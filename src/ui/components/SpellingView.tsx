@@ -24,7 +24,7 @@ interface SpellingViewProps {
 	pronunciationRuntime: PronunciationRuntime;
 }
 
-export const SpellingView: React.FC<SpellingViewProps> = ({
+export const SpellingView = React.memo(function SpellingView({
 	session,
 	transition,
 	isTransitioning,
@@ -34,7 +34,7 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 	onClose,
 	markdownRenderer,
 	pronunciationRuntime,
-}) => {
+}: SpellingViewProps) {
 	const { t } = useI18n();
 	const [input, setInput] = useState("");
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -240,4 +240,4 @@ export const SpellingView: React.FC<SpellingViewProps> = ({
 			</div>
 		</div>
 	);
-};
+});

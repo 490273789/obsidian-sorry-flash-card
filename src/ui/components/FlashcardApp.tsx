@@ -122,6 +122,14 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	);
 	const presentedLifecycleSnapshot = answerPresentationSnapshot.lifecycle;
 	const isAnswerTransitioning = answerPresentationSnapshot.activity.kind === "transitioning";
+	// Subscribe to the data store revision so cached derivations (decks array,
+	// rendered markdown) stay fresh without recomputing on unrelated renders.
+	const subscribeRevision = useCallback(
+		(listener: () => void) => dataStore.subscribe(listener),
+		[dataStore],
+	);
+	const readRevision = useCallback(() => dataStore.getRevision(), [dataStore]);
+	const revision = useSyncExternalStore(subscribeRevision, readRevision, readRevision);
 	const lifecycleSnapshot = useSyncExternalStore(
 		(listener) => sessionLifecycle.subscribe(listener),
 		() => sessionLifecycle.getSnapshot(),
@@ -161,13 +169,23 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	// Track when word-list view was opened for duration recording
 	const wordListStartTime = useRef<number | null>(null);
 
-	const decks = dataStore.getAllDecks();
+	// Cache the decks array across renders; only recompute when the store
+	// revision changes (any card/setting mutation bumps it).
+	const decks = useMemo(() => {
+		// Consume revision so the cache is invalidated on store changes.
+		void revision;
+		return dataStore.getAllDecks();
+	}, [dataStore, revision]);
 
-	// Markdown renderer function
+	// Reuse a single Component for every Markdown render and unload it when the
+	// app unmounts, instead of allocating a new Component per card.
+	const markdownComponentRef = useRef<Component | null>(null);
 	const renderMarkdown = useCallback(
 		async (content: string, el: HTMLElement): Promise<void> => {
-			const component = new Component();
-			await MarkdownRenderer.render(app, content, el, "", component);
+			if (!markdownComponentRef.current) {
+				markdownComponentRef.current = new Component();
+			}
+			await MarkdownRenderer.render(app, content, el, "", markdownComponentRef.current);
 		},
 		[app],
 	);
@@ -233,6 +251,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		return () => {
 			confirmationRef.current?.resolve(false);
 			confirmationRef.current = null;
+		};
+	}, []);
+	useEffect(() => {
+		return () => {
+			markdownComponentRef.current?.unload();
+			markdownComponentRef.current = null;
 		};
 	}, []);
 	useEffect(() => {
@@ -512,6 +536,25 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[dataStore],
 	);
 
+	// Stable callbacks for view components so React.memo can skip re-renders
+	// when unrelated state (card editor, dialogs) changes.
+	const handleSessionComplete = useCallback(() => {
+		setViewState({ type: "home" });
+	}, []);
+	const handleExitStudy = useCallback(() => void handleExitActive("study"), [handleExitActive]);
+	const handleExitPractice = useCallback(
+		() => void handleExitActive("practice"),
+		[handleExitActive],
+	);
+	const handleExitSpelling = useCallback(
+		() => void handleExitActive("spelling"),
+		[handleExitActive],
+	);
+	const handleCloseWordListForDeck = useCallback(
+		(deckId: string) => handleCloseWordList(deckId),
+		[handleCloseWordList],
+	);
+
 	// Practice mode handlers
 	const handleStartPractice = useCallback(
 		async (deckId: string, options: PracticeSessionStartOptions) => {
@@ -615,6 +658,69 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (reportLifecycleOutcome(outcome)) setViewState({ type: "home" });
 	}, [reportLifecycleOutcome, sessionLifecycle]);
 
+	// Stable summary/setup handlers so memoized views skip unrelated re-renders.
+	const handlePracticeRestart = useCallback(
+		() => void handleResultRestart(),
+		[handleResultRestart],
+	);
+	const handlePracticeRetryIncorrect = useCallback(
+		() => void handleRetryIncorrect(),
+		[handleRetryIncorrect],
+	);
+	const handleResultHomeClick = useCallback(() => void handleResultHome(), [handleResultHome]);
+	const handleStudyStart = useCallback(
+		(order: "sequential" | "random", direction: CardDirection) => {
+			if (viewState.type !== "study-setup") return;
+			void handleStartStudyFromSetup(viewState.deckId, order, direction);
+		},
+		[handleStartStudyFromSetup, viewState],
+	);
+	const handleStudyDayStart = useCallback(
+		(dayIndex: number, order: "sequential" | "random", direction: CardDirection) => {
+			if (viewState.type !== "study-setup") return;
+			void handleStudyDay(viewState.deckId, dayIndex, order, direction);
+		},
+		[handleStudyDay, viewState],
+	);
+	const handleStudyDaySpelling = useCallback(
+		(dayIndex: number) => {
+			if (viewState.type !== "study-setup") return;
+			void handleSpellingDay(viewState.deckId, dayIndex);
+		},
+		[handleSpellingDay, viewState],
+	);
+	const handlePracticeStart = useCallback(
+		(options: PracticeSessionStartOptions) => {
+			if (viewState.type !== "practice-setup") return;
+			void handleStartPractice(viewState.deckId, options);
+		},
+		[handleStartPractice, viewState],
+	);
+	const handleSpellingStart = useCallback(
+		(options: SpellingSessionStartOptions) => {
+			if (viewState.type !== "spelling-setup") return;
+			void handleStartSpelling(viewState.deckId, options);
+		},
+		[handleStartSpelling, viewState],
+	);
+	const handleWordListBack = useCallback(() => {
+		if (viewState.type !== "word-list") return;
+		handleCloseWordListForDeck(viewState.deckId);
+	}, [handleCloseWordListForDeck, viewState]);
+
+	// Cached derived data keyed on the store revision.
+	const studyHistory = useMemo(() => {
+		void revision;
+		return dataStore.getStudyHistory();
+	}, [dataStore, revision]);
+	const spellingSetupStats = useMemo(() => {
+		void revision;
+		if (viewState.type !== "spelling-setup") return null;
+		const deck = dataStore.getDeck(viewState.deckId);
+		if (!deck) return null;
+		return getSpellingDeckProgressStats(deck.cards, dataStore.getSpellingProgress());
+	}, [dataStore, revision, viewState]);
+
 	const handleDeleteCard = useCallback(
 		async (deckId: string, cardId: string) => {
 			const card = dataStore.getCard(deckId, cardId);
@@ -698,10 +804,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						session={presentedLifecycleSnapshot}
 						transition={answerPresentationTransition}
 						isTransitioning={isAnswerTransitioning}
-						onComplete={() => setViewState({ type: "home" })}
+						onComplete={handleSessionComplete}
 						onEditCard={handleOpenEditCard}
 						onDeleteCard={handleDeleteCardRequest}
-						onClose={() => void handleExitActive("study")}
+						onClose={handleExitStudy}
 						markdownRenderer={renderMarkdown}
 						pronunciationRuntime={pronunciationRuntime}
 						pronunciationEnabled={Boolean(
@@ -720,7 +826,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						isTransitioning={isAnswerTransitioning}
 						onEditCard={handleOpenEditCard}
 						onDeleteCard={handleDeleteCardRequest}
-						onClose={() => void handleExitActive("practice")}
+						onClose={handleExitPractice}
 						markdownRenderer={renderMarkdown}
 						pronunciationRuntime={pronunciationRuntime}
 						pronunciationEnabled={Boolean(
@@ -739,7 +845,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					feedback={answerPresentationSnapshot.spellingFeedback}
 					onEditCard={handleOpenEditCard}
 					onDeleteCard={handleDeleteCardRequest}
-					onClose={() => void handleExitActive("spelling")}
+					onClose={handleExitSpelling}
 					markdownRenderer={renderMarkdown}
 					pronunciationRuntime={pronunciationRuntime}
 				/>
@@ -750,17 +856,17 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			return presentedLifecycleSnapshot.mode === "practice" ? (
 				<PracticeSummary
 					result={presentedLifecycleSnapshot}
-					onRestart={() => void handleResultRestart()}
-					onPracticeIncorrect={() => void handleRetryIncorrect()}
-					onHome={() => void handleResultHome()}
+					onRestart={handlePracticeRestart}
+					onPracticeIncorrect={handlePracticeRetryIncorrect}
+					onHome={handleResultHomeClick}
 					markdownRenderer={renderMarkdown}
 				/>
 			) : (
 				<SpellingSummary
 					result={presentedLifecycleSnapshot}
-					onRetryIncorrect={() => void handleRetryIncorrect()}
-					onRestart={() => void handleResultRestart()}
-					onHome={() => void handleResultHome()}
+					onRetryIncorrect={handlePracticeRetryIncorrect}
+					onRestart={handlePracticeRestart}
+					onHome={handleResultHomeClick}
 					markdownRenderer={renderMarkdown}
 				/>
 			);
@@ -792,16 +898,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 								? studySetupDefaults.direction
 								: "normal"
 						}
-						onStart={(order, direction) =>
-							handleStartStudyFromSetup(viewState.deckId, order, direction)
-						}
-						onStartDay={(dayIndex, order, direction) =>
-							handleStudyDay(viewState.deckId, dayIndex, order, direction)
-						}
+						onStart={handleStudyStart}
+						onStartDay={handleStudyDayStart}
 						spellingEnabled={Boolean(settings.wordLearningDecks[viewState.deckId])}
-						onStartDaySpelling={(dayIndex) =>
-							handleSpellingDay(viewState.deckId, dayIndex)
-						}
+						onStartDaySpelling={handleStudyDaySpelling}
 						onBack={handleBackHome}
 					/>
 				);
@@ -818,9 +918,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						deck={deck}
 						defaultDirection={practiceSetupDefaults?.direction ?? "normal"}
 						defaultOptions={practiceSetupDefaults ?? undefined}
-						onStartPractice={(options) =>
-							handleStartPractice(viewState.deckId, options)
-						}
+						onStartPractice={handlePracticeStart}
 						onBack={handleBackHome}
 					/>
 				);
@@ -833,12 +931,15 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					<SpellingSetup
 						key={deck.id}
 						deck={deck}
-						stats={getSpellingDeckProgressStats(
-							deck.cards,
-							dataStore.getSpellingProgress(),
-						)}
+						stats={
+							spellingSetupStats ??
+							getSpellingDeckProgressStats(
+								deck.cards,
+								dataStore.getSpellingProgress(),
+							)
+						}
 						defaultOptions={spellingSetupDefaults ?? undefined}
-						onStart={(options) => handleStartSpelling(deck.id, options)}
+						onStart={handleSpellingStart}
 						onBack={handleBackHome}
 					/>
 				);
@@ -849,17 +950,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				if (!deck) {
 					return renderHome();
 				}
-				return (
-					<WordListView
-						key={deck.id}
-						deck={deck}
-						onBack={() => handleCloseWordList(viewState.deckId)}
-					/>
-				);
+				return <WordListView key={deck.id} deck={deck} onBack={handleWordListBack} />;
 			}
 
 			case "stats":
-				return <StatsView history={dataStore.getStudyHistory()} onBack={handleBackHome} />;
+				return <StatsView history={studyHistory} onBack={handleBackHome} />;
 
 			case "home":
 			default:

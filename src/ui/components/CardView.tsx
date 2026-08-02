@@ -29,7 +29,7 @@ interface CardViewProps {
 	pronunciationEnabled: boolean;
 }
 
-export const CardView: React.FC<CardViewProps> = ({
+export const CardView = React.memo(function CardView({
 	session,
 	transition,
 	isTransitioning,
@@ -40,7 +40,7 @@ export const CardView: React.FC<CardViewProps> = ({
 	markdownRenderer,
 	pronunciationRuntime,
 	pronunciationEnabled,
-}) => {
+}: CardViewProps) {
 	const { t, language } = useI18n();
 	const [showAnswer, setShowAnswer] = useState(false);
 
@@ -283,4 +283,4 @@ export const CardView: React.FC<CardViewProps> = ({
 			</div>
 		</div>
 	);
-};
+});

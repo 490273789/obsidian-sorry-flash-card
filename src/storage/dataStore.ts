@@ -77,6 +77,12 @@ interface SerializedFSRSCard {
 	learning_steps: number;
 }
 
+/** Quick lookup for a card's deck + position, keyed by stable card identity. */
+interface CardIndexLocation {
+	deckId: string;
+	cardIndex: number;
+}
+
 /**
  * DataStore - handles persistence and management of flashcard data
  */
@@ -93,6 +99,21 @@ export class DataStore {
 	private dataLoaded = false;
 	private revision = 0;
 	private readonly revisionListeners = new Set<() => void>();
+	/** Card identity -> { deckId, cardIndex } lookup, rebuilt whenever decks are replaced. */
+	private cardIndex = new Map<string, CardIndexLocation>();
+	/**
+	 * Serialization cache keyed by deck object identity. Decks are replaced with
+	 * fresh objects whenever their content changes, so a cached entry is valid as
+	 * long as the deck reference is unchanged. Avoids re-serializing every deck on
+	 * every answer commit.
+	 */
+	private serializedDeckCache = new WeakMap<Deck, SerializedDeck>();
+	/** Sorted non-new due times per deck, used by DeckHome's next-wake timer. */
+	private deckDueTimes = new Map<string, number[]>();
+	private deckDueTimesValid = false;
+	/** Per-deck cached index-ordered card arrays; invalidated only for decks whose cards changed. */
+	private sortedCardsCache = new Map<string, FlashCard[]>();
+	private sortedCardsDirty = new Set<string>();
 
 	constructor(plugin: Plugin, settings?: FlashcardSettings) {
 		this.plugin = plugin;
@@ -145,6 +166,7 @@ export class DataStore {
 		}
 		this.spellingProgress = normalizeSpellingProgress(data?.spellingProgress);
 		this.continuity = cloneContinuityState(data?.continuity ?? createEmptyContinuityState());
+		this.refreshDerivedState();
 
 		this.scheduler = new FSRSScheduler(this.settings);
 		this.dataLoaded = true;
@@ -262,6 +284,7 @@ export class DataStore {
 		}
 		this.spellingProgress = normalizeSpellingProgress(data?.spellingProgress);
 		this.continuity = cloneContinuityState(data?.continuity ?? createEmptyContinuityState());
+		this.refreshDerivedState();
 		this.dataLoaded = true;
 		this.publishRevision();
 	}
@@ -278,16 +301,26 @@ export class DataStore {
 	/**
 	 * Atomically applies every persisted effect produced by one session lifecycle transition.
 	 * The visible in-memory state changes only after the complete next state is durable.
+	 *
+	 * Only the decks touched by the transition are cloned; untouched decks keep
+	 * their object identity so their cached serialized form stays reusable.
 	 */
 	async commitSessionTransition(transition: SessionPersistenceTransition): Promise<void> {
-		const nextDecks = cloneDecks(this.decks);
+		const nextDecks = cloneDecksForTransition(this.decks, transition, this.cardIndex);
 		const nextHistory = [...this.studyHistory];
 		const nextSpellingProgress = cloneSpellingProgress(this.spellingProgress);
+		const updatedDeckIds = new Set<string>();
 		const now = new Date();
 
 		for (const update of transition.cardUpdates) {
-			const location = findCardLocation(nextDecks, update.deckId, update.cardId);
+			const location = findCardLocation(
+				nextDecks,
+				update.deckId,
+				update.cardId,
+				this.cardIndex,
+			);
 			if (!location) continue;
+			updatedDeckIds.add(location.deckId);
 			location.deck.cards[location.cardIndex] = {
 				...location.deck.cards[location.cardIndex]!,
 				fsrsCard: update.fsrsCard,
@@ -325,6 +358,15 @@ export class DataStore {
 		this.decks = nextDecks;
 		this.studyHistory = nextHistory;
 		this.spellingProgress = nextSpellingProgress;
+		// Card positions are unchanged by a session transition, so the card index
+		// stays valid; only the touched decks need their derived caches refreshed.
+		for (const deckId of updatedDeckIds) {
+			this.sortedCardsDirty.add(deckId);
+			this.refreshDeckDueTimes(deckId, nextDecks);
+		}
+		for (const deckId of transition.incrementStudyCountFor) {
+			this.sortedCardsDirty.add(deckId);
+		}
 		this.publishRevision();
 	}
 
@@ -345,9 +387,88 @@ export class DataStore {
 		};
 
 		for (const [id, deck] of decks) {
-			data.decks[id] = this.serializeDeck(deck);
+			data.decks[id] = this.getSerializedDeck(deck);
 		}
 		return data;
+	}
+
+	/**
+	 * Returns the serialized form of a deck, reusing the cached copy when the
+	 * deck object reference has not changed since the last serialization.
+	 */
+	private getSerializedDeck(deck: Deck): SerializedDeck {
+		const cached = this.serializedDeckCache.get(deck);
+		if (cached) return cached;
+		const serialized = this.serializeDeck(deck);
+		this.serializedDeckCache.set(deck, serialized);
+		return serialized;
+	}
+
+	/**
+	 * Rebuilds every derived cache that depends on the deck collection after the
+	 * decks map has been replaced wholesale (load, continuity commit).
+	 */
+	private refreshDerivedState(): void {
+		this.rebuildCardIndex();
+		this.deckDueTimesValid = false;
+		this.sortedCardsCache.clear();
+		this.sortedCardsDirty.clear();
+	}
+
+	private rebuildCardIndex(): void {
+		this.cardIndex.clear();
+		for (const [deckId, deck] of this.decks) {
+			for (let index = 0; index < deck.cards.length; index++) {
+				const card = deck.cards[index]!;
+				if (!this.cardIndex.has(card.id)) {
+					this.cardIndex.set(card.id, { deckId, cardIndex: index });
+				}
+			}
+		}
+	}
+
+	/** Minimum future due time (epoch ms) among all non-new cards, or null when nothing is due later. */
+	getNextDueTime(now: Date): number | null {
+		if (!this.deckDueTimesValid) this.rebuildDeckDueTimes();
+		const nowMs = now.getTime();
+		let min = Infinity;
+		for (const dueTimes of this.deckDueTimes.values()) {
+			const due = findFirstDueAfter(dueTimes, nowMs);
+			if (due !== null && due < min) min = due;
+		}
+		return min === Infinity ? null : min;
+	}
+
+	private rebuildDeckDueTimes(decks: ReadonlyMap<string, Deck> = this.decks): void {
+		this.deckDueTimes.clear();
+		for (const [deckId, deck] of decks) {
+			const dueTimes = collectDeckDueTimes(deck);
+			if (dueTimes.length > 0) this.deckDueTimes.set(deckId, dueTimes);
+		}
+		this.deckDueTimesValid = true;
+	}
+
+	private refreshDeckDueTimes(deckId: string, decks: ReadonlyMap<string, Deck>): void {
+		if (!this.deckDueTimesValid) return;
+		const deck = decks.get(deckId);
+		if (!deck) {
+			this.deckDueTimes.delete(deckId);
+			return;
+		}
+		const dueTimes = collectDeckDueTimes(deck);
+		if (dueTimes.length === 0) this.deckDueTimes.delete(deckId);
+		else this.deckDueTimes.set(deckId, dueTimes);
+	}
+
+	/** Index-ordered cards for a deck, cached until the deck's cards actually change. */
+	private getSortedCards(deckId: string): FlashCard[] {
+		const cached = this.sortedCardsCache.get(deckId);
+		if (cached && !this.sortedCardsDirty.has(deckId)) return cached;
+		const deck = this.decks.get(deckId);
+		const sorted = deck ? [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile) : [];
+		this.sortedCardsCache.set(deckId, sorted);
+		this.sortedCardsDirty.delete(deckId);
+		return sorted;
 	}
 
 	createContinuityStateStore(): ContinuityStateStore {
@@ -376,6 +497,7 @@ export class DataStore {
 				this.spellingProgress = nextSpellingProgress;
 				this.availableTags = [...(state.availableTags ?? this.availableTags)];
 				this.continuity = nextContinuity;
+				this.refreshDerivedState();
 				this.publishRevision();
 			},
 		};
@@ -553,7 +675,7 @@ export class DataStore {
 		if (!deck) return [];
 
 		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
-		const sortedCards = [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile);
+		const sortedCards = this.getSortedCards(deckId);
 		const totalCards = sortedCards.length;
 		if (totalCards === 0) return [];
 
@@ -622,7 +744,7 @@ export class DataStore {
 		if (!deck) return [];
 
 		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
-		const sortedCards = [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile);
+		const sortedCards = this.getSortedCards(deckId);
 		const start = dayIndex * dailyNewCards;
 		const end = Math.min(start + dailyNewCards, sortedCards.length);
 		return sortedCards.slice(start, end);
@@ -644,12 +766,20 @@ export class DataStore {
 	}
 
 	/**
-	 * Get a card by ID from a deck
+	 * Get a card by ID from a deck.
+	 * Prefers the origin deck, then falls back to the card index for cross-deck
+	 * lookups (used by sessions whose source deck changed while active).
 	 */
 	getCard(deckId: string, cardId: string): FlashCard | undefined {
 		const deck = this.decks.get(deckId);
 		const cardInOriginDeck = deck?.cards.find((card) => card.id === cardId);
 		if (cardInOriginDeck) return cardInOriginDeck;
+		const location = this.cardIndex.get(cardId);
+		if (location && location.deckId !== deckId) {
+			const candidateDeck = this.decks.get(location.deckId);
+			const card = candidateDeck?.cards[location.cardIndex];
+			if (card && card.id === cardId) return card;
+		}
 		for (const candidateDeck of this.decks.values()) {
 			const card = candidateDeck.cards.find((candidate) => candidate.id === cardId);
 			if (card) return card;
@@ -809,16 +939,52 @@ function normalizeSpellingProgress(
 	return normalized;
 }
 
-function cloneDecks(decks: ReadonlyMap<string, Deck>): Map<string, Deck> {
-	return new Map(
-		Array.from(decks.entries()).map(([deckId, deck]) => [
-			deckId,
-			{
-				...deck,
-				cards: deck.cards.map((card) => ({ ...card })),
-			},
-		]),
-	);
+/**
+ * Clones only the decks touched by a session transition; untouched decks keep
+ * their object identity so cached serialized forms remain valid.
+ */
+function cloneDecksForTransition(
+	decks: ReadonlyMap<string, Deck>,
+	transition: SessionPersistenceTransition,
+	cardIndex: ReadonlyMap<string, CardIndexLocation>,
+): Map<string, Deck> {
+	const touched = new Set<string>();
+	for (const update of transition.cardUpdates) {
+		const location = findCardLocation(decks, update.deckId, update.cardId, cardIndex);
+		if (location) touched.add(location.deckId);
+	}
+	for (const deckId of transition.incrementStudyCountFor) touched.add(deckId);
+
+	const next = new Map<string, Deck>();
+	for (const [deckId, deck] of decks) {
+		if (!touched.has(deckId)) {
+			next.set(deckId, deck);
+			continue;
+		}
+		next.set(deckId, {
+			...deck,
+			cards: deck.cards.map((card) => ({ ...card })),
+		});
+	}
+	return next;
+}
+
+function collectDeckDueTimes(deck: Deck): number[] {
+	return deck.cards
+		.filter((card) => card.fsrsCard.state !== State.New)
+		.map((card) => card.fsrsCard.due.getTime())
+		.sort((left, right) => left - right);
+}
+
+function findFirstDueAfter(sortedDueTimes: readonly number[], now: number): number | null {
+	let low = 0;
+	let high = sortedDueTimes.length;
+	while (low < high) {
+		const middle = low + Math.floor((high - low) / 2);
+		if (sortedDueTimes[middle]! <= now) low = middle + 1;
+		else high = middle;
+	}
+	return sortedDueTimes[low] ?? null;
 }
 
 function cloneSpellingProgress(
@@ -833,15 +999,32 @@ function findCardLocation(
 	decks: ReadonlyMap<string, Deck>,
 	deckId: string,
 	cardId: string,
-): { deck: Deck; cardIndex: number } | null {
+	cardIndex?: ReadonlyMap<string, CardIndexLocation>,
+): { deckId: string; deck: Deck; cardIndex: number } | null {
 	const originDeck = decks.get(deckId);
 	const originIndex = originDeck?.cards.findIndex((card) => card.id === cardId) ?? -1;
 	if (originDeck && originIndex !== -1) {
-		return { deck: originDeck, cardIndex: originIndex };
+		return { deckId, deck: originDeck, cardIndex: originIndex };
 	}
-	for (const deck of decks.values()) {
-		const cardIndex = deck.cards.findIndex((card) => card.id === cardId);
-		if (cardIndex !== -1) return { deck, cardIndex };
+	if (cardIndex) {
+		const location = cardIndex.get(cardId);
+		if (location) {
+			const candidateDeck = decks.get(location.deckId);
+			const card = candidateDeck?.cards[location.cardIndex];
+			if (card && card.id === cardId) {
+				return {
+					deckId: location.deckId,
+					deck: candidateDeck!,
+					cardIndex: location.cardIndex,
+				};
+			}
+		}
+	}
+	for (const [candidateDeckId, deck] of decks) {
+		const cardIndexInDeck = deck.cards.findIndex((card) => card.id === cardId);
+		if (cardIndexInDeck !== -1) {
+			return { deckId: candidateDeckId, deck, cardIndex: cardIndexInDeck };
+		}
 	}
 	return null;
 }

@@ -14,7 +14,7 @@ interface StatsViewProps {
 	onBack: () => void;
 }
 
-export const StatsView: React.FC<StatsViewProps> = ({ history, onBack }) => {
+export const StatsView = React.memo(function StatsView({ history, onBack }: StatsViewProps) {
 	const { t, language } = useI18n();
 	const presentation = useMemo(
 		() => buildStudyHistoryPresentationModel(history, { language, t }),
@@ -125,4 +125,4 @@ export const StatsView: React.FC<StatsViewProps> = ({ history, onBack }) => {
 			</div>
 		</div>
 	);
-};
+});

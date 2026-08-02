@@ -62,15 +62,15 @@ export class FlashcardView extends ItemView {
 		container.empty();
 		container.addClass("flashcard-container");
 
-		// Single vault scan: syncs decks and caches available tags
-		await this.deckHome.act({ kind: "refresh" });
-
-		// Create React root
+		// Create React root first so the cached home snapshot paints immediately;
+		// the vault scan runs in the background and the UI already renders a
+		// "refreshing" state while it is in flight.
 		const rootEl = container.createDiv({ cls: "flashcard-root" });
 		this.modalHost = rootEl;
 		this.root = createRoot(rootEl);
 
 		this.renderApp();
+		void this.deckHome.act({ kind: "refresh" });
 	}
 
 	private renderApp(): void {

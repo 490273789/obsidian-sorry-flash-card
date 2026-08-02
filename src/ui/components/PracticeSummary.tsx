@@ -23,13 +23,13 @@ function getAccuracyColor(accuracy: number): string {
 	return "var(--color-red)";
 }
 
-export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
+export const PracticeSummary = React.memo(function PracticeSummary({
 	result,
 	onRestart,
 	onPracticeIncorrect,
 	onHome,
 	markdownRenderer,
-}) => {
+}: PracticeSummaryProps) {
 	const { t, language } = useI18n();
 	const completionMessage = useMemo(() => {
 		if (result.incorrectCount === 0) {
@@ -155,7 +155,7 @@ export const PracticeSummary: React.FC<PracticeSummaryProps> = ({
 			</div>
 		</div>
 	);
-};
+});
 
 interface IncorrectCardItemProps {
 	card: SessionCardSnapshot;

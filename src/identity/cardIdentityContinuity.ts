@@ -12,10 +12,17 @@ export interface ContinuitySourceDocument {
 	path: string;
 	basename: string;
 	content: string;
+	/** Cached content used only to discover tags; never authoritative for source changes. */
+	discoveryOnly?: boolean;
 }
 
 export interface ContinuitySourceStore {
-	list(): Promise<ContinuitySourceDocument[]>;
+	/**
+	 * Lists authoritative source documents plus optional discovery-only cached
+	 * documents. Adapters may use `configuredTags` to avoid live reads for files
+	 * that cannot belong to the current deck index.
+	 */
+	list(configuredTags?: string[]): Promise<ContinuitySourceDocument[]>;
 	replaceIfUnchanged(
 		path: string,
 		expectedContent: string,
@@ -207,10 +214,8 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 
 	private async synchronizeNow(): Promise<SynchronizeOutcome> {
 		try {
-			let [documents, currentState] = await Promise.all([
-				this.options.sources.list(),
-				this.options.state.load(),
-			]);
+			let currentState = await this.options.state.load();
+			let documents = await this.options.sources.list(currentState.configuredTags);
 			if (currentState.continuity.journal) {
 				const recovery = await this.executeJournal(documents, currentState);
 				if (recovery.kind !== "applied") {
@@ -223,10 +228,8 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 								: "Card identity journal is waiting for the source to stop changing",
 					};
 				}
-				[documents, currentState] = await Promise.all([
-					this.options.sources.list(),
-					this.options.state.load(),
-				]);
+				currentState = await this.options.state.load();
+				documents = await this.options.sources.list(currentState.configuredTags);
 			}
 			const configuredTags = new Set(
 				currentState.configuredTags.map((tag) => tag.toLowerCase()),
@@ -240,12 +243,10 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 
 			for (const document of documents) {
 				const tag = extractFirstTag(document.content);
-				if (tag && hasFlashcardSyntax(document.content)) availableTags.add(tag);
-				if (
-					!tag ||
-					!configuredTags.has(tag.toLowerCase()) ||
-					!hasFlashcardSyntax(document.content)
-				) {
+				const hasCards = hasFlashcardSyntax(document.content);
+				if (tag && hasCards) availableTags.add(tag);
+				if (document.discoveryOnly) continue;
+				if (!tag || !configuredTags.has(tag.toLowerCase()) || !hasCards) {
 					continue;
 				}
 
@@ -427,10 +428,8 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 
 	private async changeNow(change: PluginCardChange): Promise<CardChangeOutcome> {
 		try {
-			let [documents, currentState] = await Promise.all([
-				this.options.sources.list(),
-				this.options.state.load(),
-			]);
+			let currentState = await this.options.state.load();
+			let documents = await this.options.sources.list(currentState.configuredTags);
 			if (currentState.continuity.journal) {
 				const recovery = await this.executeJournal(documents, currentState);
 				if (recovery.kind !== "applied") {
@@ -440,10 +439,8 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 						message: "An unfinished card identity operation is waiting to resume",
 					};
 				}
-				[documents, currentState] = await Promise.all([
-					this.options.sources.list(),
-					this.options.state.load(),
-				]);
+				currentState = await this.options.state.load();
+				documents = await this.options.sources.list(currentState.configuredTags);
 			}
 			const deck =
 				change.kind === "add"
@@ -515,17 +512,13 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 		if (resolution.kind === "repair") return this.resolveRepair(resolution);
 
 		try {
-			let [documents, currentState] = await Promise.all([
-				this.options.sources.list(),
-				this.options.state.load(),
-			]);
+			let currentState = await this.options.state.load();
+			let documents = await this.options.sources.list(currentState.configuredTags);
 			if (currentState.continuity.journal) {
 				const recovery = await this.executeJournal(documents, currentState);
 				if (recovery.kind !== "applied") return recovery;
-				[documents, currentState] = await Promise.all([
-					this.options.sources.list(),
-					this.options.state.load(),
-				]);
+				currentState = await this.options.state.load();
+				documents = await this.options.sources.list(currentState.configuredTags);
 			}
 			if (this.options.sessions?.hasActiveSession()) {
 				return { kind: "blocked", reason: "active-session" };
@@ -596,17 +589,13 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 		resolution: Extract<ContinuityResolution, { kind: "repair" }>,
 	): Promise<ResolutionOutcome> {
 		try {
-			let [documents, currentState] = await Promise.all([
-				this.options.sources.list(),
-				this.options.state.load(),
-			]);
+			let currentState = await this.options.state.load();
+			let documents = await this.options.sources.list(currentState.configuredTags);
 			if (currentState.continuity.journal) {
 				const recovery = await this.executeJournal(documents, currentState);
 				if (recovery.kind !== "applied") return recovery;
-				[documents, currentState] = await Promise.all([
-					this.options.sources.list(),
-					this.options.state.load(),
-				]);
+				currentState = await this.options.state.load();
+				documents = await this.options.sources.list(currentState.configuredTags);
 			}
 			const issue = currentState.continuity.issues.find(
 				(candidate) => candidate.id === resolution.issueId,

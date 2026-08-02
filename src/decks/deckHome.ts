@@ -1,11 +1,13 @@
-import { State } from "ts-fsrs";
 import type {
 	CardIdentityContinuity,
 	MigrationPreview,
 	ResolutionOutcome,
 	SynchronizeOutcome,
 } from "../identity/cardIdentityContinuity";
-import { evaluateSpellingDeckEligibility } from "../sessions/spellingSessionPlanner";
+import {
+	evaluateSpellingDeckEligibility,
+	type SpellingDeckEligibility,
+} from "../sessions/spellingSessionPlanner";
 import type { Deck, DeckStats, FlashcardSettings, StudySettings } from "../shared/types";
 import type { DeckPdfExportProgress, DeckPdfExportResult } from "./deckPdfExporter";
 
@@ -190,6 +192,8 @@ export interface DeckHomeRepository {
 	getAllDecks(): Deck[];
 	getDeckStats(deck: Deck, now?: Date): DeckStats;
 	getSettings(): FlashcardSettings;
+	/** Earliest future due time (epoch ms) across all decks, or null when nothing is due later. */
+	getNextDueTime(now: Date): number | null;
 }
 
 export interface DeckHomeSettingsPatch {
@@ -266,6 +270,13 @@ class DefaultDeckHome implements DeckHome {
 	private timer: unknown = null;
 	private disposed = false;
 	private readonly unsubscribeRepository: () => void;
+	/** Per-deck statistics keyed by stable deck object identity. */
+	private readonly deckStatsCache = new Map<string, { deck: Deck; stats: DeckStats }>();
+	/** Per-deck spelling eligibility keyed by deck object identity and the enabled flag. */
+	private readonly deckEligibilityCache = new Map<
+		string,
+		{ deck: Deck; enabled: boolean; eligibility: SpellingDeckEligibility }
+	>();
 
 	constructor(private readonly options: CreateDeckHomeOptions) {
 		this.clock = options.clock ?? systemClock;
@@ -282,6 +293,8 @@ class DefaultDeckHome implements DeckHome {
 		const firstSubscriber = this.listeners.size === 0;
 		this.listeners.add(listener);
 		if (firstSubscriber) {
+			this.deckStatsCache.clear();
+			this.deckEligibilityCache.clear();
 			this.snapshot = this.buildSnapshot();
 			this.scheduleTimer();
 		}
@@ -645,8 +658,17 @@ class DefaultDeckHome implements DeckHome {
 		return { kind: "navigation", destination, deckId };
 	}
 
-	private publish(): void {
+	/**
+	 * Publishes a new snapshot. Pass `force` when wall-clock time matters
+	 * (e.g. a due timer fired); this drops the per-deck caches so statistics are
+	 * recomputed against the current time.
+	 */
+	private publish(force = false): void {
 		if (this.disposed) return;
+		if (force) {
+			this.deckStatsCache.clear();
+			this.deckEligibilityCache.clear();
+		}
 		this.snapshot = this.buildSnapshot();
 		this.scheduleTimer();
 		for (const listener of this.listeners) {
@@ -662,9 +684,10 @@ class DefaultDeckHome implements DeckHome {
 		const now = this.clock.now();
 		const settings = this.options.repository.getSettings();
 		const decks = this.options.repository.getAllDecks();
+		const revision = this.options.repository.getRevision();
 		const deckSnapshots = decks.map((deck): DeckHomeDeckSnapshot => {
-			const stats = this.options.repository.getDeckStats(deck, now);
-			const spelling = evaluateSpellingDeckEligibility(
+			const stats = this.getDeckStatsCached(deck, now);
+			const spelling = this.getDeckEligibilityCached(
 				deck,
 				settings.wordLearningDecks[deck.id] === true,
 			);
@@ -698,7 +721,7 @@ class DefaultDeckHome implements DeckHome {
 		);
 		const migration = this.options.identity.inspect().migration;
 		return freezeDeckHomeSnapshot({
-			revision: this.options.repository.getRevision(),
+			revision,
 			decks: deckSnapshots,
 			totals,
 			migration: migration
@@ -708,6 +731,26 @@ class DefaultDeckHome implements DeckHome {
 			export: this.exportActivity,
 			settingsDraft: this.buildSettingsDraftSnapshot(decks, settings),
 		});
+	}
+
+	/** getDeckStats with an object-identity cache so untouched decks are not rescanned. */
+	private getDeckStatsCached(deck: Deck, now: Date): DeckStats {
+		const cached = this.deckStatsCache.get(deck.id);
+		if (cached?.deck === deck) return cached.stats;
+		const stats = this.options.repository.getDeckStats(deck, now);
+		this.deckStatsCache.set(deck.id, { deck, stats });
+		return stats;
+	}
+
+	/** evaluateSpellingDeckEligibility with a per-deck object-identity cache. */
+	private getDeckEligibilityCached(deck: Deck, enabled: boolean): SpellingDeckEligibility {
+		const cached = this.deckEligibilityCache.get(deck.id);
+		if (cached?.deck === deck && cached.enabled === enabled) {
+			return cached.eligibility;
+		}
+		const eligibility = evaluateSpellingDeckEligibility(deck, enabled);
+		this.deckEligibilityCache.set(deck.id, { deck, enabled, eligibility });
+		return eligibility;
 	}
 
 	private buildSettingsDraftSnapshot(
@@ -748,17 +791,14 @@ class DefaultDeckHome implements DeckHome {
 		const midnight = new Date(now);
 		midnight.setHours(24, 0, 0, 0);
 		let wakeAt = midnight.getTime();
-		for (const deck of this.options.repository.getAllDecks()) {
-			for (const card of deck.cards) {
-				if (card.fsrsCard.state === State.New) continue;
-				const due = card.fsrsCard.due.getTime();
-				if (due > now.getTime() && due < wakeAt) wakeAt = due;
-			}
-		}
+		const nextDue = this.options.repository.getNextDueTime(now);
+		if (nextDue !== null && nextDue > now.getTime() && nextDue < wakeAt) wakeAt = nextDue;
 		this.timer = this.clock.setTimeout(
 			() => {
 				this.timer = null;
-				this.publish();
+				// Force a statistics rebuild: the timer fired because wall-clock
+				// time advanced (a card came due or the day rolled over).
+				this.publish(true);
 			},
 			Math.max(1, wakeAt - now.getTime()),
 		);

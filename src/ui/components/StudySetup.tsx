@@ -114,7 +114,7 @@ const StudyDayRow = memo(function StudyDayRow({
 	);
 });
 
-export const StudySetup: React.FC<StudySetupProps> = ({
+export const StudySetup = React.memo(function StudySetup({
 	deck,
 	todayNewCount,
 	todayReviewCount,
@@ -126,7 +126,7 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 	spellingEnabled,
 	onStartDaySpelling,
 	onBack,
-}) => {
+}: StudySetupProps) {
 	const { t } = useI18n();
 	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(defaultStudyOrder);
 	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
@@ -291,4 +291,4 @@ export const StudySetup: React.FC<StudySetupProps> = ({
 			</div>
 		</div>
 	);
-};
+});

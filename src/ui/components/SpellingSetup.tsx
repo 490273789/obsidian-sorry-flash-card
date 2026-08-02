@@ -21,13 +21,13 @@ interface SpellingSetupProps {
 	onBack: () => void;
 }
 
-export const SpellingSetup: React.FC<SpellingSetupProps> = ({
+export const SpellingSetup = React.memo(function SpellingSetup({
 	deck,
 	stats,
 	defaultOptions,
 	onStart,
 	onBack,
-}) => {
+}: SpellingSetupProps) {
 	const { t } = useI18n();
 	const maxQuestions = stats.total;
 	const defaultCount = Math.min(20, maxQuestions);
@@ -257,4 +257,4 @@ export const SpellingSetup: React.FC<SpellingSetupProps> = ({
 			</div>
 		</div>
 	);
-};
+});

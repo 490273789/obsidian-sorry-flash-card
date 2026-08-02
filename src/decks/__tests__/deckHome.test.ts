@@ -58,6 +58,7 @@ function makeSettings(overrides: Partial<FlashcardSettings> = {}): FlashcardSett
 class MemoryRepository implements DeckHomeRepository {
 	private revision = 1;
 	private readonly listeners = new Set<() => void>();
+	readonly statsReads = new Map<string, number>();
 
 	constructor(
 		public decks: Deck[],
@@ -78,6 +79,7 @@ class MemoryRepository implements DeckHomeRepository {
 	}
 
 	getDeckStats(deck: Deck, now = new Date()) {
+		this.statsReads.set(deck.id, (this.statsReads.get(deck.id) ?? 0) + 1);
 		return {
 			totalCards: deck.cards.length,
 			newCards: deck.cards.filter((card) => card.fsrsCard.state === State.New).length,
@@ -92,6 +94,18 @@ class MemoryRepository implements DeckHomeRepository {
 
 	getSettings(): FlashcardSettings {
 		return this.settings;
+	}
+
+	getNextDueTime(now = new Date()): number | null {
+		let min = Infinity;
+		for (const deck of this.decks) {
+			for (const card of deck.cards) {
+				if (card.fsrsCard.state === State.New) continue;
+				const due = card.fsrsCard.due.getTime();
+				if (due > now.getTime() && due < min) min = due;
+			}
+		}
+		return min === Infinity ? null : min;
 	}
 
 	commit(change: () => void): void {
@@ -221,6 +235,34 @@ describe("DeckHome", () => {
 		expect(home.getSnapshot().revision).toBe(2);
 		expect(home.getSnapshot().totals.studyCount).toBe(9);
 		expect(listener).toHaveBeenCalledTimes(1);
+	});
+
+	it("reuses statistics for decks whose committed object did not change", () => {
+		const changedDeck = makeDeck("notes/changed.md");
+		const unchangedDeck = makeDeck("notes/unchanged.md");
+		const repository = new MemoryRepository([changedDeck, unchangedDeck]);
+		const home = createDeckHome({
+			repository,
+			identity: makeIdentity(),
+			saveSettingsPatch: vi.fn(),
+			exportDeck: vi.fn(),
+			report: (event) => events.push(event),
+		});
+		home.subscribe(vi.fn());
+		repository.statsReads.clear();
+
+		repository.commit(() => {
+			repository.decks = [
+				{
+					...changedDeck,
+					cards: changedDeck.cards.map((card) => ({ ...card })),
+				},
+				unchangedDeck,
+			];
+		});
+
+		expect(repository.statsReads.get(changedDeck.id)).toBe(1);
+		expect(repository.statsReads.get(unchangedDeck.id)).toBeUndefined();
 	});
 
 	it("owns one settings draft, submits a narrow patch, and retains it after failure", async () => {
@@ -399,5 +441,22 @@ describe("DeckHome", () => {
 		unsubscribe();
 		expect(clock.callback).toBeNull();
 		expect(clock.clearCount).toBeGreaterThan(0);
+	});
+
+	it("recomputes time-sensitive statistics when the first subscriber arrives", () => {
+		const clock = new FakeClock(new Date("2026-08-02T12:00:00.000Z"));
+		const home = createDeckHome({
+			repository: new MemoryRepository([makeDeck()]),
+			identity: makeIdentity(),
+			saveSettingsPatch: vi.fn(),
+			exportDeck: vi.fn(),
+			report: (event) => events.push(event),
+			clock,
+		});
+		clock.current = new Date("2026-08-02T12:02:00.000Z");
+
+		home.subscribe(vi.fn());
+
+		expect(home.getSnapshot().totals.dueCards).toBe(1);
 	});
 });

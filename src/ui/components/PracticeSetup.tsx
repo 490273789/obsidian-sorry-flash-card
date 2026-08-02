@@ -39,13 +39,13 @@ interface PracticeSetupProps {
 	onBack: () => void;
 }
 
-export const PracticeSetup: React.FC<PracticeSetupProps> = ({
+export const PracticeSetup = React.memo(function PracticeSetup({
 	deck,
 	defaultDirection,
 	defaultOptions,
 	onStartPractice,
 	onBack,
-}) => {
+}: PracticeSetupProps) {
 	const { t } = useI18n();
 	const maxQuestions = deck.cards.length;
 	const defaultQuestionCount = Math.min(50, maxQuestions);
@@ -403,4 +403,4 @@ export const PracticeSetup: React.FC<PracticeSetupProps> = ({
 			</div>
 		</div>
 	);
-};
+});

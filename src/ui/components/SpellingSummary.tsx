@@ -18,13 +18,13 @@ interface SpellingSummaryProps {
 	markdownRenderer: (content: string, el: HTMLElement) => Promise<void>;
 }
 
-export const SpellingSummary: React.FC<SpellingSummaryProps> = ({
+export const SpellingSummary = React.memo(function SpellingSummary({
 	result,
 	onRetryIncorrect,
 	onRestart,
 	onHome,
 	markdownRenderer,
-}) => {
+}: SpellingSummaryProps) {
 	const { t, language } = useI18n();
 	const incorrectCards = result.incorrectCards;
 
@@ -115,7 +115,7 @@ export const SpellingSummary: React.FC<SpellingSummaryProps> = ({
 			</div>
 		</div>
 	);
-};
+});
 
 function SummaryStat({
 	icon: Icon,

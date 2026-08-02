@@ -1,6 +1,6 @@
 import { createEmptyCard, State } from "ts-fsrs";
 import { describe, expect, it, vi } from "vitest";
-import type { Vault } from "obsidian";
+import type { App } from "obsidian";
 import { TFile } from "obsidian";
 import { createObsidianContinuitySourceStore } from "../cardIdentityContinuityAdapters";
 import {
@@ -34,6 +34,73 @@ class MemoryStateStore implements ContinuityStateStore {
 }
 
 describe("Obsidian continuity source store", () => {
+	it("discovers unconfigured flashcard tags without treating cached files as live sources", async () => {
+		const configuredPath = "notes/words.md";
+		const discoveredPath = "notes/phrases.md";
+		const configuredFile = Object.assign(new TFile(), {
+			path: configuredPath,
+			basename: "words",
+		});
+		const discoveredFile = Object.assign(new TFile(), {
+			path: discoveredPath,
+			basename: "phrases",
+		});
+		const contents = new Map([
+			[
+				configuredPath,
+				`#单词
+<!-- wsr-card-id: ${CARD_ID} -->
+apple
+??
+苹果
+;;`,
+			],
+			[
+				discoveredPath,
+				`#短语
+good morning
+??
+早上好
+;;`,
+			],
+		]);
+		const read = vi.fn(async (file: TFile) => contents.get(file.path) ?? "");
+		const cachedRead = vi.fn(async (file: TFile) => contents.get(file.path) ?? "");
+		const app = {
+			vault: {
+				getMarkdownFiles: () => [configuredFile, discoveredFile],
+				read,
+				cachedRead,
+				getAbstractFileByPath: () => null,
+				process: vi.fn(),
+			},
+			metadataCache: {
+				getFileCache: (file: TFile) => ({
+					tags: [{ tag: file === configuredFile ? "#单词" : "#短语" }],
+				}),
+			},
+		} as unknown as App;
+		const state = new MemoryStateStore({
+			configuredTags: ["#单词"],
+			availableTags: [],
+			decks: new Map(),
+			continuity: { sources: {}, issues: [], journal: null },
+		});
+		const continuity = createCardIdentityContinuity({
+			sources: createObsidianContinuitySourceStore(app),
+			state,
+			createIdentity: () => CARD_ID,
+		});
+
+		expect(await continuity.synchronize()).toMatchObject({ kind: "current" });
+		expect(state.state.availableTags).toEqual(["#单词", "#短语"]);
+		expect(state.state.decks.has(configuredPath)).toBe(true);
+		expect(state.state.decks.has(discoveredPath)).toBe(false);
+		expect(read).toHaveBeenCalledWith(configuredFile);
+		expect(read).not.toHaveBeenCalledWith(discoveredFile);
+		expect(cachedRead).toHaveBeenCalledWith(discoveredFile);
+	});
+
 	it("uses an uncached read so migration previews match atomic writes", async () => {
 		const path = "notes/legacy.md";
 		const currentContent = `#单词
@@ -55,7 +122,11 @@ apple
 				diskContent = transform(diskContent);
 				return diskContent;
 			},
-		} as unknown as Vault;
+		};
+		const app = {
+			vault,
+			metadataCache: undefined,
+		} as unknown as App;
 		const legacyDeck: Deck = {
 			id: path,
 			name: "legacy",
@@ -80,7 +151,7 @@ apple
 			continuity: { sources: {}, issues: [], journal: null },
 		});
 		const continuity = createCardIdentityContinuity({
-			sources: createObsidianContinuitySourceStore(vault),
+			sources: createObsidianContinuitySourceStore(app),
 			state,
 			createIdentity: () => CARD_ID,
 		});

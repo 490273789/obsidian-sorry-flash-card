@@ -168,7 +168,7 @@ const WordExplanationModal = memo(function WordExplanationModal({
 	);
 });
 
-export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
+export const WordListView = React.memo(function WordListView({ deck, onBack }: WordListViewProps) {
 	const { t } = useI18n();
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 	const listRef = useRef<HTMLDivElement | null>(null);
@@ -189,6 +189,10 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		height: DEFAULT_WORD_ROW_HEIGHT * 10,
 		width: 0,
 	});
+	// Batched row-height measurements: refs accumulate per-frame measurements
+	// and a single requestAnimationFrame applies them together.
+	const pendingRowHeightsRef = useRef<Map<string, number> | null>(null);
+	const rowHeightsFrameRef = useRef<number | null>(null);
 
 	const isShuffled = shuffledItems !== null;
 	const items = shuffledItems ?? sourceItems;
@@ -319,15 +323,45 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 		const measuredHeight = element.getBoundingClientRect().height;
 		if (measuredHeight <= 0) return;
 
-		setRowHeights((prev) => {
-			const currentHeight = prev.get(itemId);
-			if (currentHeight !== undefined && Math.abs(currentHeight - measuredHeight) <= 1) {
-				return prev;
-			}
-			const next = new Map(prev);
-			next.set(itemId, measuredHeight);
-			return next;
+		// Batch measurements made within one animation frame into a single
+		// setState, so scrolling through a large list does not trigger an
+		// O(N) virtual-rows recompute per measured row.
+		if (!pendingRowHeightsRef.current) {
+			pendingRowHeightsRef.current = new Map();
+		}
+		pendingRowHeightsRef.current.set(itemId, measuredHeight);
+		if (rowHeightsFrameRef.current !== null) return;
+		rowHeightsFrameRef.current = window.requestAnimationFrame(() => {
+			rowHeightsFrameRef.current = null;
+			const pending = pendingRowHeightsRef.current;
+			pendingRowHeightsRef.current = null;
+			if (!pending || pending.size === 0) return;
+			setRowHeights((prev) => {
+				let next: Map<string, number> | null = null;
+				for (const [pendingId, pendingHeight] of pending) {
+					const currentHeight = prev.get(pendingId);
+					if (
+						currentHeight !== undefined &&
+						Math.abs(currentHeight - pendingHeight) <= 1
+					) {
+						continue;
+					}
+					if (!next) next = new Map(prev);
+					next.set(pendingId, pendingHeight);
+				}
+				return next ?? prev;
+			});
 		});
+	}, []);
+
+	useEffect(() => {
+		return () => {
+			if (rowHeightsFrameRef.current !== null) {
+				window.cancelAnimationFrame(rowHeightsFrameRef.current);
+				rowHeightsFrameRef.current = null;
+			}
+			pendingRowHeightsRef.current = null;
+		};
 	}, []);
 
 	return (
@@ -408,4 +442,4 @@ export const WordListView: React.FC<WordListViewProps> = ({ deck, onBack }) => {
 			)}
 		</div>
 	);
-};
+});
