@@ -5,15 +5,15 @@
 .flashcard-word-learning-badge {
 	display: inline-flex;
 	align-items: center;
-	gap: 5px;
-	padding: 4px 8px;
+	gap: var(--fc-space-1);
+	padding: var(--fc-space-1) var(--fc-space-2);
 	border: 1px solid rgba(var(--fc-lime-rgb), 0.3);
 	border-radius: var(--fc-radius-xs);
 	background: rgba(var(--fc-lime-rgb), 0.08);
 	color: var(--fc-lime);
 	font-family: var(--fc-font-data);
 	font-size: var(--fc-font-xs);
-	font-weight: 600;
+	font-weight: var(--fc-weight-semibold);
 }
 
 .flashcard-word-learning-badge.is-invalid {
@@ -44,7 +44,7 @@
 	margin: var(--fc-space-1) 0 0;
 	color: var(--fc-muted);
 	font-size: var(--fc-font-sm);
-	line-height: 1.5;
+	line-height: var(--fc-line-body);
 }
 
 .flashcard-deck-settings-warning {
@@ -57,7 +57,7 @@
 	background: rgba(var(--fc-red-rgb), 0.08);
 	color: var(--fc-red);
 	font-size: var(--fc-font-sm);
-	line-height: 1.5;
+	line-height: var(--fc-line-body);
 }
 
 .flashcard-deck-settings-warning > div {
@@ -75,26 +75,26 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-2);
-	padding: 16px 18px;
+	padding: var(--fc-space-4) var(--fc-space-5);
 	border: 1px solid var(--fc-line);
 	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.72);
-	border-radius: 10px;
-	background: rgba(16, 21, 33, 0.62);
+	border-radius: var(--fc-radius-md);
+	background: rgba(var(--fc-bg-panel-rgb), 0.62);
 	color: var(--fc-muted);
 	font-size: var(--fc-font-sm);
-	font-weight: 600;
+	font-weight: var(--fc-weight-semibold);
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .flashcard-spelling-input-group input {
 	width: 100%;
 	min-height: 56px;
-	padding: 10px 14px;
+	padding: var(--fc-space-2) var(--fc-space-3);
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.42);
 	border-radius: var(--fc-radius-sm);
-	background: rgba(5, 7, 13, 0.78);
+	background: rgba(var(--fc-bg-rgb), 0.78);
 	color: var(--fc-text);
-	font: 700 var(--fc-font-xl) / 1.2 var(--fc-font-data);
+	font: var(--fc-weight-bold) var(--fc-font-xl) / var(--fc-line-tight) var(--fc-font-data);
 	letter-spacing: 0.04em;
 	text-align: center;
 	transition:
@@ -107,7 +107,7 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.68);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.035), transparent 52%),
-		rgba(7, 11, 20, 0.9);
+		rgba(var(--fc-bg-elevated-rgb), 0.9);
 	box-shadow:
 		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.12),
 		0 0 14px rgba(var(--fc-cyan-rgb), 0.08);
@@ -117,7 +117,7 @@
 	border-color: var(--fc-cyan);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 52%),
-		rgba(5, 7, 13, 0.94);
+		rgba(var(--fc-bg-rgb), 0.94);
 	box-shadow: var(--fc-glow-cyan);
 	outline: none;
 }
@@ -126,11 +126,11 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-3);
-	padding: 16px 18px;
+	padding: var(--fc-space-4) var(--fc-space-5);
 	border: 1px solid var(--fc-line);
 	border-left-width: 3px;
-	border-radius: 10px;
-	background: rgba(16, 21, 33, 0.62);
+	border-radius: var(--fc-radius-md);
+	background: rgba(var(--fc-bg-panel-rgb), 0.62);
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 	animation: var(--fc-motion-answer);
 }
@@ -141,7 +141,7 @@
 	justify-content: center;
 	border-color: var(--fc-line);
 	border-left-color: rgba(var(--fc-lime-rgb), 0.72);
-	background: rgba(16, 21, 33, 0.62);
+	background: rgba(var(--fc-bg-panel-rgb), 0.62);
 	color: var(--fc-lime);
 	font-size: var(--fc-font-md);
 }
@@ -155,7 +155,7 @@
 .flashcard-spelling-feedback.is-wrong {
 	border-color: var(--fc-line);
 	border-left-color: rgba(var(--fc-red-rgb), 0.72);
-	background: rgba(16, 21, 33, 0.62);
+	background: rgba(var(--fc-bg-panel-rgb), 0.62);
 }
 
 .flashcard-spelling-feedback-title {
@@ -163,23 +163,23 @@
 	align-items: center;
 	gap: var(--fc-space-2);
 	color: var(--fc-red);
-	font-weight: 700;
+	font-weight: var(--fc-weight-bold);
 }
 
 .flashcard-spelling-diff {
 	display: flex;
 	justify-content: center;
 	flex-wrap: wrap;
-	gap: 3px;
+	gap: var(--fc-space-1);
 	padding: var(--fc-space-3);
 	border-radius: var(--fc-radius-sm);
-	background: rgba(5, 7, 13, 0.64);
-	font: 700 var(--fc-font-xl) / 1.2 var(--fc-font-data);
+	background: rgba(var(--fc-bg-rgb), 0.64);
+	font: var(--fc-weight-bold) var(--fc-font-xl) / var(--fc-line-tight) var(--fc-font-data);
 }
 
 .flashcard-spelling-diff > span:not(.flashcard-spelling-empty-answer) {
 	min-width: 1.1em;
-	padding: 3px 4px;
+	padding: var(--fc-space-1);
 	border-bottom: 2px solid currentColor;
 	text-align: center;
 }
@@ -257,17 +257,17 @@
 
 .theme-light .flashcard-spelling-input-group,
 .theme-light .flashcard-spelling-feedback {
-	background: rgba(255, 255, 255, 0.68);
+	background: rgba(var(--fc-bg-elevated-rgb), 0.68);
 	box-shadow: 0 8px 24px rgba(35, 49, 68, 0.055);
 }
 
 .theme-light .flashcard-deck-settings-warning {
-	background: rgba(255, 255, 255, 0.84);
+	background: rgba(var(--fc-bg-elevated-rgb), 0.84);
 }
 
 .theme-light .flashcard-spelling-input-group,
 .theme-light .flashcard-spelling-feedback {
-	border-color: rgba(33, 55, 83, 0.12);
+	border-color: rgba(var(--fc-border-rgb), 0.12);
 }
 
 .theme-light .flashcard-spelling-input-group {
