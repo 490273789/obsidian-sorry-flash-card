@@ -4,6 +4,23 @@
 		padding: var(--fc-space-3);
 	}
 
+	.flashcard-home .flashcard-header-stats {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.flashcard-home .flashcard-header-stat {
+		justify-content: flex-start;
+		padding: var(--fc-space-3);
+	}
+
+	.flashcard-home .flashcard-header-stat:nth-child(odd) {
+		border-left: 0;
+	}
+
+	.flashcard-home .flashcard-header-stat:nth-child(n + 3) {
+		border-top: 1px solid var(--fc-line);
+	}
+
 	.flashcard-deck-item,
 	.flashcard-study-hero {
 		grid-template-columns: 1fr;
@@ -35,7 +52,9 @@
 	.flashcard-root {
 		padding: var(--fc-space-2);
 		border-radius: 0;
-		padding-bottom: calc(env(safe-area-inset-bottom, var(--fc-space-6)) + var(--fc-space-4));
+		padding-bottom: calc(
+			env(safe-area-inset-bottom, var(--fc-space-6)) + var(--fc-space-4)
+		);
 	}
 
 	.flashcard-home,
@@ -52,16 +71,13 @@
 	}
 
 	.flashcard-common-header {
-		padding: var(--fc-space-3);
-	}
-
-	.flashcard-common-header {
 		display: grid;
 		grid-template-columns:
 			var(--fc-control-touch) minmax(0, 1fr)
 			var(--fc-control-touch);
 		align-items: center;
 		gap: var(--fc-space-2);
+		padding: 0 0 var(--fc-space-2);
 	}
 
 	.flashcard-header-left,
@@ -275,19 +291,18 @@
 		min-height: 48px;
 	}
 
-	.flashcard-content,
+	/* .flashcard-content,
 	.flashcard-question,
 	.flashcard-answer,
 	.flashcard-explanation,
 	.flashcard-study-hero,
-	.flashcard-study-panel,
 	.flashcard-practice-question-selector,
 	.flashcard-practice-info,
 	.flashcard-practice-summary-stats,
 	.flashcard-practice-incorrect-section,
 	.flashcard-stats-day {
-		padding: var(--fc-space-3);
-	}
+		padding: var(--fc-space-2);
+	} */
 
 	.flashcard-markdown {
 		font-size: var(--fc-font-md);
@@ -325,7 +340,7 @@
 		grid-template-areas: "left center right";
 		align-items: center;
 		gap: var(--fc-space-2);
-		padding: var(--fc-space-2);
+		padding: 0 0 var(--fc-space-2);
 	}
 
 	.flashcard-study .flashcard-session-identity {
@@ -404,7 +419,9 @@
 		order: 2;
 	}
 
-	.flashcard-study .flashcard-session-actions.is-open .flashcard-session-actions-toggle-icon {
+	.flashcard-study
+		.flashcard-session-actions.is-open
+		.flashcard-session-actions-toggle-icon {
 		transform: rotate(180deg);
 	}
 
@@ -413,7 +430,9 @@
 		order: 1;
 	}
 
-	.flashcard-study .flashcard-session-actions.is-open .flashcard-session-action-item {
+	.flashcard-study
+		.flashcard-session-actions.is-open
+		.flashcard-session-action-item {
 		display: inline-flex;
 	}
 
@@ -444,13 +463,13 @@
 
 	.flashcard-study .flashcard-content {
 		gap: var(--fc-space-3);
-		padding: var(--fc-space-3);
+		padding: var(--fc-space-2);
 	}
 
 	.flashcard-study .flashcard-question,
 	.flashcard-study .flashcard-answer,
 	.flashcard-study .flashcard-explanation {
-		padding: var(--fc-space-3);
+		padding: var(--fc-space-2);
 	}
 
 	.flashcard-study .flashcard-markdown {
@@ -533,7 +552,8 @@
 	.flashcard-modal-backdrop {
 		align-items: center;
 		justify-content: center;
-		padding: max(env(safe-area-inset-top, 0px), var(--fc-space-2)) var(--fc-space-2)
+		padding: max(env(safe-area-inset-top, 0px), var(--fc-space-2))
+			var(--fc-space-2)
 			max(env(safe-area-inset-bottom, 0px), var(--fc-space-2));
 		overflow: hidden;
 	}

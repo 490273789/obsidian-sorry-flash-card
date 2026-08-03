@@ -178,6 +178,12 @@
 }
 
 .flashcard-deck-settings-toggle-label input[type="checkbox"] {
+	box-sizing: border-box;
+	width: var(--fc-space-5);
+	height: var(--fc-space-5);
+	min-width: var(--fc-space-5);
+	min-height: var(--fc-space-5);
+	flex: 0 0 var(--fc-space-5);
 	accent-color: var(--fc-cyan);
 }
 

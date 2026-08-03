@@ -60,6 +60,29 @@ function readHexToken(content: string, token: string): string {
 }
 
 describe("flashcard design system", () => {
+	it("keeps setup panels from shrinking inside the scroll viewport", async () => {
+		const home = await readFile(path.join(stylesDirectory, "home.css"), "utf8");
+		const study = await readFile(path.join(stylesDirectory, "study.css"), "utf8");
+
+		expect(home).toMatch(
+			/\.flashcard-home,[\s\S]*?\.flashcard-word-list-view\s*\{[\s\S]*?min-height:\s*0;/,
+		);
+		expect(study).toMatch(
+			/\.flashcard-setup-content\s*>\s*\*\s*\{[\s\S]*?flex:\s*0\s+0\s+auto;/,
+		);
+	});
+
+	it("keeps deck settings checkboxes square on touch devices", async () => {
+		const overlays = await readFile(
+			path.join(stylesDirectory, "overlays-settings.css"),
+			"utf8",
+		);
+
+		expect(overlays).toMatch(
+			/\.flashcard-deck-settings-toggle-label input\[type="checkbox"\]\s*\{[\s\S]*?width:\s*var\(--fc-space-5\);[\s\S]*?height:\s*var\(--fc-space-5\);[\s\S]*?min-width:\s*var\(--fc-space-5\);[\s\S]*?min-height:\s*var\(--fc-space-5\);/,
+		);
+	});
+
 	it("declares every referenced flashcard token", async () => {
 		const stylesheets = await loadStylesheets();
 		const combined = stylesheets.map(({ content }) => content).join("\n");

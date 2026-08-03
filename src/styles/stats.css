@@ -1,8 +1,4 @@
 /* Stats */
-.flashcard-stats-view {
-	overflow: hidden;
-}
-
 .flashcard-stats-body {
 	flex: 1 1 auto;
 	min-height: 0;

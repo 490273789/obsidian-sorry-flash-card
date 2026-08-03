@@ -131,10 +131,10 @@
 		box-shadow: none;
 	}
 	50% {
-		transform: scale(1.01);
+		transform: scale(1.005);
 		box-shadow:
-			0 0 28px rgba(var(--fc-cyan-rgb), 0.22),
-			0 0 44px rgba(var(--fc-lime-rgb), 0.14);
+			0 0 7px rgba(var(--fc-cyan-rgb), 0.22),
+			0 0 10px rgba(var(--fc-lime-rgb), 0.14);
 	}
 }
 

@@ -14,18 +14,26 @@
 	animation: var(--fc-motion-page-enter);
 }
 
-.flashcard-home,
-.flashcard-practice-setup,
-.flashcard-practice-summary,
-.flashcard-stats-view,
-.flashcard-word-list-view {
+.flashcard-setup-content,
+.flashcard-home-scroll,
+.flashcard-stats-body,
+.flashcard-deck-list {
+	flex: 1;
+	min-height: 0;
 	overflow-y: auto;
+	box-sizing: border-box;
+	padding: 0 var(--fc-space-2);
 }
 
-.flashcard-home {
-	padding-bottom: calc(var(--fc-control-touch) + var(--fc-space-4));
+.flashcard-setup-content > *,
+.flashcard-home-scroll > *,
+.flashcard-stats-body > * {
+	flex: 0 0 auto;
 }
 
+.flashcard-deck-list {
+	padding-bottom: var(--fc-control-touch);
+}
 .flashcard-word-list-sticky-top {
 	border: 1px solid var(--fc-line);
 	background:
@@ -238,7 +246,11 @@
 	border: 1px solid rgba(var(--fc-amber-rgb), 0.34);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(90deg, rgba(var(--fc-amber-rgb), 0.12), transparent 62%),
+		linear-gradient(
+			90deg,
+			rgba(var(--fc-amber-rgb), 0.12),
+			transparent 62%
+		),
 		rgba(var(--fc-bg-elevated-rgb), 0.88);
 	box-shadow: var(--fc-shadow);
 	animation: var(--fc-motion-rise);
@@ -287,11 +299,6 @@
 	gap: var(--fc-space-4);
 }
 
-.flashcard-deck-list {
-	gap: var(--fc-space-4);
-	padding-bottom: var(--fc-space-2);
-}
-
 .flashcard-deck-item {
 	content-visibility: auto;
 	contain-intrinsic-size: 0 116px;
@@ -305,7 +312,11 @@
 	border-left: 2px solid rgba(var(--fc-cyan-rgb), 0.42);
 	border-radius: var(--fc-radius-xs);
 	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 28%),
+		linear-gradient(
+			90deg,
+			rgba(var(--fc-cyan-rgb), 0.055),
+			transparent 28%
+		),
 		rgba(var(--fc-bg-elevated-rgb), 0.54);
 	box-shadow: none;
 	animation: var(--fc-motion-rise);
@@ -330,7 +341,8 @@
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(2),
 .flashcard-practice-stat-row .flashcard-practice-stat-item:nth-child(2),
 .flashcard-stats-days .flashcard-stats-day:nth-child(2),
-.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(2),
+.flashcard-practice-incorrect-list
+	.flashcard-practice-incorrect-item:nth-child(2),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(2) {
 	animation-delay: 55ms;
 }
@@ -339,7 +351,8 @@
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(3),
 .flashcard-practice-stat-row .flashcard-practice-stat-item:nth-child(3),
 .flashcard-stats-days .flashcard-stats-day:nth-child(3),
-.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(3),
+.flashcard-practice-incorrect-list
+	.flashcard-practice-incorrect-item:nth-child(3),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(3) {
 	animation-delay: 110ms;
 }
@@ -347,7 +360,8 @@
 .flashcard-deck-list .flashcard-deck-item:nth-child(n + 4),
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(n + 4),
 .flashcard-stats-days .flashcard-stats-day:nth-child(n + 4),
-.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(n + 4),
+.flashcard-practice-incorrect-list
+	.flashcard-practice-incorrect-item:nth-child(n + 4),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(n + 4) {
 	animation-delay: 165ms;
 }
@@ -489,7 +503,11 @@
 /* Primary deck actions use a calm, distinct blue-green pair. */
 .flashcard-root button.flashcard-deck-action-study {
 	border-color: rgba(var(--fc-lime-rgb), 0.62);
-	background: linear-gradient(135deg, var(--fc-action-study-start), var(--fc-action-study-end));
+	background: linear-gradient(
+		135deg,
+		var(--fc-action-study-start),
+		var(--fc-action-study-end)
+	);
 	color: var(--fc-action-study-text);
 	box-shadow: inset 0 1px 0 rgba(220, 255, 246, 0.16);
 }
@@ -535,7 +553,11 @@
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-sm);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 48%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.07),
+			transparent 48%
+		),
 		rgba(var(--fc-bg-elevated-rgb), 0.98);
 	box-shadow: var(--fc-shadow);
 	animation: var(--fc-motion-fade-in);
