@@ -33,6 +33,7 @@ import { normalizePronunciationSettings } from "../pronunciation/pronunciationSe
 export interface StoredData {
 	decks: Record<string, SerializedDeck>;
 	lastSync: string;
+	availableTags?: string[];
 	settings?: FlashcardSettings;
 	studyHistory?: StudyHistoryEntry[];
 	spellingProgress?: Record<string, SpellingCardProgress>;
@@ -98,6 +99,7 @@ export class DataStore {
 	private studyHistory: StudyHistoryEntry[] = [];
 	private spellingProgress: Record<string, SpellingCardProgress> = {};
 	private availableTags: string[] = [];
+	private hasAvailableTagsSnapshotValue = false;
 	private continuity: PersistedCardIdentityContinuityState =
 		createEmptyContinuityState();
 	/** Set to true after loadSettings() has already populated decks/history */
@@ -178,6 +180,7 @@ export class DataStore {
 		this.continuity = cloneContinuityState(
 			data?.continuity ?? createEmptyContinuityState(),
 		);
+		this.restoreAvailableTags(data?.availableTags);
 		this.refreshDerivedState();
 
 		this.scheduler = new FSRSScheduler(this.settings);
@@ -313,6 +316,7 @@ export class DataStore {
 		this.continuity = cloneContinuityState(
 			data?.continuity ?? createEmptyContinuityState(),
 		);
+		this.restoreAvailableTags(data?.availableTags);
 		this.refreshDerivedState();
 		this.dataLoaded = true;
 		this.publishRevision();
@@ -417,6 +421,9 @@ export class DataStore {
 		spellingProgress: Record<string, SpellingCardProgress>,
 		settings: FlashcardSettings = this.settings,
 		continuity: PersistedCardIdentityContinuityState = this.continuity,
+		availableTags: string[] | undefined = this.hasAvailableTagsSnapshotValue
+			? this.availableTags
+			: undefined,
 	): StoredData {
 		const data: StoredData = {
 			decks: {},
@@ -426,11 +433,22 @@ export class DataStore {
 			spellingProgress,
 			continuity,
 		};
+		if (availableTags) {
+			data.availableTags = [...availableTags];
+		}
 
 		for (const [id, deck] of decks) {
 			data.decks[id] = this.getSerializedDeck(deck);
 		}
 		return data;
+	}
+
+	private restoreAvailableTags(value: unknown): void {
+		if (!Array.isArray(value)) return;
+		this.availableTags = Array.from(
+			new Set(value.filter((tag): tag is string => typeof tag === "string")),
+		);
+		this.hasAvailableTagsSnapshotValue = true;
 	}
 
 	/**
@@ -523,13 +541,16 @@ export class DataStore {
 		return {
 			load: async (): Promise<CardIdentityContinuityState> => ({
 				configuredTags: [...this.settings.flashcardTags],
-				availableTags: [...this.availableTags],
+				...(this.hasAvailableTagsSnapshotValue
+					? { availableTags: [...this.availableTags] }
+					: {}),
 				decks: new Map(this.decks),
 				continuity: cloneContinuityState(this.continuity),
 			}),
 			commit: async (
 				state: CardIdentityContinuityState,
 			): Promise<void> => {
+				const nextAvailableTags = [...(state.availableTags ?? this.availableTags)];
 				const nextDecks = new Map(state.decks);
 				const nextSpellingProgress = cloneSpellingProgress(
 					this.spellingProgress,
@@ -547,13 +568,13 @@ export class DataStore {
 						nextSpellingProgress,
 						this.settings,
 						nextContinuity,
+						nextAvailableTags,
 					),
 				);
 				this.decks = nextDecks;
 				this.spellingProgress = nextSpellingProgress;
-				this.availableTags = [
-					...(state.availableTags ?? this.availableTags),
-				];
+				this.availableTags = nextAvailableTags;
+				this.hasAvailableTagsSnapshotValue = true;
 				this.continuity = nextContinuity;
 				this.refreshDerivedState();
 				this.publishRevision();
@@ -659,6 +680,10 @@ export class DataStore {
 	 */
 	getAvailableTags(): string[] {
 		return [...this.availableTags];
+	}
+
+	hasAvailableTagsSnapshot(): boolean {
+		return this.hasAvailableTagsSnapshotValue;
 	}
 
 	/**

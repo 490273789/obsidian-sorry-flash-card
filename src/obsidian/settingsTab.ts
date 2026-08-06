@@ -8,7 +8,6 @@ import {
 } from "obsidian";
 import { createTranslator } from "../i18n";
 import type FlashcardPlugin from "./main";
-import { findAllFlashcardTags } from "../cards/parser";
 import {
 	buildSettingsViewModel,
 	type SettingsButtonControl,
@@ -161,25 +160,14 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			return;
 		}
 
-		// Use tags already cached from the last identity synchronization.
-		const cached = this.plugin.dataStore.getAvailableTags();
-		if (cached.length > 0) {
-			this.availableTags = cached;
-			this.hasLoadedTags = true;
+		// Opening settings must stay cheap. A full vault scan is reserved for the
+		// explicit refresh action; otherwise large vaults make the first render wait.
+		if (!this.plugin.dataStore.hasAvailableTagsSnapshot()) {
 			return;
 		}
 
-		// Fall back to a fresh vault scan (e.g. settings opened before view)
-		this.isLoadingTags = true;
-		void findAllFlashcardTags(this.app.vault)
-			.then((tags) => {
-				this.availableTags = tags;
-				this.hasLoadedTags = true;
-				this.refreshDefinitions();
-			})
-			.finally(() => {
-				this.isLoadingTags = false;
-			});
+		this.availableTags = this.plugin.dataStore.getAvailableTags();
+		this.hasLoadedTags = true;
 	}
 
 	private activatePronunciationState(): void {

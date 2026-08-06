@@ -176,6 +176,53 @@ describe("DataStore settings", () => {
 		expect(store.getStudyHistory()).toHaveLength(1);
 	});
 
+	it("restores a persisted available-tag snapshot, including an empty snapshot", async () => {
+		const populatedStore = new DataStore(
+			makePlugin({
+				decks: {},
+				lastSync: "2026-07-02T00:00:00.000Z",
+				availableTags: ["#单词", "#短语", "#单词"],
+			}) as never,
+		);
+		await populatedStore.loadSettings();
+
+		expect(populatedStore.hasAvailableTagsSnapshot()).toBe(true);
+		expect(populatedStore.getAvailableTags()).toEqual(["#单词", "#短语"]);
+
+		const emptyStore = new DataStore(
+			makePlugin({
+				decks: {},
+				lastSync: "2026-07-02T00:00:00.000Z",
+				availableTags: [],
+			}) as never,
+		);
+		await emptyStore.loadSettings();
+
+		expect(emptyStore.hasAvailableTagsSnapshot()).toBe(true);
+		expect(emptyStore.getAvailableTags()).toEqual([]);
+	});
+
+	it("persists available tags committed by identity synchronization", async () => {
+		const plugin = makePlugin();
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+		const continuityStore = store.createContinuityStateStore();
+		const state = await continuityStore.load();
+
+		await continuityStore.commit({
+			...state,
+			availableTags: ["#单词", "#短语"],
+		});
+
+		expect(plugin.saveData).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				availableTags: ["#单词", "#短语"],
+			}),
+		);
+		expect(store.hasAvailableTagsSnapshot()).toBe(true);
+		expect(store.getAvailableTags()).toEqual(["#单词", "#短语"]);
+	});
+
 	it("saves the word-learning deck marker with the unified settings payload", async () => {
 		const plugin = makePlugin();
 		const store = new DataStore(plugin as never);
