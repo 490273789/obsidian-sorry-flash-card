@@ -18,6 +18,8 @@
 .flashcard-home-scroll,
 .flashcard-stats-body,
 .flashcard-deck-list {
+	width: min(1000px, 100%);
+	margin: 0 auto;
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;

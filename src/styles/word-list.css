@@ -15,6 +15,8 @@
 }
 
 .flashcard-word-list-toolbar {
+	width: min(1000px, 100%);
+	margin: 0 auto;
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--fc-space-2);
@@ -50,6 +52,8 @@
 }
 
 .flashcard-word-list-scroll {
+	width: min(1000px, 100%);
+	margin: 0 auto;
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
@@ -76,7 +80,7 @@
 
 .flashcard-word-row {
 	content-visibility: auto;
-	contain-intrinsic-size: 0 48px;
+	contain-intrinsic-size: 0 68px;
 	display: grid;
 	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
 	gap: var(--fc-space-3);
@@ -84,7 +88,7 @@
 }
 
 .flashcard-root button.flashcard-word-cell {
-	min-height: 48px;
+	min-height: 68px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -162,7 +166,11 @@
 	border: 1px solid rgba(var(--fc-magenta-rgb), 0.24);
 	border-radius: var(--fc-radius-sm);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-magenta-rgb), 0.09), transparent 42%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-magenta-rgb), 0.09),
+			transparent 42%
+		),
 		rgba(var(--fc-bg-panel-rgb), 0.74);
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);
