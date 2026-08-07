@@ -18,7 +18,7 @@
 .flashcard-home-scroll,
 .flashcard-stats-body,
 .flashcard-deck-list {
-	width: min(1000px, 100%);
+	width: min(850px, 100%);
 	margin: 0 auto;
 	flex: 1;
 	min-height: 0;
@@ -55,7 +55,7 @@
 	top: 0;
 	z-index: 18;
 	min-height: var(--fc-header-height);
-	padding: 0 var(--fc-space-4) var(--fc-space-2);
+	padding-bottom: var(--fc-space-2);
 	border: 0;
 	border-bottom: 1px solid var(--fc-line);
 	border-radius: 0;

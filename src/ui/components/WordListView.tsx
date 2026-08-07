@@ -64,9 +64,7 @@ const WordRow = memo(function WordRow({
 				const isRevealed = revealedIdsByColumn[column.key].has(item.id);
 				const showContent = !isMasked || isRevealed;
 				const value = item[column.key];
-				const handleReveal = (
-					e: React.MouseEvent<HTMLButtonElement>,
-				) => {
+				const handleReveal = (e: React.MouseEvent<HTMLButtonElement>) => {
 					if (e.detail > 1) return;
 					if (revealTimerRef.current !== null) {
 						window.clearTimeout(revealTimerRef.current);
@@ -100,13 +98,7 @@ const WordRow = memo(function WordRow({
 						}
 					>
 						{showContent ? (
-							<span
-								className={
-									value
-										? column.textClassName
-										: "flashcard-word-empty"
-								}
-							>
+							<span className={value ? column.textClassName : "flashcard-word-empty"}>
 								{value || t("wordList.emptyColumn")}
 							</span>
 						) : (
@@ -146,19 +138,12 @@ const WordExplanationModal = memo(function WordExplanationModal({
 					<div className="flashcard-modal-header">
 						<div className="flashcard-modal-heading">
 							<div className="flashcard-modal-kicker fc-kicker">
-								<BookOpenText size={14} />{" "}
-								{t("wordList.thirdColumn")}
+								<BookOpenText size={14} /> {t("wordList.thirdColumn")}
 							</div>
-							<span
-								id={titleId}
-								className="flashcard-modal-title"
-							>
+							<span id={titleId} className="flashcard-modal-title">
 								{item.front}
 							</span>
-							<span
-								id={subtitleId}
-								className="flashcard-modal-subtitle"
-							>
+							<span id={subtitleId} className="flashcard-modal-subtitle">
 								{item.back}
 							</span>
 						</div>
@@ -183,34 +168,21 @@ const WordExplanationModal = memo(function WordExplanationModal({
 	);
 });
 
-export const WordListView = React.memo(function WordListView({
-	deck,
-	onBack,
-}: WordListViewProps) {
+export const WordListView = React.memo(function WordListView({ deck, onBack }: WordListViewProps) {
 	const { t } = useI18n();
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 	const listRef = useRef<HTMLDivElement | null>(null);
-	const sourceItems = useMemo(
-		() => buildWordListItems(deck.cards),
-		[deck.cards],
-	);
-	const [maskedColumns, setMaskedColumns] = useState<
-		Set<VisibleWordColumnKey>
-	>(new Set());
-	const [shuffledItems, setShuffledItems] = useState<WordListItem[] | null>(
-		null,
-	);
+	const sourceItems = useMemo(() => buildWordListItems(deck.cards), [deck.cards]);
+	const [maskedColumns, setMaskedColumns] = useState<Set<VisibleWordColumnKey>>(new Set());
+	const [shuffledItems, setShuffledItems] = useState<WordListItem[] | null>(null);
 	const [revealedIdsByColumn, setRevealedIdsByColumn] = useState<
 		Record<VisibleWordColumnKey, Set<string>>
 	>({
 		front: new Set(),
 		back: new Set(),
 	});
-	const [activeExplanationItem, setActiveExplanationItem] =
-		useState<WordListItem | null>(null);
-	const [rowHeights, setRowHeights] = useState<Map<string, number>>(
-		new Map(),
-	);
+	const [activeExplanationItem, setActiveExplanationItem] = useState<WordListItem | null>(null);
+	const [rowHeights, setRowHeights] = useState<Map<string, number>>(new Map());
 	const [rowGap, setRowGap] = useState(DEFAULT_WORD_ROW_GAP);
 	const [viewport, setViewport] = useState({
 		scrollTop: 0,
@@ -221,6 +193,9 @@ export const WordListView = React.memo(function WordListView({
 	// and a single requestAnimationFrame applies them together.
 	const pendingRowHeightsRef = useRef<Map<string, number> | null>(null);
 	const rowHeightsFrameRef = useRef<number | null>(null);
+	const rowResizeObserverRef = useRef<ResizeObserver | null>(null);
+	const rowElementsRef = useRef<Map<string, HTMLDivElement>>(new Map());
+	const rowIdsByElementRef = useRef<WeakMap<Element, string>>(new WeakMap());
 
 	const isShuffled = shuffledItems !== null;
 	const items = shuffledItems ?? sourceItems;
@@ -246,6 +221,106 @@ export const WordListView = React.memo(function WordListView({
 		setRowHeights(new Map());
 		setActiveExplanationItem(null);
 	}, [sourceItems]);
+
+	const handleShuffleToggle = useCallback(() => {
+		setShuffledItems((currentItems) => (currentItems ? null : shuffleArray(sourceItems)));
+	}, [sourceItems]);
+
+	const handleReveal = useCallback(
+		(columnKey: VisibleWordColumnKey, itemId: string) => {
+			if (!maskedColumns.has(columnKey)) return;
+			setRevealedIdsByColumn((prev) => {
+				const columnIds = new Set(prev[columnKey]);
+				if (columnIds.has(itemId)) {
+					columnIds.delete(itemId);
+				} else {
+					columnIds.add(itemId);
+				}
+				return {
+					...prev,
+					[columnKey]: columnIds,
+				};
+			});
+		},
+		[maskedColumns],
+	);
+
+	const handleToggleColumnMask = useCallback((columnKey: VisibleWordColumnKey) => {
+		setMaskedColumns((prev) => {
+			const next = new Set(prev);
+			if (next.has(columnKey)) {
+				next.delete(columnKey);
+			} else {
+				next.add(columnKey);
+			}
+			return next;
+		});
+		setRevealedIdsByColumn((prev) => ({
+			...prev,
+			[columnKey]: new Set(),
+		}));
+	}, []);
+
+	const handleShowExplanation = useCallback((item: WordListItem) => {
+		setActiveExplanationItem(item);
+	}, []);
+
+	const handleCloseExplanation = useCallback(() => {
+		setActiveExplanationItem(null);
+	}, []);
+
+	const queueRowHeight = useCallback((itemId: string, measuredHeight: number) => {
+		if (measuredHeight <= 0) return;
+
+		// Batch measurements made within one animation frame into a single
+		// setState, so scrolling through a large list does not trigger an
+		// O(N) virtual-rows recompute per measured row.
+		if (!pendingRowHeightsRef.current) {
+			pendingRowHeightsRef.current = new Map();
+		}
+		pendingRowHeightsRef.current.set(itemId, measuredHeight);
+		if (rowHeightsFrameRef.current !== null) return;
+		rowHeightsFrameRef.current = window.requestAnimationFrame(() => {
+			rowHeightsFrameRef.current = null;
+			const pending = pendingRowHeightsRef.current;
+			pendingRowHeightsRef.current = null;
+			if (!pending || pending.size === 0) return;
+			setRowHeights((prev) => {
+				let next: Map<string, number> | null = null;
+				for (const [pendingId, pendingHeight] of pending) {
+					const currentHeight = prev.get(pendingId);
+					if (
+						currentHeight !== undefined &&
+						Math.abs(currentHeight - pendingHeight) <= 1
+					) {
+						continue;
+					}
+					if (!next) next = new Map(prev);
+					next.set(pendingId, pendingHeight);
+				}
+				return next ?? prev;
+			});
+		});
+	}, []);
+
+	const handleMeasureRow = useCallback(
+		(itemId: string, element: HTMLDivElement | null) => {
+			const previousElement = rowElementsRef.current.get(itemId);
+			if (previousElement && previousElement !== element) {
+				rowResizeObserverRef.current?.unobserve(previousElement);
+			}
+			if (!element) {
+				rowElementsRef.current.delete(itemId);
+				return;
+			}
+
+			rowElementsRef.current.set(itemId, element);
+			rowIdsByElementRef.current.set(element, itemId);
+			rowResizeObserverRef.current?.observe(element);
+			queueRowHeight(itemId, element.getBoundingClientRect().height);
+		},
+		[queueRowHeight],
+	);
 
 	useLayoutEffect(() => {
 		const scrollEl = scrollRef.current;
@@ -274,125 +349,45 @@ export const WordListView = React.memo(function WordListView({
 
 				const listEl = listRef.current;
 				if (!listEl) return;
-				const parsedGap = Number.parseFloat(
-					window.getComputedStyle(listEl).gap,
-				);
+				const parsedGap = Number.parseFloat(window.getComputedStyle(listEl).gap);
 				if (!Number.isFinite(parsedGap)) return;
-				setRowGap((prev) =>
-					Math.abs(prev - parsedGap) > 0.5 ? parsedGap : prev,
-				);
+				setRowGap((prev) => (Math.abs(prev - parsedGap) > 0.5 ? parsedGap : prev));
 			});
 		};
 
 		updateViewport();
 		scrollEl.addEventListener("scroll", updateViewport, { passive: true });
 
-		const resizeObserver = new ResizeObserver(updateViewport);
-		resizeObserver.observe(scrollEl);
+		const viewportResizeObserver = new ResizeObserver(updateViewport);
+		viewportResizeObserver.observe(scrollEl);
+
+		const rowResizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const itemId = rowIdsByElementRef.current.get(entry.target);
+				if (itemId) {
+					queueRowHeight(itemId, entry.target.getBoundingClientRect().height);
+				}
+			}
+		});
+		rowResizeObserverRef.current = rowResizeObserver;
+		for (const element of rowElementsRef.current.values()) {
+			rowResizeObserver.observe(element);
+		}
 
 		return () => {
 			if (frameId !== 0) {
 				window.cancelAnimationFrame(frameId);
 			}
 			scrollEl.removeEventListener("scroll", updateViewport);
-			resizeObserver.disconnect();
+			viewportResizeObserver.disconnect();
+			rowResizeObserver.disconnect();
+			rowResizeObserverRef.current = null;
 		};
-	}, []);
+	}, [queueRowHeight]);
 
 	useEffect(() => {
 		setRowHeights(new Map());
 	}, [viewport.width]);
-
-	const handleShuffleToggle = useCallback(() => {
-		setShuffledItems((currentItems) =>
-			currentItems ? null : shuffleArray(sourceItems),
-		);
-	}, [sourceItems]);
-
-	const handleReveal = useCallback(
-		(columnKey: VisibleWordColumnKey, itemId: string) => {
-			if (!maskedColumns.has(columnKey)) return;
-			setRevealedIdsByColumn((prev) => {
-				const columnIds = new Set(prev[columnKey]);
-				if (columnIds.has(itemId)) {
-					columnIds.delete(itemId);
-				} else {
-					columnIds.add(itemId);
-				}
-				return {
-					...prev,
-					[columnKey]: columnIds,
-				};
-			});
-		},
-		[maskedColumns],
-	);
-
-	const handleToggleColumnMask = useCallback(
-		(columnKey: VisibleWordColumnKey) => {
-			setMaskedColumns((prev) => {
-				const next = new Set(prev);
-				if (next.has(columnKey)) {
-					next.delete(columnKey);
-				} else {
-					next.add(columnKey);
-				}
-				return next;
-			});
-			setRevealedIdsByColumn((prev) => ({
-				...prev,
-				[columnKey]: new Set(),
-			}));
-		},
-		[],
-	);
-
-	const handleShowExplanation = useCallback((item: WordListItem) => {
-		setActiveExplanationItem(item);
-	}, []);
-
-	const handleCloseExplanation = useCallback(() => {
-		setActiveExplanationItem(null);
-	}, []);
-
-	const handleMeasureRow = useCallback(
-		(itemId: string, element: HTMLDivElement | null) => {
-			if (!element) return;
-			const measuredHeight = element.getBoundingClientRect().height;
-			if (measuredHeight <= 0) return;
-
-			// Batch measurements made within one animation frame into a single
-			// setState, so scrolling through a large list does not trigger an
-			// O(N) virtual-rows recompute per measured row.
-			if (!pendingRowHeightsRef.current) {
-				pendingRowHeightsRef.current = new Map();
-			}
-			pendingRowHeightsRef.current.set(itemId, measuredHeight);
-			if (rowHeightsFrameRef.current !== null) return;
-			rowHeightsFrameRef.current = window.requestAnimationFrame(() => {
-				rowHeightsFrameRef.current = null;
-				const pending = pendingRowHeightsRef.current;
-				pendingRowHeightsRef.current = null;
-				if (!pending || pending.size === 0) return;
-				setRowHeights((prev) => {
-					let next: Map<string, number> | null = null;
-					for (const [pendingId, pendingHeight] of pending) {
-						const currentHeight = prev.get(pendingId);
-						if (
-							currentHeight !== undefined &&
-							Math.abs(currentHeight - pendingHeight) <= 1
-						) {
-							continue;
-						}
-						if (!next) next = new Map(prev);
-						next.set(pendingId, pendingHeight);
-					}
-					return next ?? prev;
-				});
-			});
-		},
-		[],
-	);
 
 	useEffect(() => {
 		return () => {
@@ -430,9 +425,7 @@ export const WordListView = React.memo(function WordListView({
 					active={isShuffled}
 					onClick={handleShuffleToggle}
 				>
-					{isShuffled
-						? t("wordList.restoreOrder")
-						: t("wordList.shuffle")}
+					{isShuffled ? t("wordList.restoreOrder") : t("wordList.shuffle")}
 				</FlashcardButton>
 				{VISIBLE_WORD_COLUMNS.map((column) => {
 					const isMasked = maskedColumns.has(column.key);
@@ -459,9 +452,7 @@ export const WordListView = React.memo(function WordListView({
 					{visibleRows.map((row) => (
 						<div
 							key={row.item.id}
-							ref={(element) =>
-								handleMeasureRow(row.item.id, element)
-							}
+							ref={(element) => handleMeasureRow(row.item.id, element)}
 							className="flashcard-word-row-frame"
 							style={{
 								transform: `translateY(${row.top}px)`,

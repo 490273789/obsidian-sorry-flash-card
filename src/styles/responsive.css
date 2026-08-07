@@ -287,10 +287,6 @@
 		grid-template-columns: 1fr;
 	}
 
-	.flashcard-root button.flashcard-word-cell {
-		min-height: 68px;
-	}
-
 	/* .flashcard-content,
 	.flashcard-question,
 	.flashcard-answer,

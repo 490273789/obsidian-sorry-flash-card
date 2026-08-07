@@ -556,7 +556,7 @@
 .flashcard-home-scroll,
 .flashcard-stats-body,
 .flashcard-deck-list {
-	width: min(1000px, 100%);
+	width: min(850px, 100%);
 	margin: 0 auto;
 	flex: 1;
 	min-height: 0;
@@ -593,7 +593,7 @@
 	top: 0;
 	z-index: 18;
 	min-height: var(--fc-header-height);
-	padding: 0 var(--fc-space-4) var(--fc-space-2);
+	padding-bottom: var(--fc-space-2);
 	border: 0;
 	border-bottom: 1px solid var(--fc-line);
 	border-radius: 0;
@@ -2413,12 +2413,12 @@
 }
 
 .flashcard-word-list-toolbar {
-	width: min(1000px, 100%);
+	width: min(850px, 100%);
 	margin: 0 auto;
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--fc-space-2);
-	padding: var(--fc-space-3);
+	padding: var(--fc-space-2);
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
 	background: rgba(var(--fc-bg-rgb), 0.54);
@@ -2450,7 +2450,7 @@
 }
 
 .flashcard-word-list-scroll {
-	width: min(1000px, 100%);
+	width: min(850px, 100%);
 	margin: 0 auto;
 	flex: 1;
 	min-height: 0;
@@ -2477,8 +2477,7 @@
 }
 
 .flashcard-word-row {
-	content-visibility: auto;
-	contain-intrinsic-size: 0 68px;
+	align-items: start;
 	display: grid;
 	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
 	gap: var(--fc-space-3);
@@ -2486,7 +2485,10 @@
 }
 
 .flashcard-root button.flashcard-word-cell {
-	min-height: 68px;
+	/* Obsidian themes often impose a fixed button height. */
+	height: auto !important;
+	min-height: 0 !important;
+	max-height: none !important;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -5086,10 +5088,6 @@
 
 	.flashcard-word-row {
 		grid-template-columns: 1fr;
-	}
-
-	.flashcard-root button.flashcard-word-cell {
-		min-height: 68px;
 	}
 
 	/* .flashcard-content,
