@@ -111,13 +111,31 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 		}
 	};
 
+	const getNormalizedRange = () => {
+		const parsedStart = parseInt(rangeStartInput, 10);
+		const parsedEnd = parseInt(rangeEndInput, 10);
+		const start =
+			isNaN(parsedStart) || parsedStart < 1
+				? rangeStart
+				: Math.min(parsedStart, maxRangeStart);
+		const end =
+			isNaN(parsedEnd) || parsedEnd < start
+				? start
+				: Math.min(parsedEnd, maxQuestions);
+
+		return { start, end };
+	};
+
 	const handleStart = () => {
 		if (selectionMode === "range") {
-			if (rangeQuestionCount >= 1 && rangeEnd <= maxQuestions) {
+			const { start, end } = getNormalizedRange();
+			syncRange(start, end);
+
+			if (end >= start && end <= maxQuestions) {
 				onStartPractice({
 					mode: "range",
-					startIndex: rangeStart,
-					endIndex: rangeEnd,
+					startIndex: start,
+					endIndex: end,
 					direction,
 				});
 			}
@@ -147,43 +165,16 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 	};
 
 	const handleRangeStartChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const value = e.target.value;
-		setRangeStartInput(value);
-
-		const num = parseInt(value, 10);
-		if (!isNaN(num) && num >= 1) {
-			const normalizedStart = Math.min(num, maxRangeStart);
-			const normalizedEnd = Math.max(rangeEnd, normalizedStart);
-			syncRange(normalizedStart, normalizedEnd);
-		}
+		setRangeStartInput(e.target.value);
 	};
 
 	const handleRangeEndChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const value = e.target.value;
-		setRangeEndInput(value);
-
-		const num = parseInt(value, 10);
-		if (!isNaN(num) && num >= 1) {
-			const normalizedEnd = Math.min(
-				Math.max(num, rangeStart),
-				maxQuestions,
-			);
-			syncRange(rangeStart, normalizedEnd);
-		}
+		setRangeEndInput(e.target.value);
 	};
 
 	const handleRangeBlur = () => {
-		const parsedStart = parseInt(rangeStartInput, 10);
-		const parsedEnd = parseInt(rangeEndInput, 10);
-		const normalizedStart =
-			isNaN(parsedStart) || parsedStart < 1
-				? rangeStart
-				: Math.min(parsedStart, maxRangeStart);
-		const normalizedEnd =
-			isNaN(parsedEnd) || parsedEnd < normalizedStart
-				? normalizedStart
-				: Math.min(parsedEnd, maxQuestions);
-		syncRange(normalizedStart, normalizedEnd);
+		const { start, end } = getNormalizedRange();
+		syncRange(start, end);
 	};
 
 	return (
@@ -330,8 +321,6 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 													handleRangeStartChange
 												}
 												onBlur={handleRangeBlur}
-												min={1}
-												max={maxRangeStart}
 											/>
 										</label>
 										<label className="flashcard-setup-range-field">
@@ -344,8 +333,6 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 												value={rangeEndInput}
 												onChange={handleRangeEndChange}
 												onBlur={handleRangeBlur}
-												min={rangeStart}
-												max={maxQuestions}
 											/>
 										</label>
 									</div>
