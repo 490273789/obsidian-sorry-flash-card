@@ -48,6 +48,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 }: PracticeSetupProps) {
 	const { t } = useI18n();
 	const maxQuestions = deck.cards.length;
+	const maxRangeStart = Math.max(1, maxQuestions - 1);
 	const defaultQuestionCount = Math.min(50, maxQuestions);
 	const initialQuestionCount =
 		defaultOptions?.mode === "random-count"
@@ -55,7 +56,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 			: defaultQuestionCount;
 	const initialRangeStart =
 		defaultOptions?.mode === "range"
-			? Math.max(1, defaultOptions.startIndex)
+			? Math.min(Math.max(1, defaultOptions.startIndex), maxRangeStart)
 			: 1;
 	const initialRangeEnd =
 		defaultOptions?.mode === "range"
@@ -151,7 +152,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 
 		const num = parseInt(value, 10);
 		if (!isNaN(num) && num >= 1) {
-			const normalizedStart = Math.min(num, maxQuestions);
+			const normalizedStart = Math.min(num, maxRangeStart);
 			const normalizedEnd = Math.max(rangeEnd, normalizedStart);
 			syncRange(normalizedStart, normalizedEnd);
 		}
@@ -177,7 +178,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 		const normalizedStart =
 			isNaN(parsedStart) || parsedStart < 1
 				? rangeStart
-				: Math.min(parsedStart, maxQuestions);
+				: Math.min(parsedStart, maxRangeStart);
 		const normalizedEnd =
 			isNaN(parsedEnd) || parsedEnd < normalizedStart
 				? normalizedStart
@@ -330,7 +331,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 												}
 												onBlur={handleRangeBlur}
 												min={1}
-												max={maxQuestions}
+												max={maxRangeStart}
 											/>
 										</label>
 										<label className="flashcard-setup-range-field">
