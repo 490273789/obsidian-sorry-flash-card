@@ -12,7 +12,10 @@ import { SessionToolbar } from "./SessionToolbar";
 import { SessionTimer } from "./SessionTimer";
 import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
-import type { PronunciationRuntime } from "../../pronunciation";
+import {
+	shouldAutoPronounceSessionCard,
+	type PronunciationRuntime,
+} from "../../pronunciation";
 import { extractSpellingWord } from "../../cards/spellingWord";
 import { PronounceableMarkdown } from "./PronounceableMarkdown";
 
@@ -42,9 +45,12 @@ export const CardView = React.memo(function CardView({
 	pronunciationEnabled,
 }: CardViewProps) {
 	const { t, language } = useI18n();
-	const [showAnswer, setShowAnswer] = useState(false);
+	const [answerCardId, setAnswerCardId] = useState<string | null>(null);
+	const [autoPronunciationEnabled, setAutoPronunciationEnabled] =
+		useState(false);
 
 	const currentCard = session.currentCard;
+	const showAnswer = answerCardId === currentCard.identity;
 	const ratingButtons = useMemo(() => getRatingButtons(language), [language]);
 	const displayContent = useMemo(
 		() =>
@@ -60,12 +66,43 @@ export const CardView = React.memo(function CardView({
 
 	useEffect(() => {
 		pronunciationRuntime.stop();
-		setShowAnswer(false);
+		setAnswerCardId(null);
 		return () => pronunciationRuntime.stop();
 	}, [currentCard.identity, pronunciationRuntime]);
 
+	const shouldAutoPronounce = shouldAutoPronounceSessionCard({
+		wordLearningEnabled: pronunciationEnabled,
+		autoPlayEnabled: autoPronunciationEnabled,
+		direction: session.direction,
+		answerVisible: showAnswer,
+		word: pronunciationWord,
+	});
+	const autoPronunciationText = shouldAutoPronounce
+		? pronunciationWord
+		: null;
+
+	useEffect(() => {
+		if (!autoPronunciationText) return;
+		void pronunciationRuntime
+			.speak(autoPronunciationText, "auto")
+			.catch(() => undefined);
+		return () => pronunciationRuntime.stop();
+	}, [
+		autoPronunciationText,
+		currentCard.identity,
+		pronunciationRuntime,
+	]);
+
+	useEffect(() => {
+		if (!pronunciationEnabled) setAutoPronunciationEnabled(false);
+	}, [pronunciationEnabled]);
+
 	const handleShowAnswer = useCallback(() => {
-		setShowAnswer(true);
+		setAnswerCardId(currentCard.identity);
+	}, [currentCard.identity]);
+
+	const handleToggleAutoPronunciation = useCallback(() => {
+		setAutoPronunciationEnabled((enabled) => !enabled);
 	}, []);
 
 	const handleRating = useCallback(
@@ -111,7 +148,7 @@ export const CardView = React.memo(function CardView({
 			// Show answer on space
 			if (e.code === "Space") {
 				e.preventDefault();
-				setShowAnswer(true);
+				handleShowAnswer();
 			}
 			return;
 		}
@@ -200,6 +237,16 @@ export const CardView = React.memo(function CardView({
 				editTitle={t("cardEditor.editCurrentTitle")}
 				deleteTitle={t("cardEditor.deleteCurrentTitle")}
 				closeTitle={t("common.close")}
+				autoPronunciation={
+					pronunciationEnabled
+						? {
+								enabled: autoPronunciationEnabled,
+								onToggle: handleToggleAutoPronunciation,
+								enableTitle: t("pronunciation.autoEnable"),
+								disableTitle: t("pronunciation.autoDisable"),
+							}
+						: undefined
+				}
 			/>
 
 			{/* Content */}

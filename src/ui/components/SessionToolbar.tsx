@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronDown, Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Pencil, Trash2, Volume2, VolumeX } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
@@ -19,6 +19,12 @@ interface SessionToolbarProps {
 	editTitle: string;
 	deleteTitle: string;
 	closeTitle: string;
+	autoPronunciation?: {
+		enabled: boolean;
+		onToggle: () => void;
+		enableTitle: string;
+		disableTitle: string;
+	};
 }
 
 export const SessionToolbar: React.FC<SessionToolbarProps> = ({
@@ -34,6 +40,7 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 	editTitle,
 	deleteTitle,
 	closeTitle,
+	autoPronunciation,
 }) => {
 	const { t } = useI18n();
 	const [areActionsOpen, setAreActionsOpen] = React.useState(false);
@@ -55,6 +62,10 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 		setAreActionsOpen(false);
 		onDelete();
 	}, [onDelete]);
+
+	const autoPronunciationTitle = autoPronunciation?.enabled
+		? autoPronunciation.disableTitle
+		: autoPronunciation?.enableTitle;
 
 	return (
 		<div className="flashcard-session-shell">
@@ -98,6 +109,18 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 						aria-expanded={areActionsOpen}
 						active={areActionsOpen}
 					/>
+					{autoPronunciation && (
+						<FlashcardButton
+							preset="icon"
+							icon={autoPronunciation.enabled ? Volume2 : VolumeX}
+							onClick={autoPronunciation.onToggle}
+							className="flashcard-session-action-item flashcard-session-auto-pronunciation"
+							title={autoPronunciationTitle}
+							aria-label={autoPronunciationTitle}
+							aria-pressed={autoPronunciation.enabled}
+							active={autoPronunciation.enabled}
+						/>
+					)}
 					<FlashcardButton
 						preset="icon"
 						icon={Pencil}

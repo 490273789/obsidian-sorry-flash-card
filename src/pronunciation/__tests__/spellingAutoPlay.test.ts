@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+	shouldAutoPronounceSessionCard,
 	shouldAutoPronounceSpellingFeedback,
 	waitForSpellingPronunciation,
 } from "../spellingAutoPlay";
@@ -27,6 +28,44 @@ describe("spelling pronunciation", () => {
 		expect(shouldAutoPronounceSpellingFeedback("retrieval-correct")).toBe(true);
 		expect(shouldAutoPronounceSpellingFeedback("correction-correct")).toBe(true);
 		expect(shouldAutoPronounceSpellingFeedback("retrieval-incorrect")).toBe(false);
+	});
+
+	it("only auto-pronounces eligible session cards after their word is visible", () => {
+		const defaults = {
+			wordLearningEnabled: true,
+			autoPlayEnabled: true,
+			direction: "normal" as const,
+			answerVisible: false,
+			word: "architecture",
+		};
+
+		expect(shouldAutoPronounceSessionCard(defaults)).toBe(true);
+		expect(
+			shouldAutoPronounceSessionCard({
+				...defaults,
+				wordLearningEnabled: false,
+			}),
+		).toBe(false);
+		expect(
+			shouldAutoPronounceSessionCard({
+				...defaults,
+				autoPlayEnabled: false,
+			}),
+		).toBe(false);
+		expect(
+			shouldAutoPronounceSessionCard({
+				...defaults,
+				direction: "reversed",
+			}),
+		).toBe(false);
+		expect(
+			shouldAutoPronounceSessionCard({
+				...defaults,
+				direction: "reversed",
+				answerVisible: true,
+			}),
+		).toBe(true);
+		expect(shouldAutoPronounceSessionCard({ ...defaults, word: null })).toBe(false);
 	});
 
 	it("keeps correct feedback until successful playback ends", async () => {

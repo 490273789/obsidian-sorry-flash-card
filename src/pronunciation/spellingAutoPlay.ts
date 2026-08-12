@@ -1,10 +1,26 @@
 import type { PronunciationOutcome, PronunciationRuntime } from "./types";
+import type { CardDirection } from "../shared/types";
 
 const NORMAL_FEEDBACK_DELAY_MS = 550;
 const MAX_AUTO_PRONUNCIATION_WAIT_MS = 8000;
 
 export function shouldAutoPronounceSpellingFeedback(feedback: string): boolean {
 	return feedback === "retrieval-correct" || feedback === "correction-correct";
+}
+
+export function shouldAutoPronounceSessionCard(options: {
+	wordLearningEnabled: boolean;
+	autoPlayEnabled: boolean;
+	direction: CardDirection;
+	answerVisible: boolean;
+	word: string | null;
+}): boolean {
+	return Boolean(
+		options.wordLearningEnabled &&
+		options.autoPlayEnabled &&
+		options.word &&
+		(options.direction === "normal" || options.answerVisible),
+	);
 }
 
 export async function waitForSpellingPronunciation(

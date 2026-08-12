@@ -137,6 +137,8 @@ const translations = {
 		"common.undo": "上一题",
 		"common.loading": "加载中...",
 		"pronunciation.play": "朗读 {word}",
+		"pronunciation.autoEnable": "开启自动发音",
+		"pronunciation.autoDisable": "关闭自动发音",
 		"pronunciation.offline": "当前离线，且没有这个词的本地缓存",
 		"pronunciation.notConfigured": "当前设备没有可用的本地英语语音，请先配置在线发音",
 		"pronunciation.unauthorized": "在线发音密钥无效，请检查设置",
@@ -635,6 +637,8 @@ const translations = {
 		"common.undo": "Undo",
 		"common.loading": "Loading...",
 		"pronunciation.play": "Pronounce {word}",
+		"pronunciation.autoEnable": "Enable automatic pronunciation",
+		"pronunciation.autoDisable": "Disable automatic pronunciation",
 		"pronunciation.offline": "You are offline and this word is not cached on this device",
 		"pronunciation.notConfigured":
 			"No local English voice is available. Configure online pronunciation first.",
