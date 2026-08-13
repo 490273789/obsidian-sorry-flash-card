@@ -290,6 +290,7 @@ const translations = {
 		"home.moreActions": "更多操作",
 		"home.showMoreActions": "展开更多操作",
 		"home.hideMoreActions": "收起更多操作",
+		"home.reorderDeck": "拖拽排序「{deckName}」；也可按上下方向键调整",
 		"home.studyModeTitle": "学习模式",
 		"home.practiceModeTitle": "刷题模式",
 		"home.spellingModeTitle": "单词拼写模式",
@@ -802,6 +803,8 @@ const translations = {
 		"home.moreActions": "More actions",
 		"home.showMoreActions": "Show more actions",
 		"home.hideMoreActions": "Hide more actions",
+		"home.reorderDeck":
+			"Drag to reorder {deckName}; use the up and down arrow keys as an alternative",
 		"home.studyModeTitle": "Study mode",
 		"home.practiceModeTitle": "Practice mode",
 		"home.spellingModeTitle": "Word spelling mode",

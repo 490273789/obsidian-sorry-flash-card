@@ -616,4 +616,11 @@
 		min-width: var(--fc-control-touch);
 		min-height: var(--fc-control-touch);
 	}
+
+	.flashcard-root button.flashcard-deck-drag-handle {
+		width: var(--fc-control-sm);
+		height: var(--fc-control-touch);
+		min-width: 0;
+		min-height: var(--fc-control-touch);
+	}
 }

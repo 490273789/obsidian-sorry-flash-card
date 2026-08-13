@@ -238,6 +238,70 @@ describe("DeckHome", () => {
 		expect(Object.isFrozen(snapshot.decks[0])).toBe(true);
 	});
 
+	it("persists a custom deck order and appends newly discovered decks", async () => {
+		const first = makeDeck("notes/first.md");
+		const second = makeDeck("notes/second.md");
+		const third = makeDeck("notes/third.md");
+		const repository = new MemoryRepository(
+			[first, second, third],
+			makeSettings({
+				deckOrder: [second.id, "notes/missing.md", second.id],
+			}),
+		);
+		const saveDeckOrder = vi.fn(async (deckIds: readonly string[]) => {
+			repository.commit(() => {
+				repository.settings = makeSettings({
+					deckOrder: [...deckIds],
+				});
+			});
+		});
+		const home = createDeckHome({
+			repository,
+			identity: makeIdentity(),
+			saveSettingsPatch: vi.fn(),
+			saveDeckOrder,
+			exportDeck: vi.fn(),
+			report: (event) => events.push(event),
+		});
+
+		expect(home.getSnapshot().decks.map((deck) => deck.id)).toEqual([
+			second.id,
+			first.id,
+			third.id,
+		]);
+
+		const outcome = await home.act({
+			kind: "reorder",
+			deckIds: [third.id, first.id, second.id],
+		});
+
+		expect(outcome).toEqual({ kind: "applied" });
+		expect(saveDeckOrder).toHaveBeenCalledWith([
+			third.id,
+			first.id,
+			second.id,
+		]);
+		expect(home.getSnapshot().decks.map((deck) => deck.id)).toEqual([
+			third.id,
+			first.id,
+			second.id,
+		]);
+
+		home.dispose();
+		const reopenedHome = createDeckHome({
+			repository,
+			identity: makeIdentity(),
+			saveSettingsPatch: vi.fn(),
+			exportDeck: vi.fn(),
+			report: (event) => events.push(event),
+		});
+		expect(reopenedHome.getSnapshot().decks.map((deck) => deck.id)).toEqual([
+			third.id,
+			first.id,
+			second.id,
+		]);
+	});
+
 	it("publishes a new snapshot only when the repository announces a committed revision", () => {
 		const repository = new MemoryRepository([makeDeck()]);
 		const home = createDeckHome({

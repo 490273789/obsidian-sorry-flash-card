@@ -156,6 +156,7 @@ export type DeckHomeAction =
 	| { readonly kind: "save-settings"; readonly ownerId: string }
 	| { readonly kind: "cancel-settings"; readonly ownerId: string }
 	| { readonly kind: "release-owner"; readonly ownerId: string }
+	| { readonly kind: "reorder"; readonly deckIds: readonly string[] }
 	| { readonly kind: "export"; readonly deckId: string }
 	| {
 			readonly kind: "navigate";
@@ -246,6 +247,7 @@ export interface CreateDeckHomeOptions {
 	repository: DeckHomeRepository;
 	identity: CardIdentityContinuity;
 	saveSettingsPatch(patch: DeckHomeSettingsPatch): Promise<void>;
+	saveDeckOrder?(deckIds: readonly string[]): Promise<void>;
 	exportDeck(
 		deck: Deck,
 		onProgress: (progress: DeckPdfExportProgress) => void,
@@ -363,6 +365,8 @@ class DefaultDeckHome implements DeckHome {
 				return this.cancelSettings(action.ownerId);
 			case "release-owner":
 				return this.releaseOwner(action.ownerId);
+			case "reorder":
+				return this.reorderDecks(action.deckIds);
 			case "export":
 				return this.exportDeck(action.deckId);
 			case "navigate":
@@ -678,6 +682,32 @@ class DefaultDeckHome implements DeckHome {
 		return { kind: "applied" };
 	}
 
+	private async reorderDecks(
+		deckIds: readonly string[],
+	): Promise<DeckHomeOutcome> {
+		const decks = this.options.repository.getAllDecks();
+		const nextOrder = orderDecks(decks, deckIds).map((deck) => deck.id);
+		const currentOrder = orderDecks(
+			decks,
+			this.options.repository.getSettings().deckOrder,
+		).map((deck) => deck.id);
+		if (areStringArraysEqual(nextOrder, currentOrder)) {
+			return { kind: "applied" };
+		}
+
+		try {
+			if (!this.options.saveDeckOrder) {
+				throw new Error("Deck order persistence is unavailable");
+			}
+			await this.options.saveDeckOrder(nextOrder);
+			return { kind: "applied" };
+		} catch (error) {
+			const message = getErrorMessage(error);
+			this.options.report({ kind: "settings-save-failed", message });
+			return { kind: "failed", message };
+		}
+	}
+
 	private async exportDeck(deckId: string): Promise<DeckHomeOutcome> {
 		if (this.exportActivity.kind !== "idle")
 			return { kind: "rejected", reason: "busy" };
@@ -787,7 +817,10 @@ class DefaultDeckHome implements DeckHome {
 	private buildSnapshot(): DeckHomeSnapshot {
 		const now = this.clock.now();
 		const settings = this.options.repository.getSettings();
-		const decks = this.options.repository.getAllDecks();
+		const decks = orderDecks(
+			this.options.repository.getAllDecks(),
+			settings.deckOrder,
+		);
 		const revision = this.options.repository.getRevision();
 		const deckSnapshots = decks.map((deck): DeckHomeDeckSnapshot => {
 			const stats = this.getDeckStatsCached(deck, now);
@@ -988,6 +1021,38 @@ function cloneDeck(deck: Deck): Deck {
 
 function getErrorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
+}
+
+function orderDecks(
+	decks: readonly Deck[],
+	preferredOrder: readonly string[],
+): Deck[] {
+	const decksById = new Map(decks.map((deck) => [deck.id, deck]));
+	const orderedDecks: Deck[] = [];
+	const seen = new Set<string>();
+
+	for (const deckId of preferredOrder) {
+		const deck = decksById.get(deckId);
+		if (!deck || seen.has(deckId)) continue;
+		orderedDecks.push(deck);
+		seen.add(deckId);
+	}
+	for (const deck of decks) {
+		if (seen.has(deck.id)) continue;
+		orderedDecks.push(deck);
+		seen.add(deck.id);
+	}
+	return orderedDecks;
+}
+
+function areStringArraysEqual(
+	left: readonly string[],
+	right: readonly string[],
+): boolean {
+	return (
+		left.length === right.length &&
+		left.every((value, index) => value === right[index])
+	);
 }
 
 function freezeDeckHomeSnapshot(snapshot: DeckHomeSnapshot): DeckHomeSnapshot {

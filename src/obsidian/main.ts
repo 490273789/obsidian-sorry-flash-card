@@ -78,6 +78,7 @@ export default class FlashcardPlugin extends Plugin {
 			repository: this.dataStore,
 			identity: this.cardIdentityContinuity,
 			saveSettingsPatch: this.saveDeckSettingsPatch,
+			saveDeckOrder: this.saveDeckOrder,
 			exportDeck: async (deck, onProgress) => {
 				if (!Platform.isDesktopApp) {
 					throw new Error(this.t("notice.pdfExportDesktopOnly"));
@@ -339,6 +340,7 @@ export default class FlashcardPlugin extends Plugin {
 				this.settings.deckStudySettings,
 			),
 			wordLearningDecks: { ...this.settings.wordLearningDecks },
+			deckOrder: [...this.settings.deckOrder],
 			pronunciation: { ...this.settings.pronunciation },
 		}));
 	}
@@ -374,6 +376,15 @@ export default class FlashcardPlugin extends Plugin {
 				wordLearningDecks,
 			};
 		});
+	};
+
+	private saveDeckOrder = async (
+		deckOrder: readonly string[],
+	): Promise<void> => {
+		await this.enqueueSettingsWrite(() => ({
+			...this.settings,
+			deckOrder: [...deckOrder],
+		}));
 	};
 
 	private reportDeckHomeEvent = (event: DeckHomeEvent): void => {
@@ -534,6 +545,7 @@ function cloneFlashcardSettings(
 		...settings,
 		flashcardTags: [...settings.flashcardTags],
 		wordLearningDecks: { ...settings.wordLearningDecks },
+		deckOrder: [...settings.deckOrder],
 		practicePerfectMessages: [...settings.practicePerfectMessages],
 		practiceErrorMessages: [...settings.practiceErrorMessages],
 		fsrsParameters: { ...settings.fsrsParameters },

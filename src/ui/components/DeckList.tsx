@@ -1,11 +1,21 @@
-import React, {
-	memo,
-	useCallback,
-	useEffect,
-	useId,
-	useRef,
-	useState,
-} from "react";
+import React, { memo, useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+	closestCenter,
+	DndContext,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+	type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+	arrayMove,
+	sortableKeyboardCoordinates,
+	SortableContext,
+	useSortable,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
 	BookOpen,
 	Brain,
@@ -14,6 +24,7 @@ import {
 	Ellipsis,
 	FileDown,
 	FileText,
+	GripVertical,
 	Inbox,
 	Keyboard,
 	Layers3,
@@ -71,8 +82,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 	const spellingValidation = draft.spelling;
 	const hasStableIdentities = draft.spelling.hasStableIdentities;
 	const spellingBlocked =
-		draft.wordLearningEnabled &&
-		(!spellingValidation.canStart || !hasStableIdentities);
+		draft.wordLearningEnabled && (!spellingValidation.canStart || !hasStableIdentities);
 	const isBusy = isMigratingIdentity || isSaving;
 
 	const handleDailyNewCardsChange = (val: number) => {
@@ -106,21 +116,14 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 					<div className="flashcard-modal-header">
 						<div className="flashcard-modal-heading">
 							<div className="flashcard-modal-kicker fc-kicker">
-								<Sparkles size={14} />{" "}
-								{t("deckSettings.kicker")}
+								<Sparkles size={14} /> {t("deckSettings.kicker")}
 							</div>
-							<span
-								id={titleId}
-								className="flashcard-modal-title"
-							>
+							<span id={titleId} className="flashcard-modal-title">
 								{t("deckSettings.title", {
 									deckName: draft.deckName,
 								})}
 							</span>
-							<span
-								id={subtitleId}
-								className="flashcard-modal-subtitle"
-							>
+							<span id={subtitleId} className="flashcard-modal-subtitle">
 								{t("deckSettings.subtitle", {
 									totalCards,
 									mode: draft.useCustom
@@ -144,14 +147,8 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						<div className="flashcard-deck-settings-purpose flashcard-deck-settings-card">
 							<div className="flashcard-deck-settings-purpose-heading">
 								<div>
-									<strong>
-										{t("deckSettings.wordLearningTitle")}
-									</strong>
-									<p>
-										{t(
-											"deckSettings.wordLearningDescription",
-										)}
-									</p>
+									<strong>{t("deckSettings.wordLearningTitle")}</strong>
+									<p>{t("deckSettings.wordLearningDescription")}</p>
 								</div>
 								<label className="flashcard-deck-settings-toggle-label">
 									<input
@@ -165,109 +162,69 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 											})
 										}
 									/>
-									<span>
-										{t("deckSettings.wordLearningToggle")}
-									</span>
+									<span>{t("deckSettings.wordLearningToggle")}</span>
 								</label>
 							</div>
 
-							{draft.wordLearningEnabled &&
-								!hasStableIdentities && (
-									<div className="flashcard-deck-settings-warning">
-										<TriangleAlert size={16} />
-										<span>
-											{t("deckSettings.identityRequired")}
-										</span>
-										<FlashcardButton
-											variant="purple"
-											onClick={() =>
-												void handleMigrateIdentity()
-											}
-											disabled={isBusy}
-										>
-											{isMigratingIdentity
-												? t("identity.migrating")
-												: t("identity.migrateNow")}
-										</FlashcardButton>
-									</div>
-								)}
+							{draft.wordLearningEnabled && !hasStableIdentities && (
+								<div className="flashcard-deck-settings-warning">
+									<TriangleAlert size={16} />
+									<span>{t("deckSettings.identityRequired")}</span>
+									<FlashcardButton
+										variant="purple"
+										onClick={() => void handleMigrateIdentity()}
+										disabled={isBusy}
+									>
+										{isMigratingIdentity
+											? t("identity.migrating")
+											: t("identity.migrateNow")}
+									</FlashcardButton>
+								</div>
+							)}
 
 							{draft.wordLearningEnabled &&
 								(!spellingValidation.canStart ||
-									spellingValidation.invalidCards.length >
-										0) && (
+									spellingValidation.invalidCards.length > 0) && (
 									<div className="flashcard-deck-settings-warning">
 										<TriangleAlert size={16} />
 										<div>
 											<strong>
 												{spellingValidation.canStart
-													? t(
-															"deckSettings.invalidSpellingCards",
-															{
-																count: spellingValidation
-																	.invalidCards
-																	.length,
-															},
-														)
-													: t(
-															"deckSettings.noEligibleSpellingCards",
-															{
-																count: spellingValidation
-																	.invalidCards
-																	.length,
-															},
-														)}
+													? t("deckSettings.invalidSpellingCards", {
+															count: spellingValidation.invalidCards
+																.length,
+														})
+													: t("deckSettings.noEligibleSpellingCards", {
+															count: spellingValidation.invalidCards
+																.length,
+														})}
 											</strong>
 											<ul>
 												{spellingValidation.invalidCards
 													.slice(0, 5)
 													.map((invalidCard) => (
-														<li
-															key={
-																invalidCard.cardId
-															}
-														>
-															{t(
-																"deckSettings.invalidSpellingCard",
-																{
-																	index:
-																		invalidCard.indexInFile +
-																		1,
-																	front:
-																		invalidCard.front
-																			.replace(
-																				/\s+/g,
-																				" ",
-																			)
-																			.slice(
-																				0,
-																				40,
-																			) ||
-																		"—",
-																},
-															)}
+														<li key={invalidCard.cardId}>
+															{t("deckSettings.invalidSpellingCard", {
+																index: invalidCard.indexInFile + 1,
+																front:
+																	invalidCard.front
+																		.replace(/\s+/g, " ")
+																		.slice(0, 40) || "—",
+															})}
 														</li>
 													))}
 											</ul>
-											{spellingValidation.invalidCards
-												.length > 5 && (
+											{spellingValidation.invalidCards.length > 5 && (
 												<span>
-													{t(
-														"deckSettings.invalidSpellingCardsMore",
-														{
-															count:
-																spellingValidation
-																	.invalidCards
-																	.length - 5,
-														},
-													)}
+													{t("deckSettings.invalidSpellingCardsMore", {
+														count:
+															spellingValidation.invalidCards.length -
+															5,
+													})}
 												</span>
 											)}
 										</div>
-										<FlashcardButton
-											variant="blue"
-											onClick={onOpenSourceFile}
-										>
+										<FlashcardButton variant="blue" onClick={onOpenSourceFile}>
 											{t("home.openSourceTitle")}
 										</FlashcardButton>
 									</div>
@@ -297,12 +254,8 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 							<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
 								{t("deckSettings.globalHint", {
 									dailyNewCards: draft.global.dailyNewCards,
-									dailyReviewCards:
-										draft.global.dailyReviewCards,
-									studyOrder: formatStudyOrder(
-										language,
-										draft.global.studyOrder,
-									),
+									dailyReviewCards: draft.global.dailyReviewCards,
+									studyOrder: formatStudyOrder(language, draft.global.studyOrder),
 								})}
 								{totalCards > 0 && (
 									<span>
@@ -312,9 +265,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 												totalCards <= 0
 													? 0
 													: Math.ceil(
-															totalCards /
-																draft.global
-																	.dailyNewCards,
+															totalCards / draft.global.dailyNewCards,
 														),
 										})}
 									</span>
@@ -336,16 +287,13 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									<span className="flashcard-deck-settings-summary-label">
 										{t("deckSettings.dailySummary", {
 											dailyNewCards: draft.dailyNewCards,
-											dailyReviewCards:
-												draft.dailyReviewCards,
+											dailyReviewCards: draft.dailyReviewCards,
 										})}
 									</span>
 								</div>
 								<div className="flashcard-deck-settings-field">
 									<label>
-										<span>
-											{t("deckSettings.dailyNewCards")}
-										</span>
+										<span>{t("deckSettings.dailyNewCards")}</span>
 										<strong>{draft.dailyNewCards}</strong>
 									</label>
 									<input
@@ -354,19 +302,13 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										max={200}
 										value={draft.dailyNewCards}
 										onChange={(e) =>
-											handleDailyNewCardsChange(
-												parseInt(e.target.value),
-											)
+											handleDailyNewCardsChange(parseInt(e.target.value))
 										}
 									/>
 								</div>
 								{totalCards > 0 && (
 									<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row flashcard-deck-settings-days">
-										<label>
-											{t(
-												"deckSettings.estimatedDaysLabel",
-											)}
-										</label>
+										<label>{t("deckSettings.estimatedDaysLabel")}</label>
 										<div className="flashcard-deck-settings-days-inputs">
 											<input
 												type="number"
@@ -374,33 +316,24 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 												max={totalCards}
 												value={draft.daysToComplete}
 												onChange={(e) =>
-													handleDaysToCompleteChange(
-														e.target.value,
-													)
+													handleDaysToCompleteChange(e.target.value)
 												}
 											/>
 											<span className="flashcard-deck-settings-days-unit">
 												{t("deckSettings.daysUnit")}
 											</span>
 											<span className="flashcard-deck-settings-days-hint">
-												{t(
-													"deckSettings.totalCardsHint",
-													{
-														totalCards,
-													},
-												)}
+												{t("deckSettings.totalCardsHint", {
+													totalCards,
+												})}
 											</span>
 										</div>
 									</div>
 								)}
 								<div className="flashcard-deck-settings-field">
 									<label>
-										<span>
-											{t("deckSettings.dailyReviewCards")}
-										</span>
-										<strong>
-											{draft.dailyReviewCards}
-										</strong>
+										<span>{t("deckSettings.dailyReviewCards")}</span>
+										<strong>{draft.dailyReviewCards}</strong>
 									</label>
 									<input
 										type="range"
@@ -417,36 +350,24 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									/>
 								</div>
 								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
-									<label>
-										{t("deckSettings.studyOrder")}
-									</label>
+									<label>{t("deckSettings.studyOrder")}</label>
 									<select
 										value={draft.studyOrder}
 										onChange={(e) =>
 											onChange({
 												field: "studyOrder",
-												value: e.target.value as
-													| "sequential"
-													| "random",
+												value: e.target.value as "sequential" | "random",
 											})
 										}
 									>
-										<option value="sequential">
-											{t("order.sequential")}
-										</option>
-										<option value="random">
-											{t("order.random")}
-										</option>
+										<option value="sequential">{t("order.sequential")}</option>
+										<option value="random">{t("order.random")}</option>
 									</select>
 								</div>
 								<div className="flashcard-deck-settings-field">
 									<label>
-										<span>
-											{t("deckSettings.targetRetention")}
-										</span>
-										<strong>
-											{draft.requestRetention.toFixed(2)}
-										</strong>
+										<span>{t("deckSettings.targetRetention")}</span>
+										<strong>{draft.requestRetention.toFixed(2)}</strong>
 									</label>
 									<input
 										type="range"
@@ -457,17 +378,13 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										onChange={(e) =>
 											onChange({
 												field: "requestRetention",
-												value: parseFloat(
-													e.target.value,
-												),
+												value: parseFloat(e.target.value),
 											})
 										}
 									/>
 								</div>
 								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
-									<label>
-										{t("deckSettings.maxReviewInterval")}
-									</label>
+									<label>{t("deckSettings.maxReviewInterval")}</label>
 									<input
 										type="number"
 										min={30}
@@ -493,10 +410,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						>
 							{t("common.save")}
 						</FlashcardButton>
-						<FlashcardButton
-							onClick={requestClose}
-							disabled={isBusy}
-						>
+						<FlashcardButton onClick={requestClose} disabled={isBusy}>
 							{t("common.cancel")}
 						</FlashcardButton>
 					</div>
@@ -508,6 +422,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 
 interface DeckCardProps {
 	deck: DeckHomeDeckSnapshot;
+	isReorderDisabled: boolean;
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
@@ -522,6 +437,7 @@ interface DeckCardProps {
 
 const DeckCard = memo(function DeckCard({
 	deck,
+	isReorderDisabled,
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
@@ -534,6 +450,15 @@ const DeckCard = memo(function DeckCard({
 	isSettingsLocked,
 }: DeckCardProps) {
 	const { t } = useI18n();
+	const {
+		attributes,
+		isDragging,
+		listeners,
+		setActivatorNodeRef,
+		setNodeRef,
+		transform,
+		transition,
+	} = useSortable({ id: deck.id, disabled: isReorderDisabled });
 	const totalCards = deck.stats.totalCards;
 	const newCards = deck.stats.newCards;
 	const [showMoreActions, setShowMoreActions] = useState(false);
@@ -558,18 +483,33 @@ const DeckCard = memo(function DeckCard({
 		activeDocument.addEventListener("pointerdown", handlePointerDown);
 		activeDocument.addEventListener("keydown", handleKeyDown);
 		return () => {
-			activeDocument.removeEventListener(
-				"pointerdown",
-				handlePointerDown,
-			);
+			activeDocument.removeEventListener("pointerdown", handlePointerDown);
 			activeDocument.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [showMoreActions]);
 
 	return (
 		<article
-			className={`flashcard-deck-item fc-lift${showMoreActions ? " is-actions-open" : ""}`}
+			ref={setNodeRef}
+			className={`flashcard-deck-item fc-lift${showMoreActions ? " is-actions-open" : ""}${isDragging ? " is-dragging" : ""}`}
+			data-deck-id={deck.id}
+			style={{
+				transform: CSS.Transform.toString(transform),
+				transition,
+			}}
 		>
+			<button
+				ref={setActivatorNodeRef}
+				type="button"
+				className="flashcard-deck-drag-handle"
+				disabled={isReorderDisabled}
+				aria-label={t("home.reorderDeck", { deckName: deck.name })}
+				title={t("home.reorderDeck", { deckName: deck.name })}
+				{...attributes}
+				{...listeners}
+			>
+				<GripVertical size={18} />
+			</button>
 			<div className="flashcard-deck-main">
 				<div className="flashcard-deck-headline">
 					<div className="flashcard-deck-name">{deck.name}</div>
@@ -594,13 +534,8 @@ const DeckCard = memo(function DeckCard({
 					</div>
 					<div className="flashcard-deck-stats">
 						<div className="flashcard-deck-stat">
-							<span className="flashcard-deck-stat-value blue">
-								{newCards}
-							</span>
-							/
-							<span className="flashcard-deck-stat-value orange">
-								{totalCards}
-							</span>
+							<span className="flashcard-deck-stat-value blue">{newCards}</span>/
+							<span className="flashcard-deck-stat-value orange">{totalCards}</span>
 						</div>
 						<div className="flashcard-deck-stat">
 							<span className="flashcard-deck-stat-label">
@@ -649,14 +584,10 @@ const DeckCard = memo(function DeckCard({
 						}}
 						active={showMoreActions}
 						title={
-							showMoreActions
-								? t("home.hideMoreActions")
-								: t("home.showMoreActions")
+							showMoreActions ? t("home.hideMoreActions") : t("home.showMoreActions")
 						}
 						aria-label={
-							showMoreActions
-								? t("home.hideMoreActions")
-								: t("home.showMoreActions")
+							showMoreActions ? t("home.hideMoreActions") : t("home.showMoreActions")
 						}
 						aria-expanded={showMoreActions}
 						aria-controls={actionsMenuId}
@@ -684,13 +615,9 @@ const DeckCard = memo(function DeckCard({
 								title={
 									spellingReady
 										? deck.spelling.ignoredCardCount > 0
-											? t(
-													"home.spellingModeIgnoredTitle",
-													{
-														count: deck.spelling
-															.ignoredCardCount,
-													},
-												)
+											? t("home.spellingModeIgnoredTitle", {
+													count: deck.spelling.ignoredCardCount,
+												})
 											: t("home.spellingModeTitle")
 										: t("home.spellingUnavailableTitle", {
 												count: deck.spelling.issueCount,
@@ -787,10 +714,47 @@ export const DeckList = React.memo(function DeckList({
 		snapshot.mutation.kind === "preparing-migration" ||
 		snapshot.mutation.kind === "awaiting-confirmation" ||
 		snapshot.mutation.kind === "migrating";
-	const draft =
-		snapshot.settingsDraft?.ownerId === ownerId
-			? snapshot.settingsDraft
-			: null;
+	const draft = snapshot.settingsDraft?.ownerId === ownerId ? snapshot.settingsDraft : null;
+	const [previewDeckIds, setPreviewDeckIds] = useState<string[] | null>(null);
+	const [isOrderSaving, setIsOrderSaving] = useState(false);
+	const snapshotDeckIds = snapshot.decks.map((deck) => deck.id);
+	const visibleDeckIds = previewDeckIds ?? snapshotDeckIds;
+	const visibleDecks = orderDeckSnapshots(snapshot.decks, visibleDeckIds);
+	const sensors = useSensors(
+		useSensor(PointerSensor, {
+			activationConstraint: { distance: 6 },
+		}),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		}),
+	);
+
+	const persistDeckOrder = useCallback(
+		async (deckIds: string[]) => {
+			setIsOrderSaving(true);
+			try {
+				await home.act({ kind: "reorder", deckIds });
+			} finally {
+				setPreviewDeckIds(null);
+				setIsOrderSaving(false);
+			}
+		},
+		[home],
+	);
+
+	const handleDragEnd = useCallback(
+		(event: DragEndEvent) => {
+			const { active, over } = event;
+			if (!over || active.id === over.id) return;
+			const activeIndex = visibleDeckIds.indexOf(String(active.id));
+			const overIndex = visibleDeckIds.indexOf(String(over.id));
+			if (activeIndex < 0 || overIndex < 0) return;
+			const nextOrder = arrayMove(visibleDeckIds, activeIndex, overIndex);
+			setPreviewDeckIds(nextOrder);
+			void persistDeckOrder(nextOrder);
+		},
+		[persistDeckOrder, visibleDeckIds],
+	);
 
 	const handleCloseModal = useCallback(() => {
 		void home.act({ kind: "cancel-settings", ownerId });
@@ -859,9 +823,7 @@ export const DeckList = React.memo(function DeckList({
 							<FlashcardButton
 								preset="icon"
 								icon={RefreshCcw}
-								onClick={() =>
-									void home.act({ kind: "refresh" })
-								}
+								onClick={() => void home.act({ kind: "refresh" })}
 								disabled={isMutationBusy}
 								title={t("home.refreshTitle")}
 								iconClassName={isLoading ? "spinning" : ""}
@@ -883,18 +845,12 @@ export const DeckList = React.memo(function DeckList({
 								<Sparkles size={20} />
 							</div>
 							<div>
-								<strong>
-									{t("identity.oneClickMigrationTitle")}
-								</strong>
+								<strong>{t("identity.oneClickMigrationTitle")}</strong>
 								<p>
-									{t(
-										"identity.oneClickMigrationDescription",
-										{
-											sources:
-												snapshot.migration.sourceCount,
-											cards: snapshot.migration.cardCount,
-										},
-									)}
+									{t("identity.oneClickMigrationDescription", {
+										sources: snapshot.migration.sourceCount,
+										cards: snapshot.migration.cardCount,
+									})}
 								</p>
 							</div>
 						</div>
@@ -904,9 +860,7 @@ export const DeckList = React.memo(function DeckList({
 							onClick={() => void onRequestMigration()}
 							disabled={isMutationBusy}
 						>
-							{isMigrating
-								? t("identity.migrating")
-								: t("identity.migrateAllNow")}
+							{isMigrating ? t("identity.migrating") : t("identity.migrateAllNow")}
 						</FlashcardButton>
 					</section>
 				)}
@@ -922,44 +876,44 @@ export const DeckList = React.memo(function DeckList({
 						</p>
 					</div>
 				) : (
-					<div className="flashcard-deck-list">
-						{snapshot.decks.map((deck) => (
-							<DeckCard
-								key={deck.id}
-								deck={deck}
-								onSelectDeck={(deckId) =>
-									onNavigate("study", deckId)
-								}
-								onOpenWordList={(deckId) =>
-									onNavigate("word-list", deckId)
-								}
-								onStartPractice={(deckId) =>
-									onNavigate("practice", deckId)
-								}
-								onStartSpelling={(deckId) =>
-									onNavigate("spelling", deckId)
-								}
-								onExportDeck={handleExportDeck}
-								onOpenSourceFile={onOpenSourceFile}
-								onOpenSettings={handleOpenDeckSettings}
-								isExporting={
-									snapshot.export.kind === "exporting" &&
-									snapshot.export.deckId === deck.id
-								}
-								isExportBusy={
-									snapshot.export.kind === "exporting"
-								}
-								isSettingsLocked={
-									snapshot.settingsDraft !== null &&
-									snapshot.settingsDraft.ownerId !==
-										ownerId &&
-									(snapshot.settingsDraft.ownerId !== "" ||
-										snapshot.settingsDraft.deckId !==
-											deck.id)
-								}
-							/>
-						))}
-					</div>
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCenter}
+						onDragEnd={handleDragEnd}
+					>
+						<SortableContext
+							items={visibleDeckIds}
+							strategy={verticalListSortingStrategy}
+						>
+							<div className="flashcard-deck-list">
+								{visibleDecks.map((deck) => (
+									<DeckCard
+										key={deck.id}
+										deck={deck}
+										isReorderDisabled={isOrderSaving}
+										onSelectDeck={(deckId) => onNavigate("study", deckId)}
+										onOpenWordList={(deckId) => onNavigate("word-list", deckId)}
+										onStartPractice={(deckId) => onNavigate("practice", deckId)}
+										onStartSpelling={(deckId) => onNavigate("spelling", deckId)}
+										onExportDeck={handleExportDeck}
+										onOpenSourceFile={onOpenSourceFile}
+										onOpenSettings={handleOpenDeckSettings}
+										isExporting={
+											snapshot.export.kind === "exporting" &&
+											snapshot.export.deckId === deck.id
+										}
+										isExportBusy={snapshot.export.kind === "exporting"}
+										isSettingsLocked={
+											snapshot.settingsDraft !== null &&
+											snapshot.settingsDraft.ownerId !== ownerId &&
+											(snapshot.settingsDraft.ownerId !== "" ||
+												snapshot.settingsDraft.deckId !== deck.id)
+										}
+									/>
+								))}
+							</div>
+						</SortableContext>
+					</DndContext>
 				)}
 			</div>
 
@@ -1003,3 +957,15 @@ export const DeckList = React.memo(function DeckList({
 		</>
 	);
 });
+
+function orderDeckSnapshots(
+	decks: readonly DeckHomeDeckSnapshot[],
+	deckIds: readonly string[],
+): DeckHomeDeckSnapshot[] {
+	const decksById = new Map(decks.map((deck) => [deck.id, deck]));
+	const orderedDecks = deckIds
+		.map((deckId) => decksById.get(deckId))
+		.filter((deck): deck is DeckHomeDeckSnapshot => deck !== undefined);
+	const seen = new Set(orderedDecks.map((deck) => deck.id));
+	return [...orderedDecks, ...decks.filter((deck) => !seen.has(deck.id))];
+}

@@ -125,6 +125,7 @@ describe("DataStore settings", () => {
 		});
 		expect(settings.practiceMessagesCustomized).toBe(false);
 		expect(settings.wordLearningDecks).toEqual({});
+		expect(settings.deckOrder).toEqual([]);
 		expect(settings.pronunciation).toEqual(DEFAULT_SETTINGS.pronunciation);
 		expect(settings.practicePerfectMessages).toEqual(DEFAULT_SETTINGS.practicePerfectMessages);
 	});

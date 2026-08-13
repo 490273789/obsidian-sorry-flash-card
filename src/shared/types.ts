@@ -59,6 +59,8 @@ export interface FlashcardSettings extends StudySettings {
 	flashcardTags: string[];
 	/** Decks explicitly enabled for English-word spelling practice, keyed by deck ID */
 	wordLearningDecks: Record<string, boolean>;
+	/** User-defined deck display order, stored as stable deck IDs */
+	deckOrder: string[];
 	/** Practice completion messages when all correct */
 	practicePerfectMessages: string[];
 	/** Practice completion messages when there are errors */
@@ -78,6 +80,7 @@ export const DEFAULT_SETTINGS: FlashcardSettings = {
 	language: DEFAULT_LANGUAGE,
 	flashcardTags: ["#wordTag"],
 	wordLearningDecks: {},
+	deckOrder: [],
 	dailyNewCards: 20,
 	dailyReviewCards: 100,
 	studyOrder: "random",

@@ -245,6 +245,7 @@ export class DataStore {
 			language,
 			deckStudySettings: settings.deckStudySettings ?? {},
 			wordLearningDecks: settings.wordLearningDecks ?? {},
+			deckOrder: normalizeDeckOrder(settings.deckOrder),
 			fsrsParameters: {
 				...DEFAULT_SETTINGS.fsrsParameters,
 				...settings.fsrsParameters,
@@ -992,6 +993,7 @@ function cloneFlashcardSettings(
 		...settings,
 		flashcardTags: [...settings.flashcardTags],
 		wordLearningDecks: { ...settings.wordLearningDecks },
+		deckOrder: [...settings.deckOrder],
 		practicePerfectMessages: [...settings.practicePerfectMessages],
 		practiceErrorMessages: [...settings.practiceErrorMessages],
 		fsrsParameters: { ...settings.fsrsParameters },
@@ -1010,6 +1012,15 @@ function cloneFlashcardSettings(
 		),
 		pronunciation: { ...settings.pronunciation },
 	};
+}
+
+function normalizeDeckOrder(value: unknown): string[] {
+	if (!Array.isArray(value)) return [];
+	return [
+		...new Set(
+			value.filter((deckId): deckId is string => typeof deckId === "string"),
+		),
+	];
 }
 
 function createEmptyContinuityState(): PersistedCardIdentityContinuityState {
