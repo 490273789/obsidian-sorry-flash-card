@@ -11,6 +11,7 @@ import {
 import { CardDirection, Deck } from "../../shared/types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
+import { FlashcardInput } from "./FlashcardInput";
 import { useI18n } from "./I18nContext";
 import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
@@ -66,27 +67,17 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 		defaultOptions?.mode ?? "random-count",
 	);
 	const [questionCount, setQuestionCount] = useState(initialQuestionCount);
-	const [inputValue, setInputValue] = useState(
-		initialQuestionCount.toString(),
-	);
+	const [inputValue, setInputValue] = useState(initialQuestionCount.toString());
 	const [rangeStart, setRangeStart] = useState(initialRangeStart);
 	const [rangeEnd, setRangeEnd] = useState(initialRangeEnd);
-	const [rangeStartInput, setRangeStartInput] = useState(
-		initialRangeStart.toString(),
-	);
-	const [rangeEndInput, setRangeEndInput] = useState(
-		initialRangeEnd.toString(),
-	);
+	const [rangeStartInput, setRangeStartInput] = useState(initialRangeStart.toString());
+	const [rangeEndInput, setRangeEndInput] = useState(initialRangeEnd.toString());
 	const [direction, setDirection] = useState<CardDirection>(
 		defaultOptions?.direction ?? defaultDirection,
 	);
 	const rangeQuestionCount = Math.max(0, rangeEnd - rangeStart + 1);
-	const currentQuestionCount =
-		selectionMode === "range" ? rangeQuestionCount : questionCount;
-	const coverage =
-		maxQuestions > 0
-			? Math.round((currentQuestionCount / maxQuestions) * 100)
-			: 0;
+	const currentQuestionCount = selectionMode === "range" ? rangeQuestionCount : questionCount;
+	const coverage = maxQuestions > 0 ? Math.round((currentQuestionCount / maxQuestions) * 100) : 0;
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
@@ -119,9 +110,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 				? rangeStart
 				: Math.min(parsedStart, maxRangeStart);
 		const end =
-			isNaN(parsedEnd) || parsedEnd < start
-				? start
-				: Math.min(parsedEnd, maxQuestions);
+			isNaN(parsedEnd) || parsedEnd < start ? start : Math.min(parsedEnd, maxQuestions);
 
 		return { start, end };
 	};
@@ -209,9 +198,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 				<div className="flashcard-study-hero flashcard-practice-hero">
 					<div className="flashcard-study-hero-copy flashcard-practice-hero-copy">
 						<div className="flashcard-deck-name-wrapper">
-							<div className="flashcard-deck-name">
-								{deck.name}
-							</div>
+							<div className="flashcard-deck-name">{deck.name}</div>
 							<div className="flashcard-deck-tag">{deck.tag}</div>
 						</div>
 
@@ -255,34 +242,21 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 												type="button"
 												className="flashcard-setup-chip"
 												active={
-													questionCount ===
-													Math.min(
-														count,
-														maxQuestions,
-													)
+													questionCount === Math.min(count, maxQuestions)
 												}
-												onClick={() =>
-													handleQuickSelect(count)
-												}
+												onClick={() => handleQuickSelect(count)}
 												disabled={
-													count > maxQuestions &&
-													count !== maxQuestions
+													count > maxQuestions && count !== maxQuestions
 												}
 											>
-												{count > maxQuestions
-													? maxQuestions
-													: count}
+												{count > maxQuestions ? maxQuestions : count}
 											</FlashcardButton>
 										))}
 										<FlashcardButton
 											type="button"
 											className="flashcard-setup-chip"
-											active={
-												questionCount === maxQuestions
-											}
-											onClick={() =>
-												handleQuickSelect(maxQuestions)
-											}
+											active={questionCount === maxQuestions}
+											onClick={() => handleQuickSelect(maxQuestions)}
 										>
 											{t("common.all")}
 										</FlashcardButton>
@@ -292,7 +266,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 										<span className="flashcard-practice-input-label">
 											{t("practice.customCount")}
 										</span>
-										<input
+										<FlashcardInput
 											type="number"
 											className="flashcard-practice-input"
 											value={inputValue}
@@ -313,13 +287,11 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 											<span className="flashcard-practice-input-label">
 												{t("practice.rangeStart")}
 											</span>
-											<input
+											<FlashcardInput
 												type="number"
 												className="flashcard-practice-input"
 												value={rangeStartInput}
-												onChange={
-													handleRangeStartChange
-												}
+												onChange={handleRangeStartChange}
 												onBlur={handleRangeBlur}
 											/>
 										</label>
@@ -327,7 +299,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 											<span className="flashcard-practice-input-label">
 												{t("practice.rangeEnd")}
 											</span>
-											<input
+											<FlashcardInput
 												type="number"
 												className="flashcard-practice-input"
 												value={rangeEndInput}
@@ -352,9 +324,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 						icon={Repeat2}
 						title={t("mode.direction")}
 						note={
-							direction === "normal"
-								? t("mode.normalNote")
-								: t("mode.reversedNote")
+							direction === "normal" ? t("mode.normalNote") : t("mode.reversedNote")
 						}
 					>
 						<SetupSelector
@@ -382,9 +352,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 						<div className="flashcard-practice-panel-title">
 							<Target size={16} /> {t("practice.rules")}
 						</div>
-						<div className="flashcard-study-panel-note">
-							{t("practice.rulesNote")}
-						</div>
+						<div className="flashcard-study-panel-note">{t("practice.rulesNote")}</div>
 					</div>
 					<div className="flashcard-practice-info-item">
 						<span className="flashcard-practice-info-icon">
@@ -425,9 +393,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 					<FlashcardButton
 						variant="green"
 						onClick={handleStart}
-						disabled={
-							maxQuestions === 0 || currentQuestionCount < 1
-						}
+						disabled={maxQuestions === 0 || currentQuestionCount < 1}
 					>
 						{t("practice.startQuestions", {
 							count: currentQuestionCount,

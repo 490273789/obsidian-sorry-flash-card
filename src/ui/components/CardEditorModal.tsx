@@ -3,6 +3,8 @@ import { FilePlus2, Pencil, Sparkles, X } from "lucide-react";
 import type { Deck } from "../../shared/types";
 import { containsReservedMarkerLine } from "../../cards/cardFormat";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardTextarea } from "./FlashcardInput";
+import { FlashcardSelect } from "./FlashcardSelect";
 import { useI18n } from "./I18nContext";
 import { ModalSurface } from "../modal";
 
@@ -131,7 +133,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 						{mode === "create" && (
 							<label className="flashcard-card-editor-field">
 								<span>{t("cardEditor.selectDeck")}</span>
-								<select
+								<FlashcardSelect
 									value={deckId}
 									onChange={(e) => setDeckId(e.target.value)}
 									disabled={isSaving}
@@ -142,13 +144,13 @@ export const CardEditorModal = memo(function CardEditorModal({
 											{deck.name} · {deck.tag}
 										</option>
 									))}
-								</select>
+								</FlashcardSelect>
 							</label>
 						)}
 
 						<label className="flashcard-card-editor-field">
 							<span>{t("common.cardFront")}</span>
-							<textarea
+							<FlashcardTextarea
 								value={front}
 								onChange={(e) => setFront(e.target.value)}
 								placeholder={t("cardEditor.frontPlaceholder")}
@@ -160,7 +162,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 
 						<label className="flashcard-card-editor-field">
 							<span>{t("common.cardBack")}</span>
-							<textarea
+							<FlashcardTextarea
 								value={back}
 								onChange={(e) => setBack(e.target.value)}
 								placeholder={t("cardEditor.backPlaceholder")}
@@ -171,7 +173,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 
 						<label className="flashcard-card-editor-field">
 							<span>{t("common.explanationOptional")}</span>
-							<textarea
+							<FlashcardTextarea
 								value={explanation}
 								onChange={(e) => setExplanation(e.target.value)}
 								placeholder={t("cardEditor.explanationPlaceholder")}

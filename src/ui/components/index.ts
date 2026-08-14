@@ -1,5 +1,16 @@
 export { FlashcardButton } from "./FlashcardButton";
-export type { ButtonVariant, ButtonPreset } from "./FlashcardButton";
+export type {
+	ButtonVariant,
+	ButtonPreset,
+	ButtonSize,
+	FlashcardButtonProps,
+} from "./FlashcardButton";
+export { FlashcardInput, FlashcardTextarea } from "./FlashcardInput";
+export type { FlashcardInputProps, FlashcardTextareaProps } from "./FlashcardInput";
+export { FlashcardSelect } from "./FlashcardSelect";
+export type { FlashcardSelectProps } from "./FlashcardSelect";
+export { FlashcardMenu } from "./FlashcardMenu";
+export type { FlashcardMenuItem, FlashcardMenuProps } from "./FlashcardMenu";
 export { FlashcardHeader } from "./FlashcardHeader";
 export type { FlashcardHeaderStat, FlashcardHeaderStatTone } from "./FlashcardHeader";
 export { DeckList } from "./DeckList";

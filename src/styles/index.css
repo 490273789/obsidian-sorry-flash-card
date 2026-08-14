@@ -4,6 +4,7 @@
  */
 @import "./base.css";
 @import "./buttons.css";
+@import "./controls.css";
 @import "./home.css";
 @import "./study.css";
 @import "./word-list.css";

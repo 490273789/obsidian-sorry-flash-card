@@ -1,0 +1,206 @@
+/* Shared React and Obsidian form controls. */
+.flashcard-control {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: var(--fc-control-md);
+	margin: 0;
+	padding: var(--fc-space-2) var(--fc-space-3);
+	border: 1px solid var(--fc-input-border);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-input-bg);
+	box-shadow: none;
+	color: var(--fc-text);
+	font: var(--fc-weight-regular) var(--fc-font-sm) / var(--fc-line-body) var(--fc-font-ui);
+	transition:
+		border-color var(--fc-motion-quick) ease,
+		background var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+}
+
+.flashcard-control:hover:not(:disabled) {
+	border-color: var(--fc-control-border);
+	background: var(--fc-input-bg-hover);
+}
+
+.flashcard-control:focus,
+.flashcard-control:focus-visible {
+	border-color: var(--fc-input-border-focus);
+	background: var(--fc-input-bg);
+	box-shadow: var(--fc-focus-ring);
+	outline: none;
+}
+
+.flashcard-control:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.flashcard-control.is-invalid,
+.flashcard-control[aria-invalid="true"] {
+	border-color: var(--fc-danger);
+}
+
+.flashcard-control::placeholder {
+	color: var(--fc-faint);
+}
+
+.flashcard-textarea {
+	min-height: calc(var(--fc-control-touch) * 2);
+	resize: vertical;
+}
+
+.flashcard-select-shell {
+	position: relative;
+	min-width: 0;
+	display: inline-flex;
+	align-items: center;
+}
+
+.flashcard-select {
+	appearance: none;
+	padding-right: var(--fc-space-8);
+	cursor: pointer;
+}
+
+.flashcard-select-icon {
+	position: absolute;
+	right: var(--fc-space-3);
+	pointer-events: none;
+	color: var(--fc-muted);
+}
+
+.flashcard-select:disabled + .flashcard-select-icon {
+	opacity: 0.5;
+}
+
+/* Button size and semantic variants. */
+.flashcard-btn-sm {
+	min-height: var(--fc-control-sm);
+	padding: var(--fc-space-1) var(--fc-space-2);
+}
+
+.flashcard-btn-md {
+	min-height: var(--fc-control-md);
+}
+
+.flashcard-btn-lg {
+	min-height: var(--fc-control-touch);
+	padding: var(--fc-space-3) var(--fc-space-4);
+	font-size: var(--fc-font-md);
+}
+
+.flashcard-root button.flashcard-btn.flashcard-btn-primary {
+	border-color: var(--interactive-accent);
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn.flashcard-btn-primary:hover:not(:disabled),
+.flashcard-root button.flashcard-btn.flashcard-btn-primary:focus-visible {
+	border-color: var(--interactive-accent-hover);
+	background: var(--interactive-accent-hover);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.flashcard-root button.flashcard-btn.flashcard-btn-secondary {
+	border-color: var(--fc-control-border);
+	background: var(--fc-control-bg);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn.flashcard-btn-quiet {
+	border-color: transparent;
+	background: transparent;
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn.flashcard-btn-quiet:hover:not(:disabled),
+.flashcard-root button.flashcard-btn.flashcard-btn-quiet:focus-visible {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-hover);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn.flashcard-btn-danger {
+	border-color: color-mix(in srgb, var(--fc-danger) 44%, var(--fc-line));
+	background: color-mix(in srgb, var(--fc-danger) 10%, var(--fc-surface-control));
+	color: var(--fc-danger);
+	box-shadow: none;
+}
+
+/* Floating action menu: the only compact control surface that receives elevation. */
+.flashcard-menu-root {
+	position: relative;
+	min-width: 0;
+}
+
+.flashcard-menu-trigger {
+	width: var(--fc-control-md);
+	height: var(--fc-control-md);
+	min-width: var(--fc-control-md);
+	padding: 0;
+}
+
+.flashcard-menu {
+	position: absolute;
+	top: calc(100% + var(--fc-space-2));
+	z-index: 30;
+	width: max-content;
+	min-width: 200px;
+	max-width: min(280px, calc(100vw - var(--fc-space-6)));
+	display: grid;
+	gap: var(--fc-space-1);
+	padding: var(--fc-space-2);
+	border: 1px solid var(--fc-line-strong);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-raised);
+	box-shadow: var(--fc-shadow-popover);
+	animation: var(--fc-motion-fade-in);
+}
+
+.flashcard-menu-root.is-start .flashcard-menu {
+	left: 0;
+}
+
+.flashcard-menu-root.is-end .flashcard-menu {
+	right: 0;
+}
+
+.flashcard-menu-item {
+	appearance: none;
+	width: 100%;
+	min-height: var(--fc-control-md);
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-2) var(--fc-space-3);
+	border: 1px solid transparent;
+	border-radius: var(--fc-radius-xs);
+	background: transparent;
+	box-shadow: none;
+	color: var(--fc-text);
+	font: var(--fc-weight-medium) var(--fc-font-sm) / var(--fc-line-tight) var(--fc-font-ui);
+	text-align: left;
+	cursor: pointer;
+}
+
+.flashcard-menu-item:hover:not(:disabled),
+.flashcard-menu-item:focus-visible {
+	border-color: color-mix(in srgb, var(--interactive-accent) 30%, var(--fc-line));
+	background: var(--fc-surface-hover);
+	box-shadow: none;
+	outline: none;
+}
+
+.flashcard-menu-item.is-danger {
+	color: var(--fc-danger);
+}
+
+.flashcard-menu-item:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}

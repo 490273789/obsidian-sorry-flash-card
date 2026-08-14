@@ -51,6 +51,7 @@ describe("flashcard design system", () => {
 			"--fc-surface-canvas",
 			"--fc-surface-card",
 			"--fc-surface-section",
+			"--fc-surface-raised",
 			"--fc-surface-control",
 			"--fc-surface-hover",
 			"--fc-surface-selected",
@@ -166,14 +167,18 @@ describe("flashcard design system", () => {
 		for (const [token, obsidianToken] of directAliases) {
 			expect(base, token).toMatch(new RegExp(`${token}:\\s*var\\(${obsidianToken}\\)`));
 		}
+		expect(base).toMatch(/--fc-bg-elevated:\s*var\(--background-primary\);/);
 		expect(base).toMatch(
-			/--fc-bg-elevated:\s*color-mix\([\s\S]*?var\(--background-secondary\) 94%,[\s\S]*?var\(--text-normal\) 6%/,
+			/--fc-bg-panel:\s*color-mix\([\s\S]*?var\(--background-secondary\) 58%,[\s\S]*?var\(--background-primary\) 42%/,
 		);
+		expect(base).toMatch(/--fc-bg-panel-soft:\s*var\(--interactive-normal\);/);
+		expect(base).toMatch(/--fc-surface-canvas:\s*var\(--background-secondary\);/);
+		expect(base).toMatch(/--fc-surface-card:\s*var\(--background-primary\);/);
 		expect(base).toMatch(
-			/--fc-bg-panel:\s*color-mix\([\s\S]*?var\(--background-secondary-alt\) 90%,[\s\S]*?var\(--text-normal\) 10%/,
+			/--fc-surface-raised:\s*color-mix\([\s\S]*?var\(--background-primary\) 92%,[\s\S]*?var\(--text-normal\) 8%/,
 		);
-		expect(base).toMatch(
-			/--fc-bg-panel-soft:\s*color-mix\([\s\S]*?var\(--background-modifier-hover\) 84%,[\s\S]*?var\(--text-normal\) 16%/,
+		expect(base).not.toMatch(
+			/\.theme-light[\s\S]*?--fc-bg-(?:rgb|elevated-rgb|panel-rgb|panel-soft-rgb):\s*var\(--mono-rgb-100\)/,
 		);
 
 		expect(index).not.toContain('@import "./theme-light.css";');
@@ -185,7 +190,8 @@ describe("flashcard design system", () => {
 
 		expect(base).toMatch(/--fc-action-study-start:\s*var\(--interactive-accent\);/);
 		expect(base).toMatch(/--fc-action-study-text:\s*var\(--text-on-accent\);/);
-		expect(base).toMatch(/--fc-control-bg:\s*var\(--interactive-normal\);/);
+		expect(base).toMatch(/--fc-surface-control:\s*var\(--interactive-normal\);/);
+		expect(base).toMatch(/--fc-control-bg:\s*var\(--fc-surface-control\);/);
 		expect(base).toMatch(/--fc-action-practice-start:\s*var\(--fc-control-bg\);/);
 		expect(base).toMatch(/--fc-action-practice-text:\s*var\(--text-normal\);/);
 	});
@@ -203,13 +209,19 @@ describe("flashcard design system", () => {
 		]) {
 			expect(base, token).toMatch(new RegExp(`${token}:`));
 		}
+		expect(base).toMatch(
+			/--fc-input-bg:\s*color-mix\([\s\S]*?var\(--background-primary\) 96%,[\s\S]*?var\(--background-secondary\) 4%/,
+		);
 
 		expect(editorial).toContain('.flashcard-btn[aria-pressed="true"]');
 		expect(editorial).toMatch(
 			/\.flashcard-root button\.flashcard-setup-segment-btn\.active\s*\{[\s\S]*?border:\s*1px solid var\(--fc-control-border-selected\);/,
 		);
+		expect(editorial).not.toContain(
+			".flashcard-root button.flashcard-setup-segment-btn.active::after",
+		);
 		expect(editorial).toMatch(
-			/\.flashcard-root button\.flashcard-setup-segment-btn\.active::after\s*\{[\s\S]*?background:\s*var\(--fc-cyan\);/,
+			/\.flashcard-setup-range-field\s*\{[\s\S]*?background:\s*var\(--fc-surface-control\);/,
 		);
 		expect(editorial).toMatch(
 			/Shared form controls:[\s\S]*?border:\s*1px solid var\(--fc-input-border\);[\s\S]*?background:\s*var\(--fc-input-bg\);/,
@@ -227,6 +239,47 @@ describe("flashcard design system", () => {
 		);
 		expect(editorial).toMatch(
 			/\.flashcard-root button\.flashcard-rating-btn\s*\{[\s\S]*?--fc-rating-color:\s*var\(--fc-muted\);/,
+		);
+		expect(editorial).toMatch(
+			/\.flashcard-root button\.flashcard-practice-btn-wrong\s*\{[\s\S]*?--fc-practice-answer-color:\s*var\(--fc-red\);/,
+		);
+		expect(editorial).toMatch(
+			/\.flashcard-root button\.flashcard-practice-btn-correct\s*\{[\s\S]*?--fc-practice-answer-color:\s*var\(--fc-lime\);/,
+		);
+		expect(editorial).toMatch(
+			/\.flashcard-root button\.flashcard-practice-btn-wrong:hover:not\(:disabled\),[\s\S]*?\.flashcard-root button\.flashcard-practice-btn-correct:focus-visible\s*\{[\s\S]*?background:\s*color-mix\([\s\S]*?var\(--fc-practice-answer-color\) 16%,[\s\S]*?var\(--fc-surface-control\)/,
+		);
+		expect(editorial).toMatch(
+			/\.flashcard-explanation,[\s\S]*?\.theme-light \.flashcard-explanation\s*\{[\s\S]*?max-height:\s*40vh;[\s\S]*?overflow-y:\s*auto;[\s\S]*?overscroll-behavior:\s*contain;[\s\S]*?scrollbar-gutter:\s*stable;/,
+		);
+		expect(editorial).toMatch(
+			/\.flashcard-progress,[\s\S]*?\.flashcard-stats-session-dur\s*\{[\s\S]*?background:\s*color-mix\(in srgb, var\(--interactive-accent\) 8%, var\(--fc-surface-card\)\);/,
+		);
+	});
+
+	it("keeps shared controls theme-aware and reserves elevation for floating menus", async () => {
+		const controls = await readFile(path.join(stylesDirectory, "controls.css"), "utf8");
+		const editorial = await readFile(path.join(stylesDirectory, "editorial.css"), "utf8");
+
+		expect(controls).toMatch(
+			/\.flashcard-control\s*\{[\s\S]*?border:\s*1px solid var\(--fc-input-border\);[\s\S]*?background:\s*var\(--fc-input-bg\);[\s\S]*?box-shadow:\s*none;/,
+		);
+		expect(controls).toMatch(
+			/\.flashcard-menu\s*\{[\s\S]*?background:\s*var\(--fc-surface-raised\);[\s\S]*?box-shadow:\s*var\(--fc-shadow-popover\);/,
+		);
+		expect(editorial).toMatch(
+			/\.flashcard-btn,[\s\S]*?background-color:\s*var\(--fc-control-bg\);[\s\S]*?box-shadow:\s*none;/,
+		);
+	});
+
+	it("keeps compact action buttons outlined without adding shadows", async () => {
+		const editorial = await readFile(path.join(stylesDirectory, "editorial.css"), "utf8");
+
+		expect(editorial).toMatch(
+			/Compact actions keep a visible boundary[\s\S]*?\.flashcard-menu-trigger,[\s\S]*?\.flashcard-deck-action-more,[\s\S]*?\.flashcard-home-header-action[\s\S]*?border:\s*1px solid var\(--fc-compact-control-border\);[\s\S]*?box-shadow:\s*none;/,
+		);
+		expect(editorial).toMatch(
+			/button\.flashcard-btn\.flashcard-deck-action-more\s*\{[\s\S]*?border:\s*1px solid var\(--fc-compact-control-border\);/,
 		);
 	});
 });

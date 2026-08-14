@@ -1,6 +1,6 @@
 # 闪卡 UI 规范
 
-插件保留低饱和赛博暗色风格，采用“舒适紧凑”密度。颜色用于表达操作层级和状态，不用于装饰无语义的数据；渐变和发光只保留在主操作、焦点和少量品牌氛围中。
+插件保留当前低饱和、舒适紧凑的风格。界面直接继承 Obsidian 的系统主题与强调色；颜色用于表达操作层级和状态，不用于装饰无语义的数据。普通层级依靠背景、边框和留白建立，阴影只用于菜单、弹窗等真正离开文档流的浮层。
 
 `index.css` 是 `src/obsidian/main.ts` 引入的唯一 CSS 入口。Vite 会跟随它的导入并生成 Obsidian 使用的根目录 `styles.css`。不要手工编辑根目录 `styles.css`，应运行 `npm run build` 重新生成。
 
@@ -10,13 +10,13 @@
 
 - `base.css`：设计 token、根容器、共享工具类和动效变量。
 - `buttons.css`：共享按钮基础样式和评分按钮元数据。
+- `controls.css`：按钮尺寸/语义变体、输入框、下拉框与菜单组件。
 - `home.css`：页面框架、公共标题栏、首页牌组列表和共享统计卡。
 - `study.css`：学习/刷题设置、活动卡片会话、底部操作区和完成状态。
 - `word-list.css`：单词列表工具栏、虚拟列表行和解释面板。
 - `practice-summary.css`：刷题结果和错题列表。
 - `stats.css`：历史与统计视图。
 - `overlays-settings.css`：空状态、弹窗、牌组/卡片编辑器和设置页。
-- `theme-light.css`：亮色主题的语义 token 覆盖及必要的光学修正。
 - `motion.css`：焦点、滚动条、关键帧和减少动态效果规则。
 - `responsive.css`：窄窗口和移动端布局覆盖。
 
@@ -39,17 +39,22 @@
 
 ### 圆角、边框与层级
 
-- 标签：`--fc-radius-xs`（4px）。
-- 控件和列表项：`--fc-radius-sm`（8px）。
-- 卡片和面板：`--fc-radius-md`（12px）。
-- 大型弹窗：`--fc-radius-lg`（16px）。
+- 标签：`--fc-radius-xs`（6px）。
+- 控件和列表项：`--fc-radius-sm`（10px）。
+- 卡片和面板：`--fc-radius-md`（14px）。
+- 大型弹窗：`--fc-radius-lg`（18px）。
 - 胶囊：`--fc-radius-pill`。
 - 普通边框统一为 1px；当前项、问答卡等状态强调边可使用 3px。
-- 普通浮层使用 `--fc-shadow-sm` 或 `--fc-shadow`，大型弹窗使用 `--fc-shadow-overlay`，键盘焦点使用 `--fc-focus-ring`。组件不得重新发明同层级阴影或焦点环。
+- `--fc-surface-canvas`：页面画布，继承 `--background-secondary`。
+- `--fc-surface-section`：页面内的大区块，位于画布与卡片之间。
+- `--fc-surface-card`：主要内容卡片，继承 `--background-primary`。
+- `--fc-surface-raised`：菜单等悬浮表面，仅与 `--fc-shadow-popover` 配套使用。
+- `--fc-surface-control`：按钮等可交互控件表面，继承 `--interactive-normal`。
+- 静态卡片和普通按钮不使用阴影；菜单使用 `--fc-shadow-popover`，大型弹窗使用 `--fc-shadow-overlay`，键盘焦点使用 `--fc-focus-ring`。组件不得重新发明同层级阴影或焦点环。
 
 ### 颜色
 
-- 表面必须从 `--fc-surface-canvas/elevated/panel/panel-soft` 或对应 RGB token 派生。
+- 表面必须从 `--fc-surface-canvas/section/card/raised/control` 派生。
 - 语义色使用 `--fc-primary`（青）、`--fc-secondary`（紫）、`--fc-success`（绿）、`--fc-warning`（琥珀）、`--fc-danger`（红）、`--fc-info`（蓝）。旧的 `--fc-cyan` 等变量保留为兼容和调色别名。
 - 普通文字使用 `--fc-text`，次要信息使用 `--fc-muted`，弱提示使用 `--fc-faint`。不得通过随机彩色文字区分无状态含义的数据。
 - 首页学习与刷题主操作分别使用 `--fc-action-study-*` 和 `--fc-action-practice-*`；其他按钮默认保持中性，仅在激活、危险或明确状态时使用语义色。
@@ -69,7 +74,7 @@
 - 900px 以下允许折叠栏位和重排工具栏，但不缩小基础字号。
 - 640px 以下阅读内容改为 16px，交互目标统一至少 44px；布局可以堆叠，信息层级保持不变。
 - `@media (pointer: coarse)` 是点击目标的最终兜底，不应被组件规则覆盖。
-- 亮色主题优先覆盖语义 token。只有透明度、阴影或浅色表面的光学差异确实无法通过 token 自动适配时，才添加组件级覆盖。
+- 亮色与暗色主题默认都直接继承 Obsidian token。只有透明度或对比度确实无法自动适配时，才添加极少量 `.theme-light` 光学修正，禁止维护一套固定色值的独立亮色主题。
 
 ## 允许的例外与自动检查
 

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useId, useRef, useState } from "react";
+import React, { memo, useCallback, useId, useState } from "react";
 import {
 	closestCenter,
 	DndContext,
@@ -21,7 +21,6 @@ import {
 	Brain,
 	Calculator,
 	ChartNoAxesColumn,
-	Ellipsis,
 	FileDown,
 	FileText,
 	GripVertical,
@@ -47,6 +46,9 @@ import type {
 	DeckHomeSnapshot,
 } from "../../decks/deckHome";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardInput } from "./FlashcardInput";
+import { FlashcardMenu, type FlashcardMenuItem } from "./FlashcardMenu";
+import { FlashcardSelect } from "./FlashcardSelect";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
 import { formatStudyOrder } from "../../i18n";
@@ -310,7 +312,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row flashcard-deck-settings-days">
 										<label>{t("deckSettings.estimatedDaysLabel")}</label>
 										<div className="flashcard-deck-settings-days-inputs">
-											<input
+											<FlashcardInput
 												type="number"
 												min={1}
 												max={totalCards}
@@ -351,7 +353,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								</div>
 								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
 									<label>{t("deckSettings.studyOrder")}</label>
-									<select
+									<FlashcardSelect
 										value={draft.studyOrder}
 										onChange={(e) =>
 											onChange({
@@ -362,7 +364,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									>
 										<option value="sequential">{t("order.sequential")}</option>
 										<option value="random">{t("order.random")}</option>
-									</select>
+									</FlashcardSelect>
 								</div>
 								<div className="flashcard-deck-settings-field">
 									<label>
@@ -385,7 +387,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 								</div>
 								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
 									<label>{t("deckSettings.maxReviewInterval")}</label>
-									<input
+									<FlashcardInput
 										type="number"
 										min={30}
 										max={3650}
@@ -462,31 +464,57 @@ const DeckCard = memo(function DeckCard({
 	const totalCards = deck.stats.totalCards;
 	const newCards = deck.stats.newCards;
 	const [showMoreActions, setShowMoreActions] = useState(false);
-	const actionsMenuId = useId();
-	const actionsRef = useRef<HTMLDivElement>(null);
 	const spellingReady = deck.spelling.ready;
-
-	useEffect(() => {
-		if (!showMoreActions) return;
-
-		const handlePointerDown = (event: PointerEvent) => {
-			if (!actionsRef.current?.contains(event.target as Node | null)) {
-				setShowMoreActions(false);
-			}
-		};
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				setShowMoreActions(false);
-			}
-		};
-
-		activeDocument.addEventListener("pointerdown", handlePointerDown);
-		activeDocument.addEventListener("keydown", handleKeyDown);
-		return () => {
-			activeDocument.removeEventListener("pointerdown", handlePointerDown);
-			activeDocument.removeEventListener("keydown", handleKeyDown);
-		};
-	}, [showMoreActions]);
+	const moreActions: FlashcardMenuItem[] = [
+		...(deck.spelling.enabled
+			? [
+					{
+						key: "spelling",
+						label: t("home.spelling"),
+						icon: Keyboard,
+						onSelect: () => onStartSpelling(deck.id),
+						disabled: !spellingReady,
+						title: spellingReady
+							? deck.spelling.ignoredCardCount > 0
+								? t("home.spellingModeIgnoredTitle", {
+										count: deck.spelling.ignoredCardCount,
+									})
+								: t("home.spellingModeTitle")
+							: t("home.spellingUnavailableTitle", {
+									count: deck.spelling.issueCount,
+								}),
+					},
+				]
+			: []),
+		{
+			key: "export",
+			label: t("home.exportPdfTitle"),
+			icon: isExporting ? LoaderCircle : FileDown,
+			iconClassName: isExporting ? "spinning" : undefined,
+			onSelect: () => void onExportDeck(deck.id),
+			disabled: isExportBusy,
+			title: t("home.exportPdfTitle"),
+		},
+		{
+			key: "list",
+			label: t("home.list"),
+			icon: List,
+			onSelect: () => onOpenWordList(deck.id),
+		},
+		{
+			key: "source",
+			label: t("home.source"),
+			icon: FileText,
+			onSelect: () => onOpenSourceFile(deck.filePath),
+		},
+		{
+			key: "settings",
+			label: t("home.setting"),
+			icon: Settings,
+			onSelect: () => onOpenSettings(deck.id),
+			disabled: isSettingsLocked,
+		},
+	];
 
 	return (
 		<article
@@ -549,7 +577,7 @@ const DeckCard = memo(function DeckCard({
 				</div>
 			</div>
 
-			<div ref={actionsRef} className="flashcard-deck-side">
+			<div className="flashcard-deck-side">
 				<div className="flashcard-deck-actions2">
 					<FlashcardButton
 						variant="green"
@@ -575,109 +603,17 @@ const DeckCard = memo(function DeckCard({
 					>
 						<span>{t("home.practice")}</span>
 					</FlashcardButton>
-					<FlashcardButton
-						variant="gray"
-						className="flashcard-deck-action-more"
-						icon={Ellipsis}
-						onClick={(event) => {
-							event.stopPropagation();
-							setShowMoreActions((current) => !current);
-						}}
-						active={showMoreActions}
-						title={
+					<FlashcardMenu
+						items={moreActions}
+						triggerTitle={
 							showMoreActions ? t("home.hideMoreActions") : t("home.showMoreActions")
 						}
-						aria-label={
-							showMoreActions ? t("home.hideMoreActions") : t("home.showMoreActions")
-						}
-						aria-expanded={showMoreActions}
-						aria-controls={actionsMenuId}
+						ariaLabel={t("home.moreActions")}
+						triggerClassName="flashcard-deck-action-more"
+						menuClassName="flashcard-deck-more-actions"
+						onOpenChange={setShowMoreActions}
 					/>
 				</div>
-
-				{showMoreActions && (
-					<div
-						id={actionsMenuId}
-						className="flashcard-deck-more-actions"
-						role="toolbar"
-						aria-label={t("home.moreActions")}
-					>
-						{deck.spelling.enabled && (
-							<FlashcardButton
-								variant="green"
-								className="flashcard-deck-more-action"
-								icon={Keyboard}
-								onClick={(event) => {
-									event.stopPropagation();
-									setShowMoreActions(false);
-									onStartSpelling(deck.id);
-								}}
-								disabled={!spellingReady}
-								title={
-									spellingReady
-										? deck.spelling.ignoredCardCount > 0
-											? t("home.spellingModeIgnoredTitle", {
-													count: deck.spelling.ignoredCardCount,
-												})
-											: t("home.spellingModeTitle")
-										: t("home.spellingUnavailableTitle", {
-												count: deck.spelling.issueCount,
-											})
-								}
-							>
-								<span>{t("home.spelling")}</span>
-							</FlashcardButton>
-						)}
-						<FlashcardButton
-							className="flashcard-deck-more-action"
-							icon={isExporting ? LoaderCircle : FileDown}
-							iconClassName={isExporting ? "spinning" : undefined}
-							onClick={(event) => {
-								event.stopPropagation();
-								setShowMoreActions(false);
-								void onExportDeck(deck.id);
-							}}
-							disabled={isExportBusy}
-							title={t("home.exportPdfTitle")}
-						>
-							<span>{t("home.exportPdfTitle")}</span>
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-deck-more-action"
-							icon={List}
-							onClick={(event) => {
-								event.stopPropagation();
-								setShowMoreActions(false);
-								onOpenWordList(deck.id);
-							}}
-						>
-							<span>{t("home.list")}</span>
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-deck-more-action"
-							icon={FileText}
-							onClick={(event) => {
-								event.stopPropagation();
-								setShowMoreActions(false);
-								onOpenSourceFile(deck.filePath);
-							}}
-						>
-							<span>{t("home.source")}</span>
-						</FlashcardButton>
-						<FlashcardButton
-							className="flashcard-deck-more-action"
-							icon={Settings}
-							onClick={(event) => {
-								event.stopPropagation();
-								setShowMoreActions(false);
-								onOpenSettings(deck.id);
-							}}
-							disabled={isSettingsLocked}
-						>
-							<span>{t("home.setting")}</span>
-						</FlashcardButton>
-					</div>
-				)}
 			</div>
 		</article>
 	);
