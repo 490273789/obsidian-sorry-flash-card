@@ -64,7 +64,6 @@ export function SetupSelector<T extends string>({
 					onClick={() => onChange(option.value)}
 				>
 					<span className="flashcard-setup-segment-label">{option.label}</span>
-					<span className="flashcard-setup-segment-status" aria-hidden="true" />
 				</FlashcardButton>
 			))}
 		</fieldset>

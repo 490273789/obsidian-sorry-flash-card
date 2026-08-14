@@ -1,5 +1,5 @@
 /*
- * WSR Flash Card cyber UI
+ * WSR Flash Card editorial UI foundations
  * Scope all styles to the plugin root/settings tab to avoid leaking into Obsidian.
  */
 
@@ -19,11 +19,13 @@
 	--fc-line-body: 1.55;
 	--fc-line-reading: 1.65;
 
-	--fc-radius-xs: 4px;
-	--fc-radius-sm: 8px;
-	--fc-radius-md: 12px;
-	--fc-radius-lg: 16px;
+	--fc-radius-xs: 6px;
+	--fc-radius-sm: 10px;
+	--fc-radius-md: 14px;
+	--fc-radius-lg: 18px;
 	--fc-radius-pill: 999px;
+	--fc-radius-control: var(--fc-radius-sm);
+	--fc-radius-surface: var(--fc-radius-md);
 
 	--fc-space-half: 2px;
 	--fc-space-1: 4px;
@@ -38,24 +40,32 @@
 	--fc-control-touch: 44px;
 	--fc-header-height: 48px;
 
-	--fc-bg: #05070d;
-	--fc-bg-elevated: #0a0f1c;
-	--fc-bg-panel: #101521;
-	--fc-bg-panel-soft: #141b2a;
-	--fc-grid: rgba(117, 255, 238, 0.075);
-	--fc-line: rgba(139, 159, 181, 0.2);
-	--fc-line-strong: rgba(99, 252, 241, 0.42);
-	--fc-text: #edf7ff;
-	--fc-muted: #a2b3c7;
-	--fc-faint: #71839a;
-	--fc-cyan: #63fcf1;
-	--fc-blue: #4fa7ff;
-	--fc-magenta: #ff4fd8;
-	--fc-violet: #9c6cff;
-	--fc-lime: #89ff9a;
-	--fc-amber: #ffd166;
-	--fc-red: #ff5d73;
-	--fc-orange: #ff9d5c;
+	--fc-bg: var(--background-primary);
+	--fc-bg-elevated: color-mix(in srgb, var(--background-secondary) 94%, var(--text-normal) 6%);
+	--fc-bg-panel: color-mix(in srgb, var(--background-secondary-alt) 90%, var(--text-normal) 10%);
+	--fc-bg-panel-soft: color-mix(
+		in srgb,
+		var(--background-modifier-hover) 84%,
+		var(--text-normal) 16%
+	);
+	--fc-grid: rgba(var(--interactive-accent-rgb), 0.04);
+	--fc-line: color-mix(in srgb, var(--background-modifier-border) 70%, var(--text-muted) 30%);
+	--fc-line-strong: color-mix(
+		in srgb,
+		var(--background-modifier-border-focus) 60%,
+		var(--interactive-accent) 40%
+	);
+	--fc-text: var(--text-normal);
+	--fc-muted: var(--text-muted);
+	--fc-faint: var(--text-faint);
+	--fc-cyan: var(--interactive-accent);
+	--fc-blue: var(--color-blue);
+	--fc-magenta: var(--color-pink);
+	--fc-violet: var(--color-purple);
+	--fc-lime: var(--color-green);
+	--fc-amber: var(--color-yellow);
+	--fc-red: var(--color-red);
+	--fc-orange: var(--color-orange);
 	--fc-primary: var(--fc-cyan);
 	--fc-secondary: var(--fc-violet);
 	--fc-success: var(--fc-lime);
@@ -63,37 +73,75 @@
 	--fc-danger: var(--fc-red);
 	--fc-info: var(--fc-blue);
 
-	--fc-bg-rgb: 5, 7, 13;
-	--fc-bg-elevated-rgb: 10, 15, 28;
-	--fc-bg-panel-rgb: 16, 21, 33;
-	--fc-bg-panel-soft-rgb: 20, 27, 42;
-	--fc-border-rgb: 139, 159, 181;
-	--fc-cyan-rgb: 99, 252, 241;
-	--fc-blue-rgb: 79, 167, 255;
-	--fc-magenta-rgb: 255, 79, 216;
-	--fc-violet-rgb: 156, 108, 255;
-	--fc-lime-rgb: 137, 255, 154;
-	--fc-amber-rgb: 255, 209, 102;
-	--fc-red-rgb: 255, 93, 115;
-	--fc-orange-rgb: 255, 157, 92;
-	--fc-black-rgb: 5, 7, 13;
+	--fc-bg-rgb: var(--mono-rgb-0);
+	--fc-bg-elevated-rgb: var(--mono-rgb-0);
+	--fc-bg-panel-rgb: var(--mono-rgb-0);
+	--fc-bg-panel-soft-rgb: var(--mono-rgb-0);
+	--fc-border-rgb: var(--interactive-accent-rgb);
+	--fc-cyan-rgb: var(--interactive-accent-rgb);
+	--fc-blue-rgb: var(--color-blue-rgb);
+	--fc-magenta-rgb: var(--color-pink-rgb);
+	--fc-violet-rgb: var(--color-purple-rgb);
+	--fc-lime-rgb: var(--color-green-rgb);
+	--fc-amber-rgb: var(--color-yellow-rgb);
+	--fc-red-rgb: var(--color-red-rgb);
+	--fc-orange-rgb: var(--color-orange-rgb);
+	--fc-black-rgb: var(--mono-rgb-0);
 	--fc-surface-canvas: var(--fc-bg);
-	--fc-surface-elevated: var(--fc-bg-elevated);
-	--fc-surface-panel: var(--fc-bg-panel);
-	--fc-surface-panel-soft: var(--fc-bg-panel-soft);
-	--fc-action-study-start: #176b5d;
-	--fc-action-study-end: #117463;
-	--fc-action-study-text: #effff9;
-	--fc-action-practice-start: #17668d;
-	--fc-action-practice-end: #126f86;
-	--fc-action-practice-text: #effaff;
+	--fc-surface-card: var(--fc-bg-elevated);
+	--fc-surface-section: var(--fc-bg-panel);
+	--fc-surface-control: var(--fc-bg-panel-soft);
+	--fc-surface-hover: color-mix(
+		in srgb,
+		var(--interactive-accent) 12%,
+		var(--background-secondary) 88%
+	);
+	--fc-surface-selected: color-mix(
+		in srgb,
+		var(--interactive-accent) 22%,
+		var(--background-primary) 78%
+	);
+	--fc-surface-complete: rgba(var(--fc-lime-rgb), 0.1);
+	--fc-surface-elevated: var(--fc-surface-card);
+	--fc-surface-panel: var(--fc-surface-section);
+	--fc-surface-panel-soft: var(--fc-surface-control);
+	--fc-control-bg: var(--interactive-normal);
+	--fc-control-bg-hover: var(--fc-surface-hover);
+	--fc-control-border: color-mix(
+		in srgb,
+		var(--background-modifier-border-hover) 72%,
+		var(--text-muted) 28%
+	);
+	--fc-control-border-selected: color-mix(
+		in srgb,
+		var(--interactive-accent) 78%,
+		var(--text-normal) 22%
+	);
+	--fc-input-bg: var(--background-modifier-form-field);
+	--fc-input-bg-hover: color-mix(
+		in srgb,
+		var(--interactive-accent) 9%,
+		var(--background-modifier-form-field) 91%
+	);
+	--fc-input-border: color-mix(
+		in srgb,
+		var(--background-modifier-border-hover) 58%,
+		var(--text-muted) 42%
+	);
+	--fc-action-study-start: var(--interactive-accent);
+	--fc-action-study-end: var(--interactive-accent-hover);
+	--fc-action-study-text: var(--text-on-accent);
+	--fc-action-practice-start: var(--fc-control-bg);
+	--fc-action-practice-end: var(--fc-control-bg-hover);
+	--fc-action-practice-text: var(--text-normal);
 
 	--fc-font-ui:
-		Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--fc-font-reading: "Songti SC", STSong, "Noto Serif CJK SC", Georgia, serif;
 	--fc-font-data: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-	--fc-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.12);
-	--fc-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
-	--fc-shadow-overlay: 0 28px 80px rgba(0, 0, 0, 0.48);
+	--fc-shadow-sm: var(--shadow-s);
+	--fc-shadow: var(--shadow-l);
+	--fc-shadow-overlay: var(--shadow-l);
 	--fc-focus-ring: 0 0 0 3px rgba(var(--fc-cyan-rgb), 0.18);
 	--fc-glow-cyan:
 		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.28), 0 0 22px rgba(var(--fc-cyan-rgb), 0.14);
@@ -147,6 +195,14 @@
 	font-weight: var(--fc-weight-regular);
 	line-height: var(--fc-line-body);
 	color: var(--fc-text);
+}
+
+.theme-light .flashcard-root,
+.theme-light .flashcard-settings-tab {
+	--fc-bg-rgb: var(--mono-rgb-100);
+	--fc-bg-elevated-rgb: var(--mono-rgb-100);
+	--fc-bg-panel-rgb: var(--mono-rgb-100);
+	--fc-bg-panel-soft-rgb: var(--mono-rgb-100);
 }
 
 .flashcard-root {

@@ -10,17 +10,17 @@ import {
 } from "@dnd-kit/core";
 import {
 	arrayMove,
+	rectSortingStrategy,
 	sortableKeyboardCoordinates,
 	SortableContext,
 	useSortable,
-	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
 	BookOpen,
 	Brain,
 	Calculator,
-	ChartSpline,
+	ChartNoAxesColumn,
 	Ellipsis,
 	FileDown,
 	FileText,
@@ -503,6 +503,7 @@ const DeckCard = memo(function DeckCard({
 				type="button"
 				className="flashcard-deck-drag-handle"
 				disabled={isReorderDisabled}
+				onClick={(event) => event.stopPropagation()}
 				aria-label={t("home.reorderDeck", { deckName: deck.name })}
 				title={t("home.reorderDeck", { deckName: deck.name })}
 				{...attributes}
@@ -781,7 +782,6 @@ export const DeckList = React.memo(function DeckList({
 					className="flashcard-home-header"
 					icon={BookOpen}
 					title={t("home.title")}
-					badge="NEURAL DECK"
 					stats={[
 						{
 							key: "decks",
@@ -816,12 +816,14 @@ export const DeckList = React.memo(function DeckList({
 						<div className="flashcard-header-actions">
 							<FlashcardButton
 								preset="icon"
-								icon={ChartSpline}
+								className="flashcard-home-header-action"
+								icon={ChartNoAxesColumn}
 								onClick={onOpenStats}
 								title={t("home.statsTitle")}
 							/>
 							<FlashcardButton
 								preset="icon"
+								className="flashcard-home-header-action"
 								icon={RefreshCcw}
 								onClick={() => void home.act({ kind: "refresh" })}
 								disabled={isMutationBusy}
@@ -830,6 +832,7 @@ export const DeckList = React.memo(function DeckList({
 							/>
 							<FlashcardButton
 								preset="icon"
+								className="flashcard-home-header-action"
 								icon={Settings}
 								onClick={onOpenSettings}
 								title={t("home.pluginSettingsTitle")}
@@ -874,46 +877,77 @@ export const DeckList = React.memo(function DeckList({
 						<p className="flashcard-empty-hint">
 							{t("home.emptyHint", { tag: "#wordTag" })}
 						</p>
+						<FlashcardButton variant="green" icon={Plus} onClick={onOpenAddCard}>
+							{t("cardEditor.addCardTitle")}
+						</FlashcardButton>
 					</div>
 				) : (
-					<DndContext
-						sensors={sensors}
-						collisionDetection={closestCenter}
-						onDragEnd={handleDragEnd}
-					>
-						<SortableContext
-							items={visibleDeckIds}
-							strategy={verticalListSortingStrategy}
-						>
-							<div className="flashcard-deck-list">
-								{visibleDecks.map((deck) => (
-									<DeckCard
-										key={deck.id}
-										deck={deck}
-										isReorderDisabled={isOrderSaving}
-										onSelectDeck={(deckId) => onNavigate("study", deckId)}
-										onOpenWordList={(deckId) => onNavigate("word-list", deckId)}
-										onStartPractice={(deckId) => onNavigate("practice", deckId)}
-										onStartSpelling={(deckId) => onNavigate("spelling", deckId)}
-										onExportDeck={handleExportDeck}
-										onOpenSourceFile={onOpenSourceFile}
-										onOpenSettings={handleOpenDeckSettings}
-										isExporting={
-											snapshot.export.kind === "exporting" &&
-											snapshot.export.deckId === deck.id
-										}
-										isExportBusy={snapshot.export.kind === "exporting"}
-										isSettingsLocked={
-											snapshot.settingsDraft !== null &&
-											snapshot.settingsDraft.ownerId !== ownerId &&
-											(snapshot.settingsDraft.ownerId !== "" ||
-												snapshot.settingsDraft.deckId !== deck.id)
-										}
-									/>
-								))}
+					<div className="flashcard-home-workspace">
+						<section className="flashcard-deck-index" aria-label={t("home.deckIndex")}>
+							<div className="flashcard-deck-index-heading">
+								<span className="flashcard-deck-index-desktop-title">
+									{t("home.deckIndex")}
+								</span>
+								<span className="flashcard-deck-index-mobile-title">
+									{t("home.otherDecks")}
+								</span>
 							</div>
-						</SortableContext>
-					</DndContext>
+							<DndContext
+								sensors={sensors}
+								collisionDetection={closestCenter}
+								onDragEnd={handleDragEnd}
+							>
+								<SortableContext
+									items={visibleDeckIds}
+									strategy={rectSortingStrategy}
+								>
+									<div className="flashcard-deck-list">
+										{visibleDecks.map((deck) => (
+											<DeckCard
+												key={deck.id}
+												deck={deck}
+												isReorderDisabled={isOrderSaving}
+												onSelectDeck={(deckId) =>
+													onNavigate("study", deckId)
+												}
+												onOpenWordList={(deckId) =>
+													onNavigate("word-list", deckId)
+												}
+												onStartPractice={(deckId) =>
+													onNavigate("practice", deckId)
+												}
+												onStartSpelling={(deckId) =>
+													onNavigate("spelling", deckId)
+												}
+												onExportDeck={handleExportDeck}
+												onOpenSourceFile={onOpenSourceFile}
+												onOpenSettings={handleOpenDeckSettings}
+												isExporting={
+													snapshot.export.kind === "exporting" &&
+													snapshot.export.deckId === deck.id
+												}
+												isExportBusy={snapshot.export.kind === "exporting"}
+												isSettingsLocked={
+													snapshot.settingsDraft !== null &&
+													snapshot.settingsDraft.ownerId !== ownerId &&
+													(snapshot.settingsDraft.ownerId !== "" ||
+														snapshot.settingsDraft.deckId !== deck.id)
+												}
+											/>
+										))}
+									</div>
+								</SortableContext>
+							</DndContext>
+						</section>
+						<FlashcardButton
+							variant="gray"
+							className="flashcard-home-add-card"
+							icon={Plus}
+							onClick={onOpenAddCard}
+						>
+							{t("cardEditor.addCardTitle")}
+						</FlashcardButton>
+					</div>
 				)}
 			</div>
 
@@ -944,16 +978,6 @@ export const DeckList = React.memo(function DeckList({
 					onClose={handleCloseModal}
 				/>
 			)}
-
-			<FlashcardButton
-				preset="icon"
-				className="flashcard-add-card-fab"
-				icon={Plus}
-				iconSize={22}
-				onClick={onOpenAddCard}
-				title={t("cardEditor.addCardTitle")}
-				aria-label={t("cardEditor.addCardTitle")}
-			/>
 		</>
 	);
 });

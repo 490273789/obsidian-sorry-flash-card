@@ -418,13 +418,6 @@
 
 /* Settings tab */
 .flashcard-settings-tab {
-	--background-primary: #05070d;
-	--background-secondary: #0a0f1c;
-	--background-secondary-alt: #101521;
-	--text-normal: var(--fc-text);
-	--text-muted: var(--fc-muted);
-	--text-faint: var(--fc-faint);
-	--text-accent: var(--fc-cyan);
 	color: var(--fc-text);
 }
 

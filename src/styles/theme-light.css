@@ -1,43 +1,43 @@
 /* Light theme: tuned to sit closer to Obsidian's native light surfaces. */
 .theme-light .flashcard-root,
 .theme-light .flashcard-settings-tab {
-	--fc-bg: #f6f8fb;
+	--fc-bg: #f2f5f3;
 	--fc-bg-elevated: #ffffff;
-	--fc-bg-panel: #f8fbff;
-	--fc-bg-panel-soft: #eef4fb;
-	--fc-bg-rgb: 246, 248, 251;
+	--fc-bg-panel: #f7faf8;
+	--fc-bg-panel-soft: #e8f0eb;
+	--fc-bg-rgb: 242, 245, 243;
 	--fc-bg-elevated-rgb: 255, 255, 255;
-	--fc-bg-panel-rgb: 248, 251, 255;
-	--fc-bg-panel-soft-rgb: 238, 244, 251;
-	--fc-border-rgb: 33, 55, 83;
-	--fc-grid: rgba(22, 124, 141, 0.105);
-	--fc-line: rgba(33, 55, 83, 0.16);
-	--fc-line-strong: rgba(20, 135, 151, 0.34);
-	--fc-text: #172033;
-	--fc-muted: #58677a;
-	--fc-faint: #627286;
-	--fc-cyan: #0b7483;
-	--fc-blue: #256fba;
-	--fc-magenta: #b23a92;
-	--fc-violet: #7656c7;
-	--fc-lime: #1f7d49;
-	--fc-amber: #986000;
-	--fc-red: #c33b54;
-	--fc-orange: #a05018;
-	--fc-cyan-rgb: 11, 116, 131;
-	--fc-blue-rgb: 37, 111, 186;
-	--fc-magenta-rgb: 178, 58, 146;
-	--fc-violet-rgb: 118, 86, 199;
-	--fc-lime-rgb: 31, 125, 73;
-	--fc-amber-rgb: 152, 96, 0;
-	--fc-red-rgb: 195, 59, 84;
-	--fc-orange-rgb: 160, 80, 24;
-	--fc-action-study-start: #e1f8ed;
-	--fc-action-study-end: #c5f0df;
-	--fc-action-study-text: #14614f;
-	--fc-action-practice-start: #e0f3ff;
-	--fc-action-practice-end: #c7eafd;
-	--fc-action-practice-text: #165f8b;
+	--fc-bg-panel-rgb: 247, 250, 248;
+	--fc-bg-panel-soft-rgb: 232, 240, 235;
+	--fc-border-rgb: 65, 93, 83;
+	--fc-grid: rgba(40, 122, 92, 0.04);
+	--fc-line: rgba(65, 93, 83, 0.18);
+	--fc-line-strong: rgba(40, 122, 92, 0.42);
+	--fc-text: #1d2b27;
+	--fc-muted: #536760;
+	--fc-faint: #60736c;
+	--fc-cyan: #287a5c;
+	--fc-blue: #286f9d;
+	--fc-magenta: #885c73;
+	--fc-violet: #685c89;
+	--fc-lime: #526e4d;
+	--fc-amber: #806414;
+	--fc-red: #9d4e55;
+	--fc-orange: #a64f36;
+	--fc-cyan-rgb: 40, 122, 92;
+	--fc-blue-rgb: 40, 111, 157;
+	--fc-magenta-rgb: 136, 92, 115;
+	--fc-violet-rgb: 104, 92, 137;
+	--fc-lime-rgb: 82, 110, 77;
+	--fc-amber-rgb: 128, 100, 20;
+	--fc-red-rgb: 157, 78, 85;
+	--fc-orange-rgb: 166, 79, 54;
+	--fc-action-study-start: #2f7f60;
+	--fc-action-study-end: #276f53;
+	--fc-action-study-text: #ffffff;
+	--fc-action-practice-start: #ffffff;
+	--fc-action-practice-end: #edf6f2;
+	--fc-action-practice-text: #23463a;
 	--fc-shadow-sm: 0 4px 12px rgba(35, 49, 68, 0.07);
 	--fc-shadow: 0 8px 24px rgba(35, 49, 68, 0.09);
 	--fc-shadow-overlay: 0 28px 80px rgba(35, 49, 68, 0.2);
@@ -150,8 +150,8 @@
 }
 
 .theme-light .flashcard-study-day-count {
-	border-color: rgba(var(--fc-border-rgb), 0.14);
-	background: rgba(234, 239, 246, 0.9);
+	border-color: var(--fc-line);
+	background: transparent;
 }
 
 .theme-light .flashcard-study-day-item.fc-lift:hover,
@@ -551,9 +551,9 @@
 }
 
 .theme-light .flashcard-settings-tab {
-	--background-primary: #f6f8fb;
-	--background-secondary: #ffffff;
-	--background-secondary-alt: #eef4fb;
+	--background-primary: var(--fc-surface-canvas);
+	--background-secondary: var(--fc-surface-card);
+	--background-secondary-alt: var(--fc-surface-control);
 	--text-normal: var(--fc-text);
 	--text-muted: var(--fc-muted);
 	--text-faint: var(--fc-faint);

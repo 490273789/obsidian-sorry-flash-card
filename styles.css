@@ -3,7 +3,7 @@
  * Vite bundles these imports into the root styles.css artifact.
  */
 /*
- * WSR Flash Card cyber UI
+ * WSR Flash Card editorial UI foundations
  * Scope all styles to the plugin root/settings tab to avoid leaking into Obsidian.
  */
 
@@ -23,11 +23,13 @@
 	--fc-line-body: 1.55;
 	--fc-line-reading: 1.65;
 
-	--fc-radius-xs: 4px;
-	--fc-radius-sm: 8px;
-	--fc-radius-md: 12px;
-	--fc-radius-lg: 16px;
+	--fc-radius-xs: 6px;
+	--fc-radius-sm: 10px;
+	--fc-radius-md: 14px;
+	--fc-radius-lg: 18px;
 	--fc-radius-pill: 999px;
+	--fc-radius-control: var(--fc-radius-sm);
+	--fc-radius-surface: var(--fc-radius-md);
 
 	--fc-space-half: 2px;
 	--fc-space-1: 4px;
@@ -42,24 +44,32 @@
 	--fc-control-touch: 44px;
 	--fc-header-height: 48px;
 
-	--fc-bg: #05070d;
-	--fc-bg-elevated: #0a0f1c;
-	--fc-bg-panel: #101521;
-	--fc-bg-panel-soft: #141b2a;
-	--fc-grid: rgba(117, 255, 238, 0.075);
-	--fc-line: rgba(139, 159, 181, 0.2);
-	--fc-line-strong: rgba(99, 252, 241, 0.42);
-	--fc-text: #edf7ff;
-	--fc-muted: #a2b3c7;
-	--fc-faint: #71839a;
-	--fc-cyan: #63fcf1;
-	--fc-blue: #4fa7ff;
-	--fc-magenta: #ff4fd8;
-	--fc-violet: #9c6cff;
-	--fc-lime: #89ff9a;
-	--fc-amber: #ffd166;
-	--fc-red: #ff5d73;
-	--fc-orange: #ff9d5c;
+	--fc-bg: var(--background-primary);
+	--fc-bg-elevated: color-mix(in srgb, var(--background-secondary) 94%, var(--text-normal) 6%);
+	--fc-bg-panel: color-mix(in srgb, var(--background-secondary-alt) 90%, var(--text-normal) 10%);
+	--fc-bg-panel-soft: color-mix(
+		in srgb,
+		var(--background-modifier-hover) 84%,
+		var(--text-normal) 16%
+	);
+	--fc-grid: rgba(var(--interactive-accent-rgb), 0.04);
+	--fc-line: color-mix(in srgb, var(--background-modifier-border) 70%, var(--text-muted) 30%);
+	--fc-line-strong: color-mix(
+		in srgb,
+		var(--background-modifier-border-focus) 60%,
+		var(--interactive-accent) 40%
+	);
+	--fc-text: var(--text-normal);
+	--fc-muted: var(--text-muted);
+	--fc-faint: var(--text-faint);
+	--fc-cyan: var(--interactive-accent);
+	--fc-blue: var(--color-blue);
+	--fc-magenta: var(--color-pink);
+	--fc-violet: var(--color-purple);
+	--fc-lime: var(--color-green);
+	--fc-amber: var(--color-yellow);
+	--fc-red: var(--color-red);
+	--fc-orange: var(--color-orange);
 	--fc-primary: var(--fc-cyan);
 	--fc-secondary: var(--fc-violet);
 	--fc-success: var(--fc-lime);
@@ -67,37 +77,75 @@
 	--fc-danger: var(--fc-red);
 	--fc-info: var(--fc-blue);
 
-	--fc-bg-rgb: 5, 7, 13;
-	--fc-bg-elevated-rgb: 10, 15, 28;
-	--fc-bg-panel-rgb: 16, 21, 33;
-	--fc-bg-panel-soft-rgb: 20, 27, 42;
-	--fc-border-rgb: 139, 159, 181;
-	--fc-cyan-rgb: 99, 252, 241;
-	--fc-blue-rgb: 79, 167, 255;
-	--fc-magenta-rgb: 255, 79, 216;
-	--fc-violet-rgb: 156, 108, 255;
-	--fc-lime-rgb: 137, 255, 154;
-	--fc-amber-rgb: 255, 209, 102;
-	--fc-red-rgb: 255, 93, 115;
-	--fc-orange-rgb: 255, 157, 92;
-	--fc-black-rgb: 5, 7, 13;
+	--fc-bg-rgb: var(--mono-rgb-0);
+	--fc-bg-elevated-rgb: var(--mono-rgb-0);
+	--fc-bg-panel-rgb: var(--mono-rgb-0);
+	--fc-bg-panel-soft-rgb: var(--mono-rgb-0);
+	--fc-border-rgb: var(--interactive-accent-rgb);
+	--fc-cyan-rgb: var(--interactive-accent-rgb);
+	--fc-blue-rgb: var(--color-blue-rgb);
+	--fc-magenta-rgb: var(--color-pink-rgb);
+	--fc-violet-rgb: var(--color-purple-rgb);
+	--fc-lime-rgb: var(--color-green-rgb);
+	--fc-amber-rgb: var(--color-yellow-rgb);
+	--fc-red-rgb: var(--color-red-rgb);
+	--fc-orange-rgb: var(--color-orange-rgb);
+	--fc-black-rgb: var(--mono-rgb-0);
 	--fc-surface-canvas: var(--fc-bg);
-	--fc-surface-elevated: var(--fc-bg-elevated);
-	--fc-surface-panel: var(--fc-bg-panel);
-	--fc-surface-panel-soft: var(--fc-bg-panel-soft);
-	--fc-action-study-start: #176b5d;
-	--fc-action-study-end: #117463;
-	--fc-action-study-text: #effff9;
-	--fc-action-practice-start: #17668d;
-	--fc-action-practice-end: #126f86;
-	--fc-action-practice-text: #effaff;
+	--fc-surface-card: var(--fc-bg-elevated);
+	--fc-surface-section: var(--fc-bg-panel);
+	--fc-surface-control: var(--fc-bg-panel-soft);
+	--fc-surface-hover: color-mix(
+		in srgb,
+		var(--interactive-accent) 12%,
+		var(--background-secondary) 88%
+	);
+	--fc-surface-selected: color-mix(
+		in srgb,
+		var(--interactive-accent) 22%,
+		var(--background-primary) 78%
+	);
+	--fc-surface-complete: rgba(var(--fc-lime-rgb), 0.1);
+	--fc-surface-elevated: var(--fc-surface-card);
+	--fc-surface-panel: var(--fc-surface-section);
+	--fc-surface-panel-soft: var(--fc-surface-control);
+	--fc-control-bg: var(--interactive-normal);
+	--fc-control-bg-hover: var(--fc-surface-hover);
+	--fc-control-border: color-mix(
+		in srgb,
+		var(--background-modifier-border-hover) 72%,
+		var(--text-muted) 28%
+	);
+	--fc-control-border-selected: color-mix(
+		in srgb,
+		var(--interactive-accent) 78%,
+		var(--text-normal) 22%
+	);
+	--fc-input-bg: var(--background-modifier-form-field);
+	--fc-input-bg-hover: color-mix(
+		in srgb,
+		var(--interactive-accent) 9%,
+		var(--background-modifier-form-field) 91%
+	);
+	--fc-input-border: color-mix(
+		in srgb,
+		var(--background-modifier-border-hover) 58%,
+		var(--text-muted) 42%
+	);
+	--fc-action-study-start: var(--interactive-accent);
+	--fc-action-study-end: var(--interactive-accent-hover);
+	--fc-action-study-text: var(--text-on-accent);
+	--fc-action-practice-start: var(--fc-control-bg);
+	--fc-action-practice-end: var(--fc-control-bg-hover);
+	--fc-action-practice-text: var(--text-normal);
 
 	--fc-font-ui:
-		Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+		ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	--fc-font-reading: "Songti SC", STSong, "Noto Serif CJK SC", Georgia, serif;
 	--fc-font-data: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-	--fc-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.12);
-	--fc-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
-	--fc-shadow-overlay: 0 28px 80px rgba(0, 0, 0, 0.48);
+	--fc-shadow-sm: var(--shadow-s);
+	--fc-shadow: var(--shadow-l);
+	--fc-shadow-overlay: var(--shadow-l);
 	--fc-focus-ring: 0 0 0 3px rgba(var(--fc-cyan-rgb), 0.18);
 	--fc-glow-cyan:
 		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.28), 0 0 22px rgba(var(--fc-cyan-rgb), 0.14);
@@ -151,6 +199,14 @@
 	font-weight: var(--fc-weight-regular);
 	line-height: var(--fc-line-body);
 	color: var(--fc-text);
+}
+
+.theme-light .flashcard-root,
+.theme-light .flashcard-settings-tab {
+	--fc-bg-rgb: var(--mono-rgb-100);
+	--fc-bg-elevated-rgb: var(--mono-rgb-100);
+	--fc-bg-panel-rgb: var(--mono-rgb-100);
+	--fc-bg-panel-soft-rgb: var(--mono-rgb-100);
 }
 
 .flashcard-root {
@@ -1215,6 +1271,10 @@
 	padding-bottom: var(--fc-space-2);
 }
 
+.flashcard-setup-content > * {
+	flex: 0 0 auto;
+}
+
 .flashcard-study-hero,
 .flashcard-practice-question-selector,
 .flashcard-practice-info,
@@ -1421,9 +1481,9 @@
 }
 
 .flashcard-study-day-review-btn {
-	min-height: 30px;
-	padding: var(--fc-space-1) var(--fc-space-2);
-	font-size: var(--fc-font-xs);
+	min-height: var(--fc-control-md);
+	padding: 0 var(--fc-space-3);
+	font-size: var(--fc-font-sm);
 }
 
 .flashcard-study-action-bar {
@@ -1615,12 +1675,19 @@
 }
 
 .flashcard-study-day-count {
-	min-width: 62px;
-	padding: var(--fc-space-2);
-	border: 1px solid rgba(139, 159, 181, 0.18);
-	border-radius: var(--fc-radius-pill);
-	background: rgba(var(--fc-bg-rgb), 0.38);
+	min-width: 60px;
+	min-height: var(--fc-control-md);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 var(--fc-space-3);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: transparent;
+	font-family: var(--fc-font-ui);
 	font-size: var(--fc-font-sm);
+	font-weight: var(--fc-weight-semibold);
+	line-height: var(--fc-line-tight);
 	text-align: center;
 }
 
@@ -1754,20 +1821,19 @@
 	min-inline-size: 0;
 	margin: 0;
 	padding: var(--fc-space-half);
-	border: 1px solid rgba(139, 159, 181, 0.16);
+	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-sm);
-	background: rgba(var(--fc-bg-rgb), 0.54);
-	box-shadow:
-		inset 0 1px 3px rgba(0, 0, 0, 0.18),
-		0 1px 0 rgba(255, 255, 255, 0.025);
+	background: transparent;
+	box-shadow: none;
 }
 
 .flashcard-root button.flashcard-setup-segment-btn {
-	justify-content: flex-start;
+	justify-content: center;
 	gap: var(--fc-space-2);
 	min-height: var(--fc-control-md);
 	padding: var(--fc-space-2) var(--fc-space-3);
-	border-color: transparent;
+	border: 0;
+	border-radius: calc(var(--fc-radius-sm) - var(--fc-space-half));
 	background: transparent;
 	color: var(--fc-muted);
 	box-shadow: none;
@@ -1775,22 +1841,15 @@
 
 .flashcard-root button.flashcard-setup-segment-btn:hover:not(:disabled),
 .flashcard-root button.flashcard-setup-segment-btn:focus-visible {
-	border-color: rgba(var(--fc-cyan-rgb), 0.18);
-	background: rgba(var(--fc-cyan-rgb), 0.055);
+	background: var(--fc-bg-panel-soft);
 	color: var(--fc-text);
 	box-shadow: none;
 }
 
 .flashcard-root button.flashcard-setup-segment-btn.active {
-	border-color: rgba(var(--fc-cyan-rgb), 0.3);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.14), transparent 72%),
-		rgba(var(--fc-bg-panel-rgb), 0.88);
+	background: rgba(var(--fc-cyan-rgb), 0.12);
 	color: var(--fc-text);
-	box-shadow:
-		inset 2px 0 0 var(--fc-cyan),
-		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.035),
-		0 3px 10px rgba(0, 0, 0, 0.12);
+	box-shadow: none;
 	animation: none;
 }
 
@@ -1807,23 +1866,6 @@
 	min-width: 0;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-}
-
-.flashcard-setup-segment-status {
-	width: 6px;
-	height: 6px;
-	flex: 0 0 6px;
-	margin-left: auto;
-	border: 1px solid var(--fc-faint);
-	border-radius: 50%;
-	opacity: 0.5;
-}
-
-.flashcard-setup-segment-btn.active .flashcard-setup-segment-status {
-	border-color: var(--fc-cyan);
-	background: var(--fc-cyan);
-	box-shadow: 0 0 9px rgba(var(--fc-cyan-rgb), 0.5);
-	opacity: 1;
 }
 
 .flashcard-setup-control-detail {
@@ -3792,13 +3834,6 @@
 
 /* Settings tab */
 .flashcard-settings-tab {
-	--background-primary: #05070d;
-	--background-secondary: #0a0f1c;
-	--background-secondary-alt: #101521;
-	--text-normal: var(--fc-text);
-	--text-muted: var(--fc-muted);
-	--text-faint: var(--fc-faint);
-	--text-accent: var(--fc-cyan);
 	color: var(--fc-text);
 }
 
@@ -3907,758 +3942,6 @@
 	margin: 0;
 	padding-left: var(--fc-space-5);
 	color: var(--fc-muted);
-}
-/* Light theme: tuned to sit closer to Obsidian's native light surfaces. */
-.theme-light .flashcard-root,
-.theme-light .flashcard-settings-tab {
-	--fc-bg: #f6f8fb;
-	--fc-bg-elevated: #ffffff;
-	--fc-bg-panel: #f8fbff;
-	--fc-bg-panel-soft: #eef4fb;
-	--fc-bg-rgb: 246, 248, 251;
-	--fc-bg-elevated-rgb: 255, 255, 255;
-	--fc-bg-panel-rgb: 248, 251, 255;
-	--fc-bg-panel-soft-rgb: 238, 244, 251;
-	--fc-border-rgb: 33, 55, 83;
-	--fc-grid: rgba(22, 124, 141, 0.105);
-	--fc-line: rgba(33, 55, 83, 0.16);
-	--fc-line-strong: rgba(20, 135, 151, 0.34);
-	--fc-text: #172033;
-	--fc-muted: #58677a;
-	--fc-faint: #627286;
-	--fc-cyan: #0b7483;
-	--fc-blue: #256fba;
-	--fc-magenta: #b23a92;
-	--fc-violet: #7656c7;
-	--fc-lime: #1f7d49;
-	--fc-amber: #986000;
-	--fc-red: #c33b54;
-	--fc-orange: #a05018;
-	--fc-cyan-rgb: 11, 116, 131;
-	--fc-blue-rgb: 37, 111, 186;
-	--fc-magenta-rgb: 178, 58, 146;
-	--fc-violet-rgb: 118, 86, 199;
-	--fc-lime-rgb: 31, 125, 73;
-	--fc-amber-rgb: 152, 96, 0;
-	--fc-red-rgb: 195, 59, 84;
-	--fc-orange-rgb: 160, 80, 24;
-	--fc-action-study-start: #e1f8ed;
-	--fc-action-study-end: #c5f0df;
-	--fc-action-study-text: #14614f;
-	--fc-action-practice-start: #e0f3ff;
-	--fc-action-practice-end: #c7eafd;
-	--fc-action-practice-text: #165f8b;
-	--fc-shadow-sm: 0 4px 12px rgba(35, 49, 68, 0.07);
-	--fc-shadow: 0 8px 24px rgba(35, 49, 68, 0.09);
-	--fc-shadow-overlay: 0 28px 80px rgba(35, 49, 68, 0.2);
-	--fc-focus-ring: 0 0 0 3px rgba(var(--fc-cyan-rgb), 0.14);
-	--fc-glow-cyan:
-		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.2), 0 10px 24px rgba(var(--fc-cyan-rgb), 0.08);
-	--fc-glow-magenta:
-		0 0 0 1px rgba(var(--fc-magenta-rgb), 0.18), 0 10px 24px rgba(var(--fc-magenta-rgb), 0.08);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-root {
-	border-color: rgba(var(--fc-cyan-rgb), 0.2);
-	background:
-		radial-gradient(circle at 12% 0%, rgba(var(--fc-cyan-rgb), 0.06), transparent 36%),
-		radial-gradient(circle at 88% 10%, rgba(var(--fc-violet-rgb), 0.035), transparent 30%),
-		var(--fc-bg);
-}
-
-.theme-light .flashcard-root::before {
-	background: linear-gradient(180deg, rgba(var(--fc-bg-elevated-rgb), 0.6), transparent 26%);
-	mix-blend-mode: normal;
-	opacity: 0.5;
-}
-
-.theme-light .flashcard-root::after {
-	opacity: 0.66;
-}
-
-.theme-light .flashcard-practice-summary-actions,
-.theme-light .flashcard-word-list-sticky-top,
-.theme-light .flashcard-deck-item,
-.theme-light .flashcard-study-hero,
-.theme-light .flashcard-study-panel,
-.theme-light .flashcard-practice-question-selector,
-.theme-light .flashcard-practice-info,
-.theme-light .flashcard-study-action-bar,
-.theme-light .flashcard-practice-summary-stats,
-.theme-light .flashcard-practice-incorrect-section,
-.theme-light .flashcard-stats-day,
-.theme-light .flashcard-content,
-.theme-light .flashcard-footer,
-.theme-light .flashcard-empty,
-.theme-light .flashcard-complete,
-.theme-light .flashcard-modal,
-.theme-light .flashcard-practice-summary-header {
-	border-color: var(--fc-line);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 46%),
-		rgba(var(--fc-bg-elevated-rgb), 0.86);
-	box-shadow: var(--fc-shadow);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-question,
-.theme-light .flashcard-answer,
-.theme-light .flashcard-explanation,
-.theme-light .flashcard-root button.flashcard-word-cell,
-.theme-light .flashcard-practice-stat-item,
-.theme-light .flashcard-practice-stat-card,
-.theme-light .flashcard-stats-session,
-.theme-light .flashcard-deck-settings-card,
-.theme-light .flashcard-deck-settings-summary,
-.theme-light .flashcard-deck-settings-field,
-.theme-light .flashcard-practice-input-group,
-.theme-light .flashcard-practice-incorrect-item,
-.theme-light .flashcard-study-day-item,
-.theme-light .flashcard-practice-info-item,
-.theme-light .flashcard-card-editor-field,
-.theme-light .flashcard-help {
-	border-color: rgba(var(--fc-border-rgb), 0.15);
-	background:
-		linear-gradient(
-			180deg,
-			rgba(var(--fc-bg-elevated-rgb), 0.72),
-			rgba(var(--fc-bg-rgb), 0.78)
-		),
-		var(--fc-bg-panel);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-study-day-list {
-	border-color: rgba(var(--fc-cyan-rgb), 0.2);
-	background: rgba(231, 238, 246, 0.72);
-}
-
-.theme-light .flashcard-study-day-item,
-.theme-light .flashcard-study-day-item:nth-child(even) {
-	border-color: rgba(var(--fc-border-rgb), 0.15);
-	border-left-color: rgba(var(--fc-cyan-rgb), 0.38);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.05), transparent 30%),
-		rgba(var(--fc-bg-elevated-rgb), 0.88);
-}
-
-.theme-light .flashcard-study-day-item.current {
-	border-color: rgba(var(--fc-cyan-rgb), 0.42);
-	border-left-color: var(--fc-cyan);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 38%),
-		rgba(var(--fc-bg-elevated-rgb), 0.94);
-}
-
-.theme-light .flashcard-study-day-item.completed {
-	border-color: rgba(var(--fc-lime-rgb), 0.3);
-	border-left-color: rgba(var(--fc-lime-rgb), 0.7);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-lime-rgb), 0.08), transparent 34%),
-		rgba(var(--fc-bg-elevated-rgb), 0.9);
-}
-
-.theme-light .flashcard-study-day-count {
-	border-color: rgba(var(--fc-border-rgb), 0.14);
-	background: rgba(234, 239, 246, 0.9);
-}
-
-.theme-light .flashcard-study-day-item.fc-lift:hover,
-.theme-light .flashcard-study-day-item.current.fc-lift:hover {
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.11), transparent 38%),
-		rgba(var(--fc-bg-elevated-rgb), 0.98);
-	box-shadow: 0 8px 20px rgba(35, 49, 68, 0.1);
-}
-
-.theme-light .flashcard-study-day-item.completed.fc-lift:hover {
-	background:
-		linear-gradient(90deg, rgba(var(--fc-lime-rgb), 0.1), transparent 36%),
-		rgba(var(--fc-bg-elevated-rgb), 0.98);
-}
-
-.theme-light .flashcard-answer {
-	border-color: rgba(var(--fc-magenta-rgb), 0.2);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-magenta-rgb), 0.065), transparent 45%),
-		rgba(var(--fc-bg-elevated-rgb), 0.88);
-}
-
-.theme-light .flashcard-explanation {
-	border-color: rgba(var(--fc-amber-rgb), 0.24);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-amber-rgb), 0.075), transparent 45%),
-		rgba(var(--fc-bg-elevated-rgb), 0.88);
-}
-
-.theme-light .flashcard-question {
-	border-color: rgba(var(--fc-cyan-rgb), 0.22);
-}
-
-.theme-light .flashcard-content {
-	border-inline: 0;
-	border-radius: 0;
-	background: transparent;
-	box-shadow: none;
-}
-
-.theme-light .flashcard-content {
-	border-block: 0;
-}
-
-.theme-light .flashcard-question,
-.theme-light .flashcard-answer,
-.theme-light .flashcard-explanation {
-	border: 1px solid rgba(var(--fc-border-rgb), 0.12);
-	border-left-width: 3px;
-	border-radius: var(--fc-radius-md);
-	background: rgba(var(--fc-bg-elevated-rgb), 0.68);
-	box-shadow: 0 8px 24px rgba(35, 49, 68, 0.055);
-}
-
-.theme-light .flashcard-question {
-	border-left-color: rgba(var(--fc-cyan-rgb), 0.62);
-}
-
-.theme-light .flashcard-answer {
-	border-left-color: rgba(var(--fc-magenta-rgb), 0.56);
-}
-
-.theme-light .flashcard-explanation {
-	border-left-color: rgba(var(--fc-amber-rgb), 0.62);
-}
-
-.theme-light .flashcard-footer {
-	border-inline: 0;
-	border-bottom: 0;
-	border-radius: 0;
-	background: rgba(var(--fc-bg-panel-rgb), 0.9);
-	box-shadow: 0 -8px 20px rgba(35, 49, 68, 0.05);
-}
-
-.theme-light .flashcard-markdown,
-.theme-light .flashcard-deck-name,
-.theme-light .flashcard-deck-title,
-.theme-light .flashcard-header-title,
-.theme-light .flashcard-study-action-title,
-.theme-light .flashcard-practice-summary-title,
-.theme-light .flashcard-stats-day-date,
-.theme-light .flashcard-stats-session-deck {
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-progress,
-.theme-light .flashcard-timer,
-.theme-light .flashcard-badge,
-.theme-light .flashcard-stats-range,
-.theme-light .flashcard-deck-tag,
-.theme-light .fc-pill,
-.theme-light .fc-kicker {
-	background: rgba(var(--fc-bg-elevated-rgb), 0.72);
-	border-color: rgba(var(--fc-cyan-rgb), 0.26);
-	color: var(--fc-cyan);
-}
-
-.theme-light .flashcard-badge,
-.theme-light .fc-kicker {
-	border-color: rgba(var(--fc-magenta-rgb), 0.28);
-	background: rgba(var(--fc-magenta-rgb), 0.07);
-	color: var(--fc-magenta);
-}
-
-.theme-light .flashcard-session-progress-track {
-	border-color: rgba(var(--fc-cyan-rgb), 0.18);
-	background: rgba(220, 238, 243, 0.82);
-	box-shadow: inset 0 0 10px rgba(33, 55, 83, 0.08);
-}
-
-.theme-light .flashcard-root button.flashcard-pronunciation-button {
-	border-color: rgba(var(--fc-cyan-rgb), 0.3);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 72%),
-		rgba(255, 255, 255, 0.82);
-	color: var(--fc-cyan);
-	box-shadow:
-		inset 0 0 0 1px rgba(255, 255, 255, 0.62),
-		0 4px 12px rgba(35, 49, 68, 0.08);
-}
-
-.theme-light .flashcard-root button.flashcard-pronunciation-button:hover,
-.theme-light .flashcard-root button.flashcard-pronunciation-button.is-speaking {
-	border-color: rgba(var(--fc-cyan-rgb), 0.58);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.18), transparent 72%),
-		rgba(255, 255, 255, 0.94);
-}
-
-.theme-light .flashcard-session-toolbar {
-	border: 1px solid rgba(var(--fc-border-rgb), 0.12);
-	border-radius: var(--fc-radius-sm);
-	background: rgba(238, 243, 248, 0.64);
-	box-shadow: 0 6px 18px rgba(35, 49, 68, 0.045);
-}
-
-.theme-light .flashcard-session-shell {
-	background: transparent;
-	box-shadow: none;
-}
-
-.theme-light .flashcard-session-progress,
-.theme-light .flashcard-session-timer {
-	border-color: transparent;
-	background: transparent;
-	box-shadow: none;
-}
-
-.theme-light .flashcard-root button.flashcard-btn,
-.theme-light .flashcard-root .flashcard-btn {
-	border-color: rgba(33, 55, 83, 0.18);
-	background:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(236, 242, 249, 0.92)),
-		var(--fc-bg-panel);
-	color: var(--fc-text);
-	box-shadow: 0 8px 18px rgba(35, 49, 68, 0.08);
-}
-
-.theme-light .flashcard-root button.flashcard-btn:hover:not(:disabled),
-.theme-light .flashcard-root .flashcard-btn:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-btn:focus-visible {
-	border-color: rgba(var(--fc-cyan-rgb), 0.42);
-	box-shadow: var(--fc-glow-cyan);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-icon,
-.theme-light .flashcard-root button.flashcard-btn-prev,
-.theme-light .flashcard-root button.flashcard-btn-back,
-.theme-light .flashcard-root button.flashcard-btn-gray {
-	border-color: rgba(var(--fc-cyan-rgb), 0.28);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.08), rgba(var(--fc-blue-rgb), 0.06)),
-		rgba(255, 255, 255, 0.88);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-danger {
-	border-color: rgba(var(--fc-red-rgb), 0.28);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-red-rgb), 0.1), rgba(var(--fc-magenta-rgb), 0.055)),
-		rgba(255, 255, 255, 0.88);
-	color: var(--fc-red);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-green {
-	border-color: rgba(var(--fc-lime-rgb), 0.28);
-	background: linear-gradient(135deg, rgba(210, 244, 224, 0.96), rgba(188, 233, 219, 0.96));
-	color: var(--fc-lime);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-blue {
-	border-color: rgba(var(--fc-blue-rgb), 0.3);
-	background: linear-gradient(135deg, rgba(217, 235, 255, 0.98), rgba(193, 226, 242, 0.98));
-	color: var(--fc-blue);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-purple {
-	border-color: rgba(var(--fc-violet-rgb), 0.3);
-	background: linear-gradient(135deg, rgba(232, 224, 255, 0.98), rgba(239, 217, 244, 0.98));
-	color: var(--fc-violet);
-}
-
-.theme-light .flashcard-root button.flashcard-deck-action-study {
-	border-color: rgba(var(--fc-lime-rgb), 0.38);
-	background: linear-gradient(135deg, var(--fc-action-study-start), var(--fc-action-study-end));
-	color: var(--fc-action-study-text);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.theme-light .flashcard-root button.flashcard-deck-action-practice {
-	border-color: rgba(var(--fc-blue-rgb), 0.38);
-	background: linear-gradient(
-		135deg,
-		var(--fc-action-practice-start),
-		var(--fc-action-practice-end)
-	);
-	color: var(--fc-action-practice-text);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-orange {
-	border-color: rgba(var(--fc-orange-rgb), 0.32);
-	background: linear-gradient(135deg, rgba(255, 234, 213, 0.98), rgba(249, 219, 205, 0.98));
-	color: var(--fc-orange);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-red,
-.theme-light .flashcard-root button.flashcard-practice-btn-wrong {
-	border-color: rgba(var(--fc-red-rgb), 0.34);
-	background: rgba(var(--fc-red-rgb), 0.075);
-	color: var(--fc-red);
-}
-
-.theme-light .flashcard-root button.flashcard-practice-btn-correct {
-	border-color: rgba(var(--fc-lime-rgb), 0.34);
-	background: rgba(var(--fc-lime-rgb), 0.075);
-	color: var(--fc-lime);
-}
-
-.theme-light .flashcard-root button.flashcard-btn.active,
-.theme-light .flashcard-root button.flashcard-study-order-btn.active,
-.theme-light .flashcard-root button.flashcard-direction-btn.active {
-	border-color: rgba(var(--fc-cyan-rgb), 0.62);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.18), rgba(var(--fc-blue-rgb), 0.1)),
-		rgba(232, 248, 250, 0.96);
-	color: var(--fc-cyan);
-	box-shadow:
-		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.18),
-		0 0 0 3px rgba(var(--fc-cyan-rgb), 0.11),
-		0 12px 24px rgba(var(--fc-cyan-rgb), 0.12);
-}
-
-.theme-light .flashcard-root button.flashcard-active-orang.active,
-.theme-light .flashcard-root button.word-column-back.active {
-	border-color: rgba(var(--fc-orange-rgb), 0.48);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-orange-rgb), 0.17), rgba(var(--fc-amber-rgb), 0.1)),
-		rgba(255, 244, 234, 0.96);
-	color: var(--fc-orange);
-	box-shadow:
-		inset 0 0 0 1px rgba(var(--fc-orange-rgb), 0.14),
-		0 0 0 3px rgba(var(--fc-orange-rgb), 0.1);
-}
-
-.theme-light .flashcard-root button.shuffle.active {
-	border-color: rgba(var(--fc-lime-rgb), 0.45);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-lime-rgb), 0.16), rgba(var(--fc-cyan-rgb), 0.08)),
-		rgba(237, 250, 241, 0.96);
-	color: var(--fc-lime);
-}
-
-.theme-light .flashcard-root button.word-column-front.active {
-	border-color: rgba(var(--fc-blue-rgb), 0.46);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-blue-rgb), 0.16), rgba(var(--fc-cyan-rgb), 0.08)),
-		rgba(234, 244, 255, 0.96);
-	color: var(--fc-blue);
-}
-
-.theme-light .flashcard-root .flashcard-word-list-toolbar .flashcard-btn:not(.active) {
-	border-color: var(--fc-line);
-	background: rgba(var(--fc-bg-elevated-rgb), 0.84);
-	color: var(--fc-muted);
-	box-shadow: none;
-}
-
-.theme-light .flashcard-root button.flashcard-study-order-btn.active::after,
-.theme-light .flashcard-root button.flashcard-direction-btn.active::after {
-	content: "";
-	position: absolute;
-	inset: 6px;
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.24);
-	border-radius: var(--fc-radius-xs);
-	pointer-events: none;
-}
-
-.theme-light .flashcard-root button.flashcard-study-order-btn.active svg,
-.theme-light .flashcard-root button.flashcard-direction-btn.active svg {
-	color: var(--fc-cyan);
-}
-
-.theme-light .flashcard-study-panel.flashcard-setup-controls {
-	border-color: rgba(var(--fc-cyan-rgb), 0.2);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 44%),
-		rgba(255, 255, 255, 0.72);
-	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.8),
-		0 10px 24px rgba(35, 49, 68, 0.07);
-}
-
-.theme-light .flashcard-setup-control-icon {
-	border-color: rgba(var(--fc-cyan-rgb), 0.2);
-	background: rgba(var(--fc-cyan-rgb), 0.065);
-}
-
-.theme-light .flashcard-setup-segmented {
-	border-color: rgba(33, 55, 83, 0.13);
-	background: rgba(224, 232, 241, 0.58);
-}
-
-.theme-light .flashcard-root button.flashcard-setup-segment-btn {
-	background: transparent;
-	color: var(--fc-muted);
-}
-
-.theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
-	border-color: rgba(var(--fc-cyan-rgb), 0.28);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 74%),
-		rgba(255, 255, 255, 0.94);
-	color: var(--fc-text);
-	box-shadow:
-		inset 2px 0 0 var(--fc-cyan),
-		0 2px 8px rgba(35, 49, 68, 0.07);
-}
-
-.theme-light .flashcard-root button.flashcard-setup-chip {
-	border-color: rgba(33, 55, 83, 0.13);
-	background: rgba(255, 255, 255, 0.64);
-	color: var(--fc-muted);
-}
-
-.theme-light .flashcard-root button.flashcard-setup-chip.active {
-	border-color: rgba(var(--fc-cyan-rgb), 0.34);
-	background: rgba(var(--fc-cyan-rgb), 0.09);
-	color: var(--fc-cyan);
-	box-shadow: inset 0 -2px 0 rgba(var(--fc-cyan-rgb), 0.58);
-}
-
-.theme-light .flashcard-setup-range-field,
-.theme-light .flashcard-setup-control-detail .flashcard-practice-range-summary {
-	border-color: rgba(33, 55, 83, 0.12);
-	background: rgba(255, 255, 255, 0.58);
-}
-
-.theme-light .flashcard-setup-custom-field .flashcard-practice-input,
-.theme-light .flashcard-setup-range-field .flashcard-practice-input {
-	background: rgba(255, 255, 255, 0.86);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-root button.flashcard-rating-btn {
-	background: rgba(255, 255, 255, 0.78);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-stats-session-cards,
-.theme-light .flashcard-stats-session-dur {
-	border-color: rgba(33, 55, 83, 0.12);
-	background: rgba(255, 255, 255, 0.68);
-}
-
-.theme-light .flashcard-root button.flashcard-word-cell.masked {
-	background:
-		repeating-linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.055) 0 8px,
-			transparent 8px 16px
-		),
-		rgba(255, 255, 255, 0.76);
-	color: var(--fc-faint);
-}
-
-.theme-light .flashcard-modal-backdrop {
-	background: rgba(232, 239, 248, 0.72);
-}
-
-.theme-light .flashcard-modal-header,
-.theme-light .flashcard-modal-footer,
-.theme-light .flashcard-word-list-toolbar {
-	background: rgba(246, 248, 251, 0.78);
-	border-color: var(--fc-line);
-}
-
-.theme-light .flashcard-settings-tab {
-	--background-primary: #f6f8fb;
-	--background-secondary: #ffffff;
-	--background-secondary-alt: #eef4fb;
-	--text-normal: var(--fc-text);
-	--text-muted: var(--fc-muted);
-	--text-faint: var(--fc-faint);
-	--text-accent: var(--fc-cyan);
-}
-
-.theme-light .flashcard-settings-tab .setting-item-heading {
-	border-color: rgba(var(--fc-cyan-rgb), 0.18);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 48%),
-		rgba(255, 255, 255, 0.82);
-}
-
-.theme-light .fc-settings-input,
-.theme-light .flashcard-practice-input,
-.theme-light .flashcard-card-editor-field select,
-.theme-light .flashcard-card-editor-field textarea,
-.theme-light .flashcard-deck-settings-field input[type="number"],
-.theme-light .flashcard-deck-settings-field select {
-	border-color: rgba(33, 55, 83, 0.18);
-	background: rgba(255, 255, 255, 0.86);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-card-editor-field select:disabled,
-.theme-light .flashcard-card-editor-field textarea:disabled {
-	background: rgba(239, 244, 249, 0.86);
-	color: var(--fc-muted);
-}
-
-.theme-light .flashcard-card-editor-field textarea::placeholder {
-	color: rgba(88, 103, 122, 0.72);
-}
-
-.theme-light .flashcard-word-explanation-content {
-	border-color: rgba(var(--fc-magenta-rgb), 0.24);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-magenta-rgb), 0.065), transparent 44%),
-		rgba(255, 255, 255, 0.88);
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-help pre {
-	border-color: rgba(var(--fc-cyan-rgb), 0.16);
-	background: rgba(246, 248, 251, 0.92);
-}
-
-.theme-light .flashcard-common-header {
-	border: 0;
-	border-bottom: 1px solid var(--fc-line);
-	border-radius: 0;
-	/* background: rgba(248, 250, 252, 0.96); */
-	box-shadow: none;
-}
-
-/* .theme-light .flashcard-page-header {
-	background: rgba(248, 250, 252, 0.96);
-} */
-
-.theme-light .flashcard-header-overview {
-	background: rgba(var(--fc-cyan-rgb), 0.05);
-}
-
-.theme-light .flashcard-header-stat {
-	border: 0;
-	border-radius: 0;
-	background: transparent;
-	box-shadow: none;
-}
-
-.theme-light .flashcard-header-stat + .flashcard-header-stat {
-	border-left: 1px solid rgba(var(--fc-cyan-rgb), 0.24);
-}
-
-.theme-light .flashcard-header-stat-label {
-	color: var(--fc-cyan);
-}
-
-.theme-light .flashcard-deck-item {
-	border-color: rgba(var(--fc-cyan-rgb), 0.2);
-	border-left-color: rgba(var(--fc-cyan-rgb), 0.38);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 28%),
-		rgba(255, 255, 255, 0.74);
-	box-shadow: none;
-}
-
-.theme-light .flashcard-deck-item.fc-lift:hover {
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.075), transparent 32%),
-		rgba(255, 255, 255, 0.7);
-	box-shadow: none;
-}
-
-.theme-light .flashcard-deck-more-actions {
-	border-color: var(--fc-line);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 48%),
-		rgba(255, 255, 255, 0.98);
-}
-
-.theme-light .flashcard-root button.flashcard-deck-more-action {
-	border-color: transparent;
-	background: transparent;
-	box-shadow: none;
-	color: var(--fc-muted);
-}
-
-.theme-light .flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-more-action:focus-visible {
-	border-color: rgba(var(--fc-cyan-rgb), 0.18);
-	background: rgba(var(--fc-cyan-rgb), 0.07);
-	box-shadow: none;
-	color: var(--fc-text);
-}
-
-.theme-light .flashcard-study-hero,
-.theme-light .flashcard-study-panel,
-.theme-light .flashcard-practice-question-selector,
-.theme-light .flashcard-practice-info,
-.theme-light .flashcard-practice-summary-stats,
-.theme-light .flashcard-practice-incorrect-section,
-.theme-light .flashcard-stats-day {
-	border-color: var(--fc-line);
-	background: transparent;
-	box-shadow: none;
-}
-
-.theme-light .flashcard-stats-session,
-.theme-light .flashcard-deck-settings-card,
-.theme-light .flashcard-deck-settings-summary,
-.theme-light .flashcard-deck-settings-field,
-.theme-light .flashcard-practice-input-group,
-.theme-light .flashcard-card-editor-field {
-	background: transparent;
-	box-shadow: none;
-}
-
-.theme-light .flashcard-study-action-bar {
-	border-color: rgba(var(--fc-cyan-rgb), 0.22);
-	border-top-color: rgba(var(--fc-cyan-rgb), 0.42);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.06), transparent 42%),
-		rgba(255, 255, 255, 0.94);
-	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.96),
-		0 -8px 20px rgba(35, 49, 68, 0.06),
-		0 10px 28px rgba(35, 49, 68, 0.08);
-}
-
-.theme-light .flashcard-study-hero {
-	border-color: rgba(var(--fc-cyan-rgb), 0.18);
-	border-left-color: rgba(var(--fc-cyan-rgb), 0.58);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.075), transparent 44%),
-		rgba(255, 255, 255, 0.58);
-	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.9),
-		0 8px 22px rgba(35, 49, 68, 0.045);
-}
-
-.theme-light .flashcard-study-hero .flashcard-deck-tag {
-	border-color: rgba(var(--fc-cyan-rgb), 0.28);
-	background: rgba(255, 255, 255, 0.74);
-	box-shadow: 0 2px 7px rgba(35, 49, 68, 0.05);
-}
-
-.theme-light .flashcard-setup-control-group:nth-child(even) {
-	background: rgba(231, 238, 246, 0.32);
-}
-
-.theme-light .flashcard-setup-control-copy {
-	border-right-color: rgba(33, 55, 83, 0.1);
-}
-
-.theme-light .flashcard-setup-control-icon {
-	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.84),
-		0 4px 12px rgba(35, 49, 68, 0.06);
-}
-
-.theme-light .flashcard-setup-segmented {
-	box-shadow:
-		inset 0 1px 3px rgba(35, 49, 68, 0.08),
-		0 1px 0 rgba(255, 255, 255, 0.9);
-}
-
-.theme-light .flashcard-practice-info {
-	border-color: rgba(var(--fc-cyan-rgb), 0.16);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 46%),
-		rgba(255, 255, 255, 0.5);
-	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.88),
-		0 7px 20px rgba(35, 49, 68, 0.04);
 }
 /* Form focus and scrollbars */
 .flashcard-root input:focus,
@@ -5509,6 +4792,1801 @@
 		height: var(--fc-control-touch);
 		min-width: 0;
 		min-height: var(--fc-control-touch);
+	}
+}
+/*
+ * Fresh editorial direction.
+ * This final layer deliberately neutralizes legacy cyber treatments while keeping
+ * existing component boundaries and interaction states intact.
+ */
+
+.flashcard-root,
+.flashcard-settings-tab {
+	--fc-space-7: 32px;
+	--fc-space-8: 40px;
+	--fc-space-10: 48px;
+	--fc-font-hero: 34px;
+	--fc-font-focus: 48px;
+	--fc-home-header-max-width: 1280px;
+	--fc-shadow-sm: 0 1px 2px rgba(var(--fc-black-rgb), 0.1);
+	--fc-shadow: 0 8px 24px rgba(var(--fc-black-rgb), 0.12);
+	--fc-shadow-overlay: 0 24px 64px rgba(var(--fc-black-rgb), 0.32);
+	--fc-focus-ring: 0 0 0 3px rgba(var(--fc-cyan-rgb), 0.22);
+	--fc-glow-cyan: none;
+	--fc-glow-magenta: none;
+	--fc-motion-quick: 140ms;
+	--fc-motion-base: 180ms;
+	--fc-motion-page: 220ms;
+	--fc-motion-current-day: fc-rise-in var(--fc-motion-page) var(--fc-ease-out) both;
+	--fc-motion-progress-scan: none;
+	--fc-motion-sheen: none;
+	--fc-motion-answer: fc-answer-reveal var(--fc-motion-base) var(--fc-ease-out) both;
+}
+
+.flashcard-root {
+	container-name: flashcard-page;
+	container-type: inline-size;
+	padding: var(--fc-space-2);
+	border: 0;
+	border-radius: 0;
+	background: var(--fc-surface-canvas);
+	scrollbar-gutter: auto;
+}
+
+.flashcard-root::before,
+.flashcard-root::after,
+.flashcard-btn-show::after,
+.flashcard-session-progress-fill::after,
+.flashcard-practice-progress-fill::after,
+.flashcard-study-hero::before,
+.flashcard-study-hero::after,
+.flashcard-study-action-bar::before,
+.flashcard-study-action-bar::after {
+	display: none;
+}
+
+.flashcard-home,
+.flashcard-study,
+.flashcard-practice-setup,
+.flashcard-practice-summary,
+.flashcard-stats-view,
+.flashcard-word-list-view {
+	gap: var(--fc-space-4);
+}
+
+.fc-lift,
+.fc-lift:hover {
+	transform: none;
+}
+
+.flashcard-btn,
+.flashcard-root button.flashcard-btn,
+.flashcard-root .flashcard-btn {
+	border-color: var(--fc-control-border);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-control-bg);
+	background-color: var(--fc-control-bg);
+	box-shadow:
+		inset 0 1px 0 color-mix(in srgb, var(--text-normal) 10%, transparent),
+		var(--fc-shadow-sm);
+	color: var(--fc-text);
+	font-weight: var(--fc-weight-medium);
+}
+
+.flashcard-btn:hover:not(:disabled),
+.flashcard-btn:focus-visible,
+.flashcard-root button.flashcard-btn:hover:not(:disabled),
+.flashcard-root button.flashcard-btn:focus-visible {
+	border-color: var(--fc-line-strong);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 72%),
+		var(--fc-control-bg-hover);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.flashcard-btn:active:not(:disabled) {
+	transform: translateY(1px);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-icon,
+.flashcard-root button.flashcard-btn-prev,
+.flashcard-root button.flashcard-btn-back,
+.flashcard-root button.flashcard-btn-gray {
+	border-color: var(--fc-line);
+	background: transparent;
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-danger {
+	border-color: rgba(var(--fc-red-rgb), 0.36);
+	background: rgba(var(--fc-red-rgb), 0.08);
+	color: var(--fc-red);
+}
+
+.flashcard-root button.flashcard-btn-green,
+.flashcard-root button.flashcard-deck-action-study,
+.flashcard-root button.flashcard-deck-focus-study {
+	border-color: var(--fc-action-study-start);
+	background: var(--fc-action-study-start);
+	color: var(--fc-action-study-text);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-green:hover:not(:disabled),
+.flashcard-root button.flashcard-btn-green:focus-visible,
+.flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-action-study:focus-visible,
+.flashcard-root button.flashcard-deck-focus-study:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-focus-study:focus-visible {
+	border-color: var(--fc-action-study-end);
+	background: var(--fc-action-study-end);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.flashcard-root button.flashcard-btn-blue,
+.flashcard-root button.flashcard-deck-action-practice,
+.flashcard-root button.flashcard-deck-focus-practice {
+	border-color: var(--fc-control-border);
+	background: var(--fc-action-practice-start);
+	color: var(--fc-action-practice-text);
+	box-shadow:
+		inset 0 1px 0 color-mix(in srgb, var(--text-normal) 10%, transparent),
+		var(--fc-shadow-sm);
+}
+
+.flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
+.flashcard-root button.flashcard-btn-blue:focus-visible,
+.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-action-practice:focus-visible,
+.flashcard-root button.flashcard-deck-focus-practice:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-focus-practice:focus-visible {
+	border-color: var(--fc-cyan);
+	background: var(--fc-action-practice-end);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.flashcard-root button.flashcard-btn-purple,
+.flashcard-root button.flashcard-btn-orange,
+.flashcard-root button.flashcard-btn-red {
+	background: var(--fc-surface-section);
+	box-shadow: none;
+}
+
+.flashcard-btn.active,
+.flashcard-btn[aria-pressed="true"],
+.flashcard-active-orang.active {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-surface-selected);
+	color: var(--fc-text);
+	box-shadow:
+		inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 24%, transparent),
+		var(--fc-shadow-sm);
+	animation: none;
+}
+
+/* Shared page headers */
+.flashcard-common-header,
+.flashcard-page-header {
+	backdrop-filter: none;
+}
+
+.flashcard-common-header {
+	min-height: var(--fc-control-touch);
+	padding-bottom: var(--fc-space-3);
+	border-bottom-color: var(--fc-line);
+}
+
+.flashcard-home > .flashcard-page-header {
+	width: min(var(--fc-home-header-max-width), 100%);
+	margin-inline: auto;
+}
+
+.flashcard-home-header {
+	min-height: var(--fc-control-touch);
+	padding-bottom: var(--fc-space-2);
+}
+
+.flashcard-header-center {
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-home-header .flashcard-header-center {
+	font-family: var(--fc-font-reading);
+	font-size: var(--fc-font-hero);
+	font-weight: var(--fc-weight-semibold);
+	letter-spacing: -0.025em;
+}
+
+.flashcard-home-header .flashcard-header-center > svg {
+	display: none;
+}
+
+.flashcard-home-header .flashcard-header-actions {
+	gap: var(--fc-space-2);
+}
+
+.flashcard-root .flashcard-home-header button.flashcard-home-header-action {
+	width: var(--fc-control-md);
+	height: var(--fc-control-md);
+	min-width: var(--fc-control-md);
+	min-height: var(--fc-control-md);
+	padding: 0;
+	border-color: transparent;
+	border-radius: var(--fc-radius-sm);
+	background: transparent;
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.flashcard-root .flashcard-home-header button.flashcard-home-header-action svg {
+	width: 22px;
+	height: 22px;
+	stroke-width: 1.65;
+}
+
+.flashcard-root .flashcard-home-header button.flashcard-home-header-action:hover:not(:disabled) {
+	border-color: transparent;
+	background: rgba(var(--fc-cyan-rgb), 0.08);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+.flashcard-root .flashcard-home-header button.flashcard-home-header-action:focus-visible {
+	border-color: transparent;
+	background: rgba(var(--fc-cyan-rgb), 0.08);
+	color: var(--fc-text);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.flashcard-header-overview {
+	border-bottom: 1px solid var(--fc-line);
+	background: transparent;
+}
+
+.flashcard-header-stats {
+	padding: var(--fc-space-2) 0;
+}
+
+.flashcard-home .flashcard-header-stat {
+	justify-content: center;
+	padding: var(--fc-space-1) var(--fc-space-4);
+	color: var(--fc-muted);
+	font-weight: var(--fc-weight-regular);
+	text-align: center;
+}
+
+.flashcard-home .flashcard-header-stat:first-child {
+	padding-left: var(--fc-space-4);
+}
+
+.flashcard-header-stat + .flashcard-header-stat {
+	border-left-color: var(--fc-line);
+}
+
+.flashcard-header-stat > svg {
+	display: none;
+}
+
+.flashcard-header-stat-value {
+	font-family: var(--fc-font-ui);
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-header-stat-value.tone-blue,
+.flashcard-header-stat-value.tone-green,
+.flashcard-header-stat-value.tone-orange,
+.flashcard-header-stat-value.tone-purple,
+.flashcard-header-stat-value.tone-red {
+	color: var(--fc-cyan);
+}
+
+.flashcard-header-stat-label {
+	color: var(--fc-muted);
+}
+
+/* Home: index + selected deck */
+.flashcard-home-workspace {
+	width: min(1120px, 100%);
+	min-height: 0;
+	margin: 0 auto;
+	flex: 1;
+	display: grid;
+	grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.3fr);
+	grid-template-rows: minmax(0, 1fr) auto;
+	gap: var(--fc-space-4);
+}
+
+.flashcard-deck-index,
+.flashcard-deck-focus {
+	min-width: 0;
+	min-height: 0;
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+}
+
+.flashcard-deck-index {
+	grid-row: 1 / span 2;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.flashcard-deck-index-heading,
+.flashcard-deck-focus-kicker {
+	color: var(--fc-muted);
+	font-size: var(--fc-font-xs);
+	font-weight: var(--fc-weight-semibold);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.flashcard-deck-index-heading {
+	padding: var(--fc-space-3) var(--fc-space-4);
+	border-bottom: 1px solid var(--fc-line);
+}
+
+.flashcard-deck-index-mobile-title {
+	display: none;
+}
+
+.flashcard-deck-index .flashcard-deck-list {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	gap: 0;
+	overflow-y: auto;
+}
+
+.flashcard-deck-item {
+	contain-intrinsic-size: 0 76px;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-3) var(--fc-space-3) var(--fc-space-3) var(--fc-space-8);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-section);
+	box-shadow: none;
+	animation: none;
+	cursor: pointer;
+}
+
+.flashcard-deck-item:last-child {
+	border-bottom-color: var(--fc-line);
+}
+
+.flashcard-deck-item.is-selected {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-selected);
+	box-shadow: inset 3px 0 0 var(--fc-cyan);
+}
+
+.flashcard-deck-item.fc-lift:hover,
+.flashcard-deck-item.is-selected.fc-lift:hover {
+	border-color: var(--fc-line-strong);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.13), transparent 68%),
+		var(--fc-surface-hover);
+	box-shadow: inset 3px 0 0 var(--fc-cyan);
+}
+
+.flashcard-root button.flashcard-deck-drag-handle {
+	left: var(--fc-space-2);
+	color: var(--fc-faint);
+}
+
+.flashcard-root button.flashcard-deck-drag-handle:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-drag-handle:focus-visible {
+	background: var(--fc-surface-hover);
+	color: var(--fc-text);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.flashcard-root button.flashcard-deck-activate {
+	appearance: none;
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: inherit;
+	background: transparent;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+.flashcard-root button.flashcard-deck-activate:focus-visible {
+	box-shadow: inset var(--fc-focus-ring);
+	outline: none;
+}
+
+.flashcard-deck-item .flashcard-deck-headline {
+	display: block;
+	gap: var(--fc-space-1) var(--fc-space-2);
+}
+
+.flashcard-deck-item .flashcard-deck-name-wrapper,
+.flashcard-deck-item .flashcard-deck-stats {
+	min-width: 0;
+	margin-top: var(--fc-space-1);
+}
+
+.flashcard-deck-item .flashcard-deck-name {
+	display: block;
+	font-family: var(--fc-font-reading);
+	font-size: var(--fc-font-md);
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-deck-item .flashcard-deck-tag {
+	max-width: 13ch;
+	overflow: hidden;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--fc-muted);
+	font-family: var(--fc-font-ui);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.flashcard-deck-item .flashcard-word-learning-badge {
+	display: none;
+}
+
+.flashcard-deck-item .flashcard-deck-stat {
+	font-size: var(--fc-font-xs);
+}
+
+.flashcard-deck-item .flashcard-deck-stat:nth-child(2) {
+	display: none;
+}
+
+.flashcard-deck-item .flashcard-deck-stat:not(:first-child)::before {
+	display: none;
+}
+
+.flashcard-deck-item .flashcard-deck-side {
+	z-index: 2;
+	align-self: center;
+}
+
+.flashcard-deck-item .flashcard-deck-actions2 {
+	display: flex;
+	gap: var(--fc-space-1);
+}
+
+.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
+	width: var(--fc-control-sm);
+	height: var(--fc-control-sm);
+	min-width: var(--fc-control-sm);
+	min-height: var(--fc-control-sm);
+	padding: 0;
+	font-size: var(--fc-font-xs);
+}
+
+.flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn > span {
+	display: none;
+}
+
+.flashcard-root .flashcard-deck-item button.flashcard-deck-action-more {
+	width: var(--fc-control-sm);
+	min-width: var(--fc-control-sm);
+}
+
+.flashcard-deck-more-actions {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-card);
+	box-shadow: var(--fc-shadow);
+}
+
+.flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-more-action:focus-visible {
+	border-color: transparent;
+	background: var(--fc-surface-hover);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+.flashcard-deck-focus {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	padding: var(--fc-space-7);
+	background: var(--fc-surface-section);
+}
+
+.flashcard-deck-focus-heading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--fc-space-4);
+}
+
+.flashcard-deck-focus h2 {
+	margin: var(--fc-space-2) 0 0;
+	color: var(--fc-text);
+	font-family: var(--fc-font-reading);
+	font-size: var(--fc-font-focus);
+	font-weight: var(--fc-weight-semibold);
+	line-height: var(--fc-line-tight);
+	letter-spacing: -0.025em;
+}
+
+.flashcard-deck-focus .flashcard-deck-tag {
+	padding: var(--fc-space-1) var(--fc-space-2);
+	border-color: var(--fc-line);
+	background: transparent;
+	color: var(--fc-muted);
+	font-family: var(--fc-font-ui);
+}
+
+.flashcard-deck-focus > .flashcard-word-learning-badge {
+	width: fit-content;
+	margin-top: var(--fc-space-3);
+}
+
+.flashcard-deck-focus-stats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	margin: var(--fc-space-7) 0;
+	border-top: 1px solid var(--fc-line);
+	border-bottom: 1px solid var(--fc-line);
+}
+
+.flashcard-deck-focus-stats > div {
+	padding: var(--fc-space-4) 0;
+}
+
+.flashcard-deck-focus-stats > div + div {
+	padding-left: var(--fc-space-4);
+	border-left: 1px solid var(--fc-line);
+}
+
+.flashcard-deck-focus-stats dt {
+	color: var(--fc-muted);
+	font-size: var(--fc-font-xs);
+}
+
+.flashcard-deck-focus-stats dd {
+	margin: var(--fc-space-1) 0 0;
+	color: var(--fc-text);
+	font-size: var(--fc-font-xl);
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-deck-focus-stats > div:first-child dd {
+	color: var(--fc-cyan);
+}
+
+.flashcard-deck-focus-actions-wrap {
+	position: relative;
+}
+
+.flashcard-deck-focus-actions {
+	display: grid;
+	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) var(--fc-control-touch);
+	gap: var(--fc-space-2);
+}
+
+.flashcard-root .flashcard-deck-focus-actions .flashcard-btn {
+	min-height: var(--fc-control-touch);
+}
+
+.flashcard-deck-focus-more-actions {
+	top: calc(100% + var(--fc-space-2));
+}
+
+.flashcard-home-add-card {
+	grid-column: 2;
+	width: 100%;
+	min-height: var(--fc-control-touch);
+	border-style: dashed;
+}
+
+/* Setup: fewer surfaces, clearer sections */
+.flashcard-setup-content {
+	width: min(920px, 100%);
+	padding: 0;
+	gap: var(--fc-space-4);
+}
+
+.flashcard-study-hero,
+.flashcard-study-panel,
+.flashcard-study-action-bar,
+.theme-light .flashcard-study-hero,
+.theme-light .flashcard-study-panel,
+.theme-light .flashcard-study-action-bar {
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.flashcard-study-hero {
+	padding: var(--fc-space-5);
+}
+
+.flashcard-study-hero .flashcard-deck-name {
+	font-family: var(--fc-font-reading);
+	font-size: var(--fc-font-display);
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-study-hero .flashcard-deck-tag {
+	border-color: var(--fc-line);
+	background: transparent;
+	color: var(--fc-muted);
+}
+
+.flashcard-study-panel.flashcard-setup-controls {
+	padding: 0;
+	border-radius: var(--fc-radius-surface);
+	overflow: hidden;
+}
+
+.flashcard-setup-control-group,
+.flashcard-setup-control-group:nth-child(even) {
+	padding: var(--fc-space-4);
+	background: transparent;
+}
+
+.flashcard-setup-control-group + .flashcard-setup-control-group {
+	border-top: 1px solid var(--fc-line);
+}
+
+.flashcard-setup-control-icon {
+	border: 0;
+	background: transparent;
+	color: var(--fc-cyan);
+}
+
+.flashcard-setup-segmented {
+	padding: var(--fc-space-1);
+	border-color: var(--fc-control-border);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-control);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-muted) 8%, transparent);
+}
+
+.flashcard-root button.flashcard-setup-segment-btn {
+	border: 1px solid transparent;
+	background: transparent;
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-setup-segment-btn:hover:not(:disabled),
+.flashcard-root button.flashcard-setup-segment-btn:focus-visible {
+	background: var(--fc-surface-hover);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-setup-segment-btn.active {
+	border: 1px solid var(--fc-control-border-selected);
+	background: var(--fc-surface-selected);
+	color: var(--fc-text);
+	font-weight: var(--fc-weight-semibold);
+	box-shadow:
+		inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 18%, transparent),
+		var(--fc-shadow-sm);
+}
+
+.flashcard-root button.flashcard-setup-segment-btn.active::after {
+	content: "";
+	position: absolute;
+	left: var(--fc-space-3);
+	right: var(--fc-space-3);
+	bottom: var(--fc-space-half);
+	height: 2px;
+	border-radius: var(--fc-radius-pill);
+	background: var(--fc-cyan);
+}
+
+.flashcard-root button.flashcard-setup-chip.active {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-surface-selected);
+	color: var(--fc-text);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+}
+
+.flashcard-study-day-progress {
+	gap: var(--fc-space-2);
+}
+
+.flashcard-study-day-count,
+.theme-light .flashcard-study-day-count,
+.flashcard-root button.flashcard-study-day-review-btn {
+	min-height: var(--fc-control-md);
+	border-radius: var(--fc-radius-sm);
+}
+
+.flashcard-study-day-count,
+.theme-light .flashcard-study-day-count {
+	min-width: 60px;
+	padding: 0 var(--fc-space-3);
+	border-color: var(--fc-line);
+	background: transparent;
+	color: var(--fc-muted);
+	font-family: var(--fc-font-ui);
+	font-size: var(--fc-font-sm);
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-root button.flashcard-study-day-review-btn {
+	padding: 0 var(--fc-space-3);
+	font-size: var(--fc-font-sm);
+}
+
+.flashcard-study-day-section {
+	padding: var(--fc-space-4);
+}
+
+.flashcard-study-day-list,
+.theme-light .flashcard-study-day-list {
+	gap: var(--fc-space-2);
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+}
+
+.flashcard-study-day-item,
+.flashcard-study-day-item:nth-child(even),
+.theme-light .flashcard-study-day-item,
+.theme-light .flashcard-study-day-item:nth-child(even) {
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-section);
+	box-shadow: none;
+}
+
+.flashcard-study-day-item.current,
+.theme-light .flashcard-study-day-item.current {
+	border-color: var(--fc-line-strong);
+	background: var(--fc-surface-selected);
+	box-shadow: inset 3px 0 0 var(--fc-cyan);
+}
+
+.flashcard-study-day-item.completed,
+.theme-light .flashcard-study-day-item.completed {
+	background: var(--fc-surface-complete);
+}
+
+.flashcard-study-day-item.fc-lift:hover,
+.theme-light .flashcard-study-day-item.fc-lift:hover {
+	border-color: var(--fc-line-strong);
+	background: var(--fc-surface-hover);
+	box-shadow: none;
+}
+
+.flashcard-study-day-item.current.fc-lift:hover,
+.theme-light .flashcard-study-day-item.current.fc-lift:hover {
+	background: var(--fc-surface-selected);
+	box-shadow: inset 3px 0 0 var(--fc-cyan);
+}
+
+.flashcard-study-day-item.completed.fc-lift:hover,
+.theme-light .flashcard-study-day-item.completed.fc-lift:hover {
+	background: var(--fc-surface-complete);
+}
+
+.flashcard-study-action-bar {
+	padding: var(--fc-space-3) var(--fc-space-4);
+	border-radius: var(--fc-radius-surface);
+	box-shadow: var(--fc-shadow-sm);
+}
+
+/* Study and practice sessions: calm reading column */
+.flashcard-session-shell {
+	gap: var(--fc-space-2);
+}
+
+.flashcard-session-toolbar {
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.flashcard-session-timer::before {
+	box-shadow: none;
+}
+
+.flashcard-session-progress-track,
+.flashcard-practice-progress-bar {
+	border: 0;
+	background: var(--fc-surface-control);
+	box-shadow: none;
+}
+
+.flashcard-badge {
+	border-color: var(--fc-line);
+	background: rgba(var(--fc-cyan-rgb), 0.1);
+	color: var(--fc-cyan);
+}
+
+.flashcard-session-progress-fill,
+.flashcard-practice-progress-fill {
+	background: var(--fc-cyan);
+	box-shadow: none;
+}
+
+.flashcard-content {
+	padding: var(--fc-space-3) 0;
+}
+
+.flashcard-card-stack {
+	width: min(760px, 100%);
+	gap: 0;
+	overflow: hidden;
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+	box-shadow: var(--fc-shadow-sm);
+}
+
+.flashcard-question,
+.flashcard-answer,
+.flashcard-explanation,
+.theme-light .flashcard-question,
+.theme-light .flashcard-answer,
+.theme-light .flashcard-explanation {
+	padding: var(--fc-space-6) var(--fc-space-7);
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.flashcard-answer-section {
+	gap: 0;
+	border-top: 1px solid var(--fc-line);
+}
+
+.flashcard-explanation,
+.theme-light .flashcard-explanation {
+	border-top: 1px solid var(--fc-line);
+	background: var(--fc-surface-section);
+}
+
+.flashcard-label {
+	margin-bottom: var(--fc-space-3);
+	font-family: var(--fc-font-ui);
+	font-weight: var(--fc-weight-semibold);
+	letter-spacing: 0.04em;
+	text-transform: none;
+}
+
+.flashcard-label-question,
+.flashcard-label-answer,
+.flashcard-label-explanation {
+	color: var(--fc-muted);
+}
+
+.flashcard-markdown {
+	font-family: var(--fc-font-reading);
+	font-size: var(--fc-font-xl);
+	line-height: var(--fc-line-reading);
+}
+
+.flashcard-footer,
+.theme-light .flashcard-footer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--fc-space-3) 0 var(--fc-space-1);
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	backdrop-filter: none;
+}
+
+.flashcard-response-controls,
+.flashcard-practice-response-controls {
+	width: min(860px, 100%);
+	max-width: none;
+	margin-inline: auto;
+	padding: var(--fc-space-2);
+	gap: var(--fc-space-2);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+	box-shadow: var(--fc-shadow-sm);
+}
+
+.flashcard-footer > .flashcard-btn-show {
+	width: min(620px, 100%);
+	max-width: 100%;
+	margin-inline: auto;
+	flex: 0 1 620px;
+}
+
+.flashcard-rating-grid {
+	gap: var(--fc-space-1);
+}
+
+.flashcard-root button.flashcard-btn-prev {
+	width: var(--fc-control-touch);
+	height: var(--fc-control-touch);
+	min-width: var(--fc-control-touch);
+	min-height: var(--fc-control-touch);
+	border-color: transparent;
+	border-radius: var(--fc-radius-control);
+	background: transparent;
+	background-color: transparent;
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-prev:hover:not(:disabled),
+.flashcard-root button.flashcard-btn-prev:focus-visible {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-hover);
+	background-color: var(--fc-surface-hover);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-rating-btn {
+	--fc-rating-color: var(--fc-muted);
+
+	overflow: hidden;
+	min-height: 52px;
+	padding: var(--fc-space-1) var(--fc-space-2);
+	border-color: transparent;
+	border-radius: var(--fc-radius-control);
+	background: color-mix(in srgb, var(--fc-rating-color) 6%, transparent);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-rating-btn::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	bottom: 0;
+	width: var(--fc-space-6);
+	height: 2px;
+	border-radius: var(--fc-radius-pill) var(--fc-radius-pill) 0 0;
+	background: var(--fc-rating-color);
+	opacity: 0.58;
+	transform: translateX(-50%);
+}
+
+.flashcard-root button.flashcard-rating-btn:hover:not(:disabled),
+.flashcard-root button.flashcard-rating-btn:focus-visible {
+	border-color: color-mix(in srgb, var(--fc-rating-color) 30%, var(--fc-line));
+	background: color-mix(in srgb, var(--fc-rating-color) 14%, var(--fc-surface-control));
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fc-rating-color) 10%, transparent);
+	transform: translateY(-1px);
+}
+
+.flashcard-root button.flashcard-rating-1 {
+	--fc-rating-color: var(--fc-red);
+}
+
+.flashcard-root button.flashcard-rating-2 {
+	--fc-rating-color: var(--fc-orange);
+}
+
+.flashcard-root button.flashcard-rating-3 {
+	--fc-rating-color: var(--fc-cyan);
+}
+
+.flashcard-root button.flashcard-rating-4 {
+	--fc-rating-color: var(--fc-blue);
+}
+
+.flashcard-root button.flashcard-rating-5 {
+	--fc-rating-color: var(--fc-muted);
+}
+
+.flashcard-root .flashcard-rating-label {
+	color: var(--fc-rating-color);
+}
+
+.flashcard-root .flashcard-rating-interval {
+	min-width: var(--fc-space-5);
+	min-height: var(--fc-space-5);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 var(--fc-space-1);
+	border: 1px solid color-mix(in srgb, var(--fc-rating-color) 22%, transparent);
+	background: color-mix(in srgb, var(--fc-rating-color) 8%, transparent);
+	color: var(--fc-rating-color);
+	opacity: 0.82;
+}
+
+/* Remaining views, overlays and settings share the same neutral surfaces. */
+.flashcard-word-list-sticky-top,
+.flashcard-practice-summary-actions,
+.flashcard-practice-summary-stats,
+.flashcard-practice-incorrect-section,
+.flashcard-practice-question-selector,
+.flashcard-practice-info,
+.flashcard-stats-day,
+.flashcard-empty,
+.flashcard-complete,
+.flashcard-modal,
+.flashcard-deck-settings-card,
+.flashcard-deck-settings-summary,
+.flashcard-card-editor-field,
+.flashcard-help,
+.theme-light .flashcard-word-list-sticky-top,
+.theme-light .flashcard-practice-summary-actions,
+.theme-light .flashcard-practice-summary-stats,
+.theme-light .flashcard-practice-incorrect-section,
+.theme-light .flashcard-practice-question-selector,
+.theme-light .flashcard-practice-info,
+.theme-light .flashcard-stats-day,
+.theme-light .flashcard-empty,
+.theme-light .flashcard-complete,
+.theme-light .flashcard-modal,
+.theme-light .flashcard-deck-settings-card,
+.theme-light .flashcard-deck-settings-summary,
+.theme-light .flashcard-card-editor-field,
+.theme-light .flashcard-help {
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.flashcard-practice-summary-header,
+.flashcard-spelling-input-group,
+.flashcard-spelling-feedback,
+.theme-light .flashcard-practice-summary-header,
+.theme-light .flashcard-spelling-input-group,
+.theme-light .flashcard-spelling-feedback {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.flashcard-practice-stat-card,
+.flashcard-practice-stat-item,
+.flashcard-practice-incorrect-item,
+.flashcard-stats-session,
+.flashcard-identity-migration-card,
+.theme-light .flashcard-practice-stat-card,
+.theme-light .flashcard-practice-stat-item,
+.theme-light .flashcard-practice-incorrect-item,
+.theme-light .flashcard-stats-session,
+.theme-light .flashcard-identity-migration-card {
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-section);
+	box-shadow: none;
+}
+
+.flashcard-stats-session.stats-mode-study,
+.flashcard-stats-session.stats-mode-practice,
+.flashcard-stats-session.stats-mode-spelling,
+.flashcard-stats-session.stats-mode-list {
+	border-left-width: 3px;
+}
+
+.flashcard-word-list-toolbar,
+.theme-light .flashcard-word-list-toolbar {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+}
+
+.flashcard-root button.flashcard-word-cell,
+.theme-light .flashcard-root button.flashcard-word-cell {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-section);
+}
+
+.flashcard-modal-backdrop,
+.flashcard-confirm-backdrop {
+	background: rgba(var(--fc-black-rgb), 0.72);
+	backdrop-filter: blur(8px);
+}
+
+.flashcard-modal {
+	border-radius: var(--fc-radius-surface);
+	box-shadow: var(--fc-shadow-overlay);
+}
+
+.flashcard-modal-header,
+.flashcard-modal-footer {
+	background: var(--fc-surface-section);
+}
+
+.flashcard-confirm-accent {
+	display: none;
+}
+
+.flashcard-card-editor-field select,
+.flashcard-card-editor-field textarea,
+.flashcard-deck-settings-field input,
+.flashcard-deck-settings-field select,
+.flashcard-practice-input {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-control);
+	background: var(--fc-surface-control);
+	color: var(--fc-text);
+}
+
+.flashcard-settings-tab .setting-item {
+	border-color: var(--fc-line);
+}
+
+.flashcard-settings-tab .setting-item-heading,
+.flashcard-settings-tab .flashcard-help {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.flashcard-settings-tab .setting-item:not(.setting-item-heading) {
+	border-radius: var(--fc-radius-control);
+}
+
+.flashcard-settings-tab button,
+.flashcard-settings-tab input,
+.flashcard-settings-tab select,
+.flashcard-settings-tab textarea {
+	border-radius: var(--fc-radius-sm);
+}
+
+/* Explicit light surface normalization wins over earlier theme-specific gradients. */
+.theme-light .flashcard-root {
+	border: 0;
+	background: var(--fc-surface-canvas);
+}
+
+.theme-light .flashcard-root::before,
+.theme-light .flashcard-root::after {
+	display: none;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-green,
+.theme-light .flashcard-root button.flashcard-deck-action-study,
+.theme-light .flashcard-root button.flashcard-deck-focus-study {
+	border-color: var(--fc-action-study-start);
+	background: var(--fc-action-study-start);
+	color: var(--fc-action-study-text);
+	box-shadow:
+		inset 0 1px 0 color-mix(in srgb, var(--text-on-accent) 18%, transparent),
+		var(--fc-shadow-sm);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-blue,
+.theme-light .flashcard-root button.flashcard-deck-action-practice,
+.theme-light .flashcard-root button.flashcard-deck-focus-practice {
+	border-color: var(--fc-control-border);
+	background: var(--fc-action-practice-start);
+	color: var(--fc-action-practice-text);
+	box-shadow:
+		inset 0 1px 0 color-mix(in srgb, var(--text-normal) 10%, transparent),
+		var(--fc-shadow-sm);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-btn-green:focus-visible,
+.theme-light .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible,
+.theme-light .flashcard-root button.flashcard-deck-focus-study:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-focus-study:focus-visible {
+	border-color: var(--fc-action-study-end);
+	background: var(--fc-action-study-end);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.theme-light .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-btn-blue:focus-visible,
+.theme-light .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible,
+.theme-light .flashcard-root button.flashcard-deck-focus-practice:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-focus-practice:focus-visible {
+	border-color: var(--fc-cyan);
+	background: var(--fc-action-practice-end);
+	box-shadow: var(--fc-focus-ring);
+}
+
+.theme-light .flashcard-deck-focus,
+.theme-light .flashcard-deck-index {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-deck-focus {
+	background: var(--fc-surface-section);
+}
+
+.theme-light .flashcard-study-panel.flashcard-setup-controls {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-setup-control-group,
+.theme-light .flashcard-setup-control-group:nth-child(even) {
+	background: transparent;
+}
+
+.theme-light .flashcard-setup-segmented {
+	border-color: var(--fc-control-border);
+	background: var(--fc-surface-control);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-muted) 8%, transparent);
+}
+
+.theme-light .flashcard-root button.flashcard-setup-segment-btn,
+.theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
+	border: 1px solid transparent;
+}
+
+.theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-surface-selected);
+	color: var(--fc-text);
+	box-shadow:
+		inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 18%, transparent),
+		var(--fc-shadow-sm);
+}
+
+.theme-light .flashcard-root button.flashcard-setup-chip.active {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-surface-selected);
+	color: var(--fc-text);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+}
+
+.theme-light .flashcard-session-progress-track,
+.theme-light .flashcard-practice-progress-bar {
+	border: 0;
+	background: var(--fc-surface-control);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-badge {
+	border-color: var(--fc-line);
+	background: rgba(var(--fc-cyan-rgb), 0.1);
+	color: var(--fc-cyan);
+}
+
+@container flashcard-page (max-width: 1100px) {
+	.flashcard-root {
+		padding: var(--fc-space-3);
+	}
+
+	.flashcard-home,
+	.flashcard-study,
+	.flashcard-practice-setup,
+	.flashcard-practice-summary,
+	.flashcard-stats-view,
+	.flashcard-word-list-view {
+		gap: var(--fc-space-3);
+	}
+
+	.flashcard-home-header .flashcard-header-center {
+		font-size: var(--fc-font-display);
+	}
+
+	.flashcard-home .flashcard-common-header {
+		grid-template-columns: minmax(0, 1fr) auto;
+	}
+
+	.flashcard-home .flashcard-header-center {
+		grid-column: 1;
+		justify-content: flex-start;
+		text-align: left;
+	}
+
+	.flashcard-home .flashcard-header-right {
+		grid-column: 2;
+	}
+
+	.flashcard-home .flashcard-header-actions {
+		gap: var(--fc-space-1);
+	}
+
+	.flashcard-home .flashcard-header-stats {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.flashcard-home .flashcard-header-stat {
+		min-height: var(--fc-control-touch);
+		flex-direction: column;
+		justify-content: center;
+		gap: var(--fc-space-half);
+		padding: var(--fc-space-1);
+		text-align: center;
+	}
+
+	.flashcard-home .flashcard-header-stat:first-child {
+		padding-left: var(--fc-space-1);
+	}
+
+	.flashcard-home .flashcard-header-stat:nth-child(n + 3) {
+		border-top: 0;
+	}
+
+	.flashcard-home .flashcard-header-stat:nth-child(odd) {
+		border-left: 1px solid var(--fc-line);
+	}
+
+	.flashcard-home .flashcard-header-stat:first-child {
+		border-left: 0;
+	}
+
+	.flashcard-home-workspace {
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+		gap: var(--fc-space-3);
+	}
+
+	.flashcard-deck-focus {
+		order: 1;
+		flex: 0 0 auto;
+		padding: var(--fc-space-5);
+	}
+
+	.flashcard-deck-focus h2 {
+		font-size: var(--fc-font-display);
+	}
+
+	.flashcard-deck-focus-stats {
+		margin: var(--fc-space-5) 0;
+	}
+
+	.flashcard-deck-focus-actions {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.flashcard-deck-focus-study,
+	.flashcard-deck-focus-practice {
+		width: 100%;
+	}
+
+	.flashcard-deck-focus-more {
+		width: var(--fc-control-touch);
+		justify-self: center;
+	}
+
+	.flashcard-deck-index {
+		order: 2;
+		flex: 0 0 auto;
+		overflow: visible;
+	}
+
+	.flashcard-deck-index-heading {
+		padding: var(--fc-space-3);
+	}
+
+	.flashcard-deck-index-desktop-title {
+		display: none;
+	}
+
+	.flashcard-deck-index-mobile-title {
+		display: inline;
+	}
+
+	.flashcard-deck-index .flashcard-deck-list {
+		overflow: visible;
+	}
+
+	.flashcard-deck-index .flashcard-deck-item.is-selected {
+		display: none;
+	}
+
+	.flashcard-deck-item {
+		grid-template-columns: minmax(0, 1fr) auto;
+		padding: var(--fc-space-3) var(--fc-space-2) var(--fc-space-3) var(--fc-space-8);
+	}
+
+	.flashcard-deck-item .flashcard-deck-headline {
+		display: block;
+	}
+
+	.flashcard-deck-item .flashcard-deck-name-wrapper {
+		margin-top: var(--fc-space-1);
+	}
+
+	.flashcard-deck-item .flashcard-deck-stats {
+		margin-top: var(--fc-space-1);
+	}
+
+	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
+		width: var(--fc-control-touch);
+		height: var(--fc-control-touch);
+		min-width: var(--fc-control-touch);
+		min-height: var(--fc-control-touch);
+		padding: 0;
+	}
+
+	.flashcard-deck-item .flashcard-deck-actions2 {
+		flex-direction: column;
+	}
+
+	.flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn > span {
+		display: none;
+	}
+
+	.flashcard-home-add-card {
+		order: 3;
+		min-height: var(--fc-control-touch);
+		flex: 0 0 auto;
+	}
+
+	.flashcard-setup-content {
+		gap: var(--fc-space-3);
+	}
+
+	.flashcard-setup-control-group,
+	.flashcard-setup-control-group:nth-child(even) {
+		padding: var(--fc-space-3);
+	}
+
+	.flashcard-study-action-bar {
+		position: sticky;
+		bottom: 0;
+		z-index: 10;
+		align-items: stretch;
+		padding: var(--fc-space-3);
+	}
+
+	.flashcard-study-action-bar .flashcard-btn {
+		min-height: var(--fc-control-touch);
+	}
+
+	.flashcard-study .flashcard-session-toolbar {
+		border-color: var(--fc-line);
+		background: var(--fc-surface-card);
+	}
+
+	.flashcard-study .flashcard-content {
+		padding: var(--fc-space-2) 0;
+	}
+
+	.flashcard-study .flashcard-question,
+	.flashcard-study .flashcard-answer,
+	.flashcard-study .flashcard-explanation {
+		padding: var(--fc-space-5) var(--fc-space-4);
+	}
+
+	.flashcard-study .flashcard-markdown {
+		font-size: var(--fc-font-lg);
+	}
+
+	.flashcard-study .flashcard-footer {
+		padding: var(--fc-space-2) 0 0;
+	}
+
+	.flashcard-study .flashcard-rating-grid {
+		grid-template-columns: repeat(5, minmax(44px, 1fr));
+		gap: var(--fc-space-1);
+		overflow-x: auto;
+	}
+
+	.flashcard-study .flashcard-rating-btn {
+		min-height: var(--fc-control-touch);
+		padding: var(--fc-space-1);
+	}
+}
+
+/* Home deck gallery: direct card actions with a fresh, lively color rhythm. */
+.flashcard-home-workspace {
+	width: min(1120px, 100%);
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+	overflow-y: auto;
+}
+
+.flashcard-deck-index {
+	order: initial;
+	width: 100%;
+	flex: 0 0 auto;
+	overflow: visible;
+	border: 0;
+	background: transparent;
+}
+
+.flashcard-deck-index-heading {
+	display: none;
+}
+
+.flashcard-deck-index .flashcard-deck-list {
+	width: 100%;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--fc-space-4);
+	overflow: visible;
+}
+
+.flashcard-deck-list .flashcard-deck-item {
+	contain-intrinsic-size: 0 168px;
+	min-height: 168px;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-5) var(--fc-space-5) var(--fc-space-4) var(--fc-space-8);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-surface);
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 58%),
+		var(--fc-surface-card);
+	box-shadow: var(--fc-shadow-sm);
+}
+
+.flashcard-deck-list .flashcard-deck-item:nth-child(3n + 2) {
+	background:
+		linear-gradient(135deg, rgba(var(--fc-blue-rgb), 0.11), transparent 58%),
+		var(--fc-surface-card);
+}
+
+.flashcard-deck-list .flashcard-deck-item:nth-child(3n) {
+	background:
+		linear-gradient(135deg, rgba(var(--fc-orange-rgb), 0.1), transparent 58%),
+		var(--fc-surface-card);
+}
+
+.theme-light .flashcard-deck-list .flashcard-deck-item {
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 58%),
+		var(--fc-surface-card);
+}
+
+.theme-light .flashcard-deck-list .flashcard-deck-item:nth-child(3n + 2) {
+	background:
+		linear-gradient(135deg, rgba(var(--fc-blue-rgb), 0.08), transparent 58%),
+		var(--fc-surface-card);
+}
+
+.theme-light .flashcard-deck-list .flashcard-deck-item:nth-child(3n) {
+	background:
+		linear-gradient(135deg, rgba(var(--fc-orange-rgb), 0.08), transparent 58%),
+		var(--fc-surface-card);
+}
+
+.flashcard-deck-list .flashcard-deck-item:nth-last-child(1):nth-child(odd) {
+	grid-column: 1 / -1;
+}
+
+.flashcard-deck-list .flashcard-deck-item.fc-lift:hover {
+	border-color: var(--fc-line-strong);
+	box-shadow: var(--fc-shadow);
+}
+
+.flashcard-root .flashcard-deck-list button.flashcard-deck-drag-handle {
+	top: var(--fc-space-5);
+	left: var(--fc-space-2);
+	transform: none;
+	color: var(--fc-faint);
+}
+
+.flashcard-deck-item .flashcard-deck-main {
+	min-height: 0;
+}
+
+.flashcard-deck-item .flashcard-deck-name {
+	font-size: var(--fc-font-lg);
+	line-height: var(--fc-line-tight);
+}
+
+.flashcard-deck-item .flashcard-deck-name-wrapper {
+	margin-top: var(--fc-space-1);
+}
+
+.flashcard-deck-item .flashcard-deck-tag {
+	max-width: 100%;
+	color: var(--fc-cyan);
+}
+
+.flashcard-deck-item .flashcard-deck-stats {
+	margin-top: var(--fc-space-3);
+}
+
+.flashcard-deck-item .flashcard-deck-stat {
+	font-size: var(--fc-font-xs);
+}
+
+.flashcard-deck-item .flashcard-deck-stat:first-child {
+	font-size: var(--fc-font-md);
+}
+
+.flashcard-deck-item .flashcard-deck-stat:nth-child(2) {
+	display: block;
+	margin-top: var(--fc-space-1);
+	color: var(--fc-muted);
+}
+
+.flashcard-deck-item .flashcard-deck-side {
+	width: 100%;
+	margin-top: auto;
+	align-self: stretch;
+}
+
+.flashcard-deck-item .flashcard-deck-actions2 {
+	width: 100%;
+	display: grid;
+	grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) var(--fc-control-md);
+	gap: var(--fc-space-2);
+}
+
+.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
+	width: 100%;
+	height: var(--fc-control-md);
+	min-width: 0;
+	min-height: var(--fc-control-md);
+	padding: 0 var(--fc-space-3);
+}
+
+.flashcard-root .flashcard-deck-item button.flashcard-deck-action-more {
+	width: var(--fc-control-md);
+	min-width: var(--fc-control-md);
+}
+
+.flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn > span {
+	display: inline;
+}
+
+.flashcard-home-add-card {
+	order: initial;
+	width: min(420px, 100%);
+	min-height: var(--fc-control-md);
+	margin: 0 auto;
+	flex: 0 0 auto;
+}
+
+@container flashcard-page (max-width: 720px) {
+	.flashcard-deck-index .flashcard-deck-list {
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--fc-space-3);
+	}
+
+	.flashcard-deck-list .flashcard-deck-item,
+	.flashcard-deck-list .flashcard-deck-item:nth-last-child(1):nth-child(odd) {
+		grid-column: auto;
+		min-height: 176px;
+		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3) var(--fc-space-8);
+	}
+
+	.flashcard-root .flashcard-deck-list button.flashcard-deck-drag-handle {
+		top: var(--fc-space-4);
+		left: var(--fc-space-1);
+	}
+
+	.flashcard-deck-item .flashcard-deck-name {
+		font-size: var(--fc-font-lg);
+	}
+
+	.flashcard-deck-item .flashcard-deck-actions2 {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--fc-control-touch);
+	}
+
+	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
+		height: var(--fc-control-touch);
+		min-height: var(--fc-control-touch);
+	}
+
+	.flashcard-root .flashcard-deck-item button.flashcard-deck-action-more {
+		width: var(--fc-control-touch);
+		min-width: var(--fc-control-touch);
+	}
+}
+
+@media (pointer: coarse) {
+	.flashcard-root button.flashcard-deck-drag-handle,
+	.flashcard-root button.flashcard-deck-action-more,
+	.flashcard-root .flashcard-header-actions .flashcard-btn,
+	.flashcard-root .flashcard-session-actions .flashcard-btn {
+		min-width: var(--fc-control-touch);
+		min-height: var(--fc-control-touch);
+	}
+}
+
+/* Shared form controls: keep the field boundary visible before interaction. */
+.flashcard-root
+	:is(
+		input:not(
+			[type="checkbox"],
+			[type="radio"],
+			[type="range"],
+			[type="color"],
+			[type="file"],
+			[type="button"],
+			[type="submit"],
+			[type="reset"],
+			[type="hidden"]
+		),
+		textarea,
+		select
+	),
+.flashcard-settings-tab
+	:is(
+		input:not(
+			[type="checkbox"],
+			[type="radio"],
+			[type="range"],
+			[type="color"],
+			[type="file"],
+			[type="button"],
+			[type="submit"],
+			[type="reset"],
+			[type="hidden"]
+		),
+		textarea,
+		select
+	) {
+	border: 1px solid var(--fc-input-border);
+	background: var(--fc-input-bg);
+	color: var(--fc-text);
+	caret-color: var(--fc-cyan);
+	box-shadow:
+		inset 0 0 0 1px color-mix(in srgb, var(--text-muted) 10%, transparent),
+		0 1px 1px rgba(var(--fc-black-rgb), 0.08);
+	transition:
+		border-color var(--fc-motion-quick) ease,
+		background var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+}
+
+.flashcard-root
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]),
+.flashcard-settings-tab
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]) {
+	border-color: var(--fc-line-strong);
+	background: var(--fc-input-bg-hover);
+}
+
+.flashcard-root
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus,
+.flashcard-settings-tab
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-input-bg);
+	box-shadow:
+		inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 16%, transparent),
+		var(--fc-focus-ring);
+	outline: none;
+}
+
+.flashcard-root :is(input, textarea)::placeholder,
+.flashcard-settings-tab :is(input, textarea)::placeholder {
+	color: var(--fc-faint);
+	opacity: 1;
+}
+
+.flashcard-root :is(input, textarea, select):disabled,
+.flashcard-settings-tab :is(input, textarea, select):disabled {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-section);
+	opacity: 0.56;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.flashcard-root *,
+	.flashcard-root *::before,
+	.flashcard-root *::after {
+		scroll-behavior: auto !important;
+		animation-duration: 1ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 1ms !important;
 	}
 }
 /*$vite$:1*/
