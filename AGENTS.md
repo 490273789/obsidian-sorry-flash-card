@@ -135,6 +135,7 @@ Parser behavior lives in `src/cards/parser.ts`.
 - Keep runtime orchestration behind the existing interfaces in `deckHomeRuntime.ts`, `studySessionRuntime.ts`, and `practiceSessionRuntime.ts`; test state transitions without loading the Obsidian runtime.
 - Keep Obsidian runtime dependencies out of pure tests where possible; use `import type` for Obsidian-only types so tests do not load Obsidian APIs at runtime.
 - When component or Obsidian API tests become necessary, add explicit mocks or a documented test setup rather than relying on browser globals accidentally.
+- Style-only changes under `src/styles/` do not require new test cases; validate with `npm run build` and visual inspection in Obsidian.
 - For TDD, run `npm run test:watch` while implementing and finish with `npm test`.
 
 ## Scheduling Behavior
@@ -180,7 +181,7 @@ Scheduling lives in `src/sessions/scheduler.ts` and uses `ts-fsrs`.
 
 Before finishing a code-change task:
 
-1. Run `npm test` when the change touches testable logic, parsing, scheduling, spelling, pronunciation, PDF presentation helpers, data helpers, or any area with existing tests.
+1. Run `npm test` when the change touches testable logic, parsing, scheduling, spelling, pronunciation, PDF presentation helpers, data helpers, or any area with existing tests. Style-only changes do not require new tests.
 2. Run `npm run build`.
 3. Run `npm run lint` when the change touches TypeScript/React patterns, Obsidian API usage, or shared modules.
 4. Run `npm run format:check` when files were broadly edited or formatting may have changed.

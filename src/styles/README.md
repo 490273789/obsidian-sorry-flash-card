@@ -58,7 +58,7 @@
 - 语义色使用 `--fc-primary`（青）、`--fc-secondary`（紫）、`--fc-success`（绿）、`--fc-warning`（琥珀）、`--fc-danger`（红）、`--fc-info`（蓝）。旧的 `--fc-cyan` 等变量保留为兼容和调色别名。
 - 普通文字使用 `--fc-text`，次要信息使用 `--fc-muted`，弱提示使用 `--fc-faint`。不得通过随机彩色文字区分无状态含义的数据。
 - 首页学习与刷题主操作分别使用 `--fc-action-study-*` 和 `--fc-action-practice-*`；其他按钮默认保持中性，仅在激活、危险或明确状态时使用语义色。
-- 暗色和亮色主题的普通文字对背景需达到 WCAG AA 4.5:1；新增配色时应扩充 `designSystem.test.ts` 的对比度断言。
+- 暗色和亮色主题的普通文字对背景需达到 WCAG AA 4.5:1；新增配色时应保持对比度达标，并在 Obsidian 中检查亮/暗主题。
 
 ## 组件规则
 
@@ -76,9 +76,8 @@
 - `@media (pointer: coarse)` 是点击目标的最终兜底，不应被组件规则覆盖。
 - 亮色与暗色主题默认都直接继承 Obsidian token。只有透明度或对比度确实无法自动适配时，才添加极少量 `.theme-light` 光学修正，禁止维护一套固定色值的独立亮色主题。
 
-## 允许的例外与自动检查
+## 允许的例外与验证
 
 - 1px 普通边框、3px 状态强调边、绝对定位、图标绘制、阴影和背景纹理可使用必要的像素值；它们不参与内容密度刻度。
 - 旧版兼容选择器可以保留，但不能引入新的字号、间距、圆角或颜色体系。
-- `src/styles/__tests__/designSystem.test.ts` 会检查所有 `--fc-*` 引用均已声明，且 `font-size`、`border-radius`、`gap` 和非零 `padding` 不出现散落像素值，并验证核心配色对比度。
-- 修改样式后至少运行 `npm test` 和 `npm run build`；较大范围修改还应运行 `npm run lint` 与 `npm run format:check`。
+- 修改样式不需要添加测试用例；完成后运行 `npm run build` 并在 Obsidian 中实际查看受影响的视图，较大范围修改还应运行 `npm run lint` 与 `npm run format:check`。
