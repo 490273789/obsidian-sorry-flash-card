@@ -38,13 +38,6 @@
 	outline: none;
 }
 
-.flashcard-btn:active:not(:disabled) {
-	transform: translateY(0) scale(0.965);
-	box-shadow:
-		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.3),
-		0 0 20px rgba(var(--fc-cyan-rgb), 0.16);
-}
-
 .flashcard-btn:disabled {
 	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
@@ -76,14 +69,6 @@
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), rgba(var(--fc-blue-rgb), 0.08)),
 		rgba(var(--fc-bg-elevated-rgb), 0.92);
 	color: var(--fc-text);
-}
-
-.flashcard-root button.flashcard-btn-danger {
-	border-color: rgba(var(--fc-red-rgb), 0.38);
-	background:
-		linear-gradient(135deg, rgba(var(--fc-red-rgb), 0.14), rgba(var(--fc-magenta-rgb), 0.08)),
-		rgba(var(--fc-bg-elevated-rgb), 0.92);
-	color: var(--fc-red);
 }
 
 .flashcard-btn-green {
@@ -178,21 +163,6 @@
 	letter-spacing: 0.02em;
 }
 
-.flashcard-btn-show::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(
-		110deg,
-		transparent 0 40%,
-		rgba(var(--fc-white-rgb), 0.32) 50%,
-		transparent 60% 100%
-	);
-	transform: translateX(-120%);
-	animation: var(--fc-motion-sheen);
-	pointer-events: none;
-}
-
 .flashcard-shortcut,
 .flashcard-rating-interval {
 	color: inherit;
@@ -208,6 +178,18 @@
  * ───────────────────────────────────────────────────────────── */
 
 .flashcard-btn-show::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		110deg,
+		transparent 0 40%,
+		rgba(var(--fc-white-rgb), 0.32) 50%,
+		transparent 60% 100%
+	);
+	transform: translateX(-120%);
+	animation: var(--fc-motion-sheen);
+	pointer-events: none;
 	display: none;
 }
 

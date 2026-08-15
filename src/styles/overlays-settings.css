@@ -55,27 +55,6 @@
 	pointer-events: none;
 }
 
-.flashcard-modal {
-	width: min(560px, 100%);
-	max-height: calc(100dvh - 32px);
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.22);
-	border-radius: var(--fc-radius-lg);
-	background: var(--fc-bg-elevated);
-	box-shadow: var(--fc-shadow-overlay), var(--fc-glow-cyan);
-	animation: var(--fc-motion-modal-in);
-}
-
-.flashcard-modal-header,
-.flashcard-modal-footer {
-	display: flex;
-	gap: var(--fc-space-3);
-	padding: var(--fc-space-4);
-	background: rgba(var(--fc-bg-panel-rgb), 0.9);
-}
-
 .flashcard-modal-header {
 	align-items: flex-start;
 	justify-content: space-between;
@@ -317,18 +296,6 @@
 	--fc-confirm-rgb: var(--fc-red-rgb);
 }
 
-.flashcard-confirm-accent {
-	position: absolute;
-	top: 0;
-	left: 14%;
-	right: 14%;
-	z-index: 2;
-	height: 2px;
-	background: linear-gradient(90deg, transparent, rgba(var(--fc-confirm-rgb), 0.95), transparent);
-	box-shadow: 0 0 18px rgba(var(--fc-confirm-rgb), 0.55);
-	pointer-events: none;
-}
-
 .flashcard-confirm-header {
 	align-items: center;
 	padding: var(--fc-space-4) var(--fc-space-5);
@@ -417,11 +384,6 @@
 /* Settings tab */
 .flashcard-settings-tab {
 	color: var(--fc-text);
-}
-
-.flashcard-settings-tab .setting-item {
-	padding: var(--fc-space-4);
-	border-top-color: var(--fc-line-soft);
 }
 
 .flashcard-settings-tab .setting-item-heading {
@@ -549,11 +511,22 @@
 	backdrop-filter: blur(8px);
 }
 .flashcard-modal {
+	width: min(560px, 100%);
+	max-height: calc(100dvh - 32px);
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	animation: var(--fc-motion-modal-in);
+	border: 1px solid var(--fc-line);
+	background: var(--fc-surface-card);
 	border-radius: var(--fc-radius-md);
 	box-shadow: var(--fc-shadow-overlay);
 }
 .flashcard-modal-header,
 .flashcard-modal-footer {
+	display: flex;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-4);
 	background: var(--fc-surface-section);
 }
 .flashcard-card-editor-modal .flashcard-card-editor-field {
@@ -564,6 +537,15 @@
 	background: transparent;
 }
 .flashcard-confirm-accent {
+	position: absolute;
+	top: 0;
+	left: 14%;
+	right: 14%;
+	z-index: 2;
+	height: 2px;
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-confirm-rgb), 0.95), transparent);
+	box-shadow: 0 0 18px rgba(var(--fc-confirm-rgb), 0.55);
+	pointer-events: none;
 	display: none;
 }
 .flashcard-card-editor-field select,
@@ -579,6 +561,8 @@
 }
 
 .flashcard-settings-tab .setting-item {
+	padding: var(--fc-space-4);
+	border-top-color: var(--fc-line-soft);
 	border-color: var(--fc-line);
 }
 .flashcard-settings-tab .setting-item-heading,
