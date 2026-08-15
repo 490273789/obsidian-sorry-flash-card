@@ -133,7 +133,11 @@
 	transition: var(--fc-transition-modal-control);
 }
 
-.flashcard-modal-close:hover,
+.flashcard-modal-close:hover {
+	border-color: rgba(var(--fc-red-rgb), 0.48);
+	outline: none;
+}
+
 .flashcard-modal-close:focus-visible {
 	border-color: rgba(var(--fc-red-rgb), 0.48);
 	box-shadow: 0 0 18px rgba(var(--fc-red-rgb), 0.12);

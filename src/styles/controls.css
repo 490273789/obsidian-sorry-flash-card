@@ -26,7 +26,6 @@
 .flashcard-control:focus-visible {
 	border-color: var(--fc-input-border-focus);
 	background: var(--fc-input-bg);
-	box-shadow: var(--fc-focus-ring);
 	outline: none;
 }
 
@@ -100,27 +99,11 @@
 .flashcard-root button.flashcard-btn.flashcard-btn-primary:focus-visible {
 	border-color: var(--interactive-accent-hover);
 	background: var(--interactive-accent-hover);
-	box-shadow: var(--fc-focus-ring);
 }
 
 .flashcard-root button.flashcard-btn.flashcard-btn-secondary {
 	border-color: var(--fc-control-border);
 	background: var(--fc-control-bg);
-	color: var(--fc-text);
-	box-shadow: none;
-}
-
-.flashcard-root button.flashcard-btn.flashcard-btn-quiet {
-	border-color: transparent;
-	background: transparent;
-	color: var(--fc-muted);
-	box-shadow: none;
-}
-
-.flashcard-root button.flashcard-btn.flashcard-btn-quiet:hover:not(:disabled),
-.flashcard-root button.flashcard-btn.flashcard-btn-quiet:focus-visible {
-	border-color: var(--fc-line);
-	background: var(--fc-surface-hover);
 	color: var(--fc-text);
 	box-shadow: none;
 }

@@ -111,7 +111,7 @@ export const FlashcardMenu: React.FC<FlashcardMenuProps> = ({
 		<div ref={rootRef} className={`flashcard-menu-root is-${align}`}>
 			<FlashcardButton
 				ref={triggerRef}
-				variant="quiet"
+				preset="icon"
 				icon={triggerIcon}
 				className={`flashcard-menu-trigger${triggerClassName ? ` ${triggerClassName}` : ""}`}
 				onClick={(event) => {

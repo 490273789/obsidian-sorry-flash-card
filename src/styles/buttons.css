@@ -29,7 +29,10 @@
 	color: var(--fc-text);
 }
 
-.flashcard-btn:hover:not(:disabled),
+.flashcard-btn:hover:not(:disabled) {
+	outline: none;
+}
+
 .flashcard-btn:focus-visible {
 	box-shadow: var(--fc-glow-cyan);
 	outline: none;
@@ -67,8 +70,7 @@
 }
 
 .flashcard-root button.flashcard-btn-icon,
-.flashcard-root button.flashcard-btn-prev,
-.flashcard-root button.flashcard-btn-back {
+.flashcard-root button.flashcard-btn-prev {
 	border-color: rgba(var(--fc-cyan-rgb), 0.34);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), rgba(var(--fc-blue-rgb), 0.08)),
@@ -84,13 +86,6 @@
 	color: var(--fc-red);
 }
 
-.flashcard-btn-back {
-	min-width: var(--fc-control-md);
-	padding: 0;
-	flex: 0 0 auto;
-	border-radius: var(--fc-radius-sm);
-}
-
 .flashcard-btn-green {
 	border-color: rgba(var(--fc-lime-rgb), 0.42);
 	background:
@@ -100,11 +95,26 @@
 }
 
 .flashcard-btn-blue {
-	border-color: rgba(var(--fc-blue-rgb), 0.45);
+	border-color: color-mix(in srgb, var(--fc-secondary) 55%, transparent);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-blue-rgb), 0.24), rgba(var(--fc-cyan-rgb), 0.12)),
+		linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--fc-secondary) 18%, transparent),
+			color-mix(in srgb, var(--fc-secondary) 10%, transparent)
+		),
 		rgba(var(--fc-bg-elevated-rgb), 0.94);
-	color: var(--fc-text);
+	color: var(--fc-secondary);
+}
+
+.flashcard-btn-blue:hover:not(:disabled),
+.flashcard-btn-blue:focus-visible {
+	background:
+		linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--fc-secondary) 28%, transparent),
+			color-mix(in srgb, var(--fc-secondary) 16%, transparent)
+		),
+		rgba(var(--fc-bg-elevated-rgb), 0.94);
 }
 
 .flashcard-btn-purple {

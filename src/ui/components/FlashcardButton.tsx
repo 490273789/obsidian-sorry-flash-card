@@ -8,7 +8,6 @@ import type { LucideIcon } from "lucide-react";
 export type ButtonVariant =
 	| "primary"
 	| "secondary"
-	| "quiet"
 	| "danger"
 	| "green"
 	| "blue"
@@ -22,7 +21,6 @@ export type ButtonSize = "sm" | "md" | "lg";
 /**
  * Special button presets that override the default shape / behavior.
  * - `"icon"`       — compact square icon-only button
- * - `"back"`       — navigation back button with arrow prefix
  * - `"show"`       — full-width "Show Answer" button with sheen animation
  * - `"prev"`       — undo / previous-card button (square)
  * - `"rating"`     — FSRS rating button (used inside rating grid)
@@ -31,7 +29,6 @@ export type ButtonSize = "sm" | "md" | "lg";
  */
 export type ButtonPreset =
 	| "icon"
-	| "back"
 	| "show"
 	| "prev"
 	| "rating"
@@ -41,7 +38,6 @@ export type ButtonPreset =
 /** CSS class applied per preset. Presets shape the button; variants color it. */
 const PRESET_CLASSES: Record<ButtonPreset, string> = {
 	icon: "flashcard-btn-icon",
-	back: "flashcard-btn-back",
 	show: "flashcard-btn-show",
 	prev: "flashcard-btn-prev",
 	rating: "flashcard-rating-btn",
@@ -54,7 +50,7 @@ const COMPACT_ICON_PRESETS: ReadonlySet<ButtonPreset> = new Set(["icon", "prev"]
 
 /** Default icon size for compact icon-only presets. */
 const COMPACT_ICON_SIZE = 16;
-/** Default icon size for buttons with text (or the back preset). */
+/** Default icon size for buttons with text. */
 const DEFAULT_ICON_SIZE = 18;
 
 export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -93,7 +89,6 @@ export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLBut
  * <FlashcardButton variant="green" onClick={handleSave}>Save</FlashcardButton>
  * <FlashcardButton preset="icon" icon={X} onClick={onClose} title="Close" />
  * <FlashcardButton variant="blue" icon={Target} active={isActive}>Practice</FlashcardButton>
- * <FlashcardButton preset="back" onClick={onBack}>Back</FlashcardButton>
  * ```
  */
 export const FlashcardButton = React.forwardRef<HTMLButtonElement, FlashcardButtonProps>(

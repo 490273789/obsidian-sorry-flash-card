@@ -61,7 +61,7 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 	const navigationLabel = backTitle ?? t("common.back");
 	const desktopBackButton = (
 		<FlashcardButton
-			preset="back"
+			preset="icon"
 			icon={X}
 			iconSize={18}
 			onClick={onBack}
@@ -71,7 +71,7 @@ export const FlashcardHeader: React.FC<FlashcardHeaderProps> = ({
 	);
 	const mobileBackButton = (
 		<FlashcardButton
-			preset="back"
+			preset="icon"
 			icon={ArrowLeft}
 			iconSize={20}
 			onClick={onBack}

@@ -66,7 +66,7 @@ describe("FSRSScheduler", () => {
 			"Hard",
 			"Remembered",
 			"Easy",
-			"Later",
+			"Skilled",
 		]);
 	});
 });

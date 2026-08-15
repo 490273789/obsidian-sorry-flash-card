@@ -10,9 +10,9 @@
 	--fc-font-md: 16px;
 	--fc-font-lg: 18px;
 	--fc-font-xl: 22px;
-	--fc-font-display: 28px;
-	--fc-font-hero: 34px;
-	--fc-font-focus: 48px;
+	--fc-font-display: 24px;
+	--fc-font-hero: 28px;
+	--fc-font-focus: 38px;
 	--fc-weight-regular: 400;
 	--fc-weight-medium: 500;
 	--fc-weight-semibold: 600;
@@ -21,10 +21,10 @@
 	--fc-line-body: 1.55;
 	--fc-line-reading: 1.65;
 
-	--fc-radius-xs: 6px;
-	--fc-radius-sm: 10px;
-	--fc-radius-md: 14px;
-	--fc-radius-lg: 18px;
+	--fc-radius-xs: 4px;
+	--fc-radius-sm: 6px;
+	--fc-radius-md: 8px;
+	--fc-radius-lg: 12px;
 	--fc-radius-pill: 999px;
 	--fc-radius-control: var(--fc-radius-sm);
 	--fc-radius-surface: var(--fc-radius-md);
@@ -32,12 +32,12 @@
 	--fc-space-half: 2px;
 	--fc-space-1: 4px;
 	--fc-space-2: 8px;
-	--fc-space-3: 12px;
-	--fc-space-4: 16px;
-	--fc-space-5: 20px;
-	--fc-space-6: 24px;
-	--fc-space-7: 32px;
-	--fc-space-8: 40px;
+	--fc-space-3: 10px;
+	--fc-space-4: 14px;
+	--fc-space-5: 16px;
+	--fc-space-6: 20px;
+	--fc-space-7: 24px;
+	--fc-space-8: 28px;
 
 	--fc-control-sm: 32px;
 	--fc-control-md: 36px;
@@ -75,6 +75,7 @@
 	--fc-surface-section: var(--fc-bg-panel);
 	--fc-surface-raised: color-mix(in srgb, var(--background-primary) 92%, var(--text-normal) 8%);
 	--fc-surface-control: var(--interactive-normal);
+	--fc-surface-header-status: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
 
 	/* ── 交互状态表面（hover / 选中）与禁用透明度 ───────────────── */
 	--fc-surface-hover: color-mix(
@@ -140,15 +141,24 @@
 	--fc-action-study-start: var(--interactive-accent);
 	--fc-action-study-end: var(--interactive-accent-hover);
 	--fc-action-study-text: var(--text-on-accent);
-	--fc-action-practice-start: var(--fc-control-bg);
-	--fc-action-practice-end: var(--fc-control-bg-hover);
-	--fc-action-practice-text: var(--text-normal);
+	/* 第二主题色（刷题按钮文字/描边）：取主题自带的 --secondary-color，随主题色联动；
+	   未定义该变量的主题退回“主题蓝淡化”的淡蓝 */
+	--fc-secondary: var(
+		--secondary-color,
+		color-mix(in srgb, var(--fc-blue) 50%, rgb(var(--fc-white-rgb)))
+	);
+	/* 刷题（第二主题色）：第二主题色文字 + 同色系 tint 底，与学习（青）实底区分 */
+	--fc-action-practice-start: color-mix(in srgb, var(--fc-secondary) 18%, var(--fc-surface-card));
+	--fc-action-practice-end: color-mix(in srgb, var(--fc-secondary) 32%, var(--fc-surface-card));
+	--fc-action-practice-text: var(--fc-secondary);
 
 	/* ── RGB 通道（仅用于 rgba() 半透明 tint）──────────────────── */
 	--fc-bg-rgb: var(--mono-rgb-0);
 	--fc-bg-elevated-rgb: var(--mono-rgb-0);
 	--fc-bg-panel-rgb: var(--mono-rgb-0);
-	--fc-cyan-rgb: var(--interactive-accent-rgb);
+	/* 主色 RGB：优先取主题交互强调色的 RGB 通道；部分主题未定义
+	   --interactive-accent-rgb，依次回退到强调色 / 主题蓝的 RGB 通道 */
+	--fc-cyan-rgb: var(--color-cyan-rgb);
 	--fc-blue-rgb: var(--color-blue-rgb);
 	--fc-magenta-rgb: var(--color-pink-rgb);
 	--fc-violet-rgb: var(--color-purple-rgb);
@@ -215,11 +225,6 @@
 	--fc-motion-modal-in: fc-modal-in 240ms var(--fc-ease-out) both;
 	--fc-motion-sheen: none;
 	--fc-motion-spin: fc-spin 1s linear infinite;
-	--obsidian-tools-home-page-canvas: color-mix(
-		in srgb,
-		var(--background-primary) 97%,
-		var(--obsidian-tools-home-page-accent) 3%
-	);
 
 	font-family: var(--fc-font-ui);
 	font-size: var(--fc-font-md);
@@ -245,9 +250,7 @@
 	container-name: flashcard-page;
 	container-type: inline-size;
 	padding: var(--fc-space-2);
-	border: 0;
-	border-radius: 0;
-	background: var(--fc-surface-canvas);
+	border-radius: var(--fc-radius-md);
 	scrollbar-gutter: auto;
 }
 

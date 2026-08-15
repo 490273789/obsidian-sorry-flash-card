@@ -114,7 +114,11 @@
 	border-left-color: rgba(var(--fc-orange-rgb), 0.36);
 }
 
-.flashcard-root button.flashcard-word-cell:hover,
+.flashcard-root button.flashcard-word-cell:hover {
+	border-color: rgba(var(--fc-cyan-rgb), 0.46);
+	outline: none;
+}
+
 .flashcard-root button.flashcard-word-cell:focus-visible {
 	border-color: rgba(var(--fc-cyan-rgb), 0.46);
 	box-shadow: var(--fc-glow-cyan);

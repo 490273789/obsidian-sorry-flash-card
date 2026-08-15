@@ -14,9 +14,9 @@
 	--fc-font-md: 16px;
 	--fc-font-lg: 18px;
 	--fc-font-xl: 22px;
-	--fc-font-display: 28px;
-	--fc-font-hero: 34px;
-	--fc-font-focus: 48px;
+	--fc-font-display: 24px;
+	--fc-font-hero: 28px;
+	--fc-font-focus: 38px;
 	--fc-weight-regular: 400;
 	--fc-weight-medium: 500;
 	--fc-weight-semibold: 600;
@@ -25,10 +25,10 @@
 	--fc-line-body: 1.55;
 	--fc-line-reading: 1.65;
 
-	--fc-radius-xs: 6px;
-	--fc-radius-sm: 10px;
-	--fc-radius-md: 14px;
-	--fc-radius-lg: 18px;
+	--fc-radius-xs: 4px;
+	--fc-radius-sm: 6px;
+	--fc-radius-md: 8px;
+	--fc-radius-lg: 12px;
 	--fc-radius-pill: 999px;
 	--fc-radius-control: var(--fc-radius-sm);
 	--fc-radius-surface: var(--fc-radius-md);
@@ -36,12 +36,12 @@
 	--fc-space-half: 2px;
 	--fc-space-1: 4px;
 	--fc-space-2: 8px;
-	--fc-space-3: 12px;
-	--fc-space-4: 16px;
-	--fc-space-5: 20px;
-	--fc-space-6: 24px;
-	--fc-space-7: 32px;
-	--fc-space-8: 40px;
+	--fc-space-3: 10px;
+	--fc-space-4: 14px;
+	--fc-space-5: 16px;
+	--fc-space-6: 20px;
+	--fc-space-7: 24px;
+	--fc-space-8: 28px;
 
 	--fc-control-sm: 32px;
 	--fc-control-md: 36px;
@@ -79,6 +79,7 @@
 	--fc-surface-section: var(--fc-bg-panel);
 	--fc-surface-raised: color-mix(in srgb, var(--background-primary) 92%, var(--text-normal) 8%);
 	--fc-surface-control: var(--interactive-normal);
+	--fc-surface-header-status: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
 
 	/* ── 交互状态表面（hover / 选中）与禁用透明度 ───────────────── */
 	--fc-surface-hover: color-mix(
@@ -144,15 +145,24 @@
 	--fc-action-study-start: var(--interactive-accent);
 	--fc-action-study-end: var(--interactive-accent-hover);
 	--fc-action-study-text: var(--text-on-accent);
-	--fc-action-practice-start: var(--fc-control-bg);
-	--fc-action-practice-end: var(--fc-control-bg-hover);
-	--fc-action-practice-text: var(--text-normal);
+	/* 第二主题色（刷题按钮文字/描边）：取主题自带的 --secondary-color，随主题色联动；
+	   未定义该变量的主题退回“主题蓝淡化”的淡蓝 */
+	--fc-secondary: var(
+		--secondary-color,
+		color-mix(in srgb, var(--fc-blue) 50%, rgb(var(--fc-white-rgb)))
+	);
+	/* 刷题（第二主题色）：第二主题色文字 + 同色系 tint 底，与学习（青）实底区分 */
+	--fc-action-practice-start: color-mix(in srgb, var(--fc-secondary) 18%, var(--fc-surface-card));
+	--fc-action-practice-end: color-mix(in srgb, var(--fc-secondary) 32%, var(--fc-surface-card));
+	--fc-action-practice-text: var(--fc-secondary);
 
 	/* ── RGB 通道（仅用于 rgba() 半透明 tint）──────────────────── */
 	--fc-bg-rgb: var(--mono-rgb-0);
 	--fc-bg-elevated-rgb: var(--mono-rgb-0);
 	--fc-bg-panel-rgb: var(--mono-rgb-0);
-	--fc-cyan-rgb: var(--interactive-accent-rgb);
+	/* 主色 RGB：优先取主题交互强调色的 RGB 通道；部分主题未定义
+	   --interactive-accent-rgb，依次回退到强调色 / 主题蓝的 RGB 通道 */
+	--fc-cyan-rgb: var(--color-cyan-rgb);
 	--fc-blue-rgb: var(--color-blue-rgb);
 	--fc-magenta-rgb: var(--color-pink-rgb);
 	--fc-violet-rgb: var(--color-purple-rgb);
@@ -219,11 +229,6 @@
 	--fc-motion-modal-in: fc-modal-in 240ms var(--fc-ease-out) both;
 	--fc-motion-sheen: none;
 	--fc-motion-spin: fc-spin 1s linear infinite;
-	--obsidian-tools-home-page-canvas: color-mix(
-		in srgb,
-		var(--background-primary) 97%,
-		var(--obsidian-tools-home-page-accent) 3%
-	);
 
 	font-family: var(--fc-font-ui);
 	font-size: var(--fc-font-md);
@@ -249,9 +254,7 @@
 	container-name: flashcard-page;
 	container-type: inline-size;
 	padding: var(--fc-space-2);
-	border: 0;
-	border-radius: 0;
-	background: var(--fc-surface-canvas);
+	border-radius: var(--fc-radius-md);
 	scrollbar-gutter: auto;
 }
 
@@ -341,7 +344,10 @@
 	color: var(--fc-text);
 }
 
-.flashcard-btn:hover:not(:disabled),
+.flashcard-btn:hover:not(:disabled) {
+	outline: none;
+}
+
 .flashcard-btn:focus-visible {
 	box-shadow: var(--fc-glow-cyan);
 	outline: none;
@@ -379,8 +385,7 @@
 }
 
 .flashcard-root button.flashcard-btn-icon,
-.flashcard-root button.flashcard-btn-prev,
-.flashcard-root button.flashcard-btn-back {
+.flashcard-root button.flashcard-btn-prev {
 	border-color: rgba(var(--fc-cyan-rgb), 0.34);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), rgba(var(--fc-blue-rgb), 0.08)),
@@ -396,13 +401,6 @@
 	color: var(--fc-red);
 }
 
-.flashcard-btn-back {
-	min-width: var(--fc-control-md);
-	padding: 0;
-	flex: 0 0 auto;
-	border-radius: var(--fc-radius-sm);
-}
-
 .flashcard-btn-green {
 	border-color: rgba(var(--fc-lime-rgb), 0.42);
 	background:
@@ -412,11 +410,26 @@
 }
 
 .flashcard-btn-blue {
-	border-color: rgba(var(--fc-blue-rgb), 0.45);
+	border-color: color-mix(in srgb, var(--fc-secondary) 55%, transparent);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-blue-rgb), 0.24), rgba(var(--fc-cyan-rgb), 0.12)),
+		linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--fc-secondary) 18%, transparent),
+			color-mix(in srgb, var(--fc-secondary) 10%, transparent)
+		),
 		rgba(var(--fc-bg-elevated-rgb), 0.94);
-	color: var(--fc-text);
+	color: var(--fc-secondary);
+}
+
+.flashcard-btn-blue:hover:not(:disabled),
+.flashcard-btn-blue:focus-visible {
+	background:
+		linear-gradient(
+			135deg,
+			color-mix(in srgb, var(--fc-secondary) 28%, transparent),
+			color-mix(in srgb, var(--fc-secondary) 16%, transparent)
+		),
+		rgba(var(--fc-bg-elevated-rgb), 0.94);
 }
 
 .flashcard-btn-purple {
@@ -530,7 +543,6 @@
 .flashcard-control:focus-visible {
 	border-color: var(--fc-input-border-focus);
 	background: var(--fc-input-bg);
-	box-shadow: var(--fc-focus-ring);
 	outline: none;
 }
 
@@ -604,27 +616,11 @@
 .flashcard-root button.flashcard-btn.flashcard-btn-primary:focus-visible {
 	border-color: var(--interactive-accent-hover);
 	background: var(--interactive-accent-hover);
-	box-shadow: var(--fc-focus-ring);
 }
 
 .flashcard-root button.flashcard-btn.flashcard-btn-secondary {
 	border-color: var(--fc-control-border);
 	background: var(--fc-control-bg);
-	color: var(--fc-text);
-	box-shadow: none;
-}
-
-.flashcard-root button.flashcard-btn.flashcard-btn-quiet {
-	border-color: transparent;
-	background: transparent;
-	color: var(--fc-muted);
-	box-shadow: none;
-}
-
-.flashcard-root button.flashcard-btn.flashcard-btn-quiet:hover:not(:disabled),
-.flashcard-root button.flashcard-btn.flashcard-btn-quiet:focus-visible {
-	border-color: var(--fc-line);
-	background: var(--fc-surface-hover);
 	color: var(--fc-text);
 	box-shadow: none;
 }
@@ -782,7 +778,9 @@
 
 .flashcard-header-overview {
 	width: 100%;
-	background: rgba(var(--fc-cyan-rgb), 0.055);
+	border-bottom: none;
+	border-radius: 0 0 var(--fc-radius-xs) var(--fc-radius-xs);
+	background: var(--fc-surface-header-status);
 }
 
 .flashcard-header-stats {
@@ -927,11 +925,7 @@
 	border: 1px solid rgba(var(--fc-amber-rgb), 0.34);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-amber-rgb), 0.12),
-			transparent 62%
-		),
+		linear-gradient(90deg, rgba(var(--fc-amber-rgb), 0.12), transparent 62%),
 		rgba(var(--fc-bg-elevated-rgb), 0.88);
 	box-shadow: var(--fc-shadow);
 	animation: var(--fc-motion-rise);
@@ -994,11 +988,7 @@
 	border-left: 2px solid rgba(var(--fc-cyan-rgb), 0.42);
 	border-radius: var(--fc-radius-xs);
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 28%
-		),
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 28%),
 		rgba(var(--fc-bg-elevated-rgb), 0.54);
 	box-shadow: none;
 	animation: var(--fc-motion-rise);
@@ -1106,8 +1096,7 @@
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(2),
 .flashcard-practice-stat-row .flashcard-practice-stat-item:nth-child(2),
 .flashcard-stats-days .flashcard-stats-day:nth-child(2),
-.flashcard-practice-incorrect-list
-	.flashcard-practice-incorrect-item:nth-child(2),
+.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(2),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(2) {
 	animation-delay: 55ms;
 }
@@ -1116,8 +1105,7 @@
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(3),
 .flashcard-practice-stat-row .flashcard-practice-stat-item:nth-child(3),
 .flashcard-stats-days .flashcard-stats-day:nth-child(3),
-.flashcard-practice-incorrect-list
-	.flashcard-practice-incorrect-item:nth-child(3),
+.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(3),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(3) {
 	animation-delay: 110ms;
 }
@@ -1125,8 +1113,7 @@
 .flashcard-deck-list .flashcard-deck-item:nth-child(n + 4),
 .flashcard-study-day-list .flashcard-study-day-item:nth-child(n + 4),
 .flashcard-stats-days .flashcard-stats-day:nth-child(n + 4),
-.flashcard-practice-incorrect-list
-	.flashcard-practice-incorrect-item:nth-child(n + 4),
+.flashcard-practice-incorrect-list .flashcard-practice-incorrect-item:nth-child(n + 4),
 .flashcard-word-list-virtual .flashcard-word-row:nth-child(n + 4) {
 	animation-delay: 165ms;
 }
@@ -1268,11 +1255,7 @@
 /* Primary deck actions use a calm, distinct blue-green pair. */
 .flashcard-root button.flashcard-deck-action-study {
 	border-color: rgba(var(--fc-lime-rgb), 0.62);
-	background: linear-gradient(
-		135deg,
-		var(--fc-action-study-start),
-		var(--fc-action-study-end)
-	);
+	background: linear-gradient(135deg, var(--fc-action-study-start), var(--fc-action-study-end));
 	color: var(--fc-action-study-text);
 	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.16);
 }
@@ -1288,7 +1271,10 @@
 	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.16);
 }
 
-.flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-action-study:hover:not(:disabled) {
+	border-color: var(--fc-lime);
+}
+
 .flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-lime);
 	box-shadow:
@@ -1297,7 +1283,10 @@
 		0 8px 20px rgba(var(--fc-lime-rgb), 0.18);
 }
 
-.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
+.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled) {
+	border-color: var(--fc-blue);
+}
+
 .flashcard-root button.flashcard-deck-action-practice:focus-visible {
 	border-color: var(--fc-blue);
 	box-shadow:
@@ -1318,11 +1307,7 @@
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-sm);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.07),
-			transparent 48%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 48%),
 		rgba(var(--fc-bg-elevated-rgb), 0.98);
 	box-shadow: var(--fc-shadow);
 	animation: var(--fc-motion-fade-in);
@@ -1349,11 +1334,7 @@
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.07),
-			transparent 40%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 40%),
 		rgba(var(--fc-bg-elevated-rgb), 0.88);
 	box-shadow: var(--fc-shadow);
 }
@@ -1379,12 +1360,7 @@
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(var(--fc-cyan-rgb), 0.06),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.06), transparent);
 }
 
 .flashcard-study-hero-copy,
@@ -1576,8 +1552,7 @@
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-rgb), 0.72);
 	color: var(--fc-text);
-	font: var(--fc-weight-semibold) var(--fc-font-sm) / var(--fc-line-tight)
-		var(--fc-font-ui);
+	font: var(--fc-weight-semibold) var(--fc-font-sm) / var(--fc-line-tight) var(--fc-font-ui);
 }
 
 .flashcard-practice-input {
@@ -1628,21 +1603,13 @@
 	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.38);
 	border-radius: var(--fc-radius-sm);
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 30%
-		),
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 30%),
 		rgba(var(--fc-bg-panel-rgb), 0.52);
 }
 
 .flashcard-study-day-item:nth-child(even) {
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-cyan-rgb), 0.045),
-			transparent 30%
-		),
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 30%),
 		rgba(var(--fc-bg-panel-rgb), 0.66);
 }
 
@@ -1750,11 +1717,7 @@
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 44%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 44%),
 		rgba(var(--fc-bg-elevated-rgb), 0.64);
 	box-shadow:
 		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.025),
@@ -1970,11 +1933,7 @@
 	border-top-color: rgba(var(--fc-cyan-rgb), 0.3);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 40%
-		),
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 40%),
 		rgba(var(--fc-bg-elevated-rgb), 0.92);
 	box-shadow:
 		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.03),
@@ -2019,7 +1978,6 @@
 .flashcard-session-shell {
 	display: flex;
 	flex-direction: column;
-	gap: var(--fc-space-2);
 }
 
 .flashcard-session-identity,
@@ -2046,10 +2004,10 @@
 	align-items: stretch;
 	gap: var(--fc-space-2);
 	padding: var(--fc-space-2) var(--fc-space-3);
-	border: 1px solid var(--fc-line);
+	/* border: 1px solid var(--fc-line); */
 	border-radius: var(--fc-radius-sm);
-	background: rgba(var(--fc-bg-elevated-rgb), 0.4);
-	box-shadow: var(--fc-shadow-sm);
+	/* background: rgba(var(--fc-bg-elevated-rgb), 0.4); */
+	/* box-shadow: var(--fc-shadow-sm); */
 }
 
 .flashcard-session-metrics {
@@ -2138,12 +2096,7 @@
 	position: absolute;
 	inset: 0 auto 0 0;
 	border-radius: inherit;
-	background: linear-gradient(
-		90deg,
-		var(--fc-cyan),
-		var(--fc-magenta),
-		var(--fc-lime)
-	);
+	background: linear-gradient(90deg, var(--fc-cyan), var(--fc-magenta), var(--fc-lime));
 	box-shadow:
 		0 0 18px rgba(var(--fc-cyan-rgb), 0.26),
 		0 0 28px rgba(var(--fc-magenta-rgb), 0.12);
@@ -2154,12 +2107,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(var(--fc-white-rgb), 0.42),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-white-rgb), 0.42), transparent);
 	animation: var(--fc-motion-progress-scan);
 }
 
@@ -2271,12 +2219,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(var(--fc-cyan-rgb), 0.72),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.72), transparent);
 	transform: translateX(-110%);
 	animation: var(--fc-motion-divider);
 }
@@ -2364,7 +2307,7 @@
 }
 
 .flashcard-rating-4 {
-	border-color: rgba(var(--fc-blue-rgb), 0.3);
+	border-color: rgba(var(--fc-blue-rgb), 0.5);
 }
 
 .flashcard-rating-5 {
@@ -2576,7 +2519,11 @@
 	border-left-color: rgba(var(--fc-orange-rgb), 0.36);
 }
 
-.flashcard-root button.flashcard-word-cell:hover,
+.flashcard-root button.flashcard-word-cell:hover {
+	border-color: rgba(var(--fc-cyan-rgb), 0.46);
+	outline: none;
+}
+
 .flashcard-root button.flashcard-word-cell:focus-visible {
 	border-color: rgba(var(--fc-cyan-rgb), 0.46);
 	box-shadow: var(--fc-glow-cyan);
@@ -3204,9 +3151,6 @@
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.2), transparent 72%),
 		rgba(var(--fc-bg-elevated-rgb), 0.88);
-	box-shadow:
-		inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.06),
-		0 0 16px rgba(var(--fc-cyan-rgb), 0.12);
 }
 
 .flashcard-root button.flashcard-btn.flashcard-pronunciation-button:focus-visible {
@@ -3497,7 +3441,11 @@
 	transition: var(--fc-transition-modal-control);
 }
 
-.flashcard-modal-close:hover,
+.flashcard-modal-close:hover {
+	border-color: rgba(var(--fc-red-rgb), 0.48);
+	outline: none;
+}
+
 .flashcard-modal-close:focus-visible {
 	border-color: rgba(var(--fc-red-rgb), 0.48);
 	box-shadow: 0 0 18px rgba(var(--fc-red-rgb), 0.12);
@@ -4247,14 +4195,6 @@
 	.flashcard-btn {
 		min-height: var(--fc-control-touch);
 	}
-	.flashcard-btn-back {
-		width: var(--fc-control-touch);
-		height: var(--fc-control-touch);
-		min-width: var(--fc-control-touch);
-		min-height: var(--fc-control-touch);
-		padding: 0;
-		border-radius: var(--fc-radius-sm);
-	}
 	.flashcard-btn-icon,
 	.flashcard-btn-prev {
 		width: var(--fc-control-touch);
@@ -4650,7 +4590,6 @@
 	}
 
 	.flashcard-root button.flashcard-btn-icon,
-	.flashcard-root button.flashcard-btn-back,
 	.flashcard-root button.flashcard-btn-prev,
 	.flashcard-root button.flashcard-modal-close {
 		width: var(--fc-control-touch);
@@ -4717,7 +4656,6 @@
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 72%),
 		var(--fc-control-bg-hover);
-	box-shadow: var(--fc-focus-ring);
 }
 
 .flashcard-btn:active:not(:disabled) {
@@ -4727,7 +4665,6 @@
 
 .flashcard-root button.flashcard-btn-icon,
 .flashcard-root button.flashcard-btn-prev,
-.flashcard-root button.flashcard-btn-back,
 .flashcard-root button.flashcard-btn-gray {
 	border-color: var(--fc-line);
 	background: transparent;
@@ -4755,24 +4692,26 @@
 .flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-action-study-end);
 	background: var(--fc-action-study-end);
-	box-shadow: var(--fc-focus-ring);
 }
 
 .flashcard-root button.flashcard-btn-blue,
 .flashcard-root button.flashcard-deck-action-practice {
-	border-color: var(--fc-control-border);
+	border-color: color-mix(in srgb, var(--fc-secondary) 55%, transparent);
 	background: var(--fc-action-practice-start);
 	color: var(--fc-action-practice-text);
 	box-shadow: none;
 }
 
 .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
-.flashcard-root button.flashcard-btn-blue:focus-visible,
-.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-action-practice:focus-visible {
-	border-color: var(--fc-cyan);
+.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled) {
 	background: var(--fc-action-practice-end);
-	box-shadow: var(--fc-focus-ring);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-blue:focus-visible,
+.flashcard-root button.flashcard-deck-action-practice:focus-visible {
+	background: var(--fc-action-practice-end);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--fc-secondary) 26%, transparent);
 }
 
 .flashcard-root button.flashcard-btn-purple,
@@ -4787,8 +4726,7 @@
 	border-color: var(--fc-control-border-selected);
 	background: var(--fc-surface-selected);
 	color: var(--fc-text);
-	box-shadow: inset 0 0 0 1px
-		color-mix(in srgb, var(--interactive-accent) 24%, transparent);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 24%, transparent);
 	animation: none;
 }
 
@@ -4816,11 +4754,6 @@
 
 .flashcard-header-center {
 	font-weight: var(--fc-weight-semibold);
-}
-
-.flashcard-header-overview {
-	border-bottom: 1px solid var(--fc-line);
-	background: transparent;
 }
 
 .flashcard-header-stats {
@@ -4909,8 +4842,7 @@
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) auto;
 	gap: var(--fc-space-3);
-	padding: var(--fc-space-3) var(--fc-space-3) var(--fc-space-3)
-		var(--fc-space-8);
+	padding: var(--fc-space-3) var(--fc-space-3) var(--fc-space-3) var(--fc-space-8);
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-control);
 	background: var(--fc-surface-section);
@@ -4926,11 +4858,7 @@
 .flashcard-deck-item.fc-lift:hover {
 	border-color: var(--fc-line-strong);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.13),
-			transparent 68%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.13), transparent 68%),
 		var(--fc-surface-hover);
 	box-shadow: inset 3px 0 0 var(--fc-cyan);
 }
@@ -4944,7 +4872,6 @@
 .flashcard-root button.flashcard-deck-drag-handle:focus-visible {
 	background: var(--fc-surface-hover);
 	color: var(--fc-text);
-	box-shadow: var(--fc-focus-ring);
 }
 
 .flashcard-deck-item .flashcard-deck-headline {
@@ -5101,11 +5028,7 @@
 }
 
 .flashcard-root button.flashcard-setup-segment-btn.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	font-weight: var(--fc-weight-semibold);
 	box-shadow: none;
@@ -5113,20 +5036,12 @@
 
 .flashcard-root button.flashcard-setup-segment-btn.active:hover:not(:disabled),
 .flashcard-root button.flashcard-setup-segment-btn.active:focus-visible {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 52%,
-		var(--background-primary) 48%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 52%, var(--background-primary) 48%);
 	box-shadow: none;
 }
 
 .flashcard-root button.flashcard-setup-chip.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	box-shadow: none;
 }
@@ -5218,15 +5133,10 @@
 	box-shadow: var(--fc-shadow-sm);
 }
 
-/* Study and practice sessions: calm reading column */
-.flashcard-session-shell {
-	gap: var(--fc-space-2);
-}
-
 .flashcard-session-toolbar {
-	border: 1px solid var(--fc-line);
-	border-radius: var(--fc-radius-surface);
-	background: var(--fc-surface-card);
+	border-bottom: 1px solid var(--fc-line);
+	/* border-radius: var(--fc-radius-xs); */
+	background: var(--fc-surface-header-status);
 	box-shadow: none;
 }
 
@@ -5250,16 +5160,8 @@
 .flashcard-stats-range,
 .flashcard-stats-session-cards,
 .flashcard-stats-session-dur {
-	border-color: color-mix(
-		in srgb,
-		var(--interactive-accent) 28%,
-		var(--fc-line)
-	);
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 8%,
-		var(--fc-surface-card)
-	);
+	border-color: color-mix(in srgb, var(--interactive-accent) 28%, var(--fc-line));
+	background: color-mix(in srgb, var(--interactive-accent) 8%, var(--fc-surface-card));
 	color: var(--fc-cyan);
 	box-shadow: none;
 }
@@ -5414,20 +5316,13 @@
 	transform: translateX(-50%);
 }
 
-.flashcard-root button.flashcard-rating-btn:hover:not(:disabled),
+.flashcard-root button.flashcard-rating-btn:hover:not(:disabled) {
+	background: color-mix(in srgb, var(--fc-rating-color) 14%, var(--fc-surface-control));
+}
+
 .flashcard-root button.flashcard-rating-btn:focus-visible {
-	/* border-color: color-mix(
-		in srgb,
-		var(--fc-rating-color) 30%,
-		var(--fc-line)
-	); */
-	background: color-mix(
-		in srgb,
-		var(--fc-rating-color) 14%,
-		var(--fc-surface-control)
-	);
-	box-shadow: inset 0 0 0 1px
-		color-mix(in srgb, var(--fc-rating-color) 10%, transparent);
+	background: color-mix(in srgb, var(--fc-rating-color) 14%, var(--fc-surface-control));
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fc-rating-color) 10%, transparent);
 }
 
 .flashcard-root button.flashcard-rating-1 {
@@ -5461,8 +5356,7 @@
 	align-items: center;
 	justify-content: center;
 	padding: 0 var(--fc-space-1);
-	border: 1px solid
-		color-mix(in srgb, var(--fc-rating-color) 22%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-rating-color) 22%, transparent);
 	background: color-mix(in srgb, var(--fc-rating-color) 8%, transparent);
 	color: var(--fc-rating-color);
 	opacity: 0.82;
@@ -5470,16 +5364,8 @@
 
 .flashcard-root button.flashcard-practice-btn-wrong,
 .flashcard-root button.flashcard-practice-btn-correct {
-	border-color: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 36%,
-		var(--fc-line)
-	);
-	background: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 8%,
-		var(--fc-surface-card)
-	);
+	border-color: color-mix(in srgb, var(--fc-practice-answer-color) 36%, var(--fc-line));
+	background: color-mix(in srgb, var(--fc-practice-answer-color) 8%, var(--fc-surface-card));
 	color: var(--fc-practice-answer-color);
 	box-shadow: none;
 }
@@ -5493,21 +5379,16 @@
 }
 
 .flashcard-root button.flashcard-practice-btn-wrong:hover:not(:disabled),
+.flashcard-root button.flashcard-practice-btn-correct:hover:not(:disabled) {
+	border-color: color-mix(in srgb, var(--fc-practice-answer-color) 48%, var(--fc-line));
+	background: color-mix(in srgb, var(--fc-practice-answer-color) 16%, var(--fc-surface-control));
+}
+
 .flashcard-root button.flashcard-practice-btn-wrong:focus-visible,
-.flashcard-root button.flashcard-practice-btn-correct:hover:not(:disabled),
 .flashcard-root button.flashcard-practice-btn-correct:focus-visible {
-	border-color: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 48%,
-		var(--fc-line)
-	);
-	background: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 16%,
-		var(--fc-surface-control)
-	);
-	box-shadow: inset 0 0 0 1px
-		color-mix(in srgb, var(--fc-practice-answer-color) 12%, transparent);
+	border-color: color-mix(in srgb, var(--fc-practice-answer-color) 48%, var(--fc-line));
+	background: color-mix(in srgb, var(--fc-practice-answer-color) 16%, var(--fc-surface-control));
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fc-practice-answer-color) 12%, transparent);
 }
 
 /* Remaining views, overlays and settings share the same neutral surfaces. */
@@ -5661,36 +5542,32 @@
 
 .theme-light .flashcard-root button.flashcard-btn-blue,
 .theme-light .flashcard-root button.flashcard-deck-action-practice {
-	border-color: var(--fc-control-border);
+	border-color: rgba(var(--fc-blue-rgb), 0.55);
 	background: var(--fc-action-practice-start);
-	color: var(--fc-action-practice-text);
+	color: var(--fc-blue);
 	box-shadow:
-		inset 0 1px 0 color-mix(in srgb, var(--text-normal) 10%, transparent),
+		inset 0 1px 0 color-mix(in srgb, var(--fc-blue) 14%, transparent),
 		var(--fc-shadow-sm);
 }
 
 .theme-light .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-btn-green:focus-visible,
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-action-study:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-action-study-end);
 	background: var(--fc-action-study-end);
-	box-shadow: var(--fc-focus-ring);
 }
 
 .theme-light .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-btn-blue:focus-visible,
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-action-practice:hover:not(:disabled),
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-action-practice:focus-visible {
-	border-color: var(--fc-cyan);
+.theme-light .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled) {
 	background: var(--fc-action-practice-end);
-	box-shadow: var(--fc-focus-ring);
+	box-shadow: none;
+}
+
+.theme-light .flashcard-root button.flashcard-btn-blue:focus-visible,
+.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible {
+	background: var(--fc-action-practice-end);
+	box-shadow: 0 0 0 3px rgba(var(--fc-blue-rgb), 0.24);
 }
 
 .theme-light .flashcard-deck-index {
@@ -5722,35 +5599,19 @@
 }
 
 .theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	box-shadow: none;
 }
 
-.theme-light
-	.flashcard-root
-	button.flashcard-setup-segment-btn.active:hover:not(:disabled),
-.theme-light
-	.flashcard-root
-	button.flashcard-setup-segment-btn.active:focus-visible {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 52%,
-		var(--background-primary) 48%
-	);
+.theme-light .flashcard-root button.flashcard-setup-segment-btn.active:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-setup-segment-btn.active:focus-visible {
+	background: color-mix(in srgb, var(--interactive-accent) 52%, var(--background-primary) 48%);
 	box-shadow: none;
 }
 
 .theme-light .flashcard-root button.flashcard-setup-chip.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	box-shadow: none;
 }
@@ -5812,8 +5673,7 @@
 
 	.flashcard-deck-item {
 		grid-template-columns: minmax(0, 1fr) auto;
-		padding: var(--fc-space-3) var(--fc-space-2) var(--fc-space-3)
-			var(--fc-space-8);
+		padding: var(--fc-space-3) var(--fc-space-2) var(--fc-space-3) var(--fc-space-8);
 	}
 
 	.flashcard-deck-item .flashcard-deck-headline {
@@ -5828,10 +5688,7 @@
 		margin-top: var(--fc-space-1);
 	}
 
-	.flashcard-root
-		.flashcard-deck-item
-		.flashcard-deck-actions2
-		.flashcard-btn {
+	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
 		width: var(--fc-control-touch);
 		height: var(--fc-control-touch);
 		min-width: var(--fc-control-touch);
@@ -5946,8 +5803,7 @@
 	flex-direction: column;
 	align-items: stretch;
 	gap: var(--fc-space-3);
-	padding: var(--fc-space-5) var(--fc-space-5) var(--fc-space-4)
-		var(--fc-space-8);
+	padding: var(--fc-space-5) var(--fc-space-5) var(--fc-space-4) var(--fc-space-8);
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-surface);
 	background:
@@ -5958,51 +5814,31 @@
 
 .flashcard-deck-list .flashcard-deck-item:nth-child(3n + 2) {
 	background:
-		linear-gradient(
-			155deg,
-			rgba(var(--fc-cyan-rgb), 0.08),
-			transparent 62%
-		),
+		linear-gradient(155deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 62%),
 		var(--fc-surface-card);
 }
 
 .flashcard-deck-list .flashcard-deck-item:nth-child(3n) {
 	background:
-		linear-gradient(
-			115deg,
-			rgba(var(--fc-cyan-rgb), 0.06),
-			transparent 54%
-		),
+		linear-gradient(115deg, rgba(var(--fc-cyan-rgb), 0.06), transparent 54%),
 		var(--fc-surface-card);
 }
 
 .theme-light .flashcard-deck-list .flashcard-deck-item {
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.08),
-			transparent 58%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 58%),
 		var(--fc-surface-card);
 }
 
 .theme-light .flashcard-deck-list .flashcard-deck-item:nth-child(3n + 2) {
 	background:
-		linear-gradient(
-			155deg,
-			rgba(var(--fc-cyan-rgb), 0.065),
-			transparent 62%
-		),
+		linear-gradient(155deg, rgba(var(--fc-cyan-rgb), 0.065), transparent 62%),
 		var(--fc-surface-card);
 }
 
 .theme-light .flashcard-deck-list .flashcard-deck-item:nth-child(3n) {
 	background:
-		linear-gradient(
-			115deg,
-			rgba(var(--fc-cyan-rgb), 0.05),
-			transparent 54%
-		),
+		linear-gradient(115deg, rgba(var(--fc-cyan-rgb), 0.05), transparent 54%),
 		var(--fc-surface-card);
 }
 
@@ -6106,8 +5942,7 @@
 	.flashcard-deck-list .flashcard-deck-item:nth-last-child(1):nth-child(odd) {
 		grid-column: auto;
 		min-height: 176px;
-		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3)
-			var(--fc-space-8);
+		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3) var(--fc-space-8);
 	}
 
 	.flashcard-root .flashcard-deck-list button.flashcard-deck-drag-handle {
@@ -6120,15 +5955,10 @@
 	}
 
 	.flashcard-deck-item .flashcard-deck-actions2 {
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(
-				--fc-control-touch
-			);
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--fc-control-touch);
 	}
 
-	.flashcard-root
-		.flashcard-deck-item
-		.flashcard-deck-actions2
-		.flashcard-btn {
+	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
 		height: var(--fc-control-touch);
 		min-height: var(--fc-control-touch);
 	}
@@ -6194,36 +6024,23 @@
 }
 
 .flashcard-root
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):hover:not(:disabled):not([readonly]),
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]),
 .flashcard-settings-tab
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):hover:not(:disabled):not([readonly]) {
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]) {
 	border-color: var(--fc-line-strong);
 	background: var(--fc-input-bg-hover);
 }
 
 .flashcard-root
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):focus,
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus,
 .flashcard-settings-tab
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):focus {
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus {
 	border-color: var(--fc-control-border-selected);
 	background: var(--fc-input-bg);
-	box-shadow: var(--fc-focus-ring);
 	outline: none;
 }
 
@@ -6242,15 +6059,16 @@
 
 /* Compact actions keep a visible boundary even when their background is transparent. */
 .flashcard-root
-	button:is(
-		.flashcard-btn-icon,
-		.flashcard-btn-prev,
-		.flashcard-btn-back,
-		.flashcard-menu-trigger,
-		.flashcard-deck-action-more
-	) {
+	button:is(.flashcard-btn-prev, .flashcard-menu-trigger, .flashcard-deck-action-more) {
 	border: 1px solid var(--fc-compact-control-border);
 	background: color-mix(in srgb, var(--fc-surface-control) 34%, transparent);
+	box-shadow: none;
+}
+
+/* Icon-only preset buttons drop the border; the surface background marks the hit area. */
+.flashcard-root button.flashcard-btn-icon {
+	border: none;
+	background: var(--fc-surface-control);
 	box-shadow: none;
 }
 
@@ -6258,7 +6076,6 @@
 	button:is(
 		.flashcard-btn-icon,
 		.flashcard-btn-prev,
-		.flashcard-btn-back,
 		.flashcard-menu-trigger,
 		.flashcard-deck-action-more
 	):hover:not(:disabled),
@@ -6266,7 +6083,6 @@
 	button:is(
 		.flashcard-btn-icon,
 		.flashcard-btn-prev,
-		.flashcard-btn-back,
 		.flashcard-menu-trigger,
 		.flashcard-deck-action-more
 	):focus-visible {
@@ -6274,20 +6090,25 @@
 	background: var(--fc-surface-hover);
 }
 
-/* The menu trigger uses the higher-specificity quiet variant; keep its outline explicit. */
-.flashcard-root button.flashcard-btn.flashcard-deck-action-more {
+/* Borderless icon buttons show focus with a ring instead of a border change. */
+.flashcard-root button.flashcard-btn-icon:focus-visible {
+	border-color: transparent;
+	box-shadow: 0 0 0 2px rgba(var(--fc-cyan-rgb), 0.24);
+}
+
+/* The menu trigger is a compact icon button; keep its outline explicit. */
+/* .flashcard-root button.flashcard-btn.flashcard-deck-action-more {
 	border: 1px solid var(--fc-compact-control-border);
 	background: color-mix(in srgb, var(--fc-surface-control) 34%, transparent);
 	box-shadow: none;
 }
 
-.flashcard-root
-	button.flashcard-btn.flashcard-deck-action-more:hover:not(:disabled),
+.flashcard-root button.flashcard-btn.flashcard-deck-action-more:hover:not(:disabled),
 .flashcard-root button.flashcard-btn.flashcard-deck-action-more:focus-visible {
 	border-color: var(--interactive-accent);
 	background: var(--fc-surface-hover);
 	box-shadow: none;
-}
+} */
 
 @media (prefers-reduced-motion: reduce) {
 	.flashcard-root *,
