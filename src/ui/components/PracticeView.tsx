@@ -9,10 +9,7 @@ import { MarkdownContent } from "./MarkdownContent";
 import { SessionToolbar } from "./SessionToolbar";
 import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
-import {
-	shouldAutoPronounceSessionCard,
-	type PronunciationRuntime,
-} from "../../pronunciation";
+import { shouldAutoPronounceSessionCard, type PronunciationRuntime } from "../../pronunciation";
 import { extractSpellingWord } from "../../cards/spellingWord";
 import { PronounceableMarkdown } from "./PronounceableMarkdown";
 
@@ -41,22 +38,16 @@ export const PracticeView = React.memo(function PracticeView({
 }: PracticeViewProps) {
 	const { t } = useI18n();
 	const [answerCardId, setAnswerCardId] = useState<string | null>(null);
-	const [autoPronunciationEnabled, setAutoPronunciationEnabled] =
-		useState(false);
+	const [autoPronunciationEnabled, setAutoPronunciationEnabled] = useState(false);
 
 	const currentCard = session.currentCard;
 	const showAnswer = answerCardId === currentCard.identity;
 	const displayContent = useMemo(
-		() =>
-			currentCard
-				? getDisplayCardContent(currentCard, session.direction)
-				: null,
+		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
 		[currentCard, session.direction],
 	);
 	const pronunciationWord =
-		pronunciationEnabled && currentCard
-			? extractSpellingWord(currentCard.front)
-			: null;
+		pronunciationEnabled && currentCard ? extractSpellingWord(currentCard.front) : null;
 
 	useEffect(() => {
 		pronunciationRuntime.stop();
@@ -71,21 +62,13 @@ export const PracticeView = React.memo(function PracticeView({
 		answerVisible: showAnswer,
 		word: pronunciationWord,
 	});
-	const autoPronunciationText = shouldAutoPronounce
-		? pronunciationWord
-		: null;
+	const autoPronunciationText = shouldAutoPronounce ? pronunciationWord : null;
 
 	useEffect(() => {
 		if (!autoPronunciationText) return;
-		void pronunciationRuntime
-			.speak(autoPronunciationText, "auto")
-			.catch(() => undefined);
+		void pronunciationRuntime.speak(autoPronunciationText, "auto").catch(() => undefined);
 		return () => pronunciationRuntime.stop();
-	}, [
-		autoPronunciationText,
-		currentCard.identity,
-		pronunciationRuntime,
-	]);
+	}, [autoPronunciationText, currentCard.identity, pronunciationRuntime]);
 
 	useEffect(() => {
 		if (!pronunciationEnabled) setAutoPronunciationEnabled(false);
@@ -122,10 +105,7 @@ export const PracticeView = React.memo(function PracticeView({
 	}, [isTransitioning, session.canPrevious, session.reference, transition]);
 
 	useWindowKeyDown((e) => {
-		if (
-			e.target instanceof HTMLInputElement ||
-			e.target instanceof HTMLTextAreaElement
-		) {
+		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
 			return;
 		}
 
@@ -171,9 +151,7 @@ export const PracticeView = React.memo(function PracticeView({
 	const progress = session.progress.label;
 	const progressPercent = session.progress.percent;
 	const directionLabel =
-		session.direction === "normal"
-			? t("mode.normalShort")
-			: t("mode.reversedShort");
+		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
@@ -185,15 +163,8 @@ export const PracticeView = React.memo(function PracticeView({
 				progress={progress}
 				progressPercent={progressPercent}
 				startTime={session.startTime}
-				onEdit={() =>
-					onEditCard(currentCard.currentDeckId, currentCard.identity)
-				}
-				onDelete={() =>
-					onDeleteCard(
-						currentCard.currentDeckId,
-						currentCard.identity,
-					)
-				}
+				onEdit={() => onEditCard(currentCard.currentDeckId, currentCard.identity)}
+				onDelete={() => onDeleteCard(currentCard.currentDeckId, currentCard.identity)}
 				onClose={onClose}
 				editTitle={t("cardEditor.editCurrentTitle")}
 				deleteTitle={t("cardEditor.deleteCurrentTitle")}
@@ -211,9 +182,7 @@ export const PracticeView = React.memo(function PracticeView({
 			/>
 
 			{/* Content */}
-			<div
-				className={`flashcard-content ${isTransitioning ? "animating" : ""}`}
-			>
+			<div className={`flashcard-content ${isTransitioning ? "animating" : ""}`}>
 				<div className="flashcard-card-stack">
 					<div className="flashcard-question">
 						<div className="flashcard-label flashcard-label-question">
@@ -242,8 +211,7 @@ export const PracticeView = React.memo(function PracticeView({
 								<div className="flashcard-label flashcard-label-answer">
 									{t("common.answer")}
 								</div>
-								{session.direction === "reversed" &&
-								pronunciationWord ? (
+								{session.direction === "reversed" && pronunciationWord ? (
 									<PronounceableMarkdown
 										content={displayContent?.answer ?? ""}
 										word={pronunciationWord}
@@ -278,11 +246,14 @@ export const PracticeView = React.memo(function PracticeView({
 			{/* Footer */}
 			<div className="flashcard-footer">
 				{!showAnswer ? (
-					<FlashcardButton preset="show" onClick={handleShowAnswer}>
+					<FlashcardButton
+						preset="show"
+						variant="green"
+						size="lg"
+						onClick={handleShowAnswer}
+					>
 						{t("common.showAnswer")}
-						<span className="flashcard-shortcut">
-							({t("common.space")})
-						</span>
+						<span className="flashcard-shortcut">({t("common.space")})</span>
 					</FlashcardButton>
 				) : (
 					<div className="flashcard-practice-response-controls">
@@ -297,6 +268,7 @@ export const PracticeView = React.memo(function PracticeView({
 						<div className="flashcard-practice-answer-buttons">
 							<FlashcardButton
 								preset="practice-wrong"
+								size="lg"
 								onClick={() => void handleAnswer(false)}
 							>
 								<span className="flashcard-practice-btn-icon">
@@ -311,6 +283,7 @@ export const PracticeView = React.memo(function PracticeView({
 							</FlashcardButton>
 							<FlashcardButton
 								preset="practice-correct"
+								size="lg"
 								onClick={() => void handleAnswer(true)}
 							>
 								<span className="flashcard-practice-btn-icon">

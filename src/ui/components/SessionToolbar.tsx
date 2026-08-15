@@ -131,9 +131,10 @@ export const SessionToolbar: React.FC<SessionToolbarProps> = ({
 					/>
 					<FlashcardButton
 						preset="icon"
+						variant="danger"
 						icon={Trash2}
 						onClick={handleDelete}
-						className="flashcard-session-action-item flashcard-btn-danger"
+						className="flashcard-session-action-item"
 						title={deleteTitle}
 						aria-label={deleteTitle}
 					/>

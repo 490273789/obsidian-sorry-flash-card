@@ -39,12 +39,23 @@
 	}
 
 	.flashcard-session-toolbar {
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr) auto auto;
+		grid-template-areas: "progress timer actions";
+		align-items: center;
 	}
 
 	.flashcard-session-progress {
+		grid-area: progress;
 		flex: 1 1 auto;
 		grid-template-columns: auto minmax(80px, 1fr);
+	}
+
+	.flashcard-session-metrics {
+		grid-area: timer;
+	}
+
+	.flashcard-session-actions {
+		grid-area: actions;
 	}
 }
 
@@ -159,11 +170,6 @@
 		min-height: var(--fc-control-touch);
 		padding: 0;
 		flex: 0 0 auto;
-	}
-
-	.flashcard-btn-back svg {
-		width: 18px;
-		height: 18px;
 	}
 
 	.flashcard-session-back-desktop {
@@ -293,7 +299,6 @@
 	.flashcard-explanation,
 	.flashcard-study-hero,
 	.flashcard-practice-question-selector,
-	.flashcard-practice-info,
 	.flashcard-practice-summary-stats,
 	.flashcard-practice-incorrect-section,
 	.flashcard-stats-day {

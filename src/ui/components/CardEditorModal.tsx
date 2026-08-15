@@ -186,11 +186,15 @@ export const CardEditorModal = memo(function CardEditorModal({
 					</div>
 
 					<div className="flashcard-modal-footer">
-						<FlashcardButton onClick={requestClose} disabled={isSaving}>
+						<FlashcardButton
+							variant="secondary"
+							onClick={requestClose}
+							disabled={isSaving}
+						>
 							{t("common.cancel")}
 						</FlashcardButton>
 						<FlashcardButton
-							variant="green"
+							variant="primary"
 							onClick={() => void handleSave()}
 							disabled={isSaving}
 						>

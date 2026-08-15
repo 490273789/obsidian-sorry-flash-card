@@ -229,7 +229,8 @@
 }
 
 .flashcard-card-editor-modal {
-	width: min(680px, 100%);
+	width: min(640px, 100%);
+	background: var(--modal-background, var(--background-primary));
 }
 
 .flashcard-card-editor-body {
@@ -272,7 +273,8 @@
 }
 
 .flashcard-card-editor-field textarea {
-	min-height: 150px;
+	height: clamp(112px, 16dvh, 150px);
+	min-height: 112px;
 	resize: vertical;
 	padding: var(--fc-space-3);
 	word-break: break-word;
@@ -392,6 +394,21 @@
 
 .flashcard-confirm-footer .flashcard-btn {
 	min-width: 96px;
+	border-width: 1px;
+	border-style: solid;
+}
+
+.flashcard-confirm-footer .flashcard-btn-secondary {
+	border-color: var(--fc-control-border);
+	background: var(--fc-control-bg);
+}
+
+.flashcard-confirm-footer .flashcard-btn-primary {
+	border-color: var(--interactive-accent);
+}
+
+.flashcard-confirm-footer .flashcard-btn-danger {
+	border-color: color-mix(in srgb, var(--fc-danger) 58%, var(--fc-line));
 }
 
 .flashcard-add-card-fab {

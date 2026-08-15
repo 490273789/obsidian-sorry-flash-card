@@ -38,13 +38,34 @@ export type ButtonPreset =
 	| "practice-wrong"
 	| "practice-correct";
 
+/** CSS class applied per preset. Presets shape the button; variants color it. */
+const PRESET_CLASSES: Record<ButtonPreset, string> = {
+	icon: "flashcard-btn-icon",
+	back: "flashcard-btn-back",
+	show: "flashcard-btn-show",
+	prev: "flashcard-btn-prev",
+	rating: "flashcard-rating-btn",
+	"practice-wrong": "flashcard-practice-btn-wrong",
+	"practice-correct": "flashcard-practice-btn-correct",
+};
+
+/** Presets that render a compact square icon-only control. */
+const COMPACT_ICON_PRESETS: ReadonlySet<ButtonPreset> = new Set(["icon", "prev"]);
+
+/** Default icon size for compact icon-only presets. */
+const COMPACT_ICON_SIZE = 16;
+/** Default icon size for buttons with text (or the back preset). */
+const DEFAULT_ICON_SIZE = 18;
+
 export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-	/** Semantic visual variant. Legacy color aliases remain for compatibility. */
+	/** Semantic visual variant. Colors the button; combined with preset when both are set. */
 	variant?: ButtonVariant;
 	/** Control size. Defaults to the 36px medium control. */
 	size?: ButtonSize;
-	/** Special shape / behavior preset. Takes precedence over variant for class generation. */
+	/** Special shape / behavior preset. Class generation combines preset and variant. */
 	preset?: ButtonPreset;
+	/** FSRS rating (1-5). Adds `flashcard-rating-{n}`; normally combined with preset="rating". */
+	rating?: 1 | 2 | 3 | 4 | 5;
 	/** Optional Lucide icon element rendered before children. */
 	icon?: LucideIcon;
 	/** Icon size in pixels. Defaults to 18 for normal buttons, 16 for icon-only. */
@@ -60,6 +81,13 @@ export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLBut
 /**
  * Unified flashcard button.
  *
+ * `preset` shapes the button, `variant` colors it, and the two compose:
+ * `preset="show" variant="green"` renders `flashcard-btn-show flashcard-btn-green`.
+ *
+ * The rendered element defaults to `type="button"` and marks its icon as
+ * decorative (`aria-hidden`), so callers only need to provide an accessible
+ * name when the button has no visible text.
+ *
  * Usage examples:
  * ```tsx
  * <FlashcardButton variant="green" onClick={handleSave}>Save</FlashcardButton>
@@ -74,6 +102,7 @@ export const FlashcardButton = React.forwardRef<HTMLButtonElement, FlashcardButt
 			variant,
 			size = "md",
 			preset,
+			rating,
 			icon: Icon,
 			iconSize,
 			className: extraClassName = "",
@@ -88,50 +117,34 @@ export const FlashcardButton = React.forwardRef<HTMLButtonElement, FlashcardButt
 		const classes: string[] = ["flashcard-btn", `flashcard-btn-${size}`];
 
 		if (preset) {
-			// Preset-specific classes
-			switch (preset) {
-				case "icon":
-					classes.push("flashcard-btn-icon");
-					break;
-				case "back":
-					classes.push("flashcard-btn-back");
-					break;
-				case "show":
-					classes.push("flashcard-btn-green", "flashcard-btn-show");
-					break;
-				case "prev":
-					classes.push("flashcard-btn-prev");
-					break;
-				case "rating":
-					classes.push("flashcard-rating-btn");
-					// variant is expected to be set as "rating-1" through "rating-5"
-					// via className for rating buttons — handled by caller
-					break;
-				case "practice-wrong":
-					classes.push("flashcard-practice-btn-wrong");
-					break;
-				case "practice-correct":
-					classes.push("flashcard-practice-btn-correct");
-					break;
-			}
-		} else if (variant) {
+			classes.push(PRESET_CLASSES[preset]);
+		}
+		if (variant) {
 			classes.push(`flashcard-btn-${variant}`);
 		}
-
+		if (rating !== undefined) {
+			classes.push(`flashcard-rating-${rating}`);
+		}
 		if (active) {
 			classes.push("active");
 		}
-
 		if (extraClassName) {
 			classes.push(extraClassName);
 		}
 
 		// Resolve icon size
-		const resolvedIconSize = iconSize ?? (preset === "icon" || preset === "prev" ? 16 : 18);
+		const resolvedIconSize =
+			iconSize ??
+			(preset !== undefined && COMPACT_ICON_PRESETS.has(preset)
+				? COMPACT_ICON_SIZE
+				: DEFAULT_ICON_SIZE);
 
 		return (
-			<button ref={ref} className={classes.join(" ")} {...rest}>
-				{Icon && <Icon size={resolvedIconSize} className={iconClassName} />}
+			// `type="button"` is the safe default; callers may override via `type`.
+			<button ref={ref} type="button" className={classes.join(" ")} {...rest}>
+				{Icon && (
+					<Icon size={resolvedIconSize} className={iconClassName} aria-hidden="true" />
+				)}
 				{children}
 			</button>
 		);

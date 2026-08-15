@@ -69,7 +69,7 @@ export const ConfirmDialog = memo(function ConfirmDialog({
 
 					<div className="flashcard-modal-footer flashcard-confirm-footer">
 						<FlashcardButton
-							variant="gray"
+							variant="secondary"
 							className="flashcard-confirm-cancel"
 							onClick={requestClose}
 							{...initialFocusProps}
@@ -77,7 +77,7 @@ export const ConfirmDialog = memo(function ConfirmDialog({
 							{cancelText}
 						</FlashcardButton>
 						<FlashcardButton
-							variant={tone === "danger" ? "red" : "green"}
+							variant={tone === "danger" ? "danger" : "primary"}
 							icon={Check}
 							onClick={onConfirm}
 						>

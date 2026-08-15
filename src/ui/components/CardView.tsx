@@ -12,10 +12,7 @@ import { SessionToolbar } from "./SessionToolbar";
 import { SessionTimer } from "./SessionTimer";
 import { useWindowKeyDown } from "./hooks";
 import { useI18n } from "./I18nContext";
-import {
-	shouldAutoPronounceSessionCard,
-	type PronunciationRuntime,
-} from "../../pronunciation";
+import { shouldAutoPronounceSessionCard, type PronunciationRuntime } from "../../pronunciation";
 import { extractSpellingWord } from "../../cards/spellingWord";
 import { PronounceableMarkdown } from "./PronounceableMarkdown";
 
@@ -46,23 +43,17 @@ export const CardView = React.memo(function CardView({
 }: CardViewProps) {
 	const { t, language } = useI18n();
 	const [answerCardId, setAnswerCardId] = useState<string | null>(null);
-	const [autoPronunciationEnabled, setAutoPronunciationEnabled] =
-		useState(false);
+	const [autoPronunciationEnabled, setAutoPronunciationEnabled] = useState(false);
 
 	const currentCard = session.currentCard;
 	const showAnswer = answerCardId === currentCard.identity;
 	const ratingButtons = useMemo(() => getRatingButtons(language), [language]);
 	const displayContent = useMemo(
-		() =>
-			currentCard
-				? getDisplayCardContent(currentCard, session.direction)
-				: null,
+		() => (currentCard ? getDisplayCardContent(currentCard, session.direction) : null),
 		[currentCard, session.direction],
 	);
 	const pronunciationWord =
-		pronunciationEnabled && currentCard
-			? extractSpellingWord(currentCard.front)
-			: null;
+		pronunciationEnabled && currentCard ? extractSpellingWord(currentCard.front) : null;
 
 	useEffect(() => {
 		pronunciationRuntime.stop();
@@ -77,21 +68,13 @@ export const CardView = React.memo(function CardView({
 		answerVisible: showAnswer,
 		word: pronunciationWord,
 	});
-	const autoPronunciationText = shouldAutoPronounce
-		? pronunciationWord
-		: null;
+	const autoPronunciationText = shouldAutoPronounce ? pronunciationWord : null;
 
 	useEffect(() => {
 		if (!autoPronunciationText) return;
-		void pronunciationRuntime
-			.speak(autoPronunciationText, "auto")
-			.catch(() => undefined);
+		void pronunciationRuntime.speak(autoPronunciationText, "auto").catch(() => undefined);
 		return () => pronunciationRuntime.stop();
-	}, [
-		autoPronunciationText,
-		currentCard.identity,
-		pronunciationRuntime,
-	]);
+	}, [autoPronunciationText, currentCard.identity, pronunciationRuntime]);
 
 	useEffect(() => {
 		if (!pronunciationEnabled) setAutoPronunciationEnabled(false);
@@ -114,16 +97,9 @@ export const CardView = React.memo(function CardView({
 				rating,
 			});
 			if (outcome.kind === "failed") new Notice(outcome.message);
-			if (outcome.kind === "applied" && outcome.studyCompleted)
-				onComplete();
+			if (outcome.kind === "applied" && outcome.studyCompleted) onComplete();
 		},
-		[
-			currentCard,
-			isTransitioning,
-			onComplete,
-			session.reference,
-			transition,
-		],
+		[currentCard, isTransitioning, onComplete, session.reference, transition],
 	);
 
 	const handlePrevious = useCallback(async () => {
@@ -137,10 +113,7 @@ export const CardView = React.memo(function CardView({
 
 	useWindowKeyDown((e) => {
 		// Ignore if in input field
-		if (
-			e.target instanceof HTMLInputElement ||
-			e.target instanceof HTMLTextAreaElement
-		) {
+		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
 			return;
 		}
 
@@ -210,9 +183,7 @@ export const CardView = React.memo(function CardView({
 
 	const progress = session.progress;
 	const directionLabel =
-		session.direction === "normal"
-			? t("mode.normalShort")
-			: t("mode.reversedShort");
+		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
 
 	return (
 		<div className="flashcard-study">
@@ -224,15 +195,8 @@ export const CardView = React.memo(function CardView({
 				progress={progress.label}
 				progressPercent={progress.percent}
 				startTime={session.startTime}
-				onEdit={() =>
-					onEditCard(currentCard.currentDeckId, currentCard.identity)
-				}
-				onDelete={() =>
-					onDeleteCard(
-						currentCard.currentDeckId,
-						currentCard.identity,
-					)
-				}
+				onEdit={() => onEditCard(currentCard.currentDeckId, currentCard.identity)}
+				onDelete={() => onDeleteCard(currentCard.currentDeckId, currentCard.identity)}
 				onClose={onClose}
 				editTitle={t("cardEditor.editCurrentTitle")}
 				deleteTitle={t("cardEditor.deleteCurrentTitle")}
@@ -250,9 +214,7 @@ export const CardView = React.memo(function CardView({
 			/>
 
 			{/* Content */}
-			<div
-				className={`flashcard-content ${isTransitioning ? "animating" : ""}`}
-			>
+			<div className={`flashcard-content ${isTransitioning ? "animating" : ""}`}>
 				<div className="flashcard-card-stack">
 					<div className="flashcard-question">
 						<div className="flashcard-label flashcard-label-question">
@@ -281,8 +243,7 @@ export const CardView = React.memo(function CardView({
 								<div className="flashcard-label flashcard-label-answer">
 									{t("common.answer")}
 								</div>
-								{session.direction === "reversed" &&
-								pronunciationWord ? (
+								{session.direction === "reversed" && pronunciationWord ? (
 									<PronounceableMarkdown
 										content={displayContent?.answer ?? ""}
 										word={pronunciationWord}
@@ -317,11 +278,14 @@ export const CardView = React.memo(function CardView({
 			{/* Footer */}
 			<div className="flashcard-footer">
 				{!showAnswer ? (
-					<FlashcardButton preset="show" onClick={handleShowAnswer}>
+					<FlashcardButton
+						preset="show"
+						variant="green"
+						size="lg"
+						onClick={handleShowAnswer}
+					>
 						{t("common.showAnswer")}
-						<span className="flashcard-shortcut">
-							({t("common.space")})
-						</span>
+						<span className="flashcard-shortcut">({t("common.space")})</span>
 					</FlashcardButton>
 				) : (
 					<div className="flashcard-response-controls">
@@ -338,16 +302,12 @@ export const CardView = React.memo(function CardView({
 								<FlashcardButton
 									key={btn.rating}
 									preset="rating"
-									className={`flashcard-rating-${btn.rating}`}
-									onClick={() =>
-										void handleRating(btn.rating)
-									}
+									rating={btn.rating}
+									onClick={() => void handleRating(btn.rating)}
 									aria-label={`${btn.label}，${btn.intervalDesc}，${btn.shortcut}`}
 								>
 									<span className="flashcard-rating-meta">
-										<span className="flashcard-rating-label">
-											{btn.label}
-										</span>
+										<span className="flashcard-rating-label">{btn.label}</span>
 										<span className="flashcard-rating-interval">
 											{btn.shortcut}
 										</span>

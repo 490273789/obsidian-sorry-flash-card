@@ -14,7 +14,6 @@
 
 .flashcard-study-hero,
 .flashcard-practice-question-selector,
-.flashcard-practice-info,
 .flashcard-study-action-bar,
 .flashcard-practice-summary-stats,
 .flashcard-practice-incorrect-section,
@@ -82,8 +81,7 @@
 }
 
 .flashcard-study-panel,
-.flashcard-practice-question-selector,
-.flashcard-practice-info {
+.flashcard-practice-question-selector {
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-3);
@@ -91,8 +89,7 @@
 	animation: var(--fc-motion-rise);
 }
 
-.flashcard-study-panel-heading,
-.flashcard-practice-panel-heading {
+.flashcard-study-panel-heading {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
@@ -100,8 +97,7 @@
 }
 
 .flashcard-study-order-label,
-.flashcard-study-day-section-title,
-.flashcard-practice-panel-title {
+.flashcard-study-day-section-title {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--fc-space-2);
@@ -175,8 +171,7 @@
 }
 
 .flashcard-study-day-info,
-.flashcard-study-day-progress,
-.flashcard-practice-info-item {
+.flashcard-study-day-progress {
 	display: flex;
 	align-items: center;
 	gap: var(--fc-space-2);
@@ -189,7 +184,6 @@
 }
 
 .flashcard-study-day-badge,
-.flashcard-practice-info-icon,
 .flashcard-practice-btn-icon,
 .flashcard-practice-stat-icon {
 	display: inline-flex;
@@ -264,13 +258,6 @@
 	gap: var(--fc-space-2);
 }
 
-.flashcard-practice-range-summary {
-	padding: 0 var(--fc-space-1);
-	color: var(--fc-muted);
-	font-size: var(--fc-font-sm);
-	line-height: var(--fc-line-body);
-}
-
 .flashcard-practice-input-label,
 .flashcard-practice-input-hint {
 	color: var(--fc-muted);
@@ -296,11 +283,6 @@
 	text-align: center;
 }
 
-.flashcard-practice-info-item {
-	padding: var(--fc-space-2) var(--fc-space-3);
-	color: var(--fc-muted);
-}
-
 /* Setup pages keep the same section layout while using subtle surface depth. */
 .flashcard-study-hero {
 	padding: var(--fc-space-5) var(--fc-space-4);
@@ -322,8 +304,7 @@
 }
 
 .flashcard-study-panel,
-.flashcard-practice-question-selector,
-.flashcard-practice-info {
+.flashcard-practice-question-selector {
 	padding: var(--fc-space-4) 0;
 	border: 0;
 	border-top: 1px solid var(--fc-line);
@@ -557,10 +538,10 @@
 	gap: var(--fc-space-half);
 	min-inline-size: 0;
 	margin: 0;
-	padding: var(--fc-space-half);
-	border: 1px solid var(--fc-line);
+	padding: var(--fc-space-1);
+	border: none;
 	border-radius: var(--fc-radius-sm);
-	background: transparent;
+	background: var(--fc-bg-panel-soft);
 	box-shadow: none;
 }
 
@@ -655,10 +636,7 @@
 	grid-template-columns: minmax(0, 1fr) 94px;
 	align-items: center;
 	gap: var(--fc-space-2);
-	padding: var(--fc-space-2) var(--fc-space-3);
-	border: 1px solid rgba(139, 159, 181, 0.14);
 	border-radius: var(--fc-radius-sm);
-	background: rgba(var(--fc-bg-panel-rgb), 0.38);
 }
 
 .flashcard-setup-custom-field .flashcard-practice-input,
@@ -675,48 +653,9 @@
 	outline: none;
 }
 
-.flashcard-setup-control-detail .flashcard-practice-range-summary {
-	padding: var(--fc-space-2) var(--fc-space-3);
-	border-left: 2px solid rgba(var(--fc-cyan-rgb), 0.4);
-	background: rgba(var(--fc-cyan-rgb), 0.04);
-}
-
-.flashcard-study-day-section > .flashcard-study-panel-heading,
-.flashcard-practice-info > .flashcard-study-panel-heading {
+.flashcard-study-day-section > .flashcard-study-panel-heading {
 	padding-bottom: var(--fc-space-3);
 	border-bottom: 1px solid rgba(139, 159, 181, 0.14);
-}
-
-.flashcard-practice-info {
-	padding: var(--fc-space-4);
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.14);
-	border-radius: var(--fc-radius-md);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.04),
-			transparent 46%
-		),
-		rgba(var(--fc-bg-elevated-rgb), 0.3);
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-}
-
-.flashcard-practice-info-item {
-	position: relative;
-	padding-left: calc(var(--fc-space-3) + var(--fc-space-2));
-}
-
-.flashcard-practice-info-item::before {
-	content: "";
-	position: absolute;
-	top: 50%;
-	left: var(--fc-space-3);
-	width: 4px;
-	height: 4px;
-	border-radius: 50%;
-	background: rgba(var(--fc-cyan-rgb), 0.72);
-	box-shadow: 0 0 7px rgba(var(--fc-cyan-rgb), 0.32);
-	transform: translateY(-50%);
 }
 
 .flashcard-study-action-bar {

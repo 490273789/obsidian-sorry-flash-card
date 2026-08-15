@@ -444,13 +444,6 @@ const translations = {
 		"practice.customCount": "自定义数量:",
 		"practice.rangeStart": "从第",
 		"practice.rangeEnd": "到第",
-		"practice.rangeSummary":
-			"本轮将练习单词表第 {start} 到第 {end} 个，共 {count} 题，顺序随机。",
-		"practice.rules": "本轮规则",
-		"practice.rulesNote": "开始后直接进入答题流，结果页统一收口本轮表现",
-		"practice.randomOrder": "刷题顺序随机",
-		"practice.statsAfter": "完成后查看刷题正确率统计",
-		"practice.reviewMisses": "查看错题列表",
 		"practice.challenge": "{count} 题刷题挑战",
 		"practice.actionSubtitle":
 			"系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。",
@@ -496,15 +489,7 @@ const translations = {
 		"spelling.chooseWords": "选择本轮词条",
 		"spelling.chooseWordsNote":
 			"智能模式会优先安排错词条、新词条和掌握较弱的词条",
-		"spelling.rangeSummary":
-			"本轮将练习第 {start} 到第 {end} 个词条，共 {count} 个，顺序随机。",
 		"spelling.rules": "拼写规则",
-		"spelling.rulesNote": "专注准确回忆，不改变现有 FSRS 学习排期",
-		"spelling.rulePrompt": "显示卡片背面释义，输入正面的英文单词或词组",
-		"spelling.ruleCorrection":
-			"拼错后必须完整订正，该词条会在本轮末再次出现",
-		"spelling.ruleMatching":
-			"忽略大小写、首尾空格和连续空格差异，其他拼写严格匹配",
 		"spelling.challenge": "{count} 个词条拼写挑战",
 		"spelling.smartActionSubtitle":
 			"优先练习最近拼错、尚未练习和掌握较弱的词条。",
@@ -1000,14 +985,6 @@ const translations = {
 		"practice.customCount": "Custom count:",
 		"practice.rangeStart": "From #",
 		"practice.rangeEnd": "To #",
-		"practice.rangeSummary":
-			"This round uses words {start} to {end}, {count} questions total, in random order.",
-		"practice.rules": "Round rules",
-		"practice.rulesNote":
-			"After starting, you enter the answer flow directly; the result page summarizes this round.",
-		"practice.randomOrder": "Practice order is random",
-		"practice.statsAfter": "View accuracy stats after finishing",
-		"practice.reviewMisses": "Review missed cards",
 		"practice.challenge": "{count} Question Practice Challenge",
 		"practice.actionSubtitle":
 			"The system will draw cards randomly. You can review accuracy and mistakes after the round.",
@@ -1055,17 +1032,7 @@ const translations = {
 		"spelling.chooseWords": "Choose items",
 		"spelling.chooseWordsNote":
 			"Smart mode prioritizes missed, unseen, and weaker items",
-		"spelling.rangeSummary":
-			"This round uses items {start} to {end}, {count} total, in random order.",
 		"spelling.rules": "Spelling rules",
-		"spelling.rulesNote":
-			"Practice precise recall without changing the existing FSRS schedule",
-		"spelling.rulePrompt":
-			"Read the card meaning and type the English word or phrase from the front",
-		"spelling.ruleCorrection":
-			"A missed item must be retyped correctly and will return later in the round",
-		"spelling.ruleMatching":
-			"Case, outer spaces, and repeated spaces are ignored; all other spelling is strict",
 		"spelling.challenge": "{count}-item spelling challenge",
 		"spelling.smartActionSubtitle":
 			"Prioritize recently missed, unseen, and weaker items.",

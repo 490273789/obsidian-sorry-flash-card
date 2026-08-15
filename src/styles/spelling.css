@@ -76,14 +76,29 @@
 	flex-direction: column;
 	gap: var(--fc-space-2);
 	padding: var(--fc-space-4) var(--fc-space-5);
-	border: 1px solid var(--fc-line);
-	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.72);
-	border-radius: var(--fc-radius-md);
+	position: relative;
 	background: rgba(var(--fc-bg-panel-rgb), 0.62);
 	color: var(--fc-muted);
 	font-size: var(--fc-font-sm);
 	font-weight: var(--fc-weight-semibold);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	box-shadow: none;
+}
+
+.flashcard-spelling-input-divider {
+	width: 100%;
+	height: 1px;
+	background: var(--fc-line);
+	margin-bottom: var(--fc-space-2);
+}
+
+.flashcard-spelling-input-group::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 3px;
+	height: 100%;
+	background: rgba(var(--fc-cyan-rgb), 0.72);
 }
 
 .flashcard-spelling-input-group input {
@@ -94,7 +109,8 @@
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-rgb), 0.78);
 	color: var(--fc-text);
-	font: var(--fc-weight-bold) var(--fc-font-xl) / var(--fc-line-tight) var(--fc-font-data);
+	font: var(--fc-weight-bold) var(--fc-font-xl) / var(--fc-line-tight)
+		var(--fc-font-data);
 	letter-spacing: 0.04em;
 	text-align: center;
 	transition:
@@ -103,10 +119,21 @@
 		box-shadow var(--fc-motion-quick) ease;
 }
 
+.flashcard-spelling-view:focus-within .flashcard-content {
+	padding-bottom: max(var(--fc-space-3), var(--fc-keyboard-inset, 0px));
+	scroll-padding-bottom: calc(
+		var(--fc-keyboard-inset, 0px) + var(--fc-space-6)
+	);
+}
+
 .flashcard-root .flashcard-spelling-input-group input:hover:not(:focus) {
 	border-color: rgba(var(--fc-cyan-rgb), 0.68);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.035), transparent 52%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.035),
+			transparent 52%
+		),
 		rgba(var(--fc-bg-elevated-rgb), 0.9);
 	box-shadow:
 		0 0 0 1px rgba(var(--fc-cyan-rgb), 0.12),
@@ -116,7 +143,11 @@
 .flashcard-root .flashcard-spelling-input-group input:focus {
 	border-color: var(--fc-cyan);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 52%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.055),
+			transparent 52%
+		),
 		rgba(var(--fc-bg-rgb), 0.94);
 	box-shadow: var(--fc-glow-cyan);
 	outline: none;
@@ -174,7 +205,8 @@
 	padding: var(--fc-space-3);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-rgb), 0.64);
-	font: var(--fc-weight-bold) var(--fc-font-xl) / var(--fc-line-tight) var(--fc-font-data);
+	font: var(--fc-weight-bold) var(--fc-font-xl) / var(--fc-line-tight)
+		var(--fc-font-data);
 }
 
 .flashcard-spelling-diff > span:not(.flashcard-spelling-empty-answer) {
@@ -258,20 +290,15 @@
 .theme-light .flashcard-spelling-input-group,
 .theme-light .flashcard-spelling-feedback {
 	background: rgba(var(--fc-bg-elevated-rgb), 0.68);
-	box-shadow: 0 8px 24px rgba(35, 49, 68, 0.055);
+	box-shadow: none;
 }
 
 .theme-light .flashcard-deck-settings-warning {
 	background: rgba(var(--fc-bg-elevated-rgb), 0.84);
 }
 
-.theme-light .flashcard-spelling-input-group,
-.theme-light .flashcard-spelling-feedback {
-	border-color: rgba(var(--fc-border-rgb), 0.12);
-}
-
-.theme-light .flashcard-spelling-input-group {
-	border-left-color: rgba(var(--fc-cyan-rgb), 0.62);
+.theme-light .flashcard-spelling-input-group::after {
+	background: rgba(var(--fc-cyan-rgb), 0.62);
 }
 
 .theme-light .flashcard-spelling-feedback.is-correct {
@@ -288,17 +315,28 @@
 	color: var(--fc-text);
 }
 
-.theme-light .flashcard-root .flashcard-spelling-input-group input:hover:not(:focus) {
+.theme-light
+	.flashcard-root
+	.flashcard-spelling-input-group
+	input:hover:not(:focus) {
 	border-color: rgba(var(--fc-cyan-rgb), 0.52);
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.05), transparent 52%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.05),
+			transparent 52%
+		),
 		rgba(247, 251, 254, 0.98);
 	box-shadow: 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.1);
 }
 
 .theme-light .flashcard-root .flashcard-spelling-input-group input:focus {
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 52%),
+		linear-gradient(
+			135deg,
+			rgba(var(--fc-cyan-rgb), 0.07),
+			transparent 52%
+		),
 		rgba(250, 253, 255, 0.98);
 }
 

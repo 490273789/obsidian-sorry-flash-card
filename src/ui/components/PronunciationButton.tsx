@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { Volume2 } from "lucide-react";
 import { Notice } from "obsidian";
-import type { PronunciationFailureReason, PronunciationRuntime } from "../../pronunciation";
+import type {
+	PronunciationFailureReason,
+	PronunciationRuntime,
+	PronunciationSnapshot,
+} from "../../pronunciation";
 import { normalizePronunciationText } from "../../pronunciation";
 import { useI18n } from "./I18nContext";
+import { FlashcardButton } from "./FlashcardButton";
 
 interface PronunciationButtonProps {
 	text: string;
@@ -13,26 +18,40 @@ interface PronunciationButtonRuntimeProps extends PronunciationButtonProps {
 	runtime: PronunciationRuntime;
 }
 
+/**
+ * Snapshot fields that can change whether a text is speakable.
+ *
+ * Playback state (`speakingText`) is deliberately excluded so `canSpeak()` is
+ * not re-run on every play/stop tick — only when voices load, the local-voice
+ * availability, provider settings, or the audio cache readiness change.
+ */
+function getAvailabilityKey(text: string, snapshot: PronunciationSnapshot): string {
+	return JSON.stringify([
+		text,
+		snapshot.voicesLoaded,
+		snapshot.hasLocalEnglishVoice,
+		snapshot.settings,
+		snapshot.cacheUsage.status,
+	]);
+}
+
 export const PronunciationButton: React.FC<PronunciationButtonRuntimeProps> = ({
 	text,
 	runtime,
 }) => {
 	const { t } = useI18n();
+	// Stable subscriptions are required by useSyncExternalStore: new function
+	// identities on every render would make React re-subscribe each render.
+	const subscribe = useCallback((listener: () => void) => runtime.subscribe(listener), [runtime]);
+	const getSnapshot = useCallback(() => runtime.getSnapshot(), [runtime]);
+	const snapshot = useSyncExternalStore(subscribe, getSnapshot);
+	const normalizedText = normalizePronunciationText(text);
 	const [availability, setAvailability] = useState({
 		text: "",
 		available: false,
 	});
-	const [revision, setRevision] = useState(0);
-	const normalizedText = normalizePronunciationText(text);
-	const snapshot = runtime.getSnapshot();
 
-	useEffect(
-		() =>
-			runtime.subscribe(() => {
-				setRevision((revision) => revision + 1);
-			}),
-		[runtime],
-	);
+	const availabilityKey = getAvailabilityKey(normalizedText, snapshot);
 
 	useEffect(() => {
 		let active = true;
@@ -57,7 +76,7 @@ export const PronunciationButton: React.FC<PronunciationButtonRuntimeProps> = ({
 		return () => {
 			active = false;
 		};
-	}, [normalizedText, revision, runtime]);
+	}, [normalizedText, availabilityKey, runtime]);
 
 	if (availability.text !== normalizedText || !availability.available) return null;
 
@@ -65,8 +84,9 @@ export const PronunciationButton: React.FC<PronunciationButtonRuntimeProps> = ({
 	const label = t("pronunciation.play", { word: normalizedText });
 
 	return (
-		<button
-			type="button"
+		<FlashcardButton
+			preset="icon"
+			icon={Volume2}
 			className={`flashcard-pronunciation-button ${isSpeaking ? "is-speaking" : ""}`}
 			aria-label={label}
 			title={label}
@@ -81,9 +101,7 @@ export const PronunciationButton: React.FC<PronunciationButtonRuntimeProps> = ({
 					})
 					.catch(() => new Notice(t("pronunciation.failed")));
 			}}
-		>
-			<Volume2 size={16} aria-hidden="true" />
-		</button>
+		/>
 	);
 };
 
