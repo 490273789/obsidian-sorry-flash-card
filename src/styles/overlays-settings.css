@@ -537,18 +537,7 @@
 .flashcard-deck-settings-card,
 .flashcard-deck-settings-summary,
 .flashcard-card-editor-field,
-.flashcard-help,
-.theme-light .flashcard-practice-summary-actions,
-.theme-light .flashcard-practice-summary-stats,
-.theme-light .flashcard-practice-incorrect-section,
-.theme-light .flashcard-stats-day,
-.theme-light .flashcard-empty,
-.theme-light .flashcard-complete,
-.theme-light .flashcard-modal,
-.theme-light .flashcard-deck-settings-card,
-.theme-light .flashcard-deck-settings-summary,
-.theme-light .flashcard-card-editor-field,
-.theme-light .flashcard-help {
+.flashcard-help {
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
 	background: var(--fc-surface-card);

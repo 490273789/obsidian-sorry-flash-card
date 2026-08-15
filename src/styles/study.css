@@ -1340,11 +1340,7 @@
 
 /* Subtle background tint for the answer area */
 .flashcard-answer-section .flashcard-answer {
-	background: linear-gradient(
-		180deg,
-		rgba(var(--fc-magenta-rgb), 0.02),
-		transparent 60%
-	);
+	background: linear-gradient(180deg, rgba(var(--fc-magenta-rgb), 0.02), transparent 60%);
 }
 
 .flashcard-explanation,

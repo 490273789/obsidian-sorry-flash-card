@@ -1184,7 +1184,7 @@
 
 .flashcard-deck-list .flashcard-deck-item {
 	content-visibility: auto;
-	min-height: 168px;
+	min-height: 148px;
 	position: relative;
 	display: flex;
 	flex-direction: column;
@@ -1704,7 +1704,6 @@
 }
 
 .flashcard-deck-item .flashcard-deck-name {
-	display: block;
 	font-family: var(--fc-font-reading);
 	font-size: var(--fc-font-md);
 	font-weight: var(--fc-weight-semibold);
@@ -3413,11 +3412,7 @@
 
 /* Subtle background tint for the answer area */
 .flashcard-answer-section .flashcard-answer {
-	background: linear-gradient(
-		180deg,
-		rgba(var(--fc-magenta-rgb), 0.02),
-		transparent 60%
-	);
+	background: linear-gradient(180deg, rgba(var(--fc-magenta-rgb), 0.02), transparent 60%);
 }
 
 .flashcard-explanation,

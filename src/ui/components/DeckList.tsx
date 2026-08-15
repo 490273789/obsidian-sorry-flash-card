@@ -541,8 +541,8 @@ const DeckCard = memo(function DeckCard({
 			</button>
 			<div className="flashcard-deck-main">
 				<div className="flashcard-deck-headline">
-					<div className="flashcard-deck-name">{deck.name}</div>
 					<div className="flashcard-deck-name-wrapper">
+						<span className="flashcard-deck-name">{deck.name}</span>
 						<span className="flashcard-deck-tag">{deck.tag}</span>
 						{deck.spelling.enabled && (
 							<span
