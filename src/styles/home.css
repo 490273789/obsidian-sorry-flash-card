@@ -15,7 +15,6 @@
 }
 
 .flashcard-setup-content,
-.flashcard-home-scroll,
 .flashcard-stats-body,
 .flashcard-deck-list {
 	width: min(850px, 100%);
@@ -28,22 +27,12 @@
 }
 
 .flashcard-setup-content > *,
-.flashcard-home-scroll > *,
 .flashcard-stats-body > * {
 	flex: 0 0 auto;
 }
 
 .flashcard-deck-list {
 	padding-bottom: var(--fc-control-touch);
-}
-.flashcard-word-list-sticky-top {
-	border: 1px solid var(--fc-line);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 45%),
-		linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-		rgba(var(--fc-bg-elevated-rgb), 0.9);
-	box-shadow: var(--fc-shadow);
-	backdrop-filter: blur(14px);
 }
 
 .flashcard-common-header {
@@ -227,16 +216,6 @@
 .flashcard-home-header .flashcard-header-center > svg {
 	width: 22px;
 	height: 22px;
-}
-
-.flashcard-header-title {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--fc-space-2);
-	margin: 0;
-	font-size: var(--fc-font-lg);
-	font-weight: var(--fc-weight-semibold);
-	color: var(--fc-text);
 }
 
 .flashcard-identity-migration-card {
@@ -628,23 +607,4 @@
 		rgba(var(--fc-bg-elevated-rgb), 0.98);
 	box-shadow: var(--fc-shadow);
 	animation: var(--fc-motion-fade-in);
-}
-
-.flashcard-root button.flashcard-deck-more-action {
-	width: 100%;
-	justify-content: flex-start;
-	min-height: var(--fc-control-sm);
-	padding: var(--fc-space-2) var(--fc-space-3);
-	border-color: transparent;
-	background: transparent;
-	box-shadow: none;
-	color: var(--fc-muted);
-}
-
-.flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-more-action:focus-visible {
-	border-color: rgba(var(--fc-cyan-rgb), 0.22);
-	background: rgba(var(--fc-cyan-rgb), 0.08);
-	color: var(--fc-text);
-	box-shadow: none;
 }

@@ -150,8 +150,7 @@
 	color: var(--fc-text);
 }
 
-.flashcard-btn.active,
-.flashcard-active-orang.active {
+.flashcard-btn.active {
 	border-color: rgba(var(--fc-magenta-rgb), 0.58);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-magenta-rgb), 0.28), rgba(var(--fc-cyan-rgb), 0.16)),

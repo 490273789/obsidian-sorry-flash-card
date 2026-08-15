@@ -8,7 +8,7 @@
 
 保持以下导入顺序（`index.css` 中不可调换）：
 
-- `base.css`：设计 token（唯一来源）、根容器框架（`.flashcard-root` 的唯一静态定义，含表面归一）、共享工具类和动效变量。
+- `base.css`：设计 token（唯一来源）、根容器框架（`.flashcard-root` 的唯一静态定义，含表面归一）、动效变量与少量共享工具类（`.fc-kicker`、`.fc-lift`、`.blue/green/purple/orange/red`）。
 - `buttons.css`：共享按钮基础样式和评分按钮元数据。
 - `controls.css`：按钮尺寸/语义变体、输入框、下拉框与菜单组件。
 - `home.css`：页面框架、公共标题栏、首页牌组列表和共享统计卡。
@@ -64,7 +64,7 @@
 ### 颜色
 
 - 表面必须从 `--fc-surface-canvas/section/card/raised/control` 派生。
-- 语义色使用 `--fc-primary`（青）、`--fc-secondary`（紫）、`--fc-success`（绿）、`--fc-warning`（琥珀）、`--fc-danger`（红）、`--fc-info`（蓝）。旧的 `--fc-cyan` 等变量保留为兼容和调色别名。
+- 语义色：状态类使用 `--fc-primary`（青）与 `--fc-danger`（红）；其余颜色直接使用调色 token（`--fc-cyan/blue/magenta/violet/lime/amber/red/orange`）。组件不使用语义色区分无状态含义的数据。
 - 普通文字使用 `--fc-text`，次要信息使用 `--fc-muted`，弱提示使用 `--fc-faint`。不得通过随机彩色文字区分无状态含义的数据。
 - 首页学习与刷题主操作分别使用 `--fc-action-study-*` 和 `--fc-action-practice-*`；其他按钮默认保持中性，仅在激活、危险或明确状态时使用语义色。
 - 暗色和亮色主题的普通文字对背景需达到 WCAG AA 4.5:1；新增配色时应保持对比度达标，并在 Obsidian 中检查亮/暗主题。
@@ -89,4 +89,5 @@
 
 - 1px 普通边框、3px 状态强调边、绝对定位、图标绘制、阴影和背景纹理可使用必要的像素值；它们不参与内容密度刻度。
 - 旧版兼容选择器可以保留，但不能引入新的字号、间距、圆角或颜色体系。
+- 组件重构后要及时删除不再渲染的 CSS 类（死类）与未被引用的 token；`editorial.css` 的"中和层"只针对仍被渲染的旧样式生效。
 - 修改样式不需要添加测试用例；完成后运行 `npm run build` 并在 Obsidian 中实际查看受影响的视图，较大范围修改还应运行 `npm run lint` 与 `npm run format:check`。

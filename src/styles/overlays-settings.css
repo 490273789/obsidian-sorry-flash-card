@@ -411,28 +411,6 @@
 	border-color: color-mix(in srgb, var(--fc-danger) 58%, var(--fc-line));
 }
 
-.flashcard-add-card-fab {
-	position: absolute;
-	right: calc(env(safe-area-inset-right, 0px) + var(--fc-space-5));
-	bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-space-5));
-	z-index: 30;
-	width: var(--fc-control-touch);
-	height: var(--fc-control-touch);
-	min-width: var(--fc-control-touch);
-	min-height: var(--fc-control-touch);
-	border-color: rgba(var(--fc-lime-rgb), 0.46);
-	box-shadow:
-		0 18px 40px rgba(0, 0, 0, 0.34),
-		0 0 24px rgba(var(--fc-lime-rgb), 0.16);
-}
-
-.flashcard-root button.flashcard-add-card-fab {
-	background:
-		linear-gradient(135deg, rgba(var(--fc-lime-rgb), 0.28), rgba(var(--fc-cyan-rgb), 0.14)),
-		rgba(var(--fc-bg-elevated-rgb), 0.96);
-	color: var(--fc-lime);
-}
-
 /* Settings tab */
 .flashcard-settings-tab {
 	color: var(--fc-text);

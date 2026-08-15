@@ -49,7 +49,6 @@
 	--fc-header-height: 48px;
 	--fc-home-header-max-width: 1280px;
 
-	--fc-bg: var(--background-primary);
 	--fc-bg-elevated: var(--background-primary);
 	--fc-bg-panel: color-mix(
 		in srgb,
@@ -75,17 +74,11 @@
 	--fc-red: var(--color-red);
 	--fc-orange: var(--color-orange);
 	--fc-primary: var(--fc-cyan);
-	--fc-secondary: var(--fc-violet);
-	--fc-success: var(--fc-lime);
-	--fc-warning: var(--fc-amber);
 	--fc-danger: var(--fc-red);
-	--fc-info: var(--fc-blue);
 
 	--fc-bg-rgb: var(--mono-rgb-0);
 	--fc-bg-elevated-rgb: var(--mono-rgb-0);
 	--fc-bg-panel-rgb: var(--mono-rgb-0);
-	--fc-bg-panel-soft-rgb: var(--mono-rgb-0);
-	--fc-border-rgb: var(--interactive-accent-rgb);
 	--fc-cyan-rgb: var(--interactive-accent-rgb);
 	--fc-blue-rgb: var(--color-blue-rgb);
 	--fc-magenta-rgb: var(--color-pink-rgb);
@@ -111,9 +104,6 @@
 		var(--background-primary) 78%
 	);
 	--fc-surface-complete: rgba(var(--fc-lime-rgb), 0.1);
-	--fc-surface-elevated: var(--fc-surface-card);
-	--fc-surface-panel: var(--fc-surface-section);
-	--fc-surface-panel-soft: var(--fc-surface-control);
 	--fc-control-bg: var(--fc-surface-control);
 	--fc-control-bg-hover: var(--fc-surface-hover);
 	--fc-control-border: color-mix(
@@ -264,37 +254,12 @@
 	color: var(--fc-red) !important;
 }
 
-.fc-row {
-	display: flex;
-	align-items: center;
-	gap: var(--fc-space-3);
-}
-
-.fc-col {
-	display: flex;
-	flex-direction: column;
-	gap: var(--fc-space-3);
-}
-
-.fc-pill,
 .fc-kicker {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--fc-space-2);
 	border-radius: var(--fc-radius-xs);
 	white-space: nowrap;
-}
-
-.fc-pill {
-	padding: var(--fc-space-2) var(--fc-space-3);
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.2);
-	background: rgba(var(--fc-cyan-rgb), 0.075);
-	color: var(--fc-text);
-	font-size: var(--fc-font-xs);
-	font-weight: var(--fc-weight-semibold);
-}
-
-.fc-kicker {
 	padding: var(--fc-space-1) var(--fc-space-2);
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.28);
 	background: rgba(var(--fc-cyan-rgb), 0.08);
@@ -304,12 +269,6 @@
 	text-transform: uppercase;
 }
 
-.fc-truncate {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
 .fc-lift {
 	transition: var(--fc-transition-lift);
 }
@@ -317,38 +276,6 @@
 .fc-lift:hover {
 	border-color: rgba(var(--fc-cyan-rgb), 0.38);
 	box-shadow: var(--fc-glow-cyan);
-}
-
-.fc-surface-card,
-.fc-ghost-card {
-	border: 1px solid var(--fc-line);
-	background: rgba(var(--fc-bg-elevated-rgb), 0.86);
-	box-shadow: var(--fc-shadow);
-}
-
-/* Motion system utilities */
-.fc-motion-page-enter {
-	animation: var(--fc-motion-page-enter);
-}
-
-.fc-motion-rise {
-	animation: var(--fc-motion-rise);
-}
-
-.fc-motion-pop {
-	animation: var(--fc-motion-complete-pop);
-}
-
-.fc-motion-pulse {
-	animation: var(--fc-motion-soft-pulse);
-}
-
-.fc-motion-lift {
-	transition: var(--fc-transition-lift);
-}
-
-.fc-motion-button {
-	transition: var(--fc-transition-button);
 }
 /* Buttons */
 .flashcard-btn {
@@ -502,8 +429,7 @@
 	color: var(--fc-text);
 }
 
-.flashcard-btn.active,
-.flashcard-active-orang.active {
+.flashcard-btn.active {
 	border-color: rgba(var(--fc-magenta-rgb), 0.58);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-magenta-rgb), 0.28), rgba(var(--fc-cyan-rgb), 0.16)),
@@ -766,7 +692,6 @@
 }
 
 .flashcard-setup-content,
-.flashcard-home-scroll,
 .flashcard-stats-body,
 .flashcard-deck-list {
 	width: min(850px, 100%);
@@ -779,22 +704,12 @@
 }
 
 .flashcard-setup-content > *,
-.flashcard-home-scroll > *,
 .flashcard-stats-body > * {
 	flex: 0 0 auto;
 }
 
 .flashcard-deck-list {
 	padding-bottom: var(--fc-control-touch);
-}
-.flashcard-word-list-sticky-top {
-	border: 1px solid var(--fc-line);
-	background:
-		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 45%),
-		linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
-		rgba(var(--fc-bg-elevated-rgb), 0.9);
-	box-shadow: var(--fc-shadow);
-	backdrop-filter: blur(14px);
 }
 
 .flashcard-common-header {
@@ -978,16 +893,6 @@
 .flashcard-home-header .flashcard-header-center > svg {
 	width: 22px;
 	height: 22px;
-}
-
-.flashcard-header-title {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--fc-space-2);
-	margin: 0;
-	font-size: var(--fc-font-lg);
-	font-weight: var(--fc-weight-semibold);
-	color: var(--fc-text);
 }
 
 .flashcard-identity-migration-card {
@@ -1380,25 +1285,6 @@
 	box-shadow: var(--fc-shadow);
 	animation: var(--fc-motion-fade-in);
 }
-
-.flashcard-root button.flashcard-deck-more-action {
-	width: 100%;
-	justify-content: flex-start;
-	min-height: var(--fc-control-sm);
-	padding: var(--fc-space-2) var(--fc-space-3);
-	border-color: transparent;
-	background: transparent;
-	box-shadow: none;
-	color: var(--fc-muted);
-}
-
-.flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-more-action:focus-visible {
-	border-color: rgba(var(--fc-cyan-rgb), 0.22);
-	background: rgba(var(--fc-cyan-rgb), 0.08);
-	color: var(--fc-text);
-	box-shadow: none;
-}
 /* Study and practice setup */
 .flashcard-setup-content {
 	/* width: min(1000px, 100%);
@@ -1414,7 +1300,6 @@
 }
 
 .flashcard-study-hero,
-.flashcard-practice-question-selector,
 .flashcard-study-action-bar,
 .flashcard-practice-summary-stats,
 .flashcard-practice-incorrect-section,
@@ -1472,8 +1357,7 @@
 	line-height: var(--fc-line-body);
 }
 
-.flashcard-study-panel,
-.flashcard-practice-question-selector {
+.flashcard-study-panel {
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-3);
@@ -1488,7 +1372,6 @@
 	gap: var(--fc-space-3);
 }
 
-.flashcard-study-order-label,
 .flashcard-study-day-section-title {
 	display: inline-flex;
 	align-items: center;
@@ -1498,32 +1381,14 @@
 	font-weight: var(--fc-weight-semibold);
 }
 
-.flashcard-study-order-options,
-.flashcard-direction-options,
-.flashcard-practice-mode-options,
 .flashcard-practice-quick-buttons {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: var(--fc-space-2);
 }
 
-.flashcard-study-order-section,
-.flashcard-direction-section {
-	min-width: 0;
-}
-
 .flashcard-practice-quick-buttons {
 	grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-}
-
-.flashcard-study-order-btn,
-.flashcard-direction-btn,
-.flashcard-practice-mode-btn {
-	min-height: 40px;
-}
-
-.flashcard-practice-quick-btn {
-	min-width: 0;
 }
 
 .flashcard-study-day-list {
@@ -1627,7 +1492,6 @@
 	font-weight: var(--fc-weight-semibold);
 }
 
-.flashcard-practice-input-group,
 .flashcard-deck-settings-field {
 	display: flex;
 	align-items: center;
@@ -1694,8 +1558,7 @@
 	box-shadow: inset 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.035);
 }
 
-.flashcard-study-panel,
-.flashcard-practice-question-selector {
+.flashcard-study-panel {
 	padding: var(--fc-space-4) 0;
 	border: 0;
 	border-top: 1px solid var(--fc-line);
@@ -1816,7 +1679,6 @@
 		rgba(var(--fc-bg-panel-rgb), 0.7);
 }
 
-.flashcard-practice-input-group,
 .flashcard-deck-settings-field {
 	padding: var(--fc-space-3) 0;
 	border: 0;
@@ -2060,7 +1922,6 @@
 	white-space: nowrap;
 }
 
-.flashcard-progress,
 .flashcard-timer,
 .flashcard-badge,
 .flashcard-stats-range {
@@ -2466,40 +2327,6 @@
 	background: rgba(var(--fc-cyan-rgb), 0.06);
 	font-size: var(--fc-font-xs);
 	line-height: var(--fc-line-tight);
-}
-
-.flashcard-practice-progress-bar {
-	height: 8px;
-	overflow: hidden;
-	border: 1px solid rgba(var(--fc-cyan-rgb), 0.15);
-	border-radius: var(--fc-radius-pill);
-	background: rgba(var(--fc-bg-panel-rgb), 0.8);
-	box-shadow: inset 0 0 12px rgba(var(--fc-black-rgb), 0.42);
-}
-
-.flashcard-practice-progress-fill {
-	position: relative;
-	height: 100%;
-	border-radius: inherit;
-	background: linear-gradient(90deg, var(--fc-cyan), var(--fc-magenta), var(--fc-lime));
-	box-shadow:
-		0 0 18px rgba(var(--fc-cyan-rgb), 0.28),
-		0 0 30px rgba(var(--fc-magenta-rgb), 0.12);
-	transition: var(--fc-transition-progress);
-}
-
-.flashcard-practice-progress-fill[style*="100%"] {
-	box-shadow:
-		0 0 22px rgba(var(--fc-cyan-rgb), 0.38),
-		0 0 36px rgba(var(--fc-lime-rgb), 0.3);
-}
-
-.flashcard-practice-progress-fill::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
-	animation: var(--fc-motion-progress-scan);
 }
 
 .flashcard-practice-btn-wrong {
@@ -3863,28 +3690,6 @@
 	border-color: color-mix(in srgb, var(--fc-danger) 58%, var(--fc-line));
 }
 
-.flashcard-add-card-fab {
-	position: absolute;
-	right: calc(env(safe-area-inset-right, 0px) + var(--fc-space-5));
-	bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-space-5));
-	z-index: 30;
-	width: var(--fc-control-touch);
-	height: var(--fc-control-touch);
-	min-width: var(--fc-control-touch);
-	min-height: var(--fc-control-touch);
-	border-color: rgba(var(--fc-lime-rgb), 0.46);
-	box-shadow:
-		0 18px 40px rgba(0, 0, 0, 0.34),
-		0 0 24px rgba(var(--fc-lime-rgb), 0.16);
-}
-
-.flashcard-root button.flashcard-add-card-fab {
-	background:
-		linear-gradient(135deg, rgba(var(--fc-lime-rgb), 0.28), rgba(var(--fc-cyan-rgb), 0.14)),
-		rgba(var(--fc-bg-elevated-rgb), 0.96);
-	color: var(--fc-lime);
-}
-
 /* Settings tab */
 .flashcard-settings-tab {
 	color: var(--fc-text);
@@ -4393,14 +4198,6 @@
 		flex: 0 0 auto;
 	}
 
-	.flashcard-session-back-desktop {
-		display: none;
-	}
-
-	.flashcard-session-back-mobile {
-		display: inline-flex;
-	}
-
 	.flashcard-study-action-bar,
 	.flashcard-practice-answer-buttons,
 	.flashcard-response-controls,
@@ -4423,19 +4220,11 @@
 		grid-template-columns: 1fr 1fr;
 	}
 
-	.flashcard-study-order-options,
-	.flashcard-direction-options,
-	.flashcard-practice-mode-options,
 	.flashcard-practice-range-inputs,
 	.flashcard-practice-quick-buttons,
 	.flashcard-practice-stat-row,
 	.flashcard-practice-summary-actions {
 		grid-template-columns: 1fr;
-	}
-
-	.flashcard-study-order-options,
-	.flashcard-direction-options {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.flashcard-deck-actions2 {
@@ -4514,18 +4303,6 @@
 		grid-template-columns: 1fr;
 	}
 
-	/* .flashcard-content,
-	.flashcard-question,
-	.flashcard-answer,
-	.flashcard-explanation,
-	.flashcard-study-hero,
-	.flashcard-practice-question-selector,
-	.flashcard-practice-summary-stats,
-	.flashcard-practice-incorrect-section,
-	.flashcard-stats-day {
-		padding: var(--fc-space-2);
-	} */
-
 	.flashcard-markdown {
 		font-size: var(--fc-font-md);
 		line-height: var(--fc-line-reading);
@@ -4533,11 +4310,6 @@
 
 	.flashcard-rating-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	.flashcard-practice-input-group {
-		align-items: stretch;
-		flex-direction: column;
 	}
 
 	.flashcard-practice-input {
@@ -4596,7 +4368,6 @@
 		font-size: var(--fc-font-md);
 	}
 
-	.flashcard-study .flashcard-progress,
 	.flashcard-study .flashcard-timer,
 	.flashcard-study .flashcard-badge {
 		min-height: var(--fc-control-sm);
@@ -4664,15 +4435,6 @@
 	.flashcard-study .flashcard-btn-icon {
 		width: var(--fc-control-touch);
 		height: var(--fc-control-touch);
-	}
-
-	.flashcard-add-card-fab {
-		right: var(--fc-space-3);
-		bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-space-3));
-		width: 48px;
-		height: 48px;
-		min-width: 48px;
-		min-height: 48px;
 	}
 
 	.flashcard-card-editor-field textarea {
@@ -4855,7 +4617,6 @@
 
 .flashcard-btn-show::after,
 .flashcard-session-progress-fill::after,
-.flashcard-practice-progress-fill::after,
 .flashcard-study-hero::before,
 .flashcard-study-hero::after,
 .flashcard-study-action-bar::before,
@@ -4922,8 +4683,7 @@
 }
 
 .flashcard-root button.flashcard-btn-green,
-.flashcard-root button.flashcard-deck-action-study,
-.flashcard-root button.flashcard-deck-focus-study {
+.flashcard-root button.flashcard-deck-action-study {
 	border-color: var(--fc-action-study-start);
 	background: var(--fc-action-study-start);
 	color: var(--fc-action-study-text);
@@ -4933,17 +4693,14 @@
 .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
 .flashcard-root button.flashcard-btn-green:focus-visible,
 .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-action-study:focus-visible,
-.flashcard-root button.flashcard-deck-focus-study:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-focus-study:focus-visible {
+.flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-action-study-end);
 	background: var(--fc-action-study-end);
 	box-shadow: var(--fc-focus-ring);
 }
 
 .flashcard-root button.flashcard-btn-blue,
-.flashcard-root button.flashcard-deck-action-practice,
-.flashcard-root button.flashcard-deck-focus-practice {
+.flashcard-root button.flashcard-deck-action-practice {
 	border-color: var(--fc-control-border);
 	background: var(--fc-action-practice-start);
 	color: var(--fc-action-practice-text);
@@ -4953,9 +4710,7 @@
 .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
 .flashcard-root button.flashcard-btn-blue:focus-visible,
 .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-action-practice:focus-visible,
-.flashcard-root button.flashcard-deck-focus-practice:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-focus-practice:focus-visible {
+.flashcard-root button.flashcard-deck-action-practice:focus-visible {
 	border-color: var(--fc-cyan);
 	background: var(--fc-action-practice-end);
 	box-shadow: var(--fc-focus-ring);
@@ -4969,8 +4724,7 @@
 }
 
 .flashcard-btn.active,
-.flashcard-btn[aria-pressed="true"],
-.flashcard-active-orang.active {
+.flashcard-btn[aria-pressed="true"] {
 	border-color: var(--fc-control-border-selected);
 	background: var(--fc-surface-selected);
 	color: var(--fc-text);
@@ -5115,8 +4869,7 @@
 	gap: var(--fc-space-4);
 }
 
-.flashcard-deck-index,
-.flashcard-deck-focus {
+.flashcard-deck-index {
 	min-width: 0;
 	min-height: 0;
 	border: 1px solid var(--fc-line);
@@ -5131,8 +4884,7 @@
 	overflow: hidden;
 }
 
-.flashcard-deck-index-heading,
-.flashcard-deck-focus-kicker {
+.flashcard-deck-index-heading {
 	color: var(--fc-muted);
 	font-size: var(--fc-font-xs);
 	font-weight: var(--fc-weight-semibold);
@@ -5175,14 +4927,7 @@
 	border-bottom-color: var(--fc-line);
 }
 
-.flashcard-deck-item.is-selected {
-	border-color: var(--fc-line);
-	background: var(--fc-surface-selected);
-	box-shadow: inset 3px 0 0 var(--fc-cyan);
-}
-
-.flashcard-deck-item.fc-lift:hover,
-.flashcard-deck-item.is-selected.fc-lift:hover {
+.flashcard-deck-item.fc-lift:hover {
 	border-color: var(--fc-line-strong);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.13), transparent 68%),
@@ -5200,29 +4945,6 @@
 	background: var(--fc-surface-hover);
 	color: var(--fc-text);
 	box-shadow: var(--fc-focus-ring);
-}
-
-.flashcard-root button.flashcard-deck-activate {
-	appearance: none;
-	position: absolute;
-	inset: 0;
-	z-index: 1;
-	width: 100%;
-	height: 100%;
-	min-width: 0;
-	min-height: 0;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	border-radius: inherit;
-	background: transparent;
-	box-shadow: none;
-	cursor: pointer;
-}
-
-.flashcard-root button.flashcard-deck-activate:focus-visible {
-	box-shadow: inset var(--fc-focus-ring);
-	outline: none;
 }
 
 .flashcard-deck-item .flashcard-deck-headline {
@@ -5256,14 +4978,6 @@
 }
 
 .flashcard-deck-item .flashcard-word-learning-badge {
-	display: none;
-}
-
-.flashcard-deck-item .flashcard-deck-stat {
-	font-size: var(--fc-font-xs);
-}
-
-.flashcard-deck-item .flashcard-deck-stat:nth-child(2) {
 	display: none;
 }
 
@@ -5304,104 +5018,6 @@
 	border-radius: var(--fc-radius-control);
 	background: var(--fc-surface-raised);
 	box-shadow: var(--fc-shadow-popover);
-}
-
-.flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-more-action:focus-visible {
-	border-color: transparent;
-	background: var(--fc-surface-hover);
-	color: var(--fc-text);
-	box-shadow: none;
-}
-
-.flashcard-deck-focus {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	padding: var(--fc-space-7);
-	background: var(--fc-surface-section);
-}
-
-.flashcard-deck-focus-heading {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: var(--fc-space-4);
-}
-
-.flashcard-deck-focus h2 {
-	margin: var(--fc-space-2) 0 0;
-	color: var(--fc-text);
-	font-family: var(--fc-font-reading);
-	font-size: var(--fc-font-focus);
-	font-weight: var(--fc-weight-semibold);
-	line-height: var(--fc-line-tight);
-	letter-spacing: -0.025em;
-}
-
-.flashcard-deck-focus .flashcard-deck-tag {
-	padding: var(--fc-space-1) var(--fc-space-2);
-	border-color: var(--fc-line);
-	background: transparent;
-	color: var(--fc-muted);
-	font-family: var(--fc-font-ui);
-}
-
-.flashcard-deck-focus > .flashcard-word-learning-badge {
-	width: fit-content;
-	margin-top: var(--fc-space-3);
-}
-
-.flashcard-deck-focus-stats {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	margin: var(--fc-space-7) 0;
-	border-top: 1px solid var(--fc-line);
-	border-bottom: 1px solid var(--fc-line);
-}
-
-.flashcard-deck-focus-stats > div {
-	padding: var(--fc-space-4) 0;
-}
-
-.flashcard-deck-focus-stats > div + div {
-	padding-left: var(--fc-space-4);
-	border-left: 1px solid var(--fc-line);
-}
-
-.flashcard-deck-focus-stats dt {
-	color: var(--fc-muted);
-	font-size: var(--fc-font-xs);
-}
-
-.flashcard-deck-focus-stats dd {
-	margin: var(--fc-space-1) 0 0;
-	color: var(--fc-text);
-	font-size: var(--fc-font-xl);
-	font-weight: var(--fc-weight-semibold);
-}
-
-.flashcard-deck-focus-stats > div:first-child dd {
-	color: var(--fc-cyan);
-}
-
-.flashcard-deck-focus-actions-wrap {
-	position: relative;
-}
-
-.flashcard-deck-focus-actions {
-	display: grid;
-	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) var(--fc-control-touch);
-	gap: var(--fc-space-2);
-}
-
-.flashcard-root .flashcard-deck-focus-actions .flashcard-btn {
-	min-height: var(--fc-control-touch);
-}
-
-.flashcard-deck-focus-more-actions {
-	top: calc(100% + var(--fc-space-2));
 }
 
 .flashcard-home-add-card {
@@ -5604,8 +5220,7 @@
 	box-shadow: none;
 }
 
-.flashcard-session-progress-track,
-.flashcard-practice-progress-bar {
+.flashcard-session-progress-track {
 	border: 0;
 	background: var(--fc-surface-control);
 	box-shadow: none;
@@ -5617,7 +5232,6 @@
 	color: var(--fc-cyan);
 }
 
-.flashcard-progress,
 .flashcard-timer,
 .flashcard-stats-range,
 .flashcard-stats-session-cards,
@@ -5628,8 +5242,7 @@
 	box-shadow: none;
 }
 
-.flashcard-session-progress-fill,
-.flashcard-practice-progress-fill {
+.flashcard-session-progress-fill {
 	background: var(--fc-cyan);
 	box-shadow: none;
 }
@@ -5853,11 +5466,9 @@
 }
 
 /* Remaining views, overlays and settings share the same neutral surfaces. */
-.flashcard-word-list-sticky-top,
 .flashcard-practice-summary-actions,
 .flashcard-practice-summary-stats,
 .flashcard-practice-incorrect-section,
-.flashcard-practice-question-selector,
 .flashcard-stats-day,
 .flashcard-empty,
 .flashcard-complete,
@@ -5866,11 +5477,9 @@
 .flashcard-deck-settings-summary,
 .flashcard-card-editor-field,
 .flashcard-help,
-.theme-light .flashcard-word-list-sticky-top,
 .theme-light .flashcard-practice-summary-actions,
 .theme-light .flashcard-practice-summary-stats,
 .theme-light .flashcard-practice-incorrect-section,
-.theme-light .flashcard-practice-question-selector,
 .theme-light .flashcard-stats-day,
 .theme-light .flashcard-empty,
 .theme-light .flashcard-complete,
@@ -5996,8 +5605,7 @@
 }
 
 .theme-light .flashcard-root button.flashcard-btn-green,
-.theme-light .flashcard-root button.flashcard-deck-action-study,
-.theme-light .flashcard-root button.flashcard-deck-focus-study {
+.theme-light .flashcard-root button.flashcard-deck-action-study {
 	border-color: var(--fc-action-study-start);
 	background: var(--fc-action-study-start);
 	color: var(--fc-action-study-text);
@@ -6007,8 +5615,7 @@
 }
 
 .theme-light .flashcard-root button.flashcard-btn-blue,
-.theme-light .flashcard-root button.flashcard-deck-action-practice,
-.theme-light .flashcard-root button.flashcard-deck-focus-practice {
+.theme-light .flashcard-root button.flashcard-deck-action-practice {
 	border-color: var(--fc-control-border);
 	background: var(--fc-action-practice-start);
 	color: var(--fc-action-practice-text);
@@ -6020,9 +5627,7 @@
 .theme-light .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-btn-green:focus-visible,
 .theme-light .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible,
-.theme-light .flashcard-root button.flashcard-deck-focus-study:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-focus-study:focus-visible {
+.theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-action-study-end);
 	background: var(--fc-action-study-end);
 	box-shadow: var(--fc-focus-ring);
@@ -6031,23 +5636,16 @@
 .theme-light .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-btn-blue:focus-visible,
 .theme-light .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible,
-.theme-light .flashcard-root button.flashcard-deck-focus-practice:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-focus-practice:focus-visible {
+.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible {
 	border-color: var(--fc-cyan);
 	background: var(--fc-action-practice-end);
 	box-shadow: var(--fc-focus-ring);
 }
 
-.theme-light .flashcard-deck-focus,
 .theme-light .flashcard-deck-index {
 	border-color: var(--fc-line);
 	background: var(--fc-surface-card);
 	box-shadow: none;
-}
-
-.theme-light .flashcard-deck-focus {
-	background: var(--fc-surface-section);
 }
 
 .theme-light .flashcard-study-panel.flashcard-setup-controls {
@@ -6084,8 +5682,7 @@
 	box-shadow: none;
 }
 
-.theme-light .flashcard-session-progress-track,
-.theme-light .flashcard-practice-progress-bar {
+.theme-light .flashcard-session-progress-track {
 	border: 0;
 	background: var(--fc-surface-control);
 	box-shadow: none;
@@ -6169,34 +5766,6 @@
 		gap: var(--fc-space-3);
 	}
 
-	.flashcard-deck-focus {
-		order: 1;
-		flex: 0 0 auto;
-		padding: var(--fc-space-5);
-	}
-
-	.flashcard-deck-focus h2 {
-		font-size: var(--fc-font-display);
-	}
-
-	.flashcard-deck-focus-stats {
-		margin: var(--fc-space-5) 0;
-	}
-
-	.flashcard-deck-focus-actions {
-		grid-template-columns: minmax(0, 1fr);
-	}
-
-	.flashcard-deck-focus-study,
-	.flashcard-deck-focus-practice {
-		width: 100%;
-	}
-
-	.flashcard-deck-focus-more {
-		width: var(--fc-control-touch);
-		justify-self: center;
-	}
-
 	.flashcard-deck-index {
 		order: 2;
 		flex: 0 0 auto;
@@ -6217,10 +5786,6 @@
 
 	.flashcard-deck-index .flashcard-deck-list {
 		overflow: visible;
-	}
-
-	.flashcard-deck-index .flashcard-deck-item.is-selected {
-		display: none;
 	}
 
 	.flashcard-deck-item {

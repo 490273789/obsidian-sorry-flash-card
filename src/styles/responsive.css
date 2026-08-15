@@ -170,14 +170,6 @@
 		flex: 0 0 auto;
 	}
 
-	.flashcard-session-back-desktop {
-		display: none;
-	}
-
-	.flashcard-session-back-mobile {
-		display: inline-flex;
-	}
-
 	.flashcard-study-action-bar,
 	.flashcard-practice-answer-buttons,
 	.flashcard-response-controls,
@@ -200,19 +192,11 @@
 		grid-template-columns: 1fr 1fr;
 	}
 
-	.flashcard-study-order-options,
-	.flashcard-direction-options,
-	.flashcard-practice-mode-options,
 	.flashcard-practice-range-inputs,
 	.flashcard-practice-quick-buttons,
 	.flashcard-practice-stat-row,
 	.flashcard-practice-summary-actions {
 		grid-template-columns: 1fr;
-	}
-
-	.flashcard-study-order-options,
-	.flashcard-direction-options {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	.flashcard-deck-actions2 {
@@ -291,18 +275,6 @@
 		grid-template-columns: 1fr;
 	}
 
-	/* .flashcard-content,
-	.flashcard-question,
-	.flashcard-answer,
-	.flashcard-explanation,
-	.flashcard-study-hero,
-	.flashcard-practice-question-selector,
-	.flashcard-practice-summary-stats,
-	.flashcard-practice-incorrect-section,
-	.flashcard-stats-day {
-		padding: var(--fc-space-2);
-	} */
-
 	.flashcard-markdown {
 		font-size: var(--fc-font-md);
 		line-height: var(--fc-line-reading);
@@ -310,11 +282,6 @@
 
 	.flashcard-rating-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	.flashcard-practice-input-group {
-		align-items: stretch;
-		flex-direction: column;
 	}
 
 	.flashcard-practice-input {
@@ -373,7 +340,6 @@
 		font-size: var(--fc-font-md);
 	}
 
-	.flashcard-study .flashcard-progress,
 	.flashcard-study .flashcard-timer,
 	.flashcard-study .flashcard-badge {
 		min-height: var(--fc-control-sm);
@@ -441,15 +407,6 @@
 	.flashcard-study .flashcard-btn-icon {
 		width: var(--fc-control-touch);
 		height: var(--fc-control-touch);
-	}
-
-	.flashcard-add-card-fab {
-		right: var(--fc-space-3);
-		bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-space-3));
-		width: 48px;
-		height: 48px;
-		min-width: 48px;
-		min-height: 48px;
 	}
 
 	.flashcard-card-editor-field textarea {

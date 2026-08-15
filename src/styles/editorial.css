@@ -8,7 +8,6 @@
 
 .flashcard-btn-show::after,
 .flashcard-session-progress-fill::after,
-.flashcard-practice-progress-fill::after,
 .flashcard-study-hero::before,
 .flashcard-study-hero::after,
 .flashcard-study-action-bar::before,
@@ -75,8 +74,7 @@
 }
 
 .flashcard-root button.flashcard-btn-green,
-.flashcard-root button.flashcard-deck-action-study,
-.flashcard-root button.flashcard-deck-focus-study {
+.flashcard-root button.flashcard-deck-action-study {
 	border-color: var(--fc-action-study-start);
 	background: var(--fc-action-study-start);
 	color: var(--fc-action-study-text);
@@ -86,17 +84,14 @@
 .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
 .flashcard-root button.flashcard-btn-green:focus-visible,
 .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-action-study:focus-visible,
-.flashcard-root button.flashcard-deck-focus-study:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-focus-study:focus-visible {
+.flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-action-study-end);
 	background: var(--fc-action-study-end);
 	box-shadow: var(--fc-focus-ring);
 }
 
 .flashcard-root button.flashcard-btn-blue,
-.flashcard-root button.flashcard-deck-action-practice,
-.flashcard-root button.flashcard-deck-focus-practice {
+.flashcard-root button.flashcard-deck-action-practice {
 	border-color: var(--fc-control-border);
 	background: var(--fc-action-practice-start);
 	color: var(--fc-action-practice-text);
@@ -106,9 +101,7 @@
 .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
 .flashcard-root button.flashcard-btn-blue:focus-visible,
 .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-action-practice:focus-visible,
-.flashcard-root button.flashcard-deck-focus-practice:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-focus-practice:focus-visible {
+.flashcard-root button.flashcard-deck-action-practice:focus-visible {
 	border-color: var(--fc-cyan);
 	background: var(--fc-action-practice-end);
 	box-shadow: var(--fc-focus-ring);
@@ -122,8 +115,7 @@
 }
 
 .flashcard-btn.active,
-.flashcard-btn[aria-pressed="true"],
-.flashcard-active-orang.active {
+.flashcard-btn[aria-pressed="true"] {
 	border-color: var(--fc-control-border-selected);
 	background: var(--fc-surface-selected);
 	color: var(--fc-text);
@@ -268,8 +260,7 @@
 	gap: var(--fc-space-4);
 }
 
-.flashcard-deck-index,
-.flashcard-deck-focus {
+.flashcard-deck-index {
 	min-width: 0;
 	min-height: 0;
 	border: 1px solid var(--fc-line);
@@ -284,8 +275,7 @@
 	overflow: hidden;
 }
 
-.flashcard-deck-index-heading,
-.flashcard-deck-focus-kicker {
+.flashcard-deck-index-heading {
 	color: var(--fc-muted);
 	font-size: var(--fc-font-xs);
 	font-weight: var(--fc-weight-semibold);
@@ -328,14 +318,7 @@
 	border-bottom-color: var(--fc-line);
 }
 
-.flashcard-deck-item.is-selected {
-	border-color: var(--fc-line);
-	background: var(--fc-surface-selected);
-	box-shadow: inset 3px 0 0 var(--fc-cyan);
-}
-
-.flashcard-deck-item.fc-lift:hover,
-.flashcard-deck-item.is-selected.fc-lift:hover {
+.flashcard-deck-item.fc-lift:hover {
 	border-color: var(--fc-line-strong);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.13), transparent 68%),
@@ -353,29 +336,6 @@
 	background: var(--fc-surface-hover);
 	color: var(--fc-text);
 	box-shadow: var(--fc-focus-ring);
-}
-
-.flashcard-root button.flashcard-deck-activate {
-	appearance: none;
-	position: absolute;
-	inset: 0;
-	z-index: 1;
-	width: 100%;
-	height: 100%;
-	min-width: 0;
-	min-height: 0;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	border-radius: inherit;
-	background: transparent;
-	box-shadow: none;
-	cursor: pointer;
-}
-
-.flashcard-root button.flashcard-deck-activate:focus-visible {
-	box-shadow: inset var(--fc-focus-ring);
-	outline: none;
 }
 
 .flashcard-deck-item .flashcard-deck-headline {
@@ -409,14 +369,6 @@
 }
 
 .flashcard-deck-item .flashcard-word-learning-badge {
-	display: none;
-}
-
-.flashcard-deck-item .flashcard-deck-stat {
-	font-size: var(--fc-font-xs);
-}
-
-.flashcard-deck-item .flashcard-deck-stat:nth-child(2) {
 	display: none;
 }
 
@@ -457,104 +409,6 @@
 	border-radius: var(--fc-radius-control);
 	background: var(--fc-surface-raised);
 	box-shadow: var(--fc-shadow-popover);
-}
-
-.flashcard-root button.flashcard-deck-more-action:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-more-action:focus-visible {
-	border-color: transparent;
-	background: var(--fc-surface-hover);
-	color: var(--fc-text);
-	box-shadow: none;
-}
-
-.flashcard-deck-focus {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	padding: var(--fc-space-7);
-	background: var(--fc-surface-section);
-}
-
-.flashcard-deck-focus-heading {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: var(--fc-space-4);
-}
-
-.flashcard-deck-focus h2 {
-	margin: var(--fc-space-2) 0 0;
-	color: var(--fc-text);
-	font-family: var(--fc-font-reading);
-	font-size: var(--fc-font-focus);
-	font-weight: var(--fc-weight-semibold);
-	line-height: var(--fc-line-tight);
-	letter-spacing: -0.025em;
-}
-
-.flashcard-deck-focus .flashcard-deck-tag {
-	padding: var(--fc-space-1) var(--fc-space-2);
-	border-color: var(--fc-line);
-	background: transparent;
-	color: var(--fc-muted);
-	font-family: var(--fc-font-ui);
-}
-
-.flashcard-deck-focus > .flashcard-word-learning-badge {
-	width: fit-content;
-	margin-top: var(--fc-space-3);
-}
-
-.flashcard-deck-focus-stats {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	margin: var(--fc-space-7) 0;
-	border-top: 1px solid var(--fc-line);
-	border-bottom: 1px solid var(--fc-line);
-}
-
-.flashcard-deck-focus-stats > div {
-	padding: var(--fc-space-4) 0;
-}
-
-.flashcard-deck-focus-stats > div + div {
-	padding-left: var(--fc-space-4);
-	border-left: 1px solid var(--fc-line);
-}
-
-.flashcard-deck-focus-stats dt {
-	color: var(--fc-muted);
-	font-size: var(--fc-font-xs);
-}
-
-.flashcard-deck-focus-stats dd {
-	margin: var(--fc-space-1) 0 0;
-	color: var(--fc-text);
-	font-size: var(--fc-font-xl);
-	font-weight: var(--fc-weight-semibold);
-}
-
-.flashcard-deck-focus-stats > div:first-child dd {
-	color: var(--fc-cyan);
-}
-
-.flashcard-deck-focus-actions-wrap {
-	position: relative;
-}
-
-.flashcard-deck-focus-actions {
-	display: grid;
-	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) var(--fc-control-touch);
-	gap: var(--fc-space-2);
-}
-
-.flashcard-root .flashcard-deck-focus-actions .flashcard-btn {
-	min-height: var(--fc-control-touch);
-}
-
-.flashcard-deck-focus-more-actions {
-	top: calc(100% + var(--fc-space-2));
 }
 
 .flashcard-home-add-card {
@@ -757,8 +611,7 @@
 	box-shadow: none;
 }
 
-.flashcard-session-progress-track,
-.flashcard-practice-progress-bar {
+.flashcard-session-progress-track {
 	border: 0;
 	background: var(--fc-surface-control);
 	box-shadow: none;
@@ -770,7 +623,6 @@
 	color: var(--fc-cyan);
 }
 
-.flashcard-progress,
 .flashcard-timer,
 .flashcard-stats-range,
 .flashcard-stats-session-cards,
@@ -781,8 +633,7 @@
 	box-shadow: none;
 }
 
-.flashcard-session-progress-fill,
-.flashcard-practice-progress-fill {
+.flashcard-session-progress-fill {
 	background: var(--fc-cyan);
 	box-shadow: none;
 }
@@ -1006,11 +857,9 @@
 }
 
 /* Remaining views, overlays and settings share the same neutral surfaces. */
-.flashcard-word-list-sticky-top,
 .flashcard-practice-summary-actions,
 .flashcard-practice-summary-stats,
 .flashcard-practice-incorrect-section,
-.flashcard-practice-question-selector,
 .flashcard-stats-day,
 .flashcard-empty,
 .flashcard-complete,
@@ -1019,11 +868,9 @@
 .flashcard-deck-settings-summary,
 .flashcard-card-editor-field,
 .flashcard-help,
-.theme-light .flashcard-word-list-sticky-top,
 .theme-light .flashcard-practice-summary-actions,
 .theme-light .flashcard-practice-summary-stats,
 .theme-light .flashcard-practice-incorrect-section,
-.theme-light .flashcard-practice-question-selector,
 .theme-light .flashcard-stats-day,
 .theme-light .flashcard-empty,
 .theme-light .flashcard-complete,
@@ -1149,8 +996,7 @@
 }
 
 .theme-light .flashcard-root button.flashcard-btn-green,
-.theme-light .flashcard-root button.flashcard-deck-action-study,
-.theme-light .flashcard-root button.flashcard-deck-focus-study {
+.theme-light .flashcard-root button.flashcard-deck-action-study {
 	border-color: var(--fc-action-study-start);
 	background: var(--fc-action-study-start);
 	color: var(--fc-action-study-text);
@@ -1160,8 +1006,7 @@
 }
 
 .theme-light .flashcard-root button.flashcard-btn-blue,
-.theme-light .flashcard-root button.flashcard-deck-action-practice,
-.theme-light .flashcard-root button.flashcard-deck-focus-practice {
+.theme-light .flashcard-root button.flashcard-deck-action-practice {
 	border-color: var(--fc-control-border);
 	background: var(--fc-action-practice-start);
 	color: var(--fc-action-practice-text);
@@ -1173,9 +1018,7 @@
 .theme-light .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-btn-green:focus-visible,
 .theme-light .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible,
-.theme-light .flashcard-root button.flashcard-deck-focus-study:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-focus-study:focus-visible {
+.theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-action-study-end);
 	background: var(--fc-action-study-end);
 	box-shadow: var(--fc-focus-ring);
@@ -1184,23 +1027,16 @@
 .theme-light .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-btn-blue:focus-visible,
 .theme-light .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible,
-.theme-light .flashcard-root button.flashcard-deck-focus-practice:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-focus-practice:focus-visible {
+.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible {
 	border-color: var(--fc-cyan);
 	background: var(--fc-action-practice-end);
 	box-shadow: var(--fc-focus-ring);
 }
 
-.theme-light .flashcard-deck-focus,
 .theme-light .flashcard-deck-index {
 	border-color: var(--fc-line);
 	background: var(--fc-surface-card);
 	box-shadow: none;
-}
-
-.theme-light .flashcard-deck-focus {
-	background: var(--fc-surface-section);
 }
 
 .theme-light .flashcard-study-panel.flashcard-setup-controls {
@@ -1237,8 +1073,7 @@
 	box-shadow: none;
 }
 
-.theme-light .flashcard-session-progress-track,
-.theme-light .flashcard-practice-progress-bar {
+.theme-light .flashcard-session-progress-track {
 	border: 0;
 	background: var(--fc-surface-control);
 	box-shadow: none;
@@ -1322,34 +1157,6 @@
 		gap: var(--fc-space-3);
 	}
 
-	.flashcard-deck-focus {
-		order: 1;
-		flex: 0 0 auto;
-		padding: var(--fc-space-5);
-	}
-
-	.flashcard-deck-focus h2 {
-		font-size: var(--fc-font-display);
-	}
-
-	.flashcard-deck-focus-stats {
-		margin: var(--fc-space-5) 0;
-	}
-
-	.flashcard-deck-focus-actions {
-		grid-template-columns: minmax(0, 1fr);
-	}
-
-	.flashcard-deck-focus-study,
-	.flashcard-deck-focus-practice {
-		width: 100%;
-	}
-
-	.flashcard-deck-focus-more {
-		width: var(--fc-control-touch);
-		justify-self: center;
-	}
-
 	.flashcard-deck-index {
 		order: 2;
 		flex: 0 0 auto;
@@ -1370,10 +1177,6 @@
 
 	.flashcard-deck-index .flashcard-deck-list {
 		overflow: visible;
-	}
-
-	.flashcard-deck-index .flashcard-deck-item.is-selected {
-		display: none;
 	}
 
 	.flashcard-deck-item {
