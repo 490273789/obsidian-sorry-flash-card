@@ -6,19 +6,28 @@
 
 ## 文件结构
 
-保持以下导入顺序：
+保持以下导入顺序（`index.css` 中不可调换）：
 
-- `base.css`：设计 token、根容器、共享工具类和动效变量。
+- `base.css`：设计 token（唯一来源）、根容器框架（`.flashcard-root` 的唯一静态定义，含表面归一）、共享工具类和动效变量。
 - `buttons.css`：共享按钮基础样式和评分按钮元数据。
 - `controls.css`：按钮尺寸/语义变体、输入框、下拉框与菜单组件。
 - `home.css`：页面框架、公共标题栏、首页牌组列表和共享统计卡。
 - `study.css`：学习/刷题设置、活动卡片会话、底部操作区和完成状态。
 - `word-list.css`：单词列表工具栏、虚拟列表行和解释面板。
 - `practice-summary.css`：刷题结果和错题列表。
+- `spelling.css`：拼写练习的输入、反馈与总结。
+- `pronunciation.css`：发音按钮与语音播放状态。
 - `stats.css`：历史与统计视图。
 - `overlays-settings.css`：空状态、弹窗、牌组/卡片编辑器和设置页。
 - `motion.css`：焦点、滚动条、关键帧和减少动态效果规则。
 - `responsive.css`：窄窗口和移动端布局覆盖。
+- `editorial.css`：最终视觉统一层。它只覆盖规则、不定义 token，负责把各视图归一为中性表面，并承载少量 `.theme-light` 光学修正与容器查询布局。
+
+### Token 唯一来源
+
+- `--fc-*` 设计 token（含阴影、焦点环、辉光与动效的最终值）只能在 `base.css` 的 `.flashcard-root, .flashcard-settings-tab` 中定义一次；其他文件禁止再定义或覆盖同名单词。
+- 不再维护独立的亮色主题文件。`.theme-light` 前缀仅用于极少量光学修正（见 `editorial.css` 与 `spelling.css`），所有配色都从 Obsidian token 派生。
+- 组件作用域内的临时变量（如 `--fc-rating-color`、`--fc-confirm-rgb`）允许就地定义，但不得以 `--fc-` 前缀模仿全局设计 token 的命名体系。
 
 ## Token 使用规则
 
@@ -74,7 +83,7 @@
 - 900px 以下允许折叠栏位和重排工具栏，但不缩小基础字号。
 - 640px 以下阅读内容改为 16px，交互目标统一至少 44px；布局可以堆叠，信息层级保持不变。
 - `@media (pointer: coarse)` 是点击目标的最终兜底，不应被组件规则覆盖。
-- 亮色与暗色主题默认都直接继承 Obsidian token。只有透明度或对比度确实无法自动适配时，才添加极少量 `.theme-light` 光学修正，禁止维护一套固定色值的独立亮色主题。
+- 亮色与暗色主题默认都直接继承 Obsidian token。只有透明度或对比度确实无法自动适配时，才在 `editorial.css` 或对应组件文件里添加极少量 `.theme-light` 光学修正，禁止维护一套固定色值的独立亮色主题文件。
 
 ## 允许的例外与验证
 

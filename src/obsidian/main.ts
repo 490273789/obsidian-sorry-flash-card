@@ -11,20 +11,14 @@ import {
 	type ResolutionOutcome,
 } from "../identity/cardIdentityContinuity";
 import { createCardIdentity } from "../identity/cardIdentity";
-import {
-	createSessionLifecycle,
-	type SessionLifecycle,
-} from "../sessions/sessionLifecycle";
+import { createSessionLifecycle, type SessionLifecycle } from "../sessions/sessionLifecycle";
 import { createObsidianContinuitySourceStore } from "./cardIdentityContinuityAdapters";
 import {
 	CardIdentityMigrationModal,
 	CardIdentityRepairModal,
 } from "./cardIdentityContinuityModals";
 import { describeSynchronizationOutcome } from "../identity/synchronizationFeedback";
-import {
-	createPronunciationRuntime,
-	type PronunciationRuntime,
-} from "../pronunciation";
+import { createPronunciationRuntime, type PronunciationRuntime } from "../pronunciation";
 import {
 	createDeckHome,
 	type DeckHome,
@@ -89,8 +83,7 @@ export default class FlashcardPlugin extends Plugin {
 					{
 						frontColumn: this.t("common.cardFront"),
 						backColumn: this.t("common.cardBack"),
-						cardCount: (count) =>
-							this.t("pdf.cardCount", { count }),
+						cardCount: (count) => this.t("pdf.cardCount", { count }),
 						saveDialogTitle: this.t("pdf.saveDialogTitle"),
 					},
 					{ onProgress },
@@ -122,9 +115,8 @@ export default class FlashcardPlugin extends Plugin {
 	}
 
 	private openSettings = (): void => {
-		const settingsManager = (
-			this.app as typeof this.app & { setting: ObsidianSettingsManager }
-		).setting;
+		const settingsManager = (this.app as typeof this.app & { setting: ObsidianSettingsManager })
+			.setting;
 		settingsManager.open();
 		settingsManager.openTabById(this.manifest.id);
 	};
@@ -201,10 +193,7 @@ export default class FlashcardPlugin extends Plugin {
 			kind: "request-migration",
 			ownerId,
 		});
-		if (
-			request.kind === "rejected" &&
-			request.reason === "migration-unavailable"
-		) {
+		if (request.kind === "rejected" && request.reason === "migration-unavailable") {
 			new Notice(this.t("identity.noMigration"));
 			return;
 		}
@@ -245,9 +234,7 @@ export default class FlashcardPlugin extends Plugin {
 	private async openIdentityRepair(): Promise<void> {
 		const outcome = await this.cardIdentityContinuity.synchronize();
 		if (outcome.kind === "failed") {
-			new Notice(
-				this.t("identity.syncFailed", { message: outcome.message }),
-			);
+			new Notice(this.t("identity.syncFailed", { message: outcome.message }));
 			return;
 		}
 		const issue = this.cardIdentityContinuity.inspect().issues[0];
@@ -282,9 +269,7 @@ export default class FlashcardPlugin extends Plugin {
 		if (outcome.kind === "applied") {
 			new Notice(
 				this.t(
-					type === "migration"
-						? "identity.migrationApplied"
-						: "identity.repairApplied",
+					type === "migration" ? "identity.migrationApplied" : "identity.repairApplied",
 				),
 			);
 			return;
@@ -314,31 +299,19 @@ export default class FlashcardPlugin extends Plugin {
 
 	private updateLocalizedControls(): void {
 		if (this.ribbonIconEl) {
-			this.ribbonIconEl.setAttr(
-				"aria-label",
-				this.t("main.ribbonOpenFlashcards"),
-			);
-			this.ribbonIconEl.setAttr(
-				"title",
-				this.t("main.ribbonOpenFlashcards"),
-			);
+			this.ribbonIconEl.setAttr("aria-label", this.t("main.ribbonOpenFlashcards"));
+			this.ribbonIconEl.setAttr("title", this.t("main.ribbonOpenFlashcards"));
 		}
 		this.registerCommands();
 	}
 
 	t = createTranslator(DEFAULT_SETTINGS.language);
 
-	async saveSettings(
-		newSettings?: FlashcardSettings,
-	): Promise<FlashcardSettings> {
-		const requestedSettings = cloneFlashcardSettings(
-			newSettings ?? this.settings,
-		);
+	async saveSettings(newSettings?: FlashcardSettings): Promise<FlashcardSettings> {
+		const requestedSettings = cloneFlashcardSettings(newSettings ?? this.settings);
 		return this.enqueueSettingsWrite(() => ({
 			...requestedSettings,
-			deckStudySettings: cloneDeckStudySettings(
-				this.settings.deckStudySettings,
-			),
+			deckStudySettings: cloneDeckStudySettings(this.settings.deckStudySettings),
 			wordLearningDecks: { ...this.settings.wordLearningDecks },
 			deckOrder: [...this.settings.deckOrder],
 			pronunciation: { ...this.settings.pronunciation },
@@ -354,9 +327,7 @@ export default class FlashcardPlugin extends Plugin {
 		}));
 	};
 
-	private saveDeckSettingsPatch = async (
-		patch: DeckHomeSettingsPatch,
-	): Promise<void> => {
+	private saveDeckSettingsPatch = async (patch: DeckHomeSettingsPatch): Promise<void> => {
 		await this.enqueueSettingsWrite(() => {
 			const deckStudySettings = { ...this.settings.deckStudySettings };
 			if (patch.overrides === null) {
@@ -378,9 +349,7 @@ export default class FlashcardPlugin extends Plugin {
 		});
 	};
 
-	private saveDeckOrder = async (
-		deckOrder: readonly string[],
-	): Promise<void> => {
+	private saveDeckOrder = async (deckOrder: readonly string[]): Promise<void> => {
 		await this.enqueueSettingsWrite(() => ({
 			...this.settings,
 			deckOrder: [...deckOrder],
@@ -437,9 +406,7 @@ export default class FlashcardPlugin extends Plugin {
 			}
 			return;
 		}
-		new Notice(
-			this.t("notice.pdfExportFailed", { message: event.message }),
-		);
+		new Notice(this.t("notice.pdfExportFailed", { message: event.message }));
 	};
 
 	private showIdentityResolutionOutcome(outcome: ResolutionOutcome): void {
@@ -492,27 +459,22 @@ export default class FlashcardPlugin extends Plugin {
 		try {
 			this.updateLocalizedControls();
 		} catch (error) {
-			console.error(
-				"Failed to refresh localized plugin controls:",
-				error,
-			);
+			console.error("Failed to refresh localized plugin controls:", error);
 		}
 
-		this.app.workspace
-			.getLeavesOfType(VIEW_TYPE_FLASHCARD)
-			.forEach((leaf) => {
-				const view = leaf.view as FlashcardView;
-				if (view && typeof view.updateSettings === "function") {
-					try {
-						view.updateSettings(settings);
-					} catch (error) {
-						console.error(
-							"Failed to refresh a flashcard view after saving settings:",
-							error,
-						);
-					}
+		this.app.workspace.getLeavesOfType(VIEW_TYPE_FLASHCARD).forEach((leaf) => {
+			const view = leaf.view as FlashcardView;
+			if (view && typeof view.updateSettings === "function") {
+				try {
+					view.updateSettings(settings);
+				} catch (error) {
+					console.error(
+						"Failed to refresh a flashcard view after saving settings:",
+						error,
+					);
 				}
-			});
+			}
+		});
 	}
 
 	async activateView() {
@@ -538,9 +500,7 @@ export default class FlashcardPlugin extends Plugin {
 	}
 }
 
-function cloneFlashcardSettings(
-	settings: FlashcardSettings,
-): FlashcardSettings {
+function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings {
 	return {
 		...settings,
 		flashcardTags: [...settings.flashcardTags],

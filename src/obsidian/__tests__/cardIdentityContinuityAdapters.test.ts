@@ -64,12 +64,8 @@ good morning
 ;;`,
 			],
 		]);
-		const read = vi.fn(
-			async (file: TFile) => contents.get(file.path) ?? "",
-		);
-		const cachedRead = vi.fn(
-			async (file: TFile) => contents.get(file.path) ?? "",
-		);
+		const read = vi.fn(async (file: TFile) => contents.get(file.path) ?? "");
+		const cachedRead = vi.fn(async (file: TFile) => contents.get(file.path) ?? "");
 		const app = {
 			vault: {
 				getMarkdownFiles: () => [configuredFile, discoveredFile],
@@ -80,9 +76,7 @@ good morning
 			},
 			metadataCache: {
 				getFileCache: (file: TFile) => ({
-					tags: [
-						{ tag: file === configuredFile ? "#单词" : "#短语" },
-					],
+					tags: [{ tag: file === configuredFile ? "#单词" : "#短语" }],
 				}),
 			},
 		} as unknown as App;
@@ -126,10 +120,7 @@ apple
 			read,
 			cachedRead,
 			getAbstractFileByPath: () => file,
-			process: async (
-				_file: TFile,
-				transform: (content: string) => string,
-			) => {
+			process: async (_file: TFile, transform: (content: string) => string) => {
 				diskContent = transform(diskContent);
 				return diskContent;
 			},

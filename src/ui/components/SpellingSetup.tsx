@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import {
-	BrainCircuit,
-	Keyboard,
-	ListOrdered,
-	SlidersHorizontal,
-} from "lucide-react";
+import { BrainCircuit, Keyboard, ListOrdered, SlidersHorizontal } from "lucide-react";
 import type { Deck } from "../../shared/types";
 import type { SpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
 import { FlashcardButton } from "./FlashcardButton";
@@ -37,18 +32,14 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 	const { t } = useI18n();
 	const maxQuestions = stats.total;
 	const defaultCount = Math.min(20, maxQuestions);
-	const [mode, setMode] = useState<"smart" | "range">(
-		defaultOptions?.mode ?? "smart",
-	);
+	const [mode, setMode] = useState<"smart" | "range">(defaultOptions?.mode ?? "smart");
 	const [questionCount, setQuestionCount] = useState(
 		defaultOptions?.mode === "smart"
 			? Math.min(defaultOptions.questionCount, maxQuestions)
 			: defaultCount,
 	);
 	const [rangeStart, setRangeStart] = useState(
-		defaultOptions?.mode === "range"
-			? Math.max(1, defaultOptions.startIndex)
-			: 1,
+		defaultOptions?.mode === "range" ? Math.max(1, defaultOptions.startIndex) : 1,
 	);
 	const [rangeEnd, setRangeEnd] = useState(
 		defaultOptions?.mode === "range"
@@ -108,9 +99,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 				<div className="flashcard-study-hero flashcard-spelling-hero">
 					<div className="flashcard-study-hero-copy">
 						<div className="flashcard-deck-name-wrapper">
-							<div className="flashcard-deck-name">
-								{deck.name}
-							</div>
+							<div className="flashcard-deck-name">{deck.name}</div>
 							<div className="flashcard-deck-tag">{deck.tag}</div>
 						</div>
 
@@ -153,9 +142,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 											type="button"
 											className="flashcard-setup-chip"
 											active={questionCount === count}
-											onClick={() =>
-												setQuestionCount(count)
-											}
+											onClick={() => setQuestionCount(count)}
 											disabled={count > maxQuestions}
 										>
 											{count}
@@ -165,9 +152,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 										type="button"
 										className="flashcard-setup-chip"
 										active={questionCount === maxQuestions}
-										onClick={() =>
-											setQuestionCount(maxQuestions)
-										}
+										onClick={() => setQuestionCount(maxQuestions)}
 									>
 										{t("common.all")}
 									</FlashcardButton>
@@ -189,10 +174,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 													const next = Math.max(
 														1,
 														Math.min(
-															Number(
-																event.target
-																	.value,
-															),
+															Number(event.target.value),
 															rangeEnd,
 														),
 													);
@@ -214,10 +196,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 													const next = Math.max(
 														rangeStart,
 														Math.min(
-															Number(
-																event.target
-																	.value,
-															),
+															Number(event.target.value),
 															maxQuestions,
 														),
 													);

@@ -8,16 +8,8 @@ import {
 	evaluateSpellingDeckEligibility,
 	type SpellingDeckEligibility,
 } from "../sessions/spellingSessionPlanner";
-import type {
-	Deck,
-	DeckStats,
-	FlashcardSettings,
-	StudySettings,
-} from "../shared/types";
-import type {
-	DeckPdfExportProgress,
-	DeckPdfExportResult,
-} from "./deckPdfExporter";
+import type { Deck, DeckStats, FlashcardSettings, StudySettings } from "../shared/types";
+import type { DeckPdfExportProgress, DeckPdfExportResult } from "./deckPdfExporter";
 
 export interface DeckHomeTotals {
 	readonly deckCount: number;
@@ -103,19 +95,13 @@ export interface DeckHomeSnapshot {
 	readonly revision: number;
 	readonly decks: ReadonlyArray<DeckHomeDeckSnapshot>;
 	readonly totals: Readonly<DeckHomeTotals>;
-	readonly migration: Readonly<
-		Pick<MigrationPreview, "sourceCount" | "cardCount">
-	> | null;
+	readonly migration: Readonly<Pick<MigrationPreview, "sourceCount" | "cardCount">> | null;
 	readonly mutation: DeckHomeMutationActivity;
 	readonly export: DeckHomeExportActivity;
 	readonly settingsDraft: DeckHomeSettingsDraft | null;
 }
 
-export type DeckHomeDestination =
-	| "study"
-	| "practice"
-	| "spelling"
-	| "word-list";
+export type DeckHomeDestination = "study" | "practice" | "spelling" | "word-list";
 
 export type DeckHomeSettingsChange =
 	| { readonly field: "useCustom"; readonly value: boolean }
@@ -287,8 +273,7 @@ interface PendingMigration {
 const systemClock: DeckHomeClock = {
 	now: () => new Date(),
 	setTimeout: (callback, delay) => globalThis.setTimeout(callback, delay),
-	clearTimeout: (handle) =>
-		globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>),
+	clearTimeout: (handle) => globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>),
 };
 
 export function createDeckHome(options: CreateDeckHomeOptions): DeckHome {
@@ -308,10 +293,7 @@ class DefaultDeckHome implements DeckHome {
 	private disposed = false;
 	private readonly unsubscribeRepository: () => void;
 	/** Per-deck statistics keyed by stable deck object identity. */
-	private readonly deckStatsCache = new Map<
-		string,
-		{ deck: Deck; stats: DeckStats }
-	>();
+	private readonly deckStatsCache = new Map<string, { deck: Deck; stats: DeckStats }>();
 	/** Per-deck spelling eligibility keyed by deck object identity and the enabled flag. */
 	private readonly deckEligibilityCache = new Map<
 		string,
@@ -321,9 +303,7 @@ class DefaultDeckHome implements DeckHome {
 	constructor(private readonly options: CreateDeckHomeOptions) {
 		this.clock = options.clock ?? systemClock;
 		this.snapshot = this.buildSnapshot();
-		this.unsubscribeRepository = options.repository.subscribe(() =>
-			this.publish(),
-		);
+		this.unsubscribeRepository = options.repository.subscribe(() => this.publish());
 	}
 
 	getSnapshot(): DeckHomeSnapshot {
@@ -383,8 +363,7 @@ class DefaultDeckHome implements DeckHome {
 	}
 
 	private async refresh(): Promise<DeckHomeOutcome> {
-		if (this.mutation.kind !== "idle")
-			return { kind: "rejected", reason: "busy" };
+		if (this.mutation.kind !== "idle") return { kind: "rejected", reason: "busy" };
 		this.mutation = { kind: "refreshing" };
 		this.publish();
 		try {
@@ -406,15 +385,9 @@ class DefaultDeckHome implements DeckHome {
 		}
 	}
 
-	private async requestMigration(
-		ownerId: string,
-		deckId?: string,
-	): Promise<DeckHomeOutcome> {
-		if (this.mutation.kind !== "idle")
-			return { kind: "rejected", reason: "busy" };
-		const scope: DeckHomeMigrationScope = deckId
-			? { kind: "deck", deckId }
-			: { kind: "all" };
+	private async requestMigration(ownerId: string, deckId?: string): Promise<DeckHomeOutcome> {
+		if (this.mutation.kind !== "idle") return { kind: "rejected", reason: "busy" };
+		const scope: DeckHomeMigrationScope = deckId ? { kind: "deck", deckId } : { kind: "all" };
 		this.mutation = { kind: "preparing-migration", scope };
 		this.publish();
 		try {
@@ -452,12 +425,8 @@ class DefaultDeckHome implements DeckHome {
 				continuation,
 				scope,
 				sourceCount: sources.length,
-				cardCount: sources.reduce(
-					(sum, source) => sum + source.cardCount,
-					0,
-				),
-				deckName:
-					sources.length === 1 ? sources[0]?.deckName : undefined,
+				cardCount: sources.reduce((sum, source) => sum + source.cardCount, 0),
+				deckName: sources.length === 1 ? sources[0]?.deckName : undefined,
 			};
 		} catch (error) {
 			const message = getErrorMessage(error);
@@ -517,12 +486,8 @@ class DefaultDeckHome implements DeckHome {
 			.find((candidate) => candidate.id === deckId);
 		if (!deck) return { kind: "rejected", reason: "deck-missing" };
 		if (this.settingsDraft) {
-			if (this.settingsDraft.ownerId === ownerId)
-				return { kind: "applied" };
-			if (
-				this.settingsDraft.ownerId === "" &&
-				this.settingsDraft.deckId === deckId
-			) {
+			if (this.settingsDraft.ownerId === ownerId) return { kind: "applied" };
+			if (this.settingsDraft.ownerId === "" && this.settingsDraft.deckId === deckId) {
 				this.settingsDraft.ownerId = ownerId;
 				this.publish();
 				return { kind: "applied" };
@@ -531,15 +496,13 @@ class DefaultDeckHome implements DeckHome {
 		}
 		const settings = this.options.repository.getSettings();
 		const overrides = settings.deckStudySettings[deckId];
-		const dailyNewCards =
-			overrides?.dailyNewCards ?? settings.dailyNewCards;
+		const dailyNewCards = overrides?.dailyNewCards ?? settings.dailyNewCards;
 		this.settingsDraft = {
 			ownerId,
 			deckId,
 			useCustom: overrides !== undefined,
 			dailyNewCards,
-			dailyReviewCards:
-				overrides?.dailyReviewCards ?? settings.dailyReviewCards,
+			dailyReviewCards: overrides?.dailyReviewCards ?? settings.dailyReviewCards,
 			studyOrder: overrides?.studyOrder ?? settings.studyOrder,
 			requestRetention:
 				overrides?.fsrsParameters?.requestRetention ??
@@ -548,19 +511,14 @@ class DefaultDeckHome implements DeckHome {
 				overrides?.fsrsParameters?.maximumInterval ??
 					settings.fsrsParameters.maximumInterval,
 			),
-			daysToComplete: String(
-				calculateDaysToComplete(deck.cards.length, dailyNewCards),
-			),
+			daysToComplete: String(calculateDaysToComplete(deck.cards.length, dailyNewCards)),
 			wordLearningEnabled: settings.wordLearningDecks[deckId] === true,
 		};
 		this.publish();
 		return { kind: "applied" };
 	}
 
-	private changeSettings(
-		ownerId: string,
-		change: DeckHomeSettingsChange,
-	): DeckHomeOutcome {
+	private changeSettings(ownerId: string, change: DeckHomeSettingsChange): DeckHomeOutcome {
 		const draft = this.settingsDraft;
 		if (!draft) return { kind: "rejected", reason: "draft-missing" };
 		if (draft.ownerId !== ownerId) {
@@ -581,9 +539,7 @@ class DefaultDeckHome implements DeckHome {
 			}
 		} else if (change.field === "dailyNewCards") {
 			draft.dailyNewCards = change.value;
-			draft.daysToComplete = String(
-				calculateDaysToComplete(deck.cards.length, change.value),
-			);
+			draft.daysToComplete = String(calculateDaysToComplete(deck.cards.length, change.value));
 		} else {
 			assignSettingsChange(draft, change);
 		}
@@ -597,16 +553,12 @@ class DefaultDeckHome implements DeckHome {
 		if (draft.ownerId !== ownerId) {
 			return { kind: "rejected", reason: "draft-owned-by-another-view" };
 		}
-		if (this.mutation.kind !== "idle")
-			return { kind: "rejected", reason: "busy" };
+		if (this.mutation.kind !== "idle") return { kind: "rejected", reason: "busy" };
 		const deck = this.options.repository
 			.getAllDecks()
 			.find((candidate) => candidate.id === draft.deckId);
 		if (!deck) return { kind: "rejected", reason: "deck-missing" };
-		const eligibility = evaluateSpellingDeckEligibility(
-			deck,
-			draft.wordLearningEnabled,
-		);
+		const eligibility = evaluateSpellingDeckEligibility(deck, draft.wordLearningEnabled);
 		if (draft.wordLearningEnabled && !eligibility.hasStableIdentities) {
 			return {
 				kind: "rejected",
@@ -631,11 +583,9 @@ class DefaultDeckHome implements DeckHome {
 							fsrsParameters: {
 								requestRetention: draft.requestRetention,
 								maximumInterval:
-									Number.isFinite(maximumInterval) &&
-									maximumInterval >= 30
+									Number.isFinite(maximumInterval) && maximumInterval >= 30
 										? maximumInterval
-										: settings.fsrsParameters
-												.maximumInterval,
+										: settings.fsrsParameters.maximumInterval,
 							},
 						}
 					: null,
@@ -682,15 +632,12 @@ class DefaultDeckHome implements DeckHome {
 		return { kind: "applied" };
 	}
 
-	private async reorderDecks(
-		deckIds: readonly string[],
-	): Promise<DeckHomeOutcome> {
+	private async reorderDecks(deckIds: readonly string[]): Promise<DeckHomeOutcome> {
 		const decks = this.options.repository.getAllDecks();
 		const nextOrder = orderDecks(decks, deckIds).map((deck) => deck.id);
-		const currentOrder = orderDecks(
-			decks,
-			this.options.repository.getSettings().deckOrder,
-		).map((deck) => deck.id);
+		const currentOrder = orderDecks(decks, this.options.repository.getSettings().deckOrder).map(
+			(deck) => deck.id,
+		);
 		if (areStringArraysEqual(nextOrder, currentOrder)) {
 			return { kind: "applied" };
 		}
@@ -709,14 +656,12 @@ class DefaultDeckHome implements DeckHome {
 	}
 
 	private async exportDeck(deckId: string): Promise<DeckHomeOutcome> {
-		if (this.exportActivity.kind !== "idle")
-			return { kind: "rejected", reason: "busy" };
+		if (this.exportActivity.kind !== "idle") return { kind: "rejected", reason: "busy" };
 		const deck = this.options.repository
 			.getAllDecks()
 			.find((candidate) => candidate.id === deckId);
 		if (!deck) return { kind: "rejected", reason: "deck-missing" };
-		if (deck.cards.length === 0)
-			return { kind: "rejected", reason: "deck-empty" };
+		if (deck.cards.length === 0) return { kind: "rejected", reason: "deck-empty" };
 		const capturedDeck = cloneDeck(deck);
 		this.exportActivity = {
 			kind: "exporting",
@@ -727,26 +672,21 @@ class DefaultDeckHome implements DeckHome {
 		};
 		this.publish();
 		try {
-			const result = await this.options.exportDeck(
-				capturedDeck,
-				(progress) => {
-					this.exportActivity = {
-						kind: "exporting",
-						deckId,
-						...progress,
-					};
-					this.options.report({
-						kind: "export-progress",
-						deckId,
-						progress,
-					});
-					this.publish();
-				},
-			);
+			const result = await this.options.exportDeck(capturedDeck, (progress) => {
+				this.exportActivity = {
+					kind: "exporting",
+					deckId,
+					...progress,
+				};
+				this.options.report({
+					kind: "export-progress",
+					deckId,
+					progress,
+				});
+				this.publish();
+			});
 			this.options.report({ kind: "export-completed", deckId, result });
-			return result.kind === "cancelled"
-				? { kind: "cancelled" }
-				: { kind: "applied" };
+			return result.kind === "cancelled" ? { kind: "cancelled" } : { kind: "applied" };
 		} catch (error) {
 			const message = getErrorMessage(error);
 			this.options.report({ kind: "export-failed", deckId, message });
@@ -757,28 +697,21 @@ class DefaultDeckHome implements DeckHome {
 		}
 	}
 
-	private navigate(
-		destination: DeckHomeDestination,
-		deckId: string,
-	): DeckHomeOutcome {
+	private navigate(destination: DeckHomeDestination, deckId: string): DeckHomeOutcome {
 		const deck = this.options.repository
 			.getAllDecks()
 			.find((candidate) => candidate.id === deckId);
 		if (!deck) return { kind: "rejected", reason: "deck-missing" };
-		if (deck.cards.length === 0)
-			return { kind: "rejected", reason: "deck-empty" };
+		if (deck.cards.length === 0) return { kind: "rejected", reason: "deck-empty" };
 		if (destination === "spelling") {
 			const eligibility = evaluateSpellingDeckEligibility(
 				deck,
-				this.options.repository.getSettings().wordLearningDecks[
-					deckId
-				] === true,
+				this.options.repository.getSettings().wordLearningDecks[deckId] === true,
 			);
 			if (!eligibility.enabled) {
 				return { kind: "rejected", reason: "spelling-not-enabled" };
 			}
-			if (!eligibility.canStart)
-				return { kind: "rejected", reason: "spelling-invalid" };
+			if (!eligibility.canStart) return { kind: "rejected", reason: "spelling-invalid" };
 			if (!eligibility.hasStableIdentities) {
 				return {
 					kind: "rejected",
@@ -806,10 +739,7 @@ class DefaultDeckHome implements DeckHome {
 			try {
 				listener();
 			} catch (error) {
-				console.error(
-					"Failed to publish the deck home snapshot:",
-					error,
-				);
+				console.error("Failed to publish the deck home snapshot:", error);
 			}
 		}
 	}
@@ -817,10 +747,7 @@ class DefaultDeckHome implements DeckHome {
 	private buildSnapshot(): DeckHomeSnapshot {
 		const now = this.clock.now();
 		const settings = this.options.repository.getSettings();
-		const decks = orderDecks(
-			this.options.repository.getAllDecks(),
-			settings.deckOrder,
-		);
+		const decks = orderDecks(this.options.repository.getAllDecks(), settings.deckOrder);
 		const revision = this.options.repository.getRevision();
 		const deckSnapshots = decks.map((deck): DeckHomeDeckSnapshot => {
 			const stats = this.getDeckStatsCached(deck, now);
@@ -889,10 +816,7 @@ class DefaultDeckHome implements DeckHome {
 	}
 
 	/** evaluateSpellingDeckEligibility with a per-deck object-identity cache. */
-	private getDeckEligibilityCached(
-		deck: Deck,
-		enabled: boolean,
-	): SpellingDeckEligibility {
+	private getDeckEligibilityCached(deck: Deck, enabled: boolean): SpellingDeckEligibility {
 		const cached = this.deckEligibilityCache.get(deck.id);
 		if (cached?.deck === deck && cached.enabled === enabled) {
 			return cached.eligibility;
@@ -913,10 +837,7 @@ class DefaultDeckHome implements DeckHome {
 			this.settingsDraft = null;
 			return null;
 		}
-		const spelling = evaluateSpellingDeckEligibility(
-			deck,
-			draft.wordLearningEnabled,
-		);
+		const spelling = evaluateSpellingDeckEligibility(deck, draft.wordLearningEnabled);
 		return {
 			...draft,
 			deckName: deck.name,
@@ -946,8 +867,7 @@ class DefaultDeckHome implements DeckHome {
 		midnight.setHours(24, 0, 0, 0);
 		let wakeAt = midnight.getTime();
 		const nextDue = this.options.repository.getNextDueTime(now);
-		if (nextDue !== null && nextDue > now.getTime() && nextDue < wakeAt)
-			wakeAt = nextDue;
+		if (nextDue !== null && nextDue > now.getTime() && nextDue < wakeAt) wakeAt = nextDue;
 		this.timer = this.clock.setTimeout(
 			() => {
 				this.timer = null;
@@ -968,10 +888,7 @@ class DefaultDeckHome implements DeckHome {
 
 function assignSettingsChange(
 	draft: MutableSettingsDraft,
-	change: Exclude<
-		DeckHomeSettingsChange,
-		{ field: "dailyNewCards" | "daysToComplete" }
-	>,
+	change: Exclude<DeckHomeSettingsChange, { field: "dailyNewCards" | "daysToComplete" }>,
 ): void {
 	switch (change.field) {
 		case "useCustom":
@@ -995,10 +912,7 @@ function assignSettingsChange(
 	}
 }
 
-function calculateDaysToComplete(
-	totalCards: number,
-	dailyNewCards: number,
-): number {
+function calculateDaysToComplete(totalCards: number, dailyNewCards: number): number {
 	if (totalCards <= 0) return 0;
 	return Math.ceil(totalCards / dailyNewCards);
 }
@@ -1023,10 +937,7 @@ function getErrorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
 }
 
-function orderDecks(
-	decks: readonly Deck[],
-	preferredOrder: readonly string[],
-): Deck[] {
+function orderDecks(decks: readonly Deck[], preferredOrder: readonly string[]): Deck[] {
 	const decksById = new Map(decks.map((deck) => [deck.id, deck]));
 	const orderedDecks: Deck[] = [];
 	const seen = new Set<string>();
@@ -1045,14 +956,8 @@ function orderDecks(
 	return orderedDecks;
 }
 
-function areStringArraysEqual(
-	left: readonly string[],
-	right: readonly string[],
-): boolean {
-	return (
-		left.length === right.length &&
-		left.every((value, index) => value === right[index])
-	);
+function areStringArraysEqual(left: readonly string[], right: readonly string[]): boolean {
+	return left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
 function freezeDeckHomeSnapshot(snapshot: DeckHomeSnapshot): DeckHomeSnapshot {
@@ -1069,8 +974,7 @@ function freezeDeckHomeSnapshot(snapshot: DeckHomeSnapshot): DeckHomeSnapshot {
 	if (snapshot.settingsDraft) {
 		Object.freeze(snapshot.settingsDraft.global.fsrsParameters);
 		Object.freeze(snapshot.settingsDraft.global);
-		for (const invalidCard of snapshot.settingsDraft.spelling
-			.invalidCards) {
+		for (const invalidCard of snapshot.settingsDraft.spelling.invalidCards) {
 			Object.freeze(invalidCard);
 		}
 		Object.freeze(snapshot.settingsDraft.spelling.invalidCards);

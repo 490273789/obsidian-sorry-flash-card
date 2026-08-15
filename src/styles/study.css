@@ -21,11 +21,7 @@
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.07),
-			transparent 40%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 40%),
 		rgba(var(--fc-bg-elevated-rgb), 0.88);
 	box-shadow: var(--fc-shadow);
 }
@@ -51,12 +47,7 @@
 	position: absolute;
 	inset: 0;
 	pointer-events: none;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(var(--fc-cyan-rgb), 0.06),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.06), transparent);
 }
 
 .flashcard-study-hero-copy,
@@ -273,8 +264,7 @@
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-rgb), 0.72);
 	color: var(--fc-text);
-	font: var(--fc-weight-semibold) var(--fc-font-sm) / var(--fc-line-tight)
-		var(--fc-font-ui);
+	font: var(--fc-weight-semibold) var(--fc-font-sm) / var(--fc-line-tight) var(--fc-font-ui);
 }
 
 .flashcard-practice-input {
@@ -326,21 +316,13 @@
 	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.38);
 	border-radius: var(--fc-radius-sm);
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 30%
-		),
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 30%),
 		rgba(var(--fc-bg-panel-rgb), 0.52);
 }
 
 .flashcard-study-day-item:nth-child(even) {
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-cyan-rgb), 0.045),
-			transparent 30%
-		),
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.045), transparent 30%),
 		rgba(var(--fc-bg-panel-rgb), 0.66);
 }
 
@@ -449,11 +431,7 @@
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 44%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 44%),
 		rgba(var(--fc-bg-elevated-rgb), 0.64);
 	box-shadow:
 		inset 0 1px 0 rgba(255, 255, 255, 0.025),
@@ -663,11 +641,7 @@
 	border-top-color: rgba(var(--fc-cyan-rgb), 0.3);
 	border-radius: var(--fc-radius-md);
 	background:
-		linear-gradient(
-			90deg,
-			rgba(var(--fc-cyan-rgb), 0.055),
-			transparent 40%
-		),
+		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 40%),
 		rgba(var(--fc-bg-elevated-rgb), 0.92);
 	box-shadow:
 		inset 0 1px 0 rgba(255, 255, 255, 0.03),
@@ -832,12 +806,7 @@
 	position: absolute;
 	inset: 0 auto 0 0;
 	border-radius: inherit;
-	background: linear-gradient(
-		90deg,
-		var(--fc-cyan),
-		var(--fc-magenta),
-		var(--fc-lime)
-	);
+	background: linear-gradient(90deg, var(--fc-cyan), var(--fc-magenta), var(--fc-lime));
 	box-shadow:
 		0 0 18px rgba(var(--fc-cyan-rgb), 0.26),
 		0 0 28px rgba(var(--fc-magenta-rgb), 0.12);
@@ -848,12 +817,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(255, 255, 255, 0.42),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
 	animation: var(--fc-motion-progress-scan);
 }
 
@@ -965,12 +929,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(var(--fc-cyan-rgb), 0.72),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-cyan-rgb), 0.72), transparent);
 	transform: translateX(-110%);
 	animation: var(--fc-motion-divider);
 }
@@ -1121,12 +1080,7 @@
 	position: relative;
 	height: 100%;
 	border-radius: inherit;
-	background: linear-gradient(
-		90deg,
-		var(--fc-cyan),
-		var(--fc-magenta),
-		var(--fc-lime)
-	);
+	background: linear-gradient(90deg, var(--fc-cyan), var(--fc-magenta), var(--fc-lime));
 	box-shadow:
 		0 0 18px rgba(var(--fc-cyan-rgb), 0.28),
 		0 0 30px rgba(var(--fc-magenta-rgb), 0.12);
@@ -1143,12 +1097,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(
-		90deg,
-		transparent,
-		rgba(255, 255, 255, 0.42),
-		transparent
-	);
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
 	animation: var(--fc-motion-progress-scan);
 }
 

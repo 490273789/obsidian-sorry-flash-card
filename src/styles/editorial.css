@@ -2,46 +2,10 @@
  * Fresh editorial direction.
  * This final layer deliberately neutralizes legacy cyber treatments while keeping
  * existing component boundaries and interaction states intact.
+ * All --fc-* design tokens and the static .flashcard-root frame live in base.css;
+ * this layer only overrides rules (including @container responsive adjustments).
  */
 
-.flashcard-root,
-.flashcard-settings-tab {
-	--fc-space-7: 32px;
-	--fc-space-8: 40px;
-	--fc-space-10: 48px;
-	--fc-font-hero: 34px;
-	--fc-font-focus: 48px;
-	--fc-home-header-max-width: 1280px;
-	--fc-shadow-sm: none;
-	--fc-shadow: 0 2px 8px rgba(var(--fc-black-rgb), 0.14);
-	--fc-shadow-popover: 0 8px 24px rgba(var(--fc-black-rgb), 0.22);
-	--fc-shadow-overlay: 0 24px 64px rgba(var(--fc-black-rgb), 0.32);
-	--fc-focus-ring: 0 0 0 3px rgba(var(--fc-cyan-rgb), 0.22);
-	--fc-glow-cyan: none;
-	--fc-glow-magenta: none;
-	--fc-motion-quick: 140ms;
-	--fc-motion-base: 180ms;
-	--fc-motion-page: 220ms;
-	--fc-motion-current-day: fc-rise-in var(--fc-motion-page) var(--fc-ease-out)
-		both;
-	--fc-motion-progress-scan: none;
-	--fc-motion-sheen: none;
-	--fc-motion-answer: fc-answer-reveal var(--fc-motion-base)
-		var(--fc-ease-out) both;
-}
-
-.flashcard-root {
-	container-name: flashcard-page;
-	container-type: inline-size;
-	padding: var(--fc-space-2);
-	border: 0;
-	border-radius: 0;
-	background: var(--fc-surface-canvas);
-	scrollbar-gutter: auto;
-}
-
-.flashcard-root::before,
-.flashcard-root::after,
 .flashcard-btn-show::after,
 .flashcard-session-progress-fill::after,
 .flashcard-practice-progress-fill::after,
@@ -163,8 +127,7 @@
 	border-color: var(--fc-control-border-selected);
 	background: var(--fc-surface-selected);
 	color: var(--fc-text);
-	box-shadow: inset 0 0 0 1px
-		color-mix(in srgb, var(--interactive-accent) 24%, transparent);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 24%, transparent);
 	animation: none;
 }
 
@@ -233,18 +196,14 @@
 	stroke-width: 1.65;
 }
 
-.flashcard-root
-	.flashcard-home-header
-	button.flashcard-home-header-action:hover:not(:disabled) {
+.flashcard-root .flashcard-home-header button.flashcard-home-header-action:hover:not(:disabled) {
 	border-color: transparent;
 	background: rgba(var(--fc-cyan-rgb), 0.08);
 	color: var(--fc-text);
 	box-shadow: none;
 }
 
-.flashcard-root
-	.flashcard-home-header
-	button.flashcard-home-header-action:focus-visible {
+.flashcard-root .flashcard-home-header button.flashcard-home-header-action:focus-visible {
 	border-color: transparent;
 	background: rgba(var(--fc-cyan-rgb), 0.08);
 	color: var(--fc-text);
@@ -356,8 +315,7 @@
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) auto;
 	gap: var(--fc-space-3);
-	padding: var(--fc-space-3) var(--fc-space-3) var(--fc-space-3)
-		var(--fc-space-8);
+	padding: var(--fc-space-3) var(--fc-space-3) var(--fc-space-3) var(--fc-space-8);
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-control);
 	background: var(--fc-surface-section);
@@ -380,11 +338,7 @@
 .flashcard-deck-item.is-selected.fc-lift:hover {
 	border-color: var(--fc-line-strong);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.13),
-			transparent 68%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.13), transparent 68%),
 		var(--fc-surface-hover);
 	box-shadow: inset 3px 0 0 var(--fc-cyan);
 }
@@ -591,9 +545,7 @@
 
 .flashcard-deck-focus-actions {
 	display: grid;
-	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) var(
-			--fc-control-touch
-		);
+	grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) var(--fc-control-touch);
 	gap: var(--fc-space-2);
 }
 
@@ -690,22 +642,14 @@
 }
 
 .flashcard-root button.flashcard-setup-segment-btn.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	font-weight: var(--fc-weight-semibold);
 	box-shadow: none;
 }
 
 .flashcard-root button.flashcard-setup-chip.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	box-shadow: none;
 }
@@ -831,16 +775,8 @@
 .flashcard-stats-range,
 .flashcard-stats-session-cards,
 .flashcard-stats-session-dur {
-	border-color: color-mix(
-		in srgb,
-		var(--interactive-accent) 28%,
-		var(--fc-line)
-	);
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 8%,
-		var(--fc-surface-card)
-	);
+	border-color: color-mix(in srgb, var(--interactive-accent) 28%, var(--fc-line));
+	background: color-mix(in srgb, var(--interactive-accent) 8%, var(--fc-surface-card));
 	color: var(--fc-cyan);
 	box-shadow: none;
 }
@@ -1003,13 +939,8 @@
 		var(--fc-rating-color) 30%,
 		var(--fc-line)
 	); */
-	background: color-mix(
-		in srgb,
-		var(--fc-rating-color) 14%,
-		var(--fc-surface-control)
-	);
-	box-shadow: inset 0 0 0 1px
-		color-mix(in srgb, var(--fc-rating-color) 10%, transparent);
+	background: color-mix(in srgb, var(--fc-rating-color) 14%, var(--fc-surface-control));
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fc-rating-color) 10%, transparent);
 }
 
 .flashcard-root button.flashcard-rating-1 {
@@ -1043,8 +974,7 @@
 	align-items: center;
 	justify-content: center;
 	padding: 0 var(--fc-space-1);
-	border: 1px solid
-		color-mix(in srgb, var(--fc-rating-color) 22%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fc-rating-color) 22%, transparent);
 	background: color-mix(in srgb, var(--fc-rating-color) 8%, transparent);
 	color: var(--fc-rating-color);
 	opacity: 0.82;
@@ -1052,16 +982,8 @@
 
 .flashcard-root button.flashcard-practice-btn-wrong,
 .flashcard-root button.flashcard-practice-btn-correct {
-	border-color: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 36%,
-		var(--fc-line)
-	);
-	background: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 8%,
-		var(--fc-surface-card)
-	);
+	border-color: color-mix(in srgb, var(--fc-practice-answer-color) 36%, var(--fc-line));
+	background: color-mix(in srgb, var(--fc-practice-answer-color) 8%, var(--fc-surface-card));
 	color: var(--fc-practice-answer-color);
 	box-shadow: none;
 }
@@ -1078,18 +1000,9 @@
 .flashcard-root button.flashcard-practice-btn-wrong:focus-visible,
 .flashcard-root button.flashcard-practice-btn-correct:hover:not(:disabled),
 .flashcard-root button.flashcard-practice-btn-correct:focus-visible {
-	border-color: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 48%,
-		var(--fc-line)
-	);
-	background: color-mix(
-		in srgb,
-		var(--fc-practice-answer-color) 16%,
-		var(--fc-surface-control)
-	);
-	box-shadow: inset 0 0 0 1px
-		color-mix(in srgb, var(--fc-practice-answer-color) 12%, transparent);
+	border-color: color-mix(in srgb, var(--fc-practice-answer-color) 48%, var(--fc-line));
+	background: color-mix(in srgb, var(--fc-practice-answer-color) 16%, var(--fc-surface-control));
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fc-practice-answer-color) 12%, transparent);
 }
 
 /* Remaining views, overlays and settings share the same neutral surfaces. */
@@ -1235,17 +1148,6 @@
 	border-radius: var(--fc-radius-sm);
 }
 
-/* Explicit light surface normalization wins over earlier theme-specific gradients. */
-.theme-light .flashcard-root {
-	border: 0;
-	background: var(--fc-surface-canvas);
-}
-
-.theme-light .flashcard-root::before,
-.theme-light .flashcard-root::after {
-	display: none;
-}
-
 .theme-light .flashcard-root button.flashcard-btn-green,
 .theme-light .flashcard-root button.flashcard-deck-action-study,
 .theme-light .flashcard-root button.flashcard-deck-focus-study {
@@ -1270,13 +1172,9 @@
 
 .theme-light .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-btn-green:focus-visible,
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-action-study:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible,
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-focus-study:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-focus-study:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-deck-focus-study:focus-visible {
 	border-color: var(--fc-action-study-end);
 	background: var(--fc-action-study-end);
@@ -1285,18 +1183,10 @@
 
 .theme-light .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-btn-blue:focus-visible,
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-action-practice:hover:not(:disabled),
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-action-practice:focus-visible,
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-focus-practice:hover:not(:disabled),
-.theme-light
-	.flashcard-root
-	button.flashcard-deck-focus-practice:focus-visible {
+.theme-light .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible,
+.theme-light .flashcard-root button.flashcard-deck-focus-practice:hover:not(:disabled),
+.theme-light .flashcard-root button.flashcard-deck-focus-practice:focus-visible {
 	border-color: var(--fc-cyan);
 	background: var(--fc-action-practice-end);
 	box-shadow: var(--fc-focus-ring);
@@ -1336,21 +1226,13 @@
 }
 
 .theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	box-shadow: none;
 }
 
 .theme-light .flashcard-root button.flashcard-setup-chip.active {
-	background: color-mix(
-		in srgb,
-		var(--interactive-accent) 38%,
-		var(--background-primary) 62%
-	);
+	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
 	color: var(--fc-text);
 	box-shadow: none;
 }
@@ -1496,8 +1378,7 @@
 
 	.flashcard-deck-item {
 		grid-template-columns: minmax(0, 1fr) auto;
-		padding: var(--fc-space-3) var(--fc-space-2) var(--fc-space-3)
-			var(--fc-space-8);
+		padding: var(--fc-space-3) var(--fc-space-2) var(--fc-space-3) var(--fc-space-8);
 	}
 
 	.flashcard-deck-item .flashcard-deck-headline {
@@ -1512,10 +1393,7 @@
 		margin-top: var(--fc-space-1);
 	}
 
-	.flashcard-root
-		.flashcard-deck-item
-		.flashcard-deck-actions2
-		.flashcard-btn {
+	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
 		width: var(--fc-control-touch);
 		height: var(--fc-control-touch);
 		min-width: var(--fc-control-touch);
@@ -1630,8 +1508,7 @@
 	flex-direction: column;
 	align-items: stretch;
 	gap: var(--fc-space-3);
-	padding: var(--fc-space-5) var(--fc-space-5) var(--fc-space-4)
-		var(--fc-space-8);
+	padding: var(--fc-space-5) var(--fc-space-5) var(--fc-space-4) var(--fc-space-8);
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-surface);
 	background:
@@ -1642,51 +1519,31 @@
 
 .flashcard-deck-list .flashcard-deck-item:nth-child(3n + 2) {
 	background:
-		linear-gradient(
-			155deg,
-			rgba(var(--fc-cyan-rgb), 0.08),
-			transparent 62%
-		),
+		linear-gradient(155deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 62%),
 		var(--fc-surface-card);
 }
 
 .flashcard-deck-list .flashcard-deck-item:nth-child(3n) {
 	background:
-		linear-gradient(
-			115deg,
-			rgba(var(--fc-cyan-rgb), 0.06),
-			transparent 54%
-		),
+		linear-gradient(115deg, rgba(var(--fc-cyan-rgb), 0.06), transparent 54%),
 		var(--fc-surface-card);
 }
 
 .theme-light .flashcard-deck-list .flashcard-deck-item {
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-cyan-rgb), 0.08),
-			transparent 58%
-		),
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 58%),
 		var(--fc-surface-card);
 }
 
 .theme-light .flashcard-deck-list .flashcard-deck-item:nth-child(3n + 2) {
 	background:
-		linear-gradient(
-			155deg,
-			rgba(var(--fc-cyan-rgb), 0.065),
-			transparent 62%
-		),
+		linear-gradient(155deg, rgba(var(--fc-cyan-rgb), 0.065), transparent 62%),
 		var(--fc-surface-card);
 }
 
 .theme-light .flashcard-deck-list .flashcard-deck-item:nth-child(3n) {
 	background:
-		linear-gradient(
-			115deg,
-			rgba(var(--fc-cyan-rgb), 0.05),
-			transparent 54%
-		),
+		linear-gradient(115deg, rgba(var(--fc-cyan-rgb), 0.05), transparent 54%),
 		var(--fc-surface-card);
 }
 
@@ -1790,8 +1647,7 @@
 	.flashcard-deck-list .flashcard-deck-item:nth-last-child(1):nth-child(odd) {
 		grid-column: auto;
 		min-height: 176px;
-		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3)
-			var(--fc-space-8);
+		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3) var(--fc-space-8);
 	}
 
 	.flashcard-root .flashcard-deck-list button.flashcard-deck-drag-handle {
@@ -1804,15 +1660,10 @@
 	}
 
 	.flashcard-deck-item .flashcard-deck-actions2 {
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(
-				--fc-control-touch
-			);
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--fc-control-touch);
 	}
 
-	.flashcard-root
-		.flashcard-deck-item
-		.flashcard-deck-actions2
-		.flashcard-btn {
+	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
 		height: var(--fc-control-touch);
 		min-height: var(--fc-control-touch);
 	}
@@ -1878,33 +1729,21 @@
 }
 
 .flashcard-root
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):hover:not(:disabled):not([readonly]),
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]),
 .flashcard-settings-tab
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):hover:not(:disabled):not([readonly]) {
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]) {
 	border-color: var(--fc-line-strong);
 	background: var(--fc-input-bg-hover);
 }
 
 .flashcard-root
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):focus,
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus,
 .flashcard-settings-tab
-	:is(
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea,
-		select
-	):focus {
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus {
 	border-color: var(--fc-control-border-selected);
 	background: var(--fc-input-bg);
 	box-shadow: var(--fc-focus-ring);
@@ -1968,8 +1807,7 @@
 	box-shadow: none;
 }
 
-.flashcard-root
-	button.flashcard-btn.flashcard-deck-action-more:hover:not(:disabled),
+.flashcard-root button.flashcard-btn.flashcard-deck-action-more:hover:not(:disabled),
 .flashcard-root button.flashcard-btn.flashcard-deck-action-more:focus-visible {
 	border-color: var(--interactive-accent);
 	background: var(--fc-surface-hover);

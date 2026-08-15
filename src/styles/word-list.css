@@ -168,11 +168,7 @@
 	border: 1px solid rgba(var(--fc-magenta-rgb), 0.24);
 	border-radius: var(--fc-radius-sm);
 	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-magenta-rgb), 0.09),
-			transparent 42%
-		),
+		linear-gradient(135deg, rgba(var(--fc-magenta-rgb), 0.09), transparent 42%),
 		rgba(var(--fc-bg-panel-rgb), 0.74);
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);

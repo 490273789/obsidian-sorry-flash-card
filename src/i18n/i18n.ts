@@ -76,8 +76,7 @@ const translations = {
 		"identity.migrateNow": "开始迁移",
 		"identity.migrateAllNow": "一键迁移",
 		"identity.migrating": "迁移中…",
-		"identity.migrationPlanRefreshed":
-			"源文档刚刚发生变化，已刷新迁移方案，请再次确认",
+		"identity.migrationPlanRefreshed": "源文档刚刚发生变化，已刷新迁移方案，请再次确认",
 		"identity.oneClickMigrationTitle": "发现历史题库",
 		"identity.oneClickMigrationDescription":
 			"检测到 {sources} 个历史题库，共 {cards} 张卡片。迁移后即可直接编辑，学习进度不会丢失。",
@@ -86,13 +85,11 @@ const translations = {
 		"identity.migrationSourceMismatch":
 			"历史卡片与源文档顺序不一致，无法安全保留学习记录；请先检查题库内容",
 		"identity.previewExpired": "源文档已变化，请重新执行命令确认最新方案",
-		"identity.operationResumable":
-			"部分源文档仍在变化；进度已保存，下次同步会继续",
+		"identity.operationResumable": "部分源文档仍在变化；进度已保存，下次同步会继续",
 		"identity.operationFailed": "卡片身份操作失败：{message}",
 		"identity.noRepair": "没有需要人工修复的卡片身份问题",
 		"identity.repairTitle": "修复卡片身份",
-		"identity.repairDescription":
-			"为旧卡片身份选择真正的后继卡片；未选择表示该旧卡片已删除。",
+		"identity.repairDescription": "为旧卡片身份选择真正的后继卡片；未选择表示该旧卡片已删除。",
 		"identity.chooseSuccessor": "选择保留学习记录的卡片",
 		"identity.markDeleted": "旧卡片已删除",
 		"identity.applyRepair": "应用修复",
@@ -101,8 +98,7 @@ const translations = {
 		"identity.editNeedsMigration": "请先迁移该题库的卡片身份，再编辑卡片",
 		"identity.editNeedsRepair": "请先修复该题库的卡片身份问题，再编辑卡片",
 		"identity.sourceChanging": "源文档正在变化，请刷新后重试",
-		"identity.sessionEndedBySourceChange":
-			"题库源文档发生变化，本次会话已提前结束",
+		"identity.sessionEndedBySourceChange": "题库源文档发生变化，本次会话已提前结束",
 		"notice.deckEmpty": "该题库没有卡片，请先添加内容",
 		"notice.deckMissing": "题库不存在",
 		"notice.deckSettingsSaveFailed": "题库设置保存失败：{message}",
@@ -116,10 +112,8 @@ const translations = {
 		"notice.cardSaveFailed": "保存失败：{message}",
 		"notice.cardDeleteFailed": "删除失败：{message}",
 		"notice.pdfExportSaved": "PDF 已保存到：{filePath}",
-		"notice.pdfExportDesktopOnly":
-			"导出 PDF 文件目前仅支持 Obsidian 桌面端",
-		"notice.pdfExportRendering":
-			"正在准备 PDF：{completed}/{total}，仍可继续使用 Obsidian",
+		"notice.pdfExportDesktopOnly": "导出 PDF 文件目前仅支持 Obsidian 桌面端",
+		"notice.pdfExportRendering": "正在准备 PDF：{completed}/{total}，仍可继续使用 Obsidian",
 		"notice.pdfExportGenerating": "正在后台生成 PDF，可继续使用 Obsidian",
 		"notice.pdfExportFailed": "导出 PDF 失败：{message}",
 		"notice.pdfExportUnknownError": "未知错误",
@@ -146,8 +140,7 @@ const translations = {
 		"pronunciation.autoEnable": "开启自动发音",
 		"pronunciation.autoDisable": "关闭自动发音",
 		"pronunciation.offline": "当前离线，且没有这个词的本地缓存",
-		"pronunciation.notConfigured":
-			"当前设备没有可用的本地英语语音，请先配置在线发音",
+		"pronunciation.notConfigured": "当前设备没有可用的本地英语语音，请先配置在线发音",
 		"pronunciation.unauthorized": "在线发音密钥无效，请检查设置",
 		"pronunciation.quota": "在线发音请求过于频繁，请稍后再试",
 		"pronunciation.failed": "发音失败，请稍后重试",
@@ -184,8 +177,7 @@ const translations = {
 		"settings.languageZh": "中文",
 		"settings.languageEn": "English",
 		"settings.flashcardTagsName": "闪卡标签",
-		"settings.flashcardTagsDesc":
-			"每个标签代表一个题库，插件会扫描所有带有这些标签的文件",
+		"settings.flashcardTagsDesc": "每个标签代表一个题库，插件会扫描所有带有这些标签的文件",
 		"settings.flashcardTagPlaceholder": "#标签名",
 		"settings.addTag": "+ 添加标签",
 		"settings.refreshTags": "刷新",
@@ -196,13 +188,11 @@ const translations = {
 		"settings.noDiscoveredTags": "暂无可添加的标签",
 		"settings.discoveredTagsNotLoaded": "点击刷新扫描可用标签",
 		"settings.tagsRefreshed": "已刷新闪卡标签",
-		"settings.tagsRefreshedAndCleaned":
-			"已刷新闪卡标签，清理 {count} 个无效标签",
+		"settings.tagsRefreshedAndCleaned": "已刷新闪卡标签，清理 {count} 个无效标签",
 		"settings.tagsRefreshFailed": "刷新闪卡标签失败，请查看控制台",
 		"settings.delete": "删除",
 		"settings.scopeName": "作用范围",
-		"settings.scopeDesc":
-			"以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。",
+		"settings.scopeDesc": "以下设置作为所有题库的默认值，每个题库可在主界面单独覆盖。",
 		"settings.dailyNewName": "每日新卡数量",
 		"settings.dailyNewDesc": "每天学习的新卡片最大数量",
 		"settings.dailyReviewName": "每日复习数量",
@@ -231,8 +221,7 @@ const translations = {
 		"settings.pronunciationAzureChina": "中国区",
 		"settings.pronunciationAzureGlobal": "全球区",
 		"settings.pronunciationAzureRegionName": "Azure Region",
-		"settings.pronunciationAzureChinaRegionDesc":
-			"支持 chinaeast2、chinanorth2、chinanorth3。",
+		"settings.pronunciationAzureChinaRegionDesc": "支持 chinaeast2、chinanorth2、chinanorth3。",
 		"settings.pronunciationAzureGlobalRegionDesc":
 			"填写 Azure Speech 资源所在的全球 Region，例如 eastus。",
 		"settings.pronunciationAzureSecretName": "Azure Speech 密钥",
@@ -254,8 +243,7 @@ const translations = {
 		"settings.pronunciationTestNotConfigured": "请先选择并配置在线服务密钥",
 		"settings.pronunciationTestUnauthorized": "密钥无效或没有发音权限",
 		"settings.pronunciationTestQuota": "请求受限或额度不足，请稍后重试",
-		"settings.pronunciationTestFailed":
-			"在线发音测试失败，请检查 Region 和网络",
+		"settings.pronunciationTestFailed": "在线发音测试失败，请检查 Region 和网络",
 		"settings.pronunciationCacheName": "设备音频缓存",
 		"settings.pronunciationCacheDesc":
 			"云端音频仅缓存在当前设备的 IndexedDB 中，上限 100 MB，不写入题库、学习数据或 Vault。",
@@ -310,8 +298,7 @@ const translations = {
 		"home.studyModeTitle": "学习模式",
 		"home.practiceModeTitle": "刷题模式",
 		"home.spellingModeTitle": "单词拼写模式",
-		"home.spellingModeIgnoredTitle":
-			"开始单词拼写；{count} 张不合格卡片将被忽略",
+		"home.spellingModeIgnoredTitle": "开始单词拼写；{count} 张不合格卡片将被忽略",
 		"home.spellingUnavailableTitle":
 			"题库中没有可用的拼写词条，或题库身份尚未迁移，共 {count} 项待处理",
 		"home.wordLearningDeck": "单词题库",
@@ -335,12 +322,10 @@ const translations = {
 		"cardEditor.deckRequired": "请选择牌组",
 		"cardEditor.frontRequired": "正面不能为空",
 		"cardEditor.backRequired": "背面不能为空",
-		"cardEditor.markerReserved":
-			"内容中不能单独一行使用 ??、:: 或 ;;，这些是卡片结构标记",
+		"cardEditor.markerReserved": "内容中不能单独一行使用 ??、:: 或 ;;，这些是卡片结构标记",
 		"cardEditor.frontPlaceholder": "输入正面内容，支持 Markdown",
 		"cardEditor.backPlaceholder": "输入背面内容，支持 Markdown",
-		"cardEditor.explanationPlaceholder":
-			"输入解释内容，支持 Markdown；可以留空",
+		"cardEditor.explanationPlaceholder": "输入解释内容，支持 Markdown；可以留空",
 		"cardEditor.saveEdit": "保存修改",
 		"cardEditor.saveCreate": "保存题目",
 		"cardEditor.saving": "保存中...",
@@ -350,8 +335,7 @@ const translations = {
 		"cardEditor.deleteCurrentTitle": "删除当前题",
 		"cardEditor.showActions": "展开题目操作",
 		"cardEditor.hideActions": "收起题目操作",
-		"cardEditor.deleteConfirm":
-			"确定删除当前题目吗？这个操作会同步修改源文件。",
+		"cardEditor.deleteConfirm": "确定删除当前题目吗？这个操作会同步修改源文件。",
 		"cardEditor.deleteFailed": "删除失败",
 		"deckSettings.kicker": "个性化学习节奏",
 		"deckSettings.title": "{deckName} · 题库设置",
@@ -359,16 +343,14 @@ const translations = {
 		"deckSettings.usingGlobal": "使用全局默认设置",
 		"deckSettings.subtitle": "{totalCards} 张卡片，{mode}",
 		"deckSettings.useCustom": "使用自定义学习设置",
-		"deckSettings.useCustomCopy":
-			"为这个题库单独调整新卡节奏、复习容量和记忆目标。",
+		"deckSettings.useCustomCopy": "为这个题库单独调整新卡节奏、复习容量和记忆目标。",
 		"deckSettings.globalHint":
 			"当前使用全局默认设置：每日新卡 {dailyNewCards} 张，每日复习 {dailyReviewCards} 张，{studyOrder}。",
 		"deckSettings.estimatedDays": "预计完成时间 {days} 天。",
 		"deckSettings.completionPace": "预计完成节奏 - ",
 		"deckSettings.days": "{count} 天",
 		"deckSettings.daysUnit": "天",
-		"deckSettings.dailySummary":
-			"每日新卡 {dailyNewCards}，每日复习 {dailyReviewCards}",
+		"deckSettings.dailySummary": "每日新卡 {dailyNewCards}，每日复习 {dailyReviewCards}",
 		"deckSettings.dailyNewCards": "每日新卡数量",
 		"deckSettings.estimatedDaysLabel": "预计完成天数",
 		"deckSettings.totalCardsHint": "（共 {totalCards} 张卡片）",
@@ -386,8 +368,7 @@ const translations = {
 		"deckSettings.noEligibleSpellingCards":
 			"这 {count} 张卡片均不符合拼写规则；至少需要一个合格词条才能启用",
 		"deckSettings.invalidSpellingCard": "第 {index} 张：{front}",
-		"deckSettings.invalidSpellingCardsMore":
-			"另有 {count} 张，请打开源文件查看",
+		"deckSettings.invalidSpellingCardsMore": "另有 {count} 张，请打开源文件查看",
 		"study.title": "学习",
 		"study.studying": "学习中",
 		"study.exitTitle": "退出学习",
@@ -437,23 +418,20 @@ const translations = {
 		"practice.currentSelection": "当前选择",
 		"practice.scanRange": "本轮扫描范围",
 		"practice.chooseCount": "选择刷题方式",
-		"practice.chooseCountNote":
-			"可随机抽取指定题量，也可限定单词表范围后乱序练习",
+		"practice.chooseCountNote": "可随机抽取指定题量，也可限定单词表范围后乱序练习",
 		"practice.modeRandomCount": "随机题量",
 		"practice.modeRange": "单词范围",
 		"practice.customCount": "自定义数量:",
 		"practice.rangeStart": "从第",
 		"practice.rangeEnd": "到第",
 		"practice.challenge": "{count} 题刷题挑战",
-		"practice.actionSubtitle":
-			"系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。",
+		"practice.actionSubtitle": "系统将从题库中随机抽取题目，你可以在结束后回看成功率和失误项。",
 		"practice.rangeActionSubtitle":
 			"系统将抽取第 {start} 到第 {end} 个单词，并随机排序进入练习。",
 		"practice.startQuestions": "开始 · {count} 题",
 		"practice.practicing": "刷题中",
 		"practice.exitTitle": "退出刷题",
-		"practice.exitConfirm":
-			"确定退出本次刷题吗？已完成的答题记录会被保留。",
+		"practice.exitConfirm": "确定退出本次刷题吗？已完成的答题记录会被保留。",
 		"session.noRetryCards": "当前题库中已没有可重练的错题",
 		"practice.bad": "错误",
 		"practice.good": "正确",
@@ -462,8 +440,7 @@ const translations = {
 		"practice.completeFallback": "刷题完成！",
 		"practice.completePerfect": "本轮全对，状态很好",
 		"practice.completeWithErrors": "本轮完成，错题已整理好",
-		"practice.summaryDeck":
-			"{deckName} · 共 {totalQuestions} 题 · 用时 {time}",
+		"practice.summaryDeck": "{deckName} · 共 {totalQuestions} 题 · 用时 {time}",
 		"practice.accuracy": "正确率",
 		"practice.totalQuestions": "总题数: ",
 		"practice.correct": "正确: ",
@@ -487,14 +464,11 @@ const translations = {
 		"spelling.reinforcement": "待巩固",
 		"spelling.stable": "已稳定",
 		"spelling.chooseWords": "选择本轮词条",
-		"spelling.chooseWordsNote":
-			"智能模式会优先安排错词条、新词条和掌握较弱的词条",
+		"spelling.chooseWordsNote": "智能模式会优先安排错词条、新词条和掌握较弱的词条",
 		"spelling.rules": "拼写规则",
 		"spelling.challenge": "{count} 个词条拼写挑战",
-		"spelling.smartActionSubtitle":
-			"优先练习最近拼错、尚未练习和掌握较弱的词条。",
-		"spelling.rangeActionSubtitle":
-			"按源文件顺序选定范围，再随机进入拼写。",
+		"spelling.smartActionSubtitle": "优先练习最近拼错、尚未练习和掌握较弱的词条。",
+		"spelling.rangeActionSubtitle": "按源文件顺序选定范围，再随机进入拼写。",
 		"spelling.start": "开始 · {count} 个词条",
 		"spelling.correcting": "订正中",
 		"spelling.spelling": "拼写中",
@@ -514,8 +488,7 @@ const translations = {
 		"spelling.submit": "提交（Enter）",
 		"spelling.completePerfect": "本轮全部一次拼对",
 		"spelling.completeWithErrors": "本轮完成，拼错的词条已经订正",
-		"spelling.summaryDeck":
-			"{deckName} · 共 {totalWords} 个词条 · 用时 {time}",
+		"spelling.summaryDeck": "{deckName} · 共 {totalWords} 个词条 · 用时 {time}",
 		"spelling.firstTryAccuracy": "首答正确率",
 		"spelling.firstTryCorrect": "一次通过",
 		"spelling.firstTryIncorrect": "首答错误",
@@ -570,8 +543,7 @@ const translations = {
 		"main.commandRepairCardIdentities": "Repair card identity conflicts",
 		"main.viewTitle": "Flashcard Study",
 		"identity.syncCurrent": "Flashcard decks synchronized",
-		"identity.syncAttention":
-			"Decks synchronized, but card identity issues need attention",
+		"identity.syncAttention": "Decks synchronized, but card identity issues need attention",
 		"identity.syncFailed": "Deck synchronization failed: {message}",
 		"identity.syncConflictDetails":
 			"Deck import incomplete: multiple cards in {sources} share identity {identity} ({card}). Run “{command}” and refresh again.{more}",
@@ -593,8 +565,7 @@ const translations = {
 		"identity.oneClickMigrationDescription":
 			"Found {sources} legacy decks with {cards} cards. Migrate them to enable direct editing without losing learning progress.",
 		"identity.migrationApplied": "Card identity migration completed",
-		"identity.migrationBlocked":
-			"Finish the active study or practice session before migrating",
+		"identity.migrationBlocked": "Finish the active study or practice session before migrating",
 		"identity.migrationSourceMismatch":
 			"The legacy cards no longer match the source order, so learning history cannot be preserved safely. Check the deck content first.",
 		"identity.previewExpired":
@@ -606,25 +577,20 @@ const translations = {
 		"identity.repairTitle": "Repair card identities",
 		"identity.repairDescription":
 			"Choose the actual successor for each old identity. Leaving it unselected marks the old card as deleted.",
-		"identity.chooseSuccessor":
-			"Choose the card that keeps the learning history",
+		"identity.chooseSuccessor": "Choose the card that keeps the learning history",
 		"identity.markDeleted": "The old card was deleted",
 		"identity.applyRepair": "Apply repair",
 		"identity.duplicateAssignment":
 			"A candidate card cannot inherit more than one old identity",
 		"identity.repairApplied": "Card identity repair completed",
-		"identity.editNeedsMigration":
-			"Migrate this deck's card identities before editing cards",
-		"identity.editNeedsRepair":
-			"Repair this deck's card identity issue before editing cards",
-		"identity.sourceChanging":
-			"The source document changed. Refresh and try again.",
+		"identity.editNeedsMigration": "Migrate this deck's card identities before editing cards",
+		"identity.editNeedsRepair": "Repair this deck's card identity issue before editing cards",
+		"identity.sourceChanging": "The source document changed. Refresh and try again.",
 		"identity.sessionEndedBySourceChange":
 			"The deck source changed, so this session ended early",
 		"notice.deckEmpty": "This deck has no cards. Add content first.",
 		"notice.deckMissing": "Deck not found",
-		"notice.deckSettingsSaveFailed":
-			"Failed to save deck settings: {message}",
+		"notice.deckSettingsSaveFailed": "Failed to save deck settings: {message}",
 		"notice.todayComplete": "Today's study tasks are complete! 🎉",
 		"notice.sourceMissing": "Source file not found: {filePath}",
 		"notice.noDecks": "No available deck to add cards to",
@@ -665,14 +631,11 @@ const translations = {
 		"pronunciation.play": "Pronounce {word}",
 		"pronunciation.autoEnable": "Enable automatic pronunciation",
 		"pronunciation.autoDisable": "Disable automatic pronunciation",
-		"pronunciation.offline":
-			"You are offline and this word is not cached on this device",
+		"pronunciation.offline": "You are offline and this word is not cached on this device",
 		"pronunciation.notConfigured":
 			"No local English voice is available. Configure online pronunciation first.",
-		"pronunciation.unauthorized":
-			"The online pronunciation key is invalid. Check settings.",
-		"pronunciation.quota":
-			"Online pronunciation is rate-limited. Try again later.",
+		"pronunciation.unauthorized": "The online pronunciation key is invalid. Check settings.",
+		"pronunciation.quota": "Online pronunciation is rate-limited. Try again later.",
 		"pronunciation.failed": "Pronunciation failed. Try again later.",
 		"order.sequential": "Sequential",
 		"order.random": "Random",
@@ -681,8 +644,7 @@ const translations = {
 		"mode.reversed": "Reverse mode",
 		"mode.normalShort": "Normal",
 		"mode.reversedShort": "Reverse",
-		"mode.normalNote":
-			"Use the front as the prompt and the back as the answer.",
+		"mode.normalNote": "Use the front as the prompt and the back as the answer.",
 		"mode.reversedNote":
 			"Use the back as the prompt and the front as the answer. Explanation still appears with the answer.",
 		"ratings.again": "Forgot",
@@ -719,13 +681,11 @@ const translations = {
 		"settings.discoveredTagsName": "Discovered tags",
 		"settings.discoveredTagsDesc": "Click a tag to add it quickly",
 		"settings.noDiscoveredTags": "No tags available to add",
-		"settings.discoveredTagsNotLoaded":
-			"Click refresh to scan available tags",
+		"settings.discoveredTagsNotLoaded": "Click refresh to scan available tags",
 		"settings.tagsRefreshed": "Flashcard tags refreshed",
 		"settings.tagsRefreshedAndCleaned":
 			"Flashcard tags refreshed. Removed {count} invalid tags",
-		"settings.tagsRefreshFailed":
-			"Failed to refresh flashcard tags. Check the console",
+		"settings.tagsRefreshFailed": "Failed to refresh flashcard tags. Check the console",
 		"settings.delete": "Delete",
 		"settings.scopeName": "Scope",
 		"settings.scopeDesc":
@@ -776,14 +736,12 @@ const translations = {
 			"Sends the test word “hello” only when you click the button and may incur one provider charge.",
 		"settings.pronunciationTestButton": "Test pronunciation",
 		"settings.pronunciationTesting": "Testing…",
-		"settings.pronunciationTestSuccess":
-			"Online pronunciation is configured correctly",
+		"settings.pronunciationTestSuccess": "Online pronunciation is configured correctly",
 		"settings.pronunciationTestOffline":
 			"You are offline, so online pronunciation cannot be tested",
 		"settings.pronunciationTestNotConfigured":
 			"Select an online provider and configure its secret first",
-		"settings.pronunciationTestUnauthorized":
-			"The key is invalid or lacks speech permission",
+		"settings.pronunciationTestUnauthorized": "The key is invalid or lacks speech permission",
 		"settings.pronunciationTestQuota":
 			"The request is rate-limited or out of quota. Try later.",
 		"settings.pronunciationTestFailed":
@@ -796,8 +754,7 @@ const translations = {
 		"settings.pronunciationCacheClear": "Clear cache",
 		"settings.pronunciationCacheClearing": "Clearing…",
 		"settings.pronunciationCacheCleared": "Pronunciation cache cleared",
-		"settings.pronunciationCacheClearFailed":
-			"Failed to clear the pronunciation cache",
+		"settings.pronunciationCacheClearFailed": "Failed to clear the pronunciation cache",
 		"settings.pronunciationSaveFailed":
 			"Failed to save pronunciation settings. The previous settings were kept.",
 		"settings.pronunciationBusy":
@@ -875,8 +832,7 @@ const translations = {
 			"Content cannot contain ??, ::, or ;; on a line by itself because those are card structure markers",
 		"cardEditor.frontPlaceholder": "Enter the front, Markdown supported",
 		"cardEditor.backPlaceholder": "Enter the back, Markdown supported",
-		"cardEditor.explanationPlaceholder":
-			"Enter explanation, Markdown supported; optional",
+		"cardEditor.explanationPlaceholder": "Enter explanation, Markdown supported; optional",
 		"cardEditor.saveEdit": "Save changes",
 		"cardEditor.saveCreate": "Save card",
 		"cardEditor.saving": "Saving...",
@@ -886,8 +842,7 @@ const translations = {
 		"cardEditor.deleteCurrentTitle": "Delete current card",
 		"cardEditor.showActions": "Show card actions",
 		"cardEditor.hideActions": "Hide card actions",
-		"cardEditor.deleteConfirm":
-			"Delete the current card? This will update the source file.",
+		"cardEditor.deleteConfirm": "Delete the current card? This will update the source file.",
 		"cardEditor.deleteFailed": "Delete failed",
 		"deckSettings.kicker": "Personalized learning pace",
 		"deckSettings.title": "{deckName} · Deck Settings",
@@ -931,8 +886,7 @@ const translations = {
 		"study.complete": "Study complete!",
 		"study.duration": "Session duration: ",
 		"study.backToDeck": "Back to Deck",
-		"study.exitConfirm":
-			"Exit this study session? Completed progress will be kept.",
+		"study.exitConfirm": "Exit this study session? Completed progress will be kept.",
 		"study.totalDays": "Total Days",
 		"study.currentStage": "Current Stage",
 		"study.reviewStage": "Review Stage",
@@ -956,12 +910,10 @@ const translations = {
 		"study.startReviewStage": "Start Review Stage",
 		"study.readyToStart": "Ready to start {count} cards",
 		"study.tasksCompleted": "Today's tasks completed",
-		"study.reviewStageSubtitle":
-			"All study days are complete. Keep reviewing to consolidate.",
+		"study.reviewStageSubtitle": "All study days are complete. Keep reviewing to consolidate.",
 		"study.readySubtitle":
 			"Keep the pace and finish the current schedule before switching modes.",
-		"study.completedSubtitle":
-			"You can return later; the system keeps your progress.",
+		"study.completedSubtitle": "You can return later; the system keeps your progress.",
 		"study.startReview": "Start Review",
 		"study.startCards": "Start ({count} Cards)",
 		"study.tasksCompletedButton": "Today's tasks completed 🎉",
@@ -993,20 +945,16 @@ const translations = {
 		"practice.startQuestions": "Start · {count} Questions",
 		"practice.practicing": "Practice",
 		"practice.exitTitle": "Exit practice",
-		"practice.exitConfirm":
-			"Exit this practice session? Completed answers will be kept.",
-		"session.noRetryCards":
-			"No missed cards are still eligible for retry in the current decks",
+		"practice.exitConfirm": "Exit this practice session? Completed answers will be kept.",
+		"session.noRetryCards": "No missed cards are still eligible for retry in the current decks",
 		"practice.bad": "Bad",
 		"practice.good": "Good",
 		"practice.badShortcut": "(1 or X)",
 		"practice.goodShortcut": "(2 or O)",
 		"practice.completeFallback": "Practice complete!",
 		"practice.completePerfect": "Perfect round. Nicely done.",
-		"practice.completeWithErrors":
-			"Round complete. Review the missed cards.",
-		"practice.summaryDeck":
-			"{deckName} · {totalQuestions} questions · {time}",
+		"practice.completeWithErrors": "Round complete. Review the missed cards.",
+		"practice.summaryDeck": "{deckName} · {totalQuestions} questions · {time}",
 		"practice.accuracy": "Accuracy",
 		"practice.totalQuestions": "Total questions: ",
 		"practice.correct": "Correct: ",
@@ -1030,25 +978,19 @@ const translations = {
 		"spelling.reinforcement": "Needs practice",
 		"spelling.stable": "Stable",
 		"spelling.chooseWords": "Choose items",
-		"spelling.chooseWordsNote":
-			"Smart mode prioritizes missed, unseen, and weaker items",
+		"spelling.chooseWordsNote": "Smart mode prioritizes missed, unseen, and weaker items",
 		"spelling.rules": "Spelling rules",
 		"spelling.challenge": "{count}-item spelling challenge",
-		"spelling.smartActionSubtitle":
-			"Prioritize recently missed, unseen, and weaker items.",
-		"spelling.rangeActionSubtitle":
-			"Choose a source-file range, then shuffle it for spelling.",
+		"spelling.smartActionSubtitle": "Prioritize recently missed, unseen, and weaker items.",
+		"spelling.rangeActionSubtitle": "Choose a source-file range, then shuffle it for spelling.",
 		"spelling.start": "Start · {count} items",
 		"spelling.correcting": "Correcting",
 		"spelling.spelling": "Spelling",
 		"spelling.exitTitle": "Exit spelling",
-		"spelling.exitConfirm":
-			"Exit this spelling session? Completed word progress will be kept.",
-		"spelling.meaningPrompt":
-			"Spell the English word or phrase from this meaning",
+		"spelling.exitConfirm": "Exit this spelling session? Completed word progress will be kept.",
+		"spelling.meaningPrompt": "Spell the English word or phrase from this meaning",
 		"spelling.incorrect": "Not quite. Complete the correction.",
-		"spelling.correctionIncorrect":
-			"Still not correct. Retype the complete answer.",
+		"spelling.correctionIncorrect": "Still not correct. Retype the complete answer.",
 		"spelling.yourInput": "Your input",
 		"spelling.noAnswer": "No answer",
 		"spelling.correctAnswer": "Correct answer",
@@ -1059,8 +1001,7 @@ const translations = {
 		"spelling.confirmCorrection": "Confirm correction",
 		"spelling.submit": "Submit (Enter)",
 		"spelling.completePerfect": "Every item was correct on the first try",
-		"spelling.completeWithErrors":
-			"Round complete. Missed items were corrected.",
+		"spelling.completeWithErrors": "Round complete. Missed items were corrected.",
 		"spelling.summaryDeck": "{deckName} · {totalWords} items · {time}",
 		"spelling.firstTryAccuracy": "First-try accuracy",
 		"spelling.firstTryCorrect": "First-try correct",
@@ -1070,14 +1011,10 @@ const translations = {
 		"spelling.retryIncorrect": "Retry missed items ({count})",
 		"spelling.chooseAgain": "Choose items again",
 		"spelling.firstInput": "First input",
-		"spelling.deckNotEnabled":
-			"Enable word spelling in this deck's settings first",
-		"spelling.deckInvalid":
-			"This deck has no eligible English words or phrases",
-		"spelling.dayInvalid":
-			"This day has no eligible English words or phrases",
-		"spelling.identityRequired":
-			"Migrate this deck to stable card identities first",
+		"spelling.deckNotEnabled": "Enable word spelling in this deck's settings first",
+		"spelling.deckInvalid": "This deck has no eligible English words or phrases",
+		"spelling.dayInvalid": "This day has no eligible English words or phrases",
+		"spelling.identityRequired": "Migrate this deck to stable card identities first",
 		"wordList.firstColumn": "First column",
 		"wordList.secondColumn": "Second column",
 		"wordList.thirdColumn": "Third column",
@@ -1100,8 +1037,7 @@ const translations = {
 		"stats.totalDuration": "Total Duration",
 		"stats.totalCards": "Total Cards",
 		"stats.noRecords": "No study records",
-		"stats.noRecordsHint":
-			"After completing a study session, the data will be displayed here",
+		"stats.noRecordsHint": "After completing a study session, the data will be displayed here",
 		"stats.today": "today",
 		"stats.yesterday": "yesterday",
 		"stats.monthDay": "{month}/{day}",
@@ -1137,8 +1073,7 @@ export function translate(
 }
 
 export function createTranslator(language: Language) {
-	return (key: TranslationKey, vars?: TranslationVars) =>
-		translate(language, key, vars);
+	return (key: TranslationKey, vars?: TranslationVars) => translate(language, key, vars);
 }
 
 export function getDefaultPracticeMessages(language: Language): {
@@ -1152,10 +1087,7 @@ export function getDefaultPracticeMessages(language: Language): {
 	};
 }
 
-export function formatCompactDuration(
-	language: Language,
-	seconds: number,
-): string {
+export function formatCompactDuration(language: Language, seconds: number): string {
 	const t = createTranslator(language);
 	if (seconds < 60) return t("time.seconds", { count: seconds });
 	const minutes = Math.floor(seconds / 60);
@@ -1230,10 +1162,7 @@ export function getLocalizedRatingButtons(language: Language): RatingButton[] {
 	];
 }
 
-export function formatStudyOrder(
-	language: Language,
-	studyOrder: "sequential" | "random",
-): string {
+export function formatStudyOrder(language: Language, studyOrder: "sequential" | "random"): string {
 	const t = createTranslator(language);
 	return studyOrder === "random" ? t("order.random") : t("order.sequential");
 }

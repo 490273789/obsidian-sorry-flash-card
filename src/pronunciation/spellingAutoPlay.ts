@@ -46,12 +46,10 @@ export async function waitForSpellingPronunciation(
 	});
 	const speaking = Promise.resolve()
 		.then(() => runtime.speak(text, "auto"))
-		.catch(
-			(): PronunciationOutcome => ({
-				status: "failed",
-				reason: "playback",
-			}),
-		);
+		.catch((): PronunciationOutcome => ({
+			status: "failed",
+			reason: "playback",
+		}));
 	const outcome = await Promise.race([speaking, timedOutcome]);
 	if (timeout !== null) globalThis.clearTimeout(timeout);
 

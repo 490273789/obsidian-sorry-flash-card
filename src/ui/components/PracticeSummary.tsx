@@ -1,18 +1,6 @@
 import React, { memo, useMemo } from "react";
-import {
-	FileText,
-	Check,
-	X,
-	Timer,
-	CircleCheck,
-	CircleX,
-	RotateCw,
-	House,
-} from "lucide-react";
-import type {
-	PracticeResultSnapshot,
-	SessionCardSnapshot,
-} from "../../sessions/sessionLifecycle";
+import { FileText, Check, X, Timer, CircleCheck, CircleX, RotateCw, House } from "lucide-react";
+import type { PracticeResultSnapshot, SessionCardSnapshot } from "../../sessions/sessionLifecycle";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { MarkdownContent } from "./MarkdownContent";
@@ -55,25 +43,16 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 
 	return (
 		<div className="flashcard-practice-summary">
-			<FlashcardHeader
-				icon={CircleCheck}
-				title={t("practice.title")}
-				onBack={onHome}
-			/>
+			<FlashcardHeader icon={CircleCheck} title={t("practice.title")} onBack={onHome} />
 
 			<div className="flashcard-practice-summary-scroll">
 				<div className="flashcard-practice-summary-header">
-					<div className="flashcard-practice-summary-title">
-						{completionMessage}
-					</div>
+					<div className="flashcard-practice-summary-title">{completionMessage}</div>
 					<div className="flashcard-practice-summary-deck">
 						{t("practice.summaryDeck", {
 							deckName: result.originDeck.name,
 							totalQuestions: result.totalQuestions,
-							time: formatCompactDuration(
-								language,
-								result.timeSpent,
-							),
+							time: formatCompactDuration(language, result.timeSpent),
 						})}
 					</div>
 				</div>
@@ -125,12 +104,7 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 							</span>
 							<span className="flashcard-practice-stat-text">
 								{t("practice.timeSpent")}
-								<strong>
-									{formatCompactDuration(
-										language,
-										result.timeSpent,
-									)}
-								</strong>
+								<strong>{formatCompactDuration(language, result.timeSpent)}</strong>
 							</span>
 						</div>
 					</div>
@@ -160,12 +134,7 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 			</div>
 
 			<div className="flashcard-practice-summary-actions">
-				<FlashcardButton
-					variant="green"
-					icon={RotateCw}
-					iconSize={14}
-					onClick={onRestart}
-				>
+				<FlashcardButton variant="green" icon={RotateCw} iconSize={14} onClick={onRestart}>
 					{t("practice.restart")}
 				</FlashcardButton>
 				{result.incorrectCount > 0 && (
@@ -180,12 +149,7 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 						})}
 					</FlashcardButton>
 				)}
-				<FlashcardButton
-					variant="blue"
-					icon={House}
-					iconSize={14}
-					onClick={onHome}
-				>
+				<FlashcardButton variant="blue" icon={House} iconSize={14} onClick={onHome}>
 					{t("practice.home")}
 				</FlashcardButton>
 			</div>

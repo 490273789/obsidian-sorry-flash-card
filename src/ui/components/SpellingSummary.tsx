@@ -1,13 +1,5 @@
 import React, { memo } from "react";
-import {
-	Check,
-	CircleX,
-	House,
-	Keyboard,
-	RotateCw,
-	Target,
-	Timer,
-} from "lucide-react";
+import { Check, CircleX, House, Keyboard, RotateCw, Target, Timer } from "lucide-react";
 import type {
 	SpellingIncorrectCardSnapshot,
 	SpellingResultSnapshot,
@@ -38,11 +30,7 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 
 	return (
 		<div className="flashcard-practice-summary flashcard-spelling-summary">
-			<FlashcardHeader
-				icon={Keyboard}
-				title={t("spelling.title")}
-				onBack={onHome}
-			/>
+			<FlashcardHeader icon={Keyboard} title={t("spelling.title")} onBack={onHome} />
 			<div className="flashcard-practice-summary-scroll">
 				<div className="flashcard-practice-summary-header">
 					<div className="flashcard-practice-summary-title">
@@ -54,10 +42,7 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 						{t("spelling.summaryDeck", {
 							deckName: result.originDeck.name,
 							totalWords: result.totalWords,
-							time: formatCompactDuration(
-								language,
-								result.timeSpent,
-							),
+							time: formatCompactDuration(language, result.timeSpent),
 						})}
 					</div>
 				</div>
@@ -90,10 +75,7 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 						<SummaryStat
 							icon={Timer}
 							label={t("practice.timeSpent")}
-							value={formatCompactDuration(
-								language,
-								result.timeSpent,
-							)}
+							value={formatCompactDuration(language, result.timeSpent)}
 						/>
 					</div>
 				</div>
@@ -122,21 +104,13 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 
 			<div className="flashcard-practice-summary-actions">
 				{incorrectCards.length > 0 && (
-					<FlashcardButton
-						variant="red"
-						icon={CircleX}
-						onClick={onRetryIncorrect}
-					>
+					<FlashcardButton variant="red" icon={CircleX} onClick={onRetryIncorrect}>
 						{t("spelling.retryIncorrect", {
 							count: incorrectCards.length,
 						})}
 					</FlashcardButton>
 				)}
-				<FlashcardButton
-					variant="green"
-					icon={RotateCw}
-					onClick={onRestart}
-				>
+				<FlashcardButton variant="green" icon={RotateCw} onClick={onRestart}>
 					{t("spelling.chooseAgain")}
 				</FlashcardButton>
 				<FlashcardButton variant="blue" icon={House} onClick={onHome}>
@@ -195,12 +169,10 @@ const IncorrectSpellingItem = memo(function IncorrectSpellingItem({
 				</div>
 				<div className="flashcard-spelling-summary-answer-row">
 					<span>
-						{t("spelling.firstInput")}:{" "}
-						<strong>{card.firstInput || "—"}</strong>
+						{t("spelling.firstInput")}: <strong>{card.firstInput || "—"}</strong>
 					</span>
 					<span>
-						{t("spelling.correctAnswer")}:{" "}
-						<strong>{card.expectedAnswer}</strong>
+						{t("spelling.correctAnswer")}: <strong>{card.expectedAnswer}</strong>
 					</span>
 				</div>
 			</div>
