@@ -6,7 +6,7 @@
 	margin: 0;
 	padding: var(--fc-space-2) var(--fc-space-3);
 	border: 1px solid var(--fc-input-border);
-	border-radius: var(--fc-radius-control);
+	border-radius: var(--fc-radius-sm);
 	background: var(--fc-input-bg);
 	box-shadow: none;
 	color: var(--fc-text);
@@ -139,7 +139,7 @@
 	gap: var(--fc-space-1);
 	padding: var(--fc-space-2);
 	border: 1px solid var(--fc-line-strong);
-	border-radius: var(--fc-radius-control);
+	border-radius: var(--fc-radius-sm);
 	background: var(--fc-surface-raised);
 	box-shadow: var(--fc-shadow-popover);
 	animation: var(--fc-motion-fade-in);
@@ -186,4 +186,82 @@
 .flashcard-menu-item:disabled {
 	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
+}
+
+/* Shared form controls: keep the field boundary visible before interaction. */
+.flashcard-root
+	:is(
+		input:not(
+			[type="checkbox"],
+			[type="radio"],
+			[type="range"],
+			[type="color"],
+			[type="file"],
+			[type="button"],
+			[type="submit"],
+			[type="reset"],
+			[type="hidden"]
+		),
+		textarea,
+		select
+	),
+.flashcard-settings-tab
+	:is(
+		input:not(
+			[type="checkbox"],
+			[type="radio"],
+			[type="range"],
+			[type="color"],
+			[type="file"],
+			[type="button"],
+			[type="submit"],
+			[type="reset"],
+			[type="hidden"]
+		),
+		textarea,
+		select
+	) {
+	border: 1px solid var(--fc-input-border);
+	background: var(--fc-input-bg);
+	color: var(--fc-text);
+	caret-color: var(--fc-cyan);
+	box-shadow: none;
+	transition:
+		border-color var(--fc-motion-quick) ease,
+		background var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+}
+
+.flashcard-root
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]),
+.flashcard-settings-tab
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):hover:not(
+		:disabled
+	):not([readonly]) {
+	border-color: var(--fc-line-strong);
+	background: var(--fc-input-bg-hover);
+}
+
+.flashcard-root
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus,
+.flashcard-settings-tab
+	:is(input:not([type="checkbox"], [type="radio"], [type="range"]), textarea, select):focus {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-input-bg);
+	outline: none;
+}
+
+.flashcard-root :is(input, textarea)::placeholder,
+.flashcard-settings-tab :is(input, textarea)::placeholder {
+	color: var(--fc-faint);
+	opacity: 1;
+}
+
+.flashcard-root :is(input, textarea, select):disabled,
+.flashcard-settings-tab :is(input, textarea, select):disabled {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-section);
+	opacity: var(--fc-opacity-disabled);
 }

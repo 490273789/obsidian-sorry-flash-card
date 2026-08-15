@@ -200,3 +200,133 @@
 	font-size: var(--fc-font-xs);
 	font-family: var(--fc-font-data);
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * Editorial button treatment: neutral surfaces, no glow or
+ * gradient fills. Kept as a trailing override layer so the
+ * legacy cyber rules above stay inert.
+ * ───────────────────────────────────────────────────────────── */
+
+.flashcard-btn-show::after {
+	display: none;
+}
+
+.flashcard-btn,
+.flashcard-root button.flashcard-btn,
+.flashcard-root .flashcard-btn {
+	border-color: var(--fc-control-border);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-control-bg);
+	background-color: var(--fc-control-bg);
+	box-shadow: none;
+	color: var(--fc-text);
+	font-weight: var(--fc-weight-medium);
+}
+
+.flashcard-btn:hover:not(:disabled),
+.flashcard-btn:focus-visible,
+.flashcard-root button.flashcard-btn:hover:not(:disabled),
+.flashcard-root button.flashcard-btn:focus-visible {
+	/* border-color: var(--fc-line-strong); */
+	background:
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.1), transparent 72%),
+		var(--fc-control-bg-hover);
+}
+
+.flashcard-btn:active:not(:disabled) {
+	transform: translateY(1px);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-icon,
+.flashcard-root button.flashcard-btn-prev,
+.flashcard-root button.flashcard-btn-gray {
+	border-color: var(--fc-line);
+	background: transparent;
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-danger {
+	border-color: rgba(var(--fc-red-rgb), 0.36);
+	background: rgba(var(--fc-red-rgb), 0.08);
+	color: var(--fc-red);
+}
+
+.flashcard-root button.flashcard-btn-purple,
+.flashcard-root button.flashcard-btn-orange,
+.flashcard-root button.flashcard-btn-red {
+	background: var(--fc-surface-section);
+	box-shadow: none;
+}
+
+.flashcard-btn.active,
+.flashcard-btn[aria-pressed="true"] {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-surface-selected);
+	color: var(--fc-text);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 24%, transparent);
+	animation: none;
+}
+
+/* Previous / icon buttons get touch-sized targets with a quiet border. */
+.flashcard-root button.flashcard-btn-prev {
+	width: var(--fc-control-touch);
+	height: var(--fc-control-touch);
+	min-width: var(--fc-control-touch);
+	min-height: var(--fc-control-touch);
+	border-color: transparent;
+	border-radius: var(--fc-radius-sm);
+	background: transparent;
+	background-color: transparent;
+	color: var(--fc-muted);
+	box-shadow: none;
+}
+
+.flashcard-root button.flashcard-btn-prev:hover:not(:disabled),
+.flashcard-root button.flashcard-btn-prev:focus-visible {
+	border-color: var(--fc-line);
+	background: var(--fc-surface-hover);
+	background-color: var(--fc-surface-hover);
+	color: var(--fc-text);
+	box-shadow: none;
+}
+
+/* Compact actions keep a visible boundary even when their background is transparent. */
+.flashcard-root
+	button:is(.flashcard-btn-prev, .flashcard-menu-trigger, .flashcard-deck-action-more) {
+	border: 1px solid var(--fc-compact-control-border);
+	background: color-mix(in srgb, var(--fc-surface-control) 34%, transparent);
+	box-shadow: none;
+}
+
+/* Icon-only preset buttons drop the border; the surface background marks the hit area. */
+.flashcard-root button.flashcard-btn-icon {
+	border: none;
+	background: var(--fc-surface-control);
+	box-shadow: none;
+}
+
+.flashcard-root
+	button:is(
+		.flashcard-btn-icon,
+		.flashcard-btn-prev,
+		.flashcard-menu-trigger,
+		.flashcard-deck-action-more
+	):hover:not(:disabled),
+.flashcard-root
+	button:is(
+		.flashcard-btn-icon,
+		.flashcard-btn-prev,
+		.flashcard-menu-trigger,
+		.flashcard-deck-action-more
+	):focus-visible {
+	border-color: var(--interactive-accent);
+	background: var(--fc-surface-hover);
+}
+
+/* Borderless icon buttons show focus with a ring instead of a border change. */
+.flashcard-root button.flashcard-btn-icon:focus-visible {
+	border-color: transparent;
+	box-shadow: 0 0 0 2px rgba(var(--fc-cyan-rgb), 0.24);
+}

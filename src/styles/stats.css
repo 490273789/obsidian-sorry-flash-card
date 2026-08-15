@@ -103,3 +103,37 @@
 	border-radius: var(--fc-radius-pill);
 	background: rgba(var(--fc-bg-panel-rgb), 0.56);
 }
+
+/* Editorial treatment for shared session surfaces. */
+.flashcard-timer,
+.flashcard-stats-range,
+.flashcard-stats-session-cards,
+.flashcard-stats-session-dur {
+	border-color: color-mix(in srgb, var(--interactive-accent) 28%, var(--fc-line));
+	background: color-mix(in srgb, var(--interactive-accent) 8%, var(--fc-surface-card));
+	color: var(--fc-cyan);
+	box-shadow: none;
+}
+
+.flashcard-practice-stat-card,
+.flashcard-practice-stat-item,
+.flashcard-practice-incorrect-item,
+.flashcard-stats-session,
+.flashcard-identity-migration-card,
+.theme-light .flashcard-practice-stat-card,
+.theme-light .flashcard-practice-stat-item,
+.theme-light .flashcard-practice-incorrect-item,
+.theme-light .flashcard-stats-session,
+.theme-light .flashcard-identity-migration-card {
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-section);
+	box-shadow: none;
+}
+
+.flashcard-stats-session.stats-mode-study,
+.flashcard-stats-session.stats-mode-practice,
+.flashcard-stats-session.stats-mode-spelling,
+.flashcard-stats-session.stats-mode-list {
+	border-left-width: 3px;
+}

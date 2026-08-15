@@ -178,3 +178,16 @@
 	font-size: var(--fc-font-md);
 	line-height: var(--fc-line-reading);
 }
+
+.flashcard-word-list-toolbar,
+.theme-light .flashcard-word-list-toolbar {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-card);
+}
+.flashcard-root button.flashcard-word-cell,
+.theme-light .flashcard-root button.flashcard-word-cell {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-section);
+}

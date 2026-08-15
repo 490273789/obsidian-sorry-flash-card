@@ -525,3 +525,88 @@
 	padding-left: var(--fc-space-5);
 	color: var(--fc-muted);
 }
+
+/* Remaining views, overlays and settings share the same neutral surfaces. */
+.flashcard-practice-summary-actions,
+.flashcard-practice-summary-stats,
+.flashcard-practice-incorrect-section,
+.flashcard-stats-day,
+.flashcard-empty,
+.flashcard-complete,
+.flashcard-modal,
+.flashcard-deck-settings-card,
+.flashcard-deck-settings-summary,
+.flashcard-card-editor-field,
+.flashcard-help,
+.theme-light .flashcard-practice-summary-actions,
+.theme-light .flashcard-practice-summary-stats,
+.theme-light .flashcard-practice-incorrect-section,
+.theme-light .flashcard-stats-day,
+.theme-light .flashcard-empty,
+.theme-light .flashcard-complete,
+.theme-light .flashcard-modal,
+.theme-light .flashcard-deck-settings-card,
+.theme-light .flashcard-deck-settings-summary,
+.theme-light .flashcard-card-editor-field,
+.theme-light .flashcard-help {
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+.flashcard-modal-backdrop,
+.flashcard-confirm-backdrop {
+	background: rgba(var(--fc-black-rgb), 0.72);
+	backdrop-filter: blur(8px);
+}
+.flashcard-modal {
+	border-radius: var(--fc-radius-md);
+	box-shadow: var(--fc-shadow-overlay);
+}
+.flashcard-modal-header,
+.flashcard-modal-footer {
+	background: var(--fc-surface-section);
+}
+.flashcard-card-editor-modal .flashcard-card-editor-field {
+	padding: 0 0 var(--fc-space-3);
+	border: 0;
+	border-bottom: 1px solid var(--fc-line);
+	border-radius: 0;
+	background: transparent;
+}
+.flashcard-confirm-accent {
+	display: none;
+}
+.flashcard-card-editor-field select,
+.flashcard-card-editor-field textarea,
+.flashcard-deck-settings-field input,
+.flashcard-deck-settings-field select,
+.flashcard-practice-input,
+.flashcard-spelling-input-group .flashcard-control {
+	border-color: var(--fc-input-border);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-input-bg);
+	color: var(--fc-text);
+}
+
+.flashcard-settings-tab .setting-item {
+	border-color: var(--fc-line);
+}
+.flashcard-settings-tab .setting-item-heading,
+.flashcard-settings-tab .flashcard-help {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
+
+.flashcard-settings-tab .setting-item:not(.setting-item-heading) {
+	border-radius: var(--fc-radius-sm);
+}
+
+.flashcard-settings-tab button,
+.flashcard-settings-tab input,
+.flashcard-settings-tab select,
+.flashcard-settings-tab textarea {
+	border-radius: var(--fc-radius-sm);
+}

@@ -26,11 +26,9 @@
 	--fc-radius-md: 8px;
 	--fc-radius-lg: 12px;
 	--fc-radius-pill: 999px;
-	--fc-radius-control: var(--fc-radius-sm);
-	--fc-radius-surface: var(--fc-radius-md);
 
 	--fc-space-half: 2px;
-	--fc-space-1: 4px;
+	--fc-space-1: 6px;
 	--fc-space-2: 8px;
 	--fc-space-3: 10px;
 	--fc-space-4: 14px;
@@ -303,9 +301,11 @@
 
 .fc-lift {
 	transition: var(--fc-transition-lift);
+	transform: none;
 }
 
 .fc-lift:hover {
 	border-color: rgba(var(--fc-cyan-rgb), 0.38);
 	box-shadow: var(--fc-glow-cyan);
+	transform: none;
 }

@@ -336,3 +336,13 @@
 		font-size: var(--fc-font-lg);
 	}
 }
+
+.flashcard-practice-summary-header,
+.flashcard-spelling-feedback,
+.theme-light .flashcard-practice-summary-header,
+.theme-light .flashcard-spelling-feedback {
+	border-color: var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-card);
+	box-shadow: none;
+}
