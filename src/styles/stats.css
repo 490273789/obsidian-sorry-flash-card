@@ -41,7 +41,7 @@
 	align-items: center;
 	padding: var(--fc-space-3);
 	border: 0;
-	border-top: 1px solid rgba(139, 159, 181, 0.16);
+	border-top: 1px solid var(--fc-line-soft);
 	border-left: 3px solid transparent;
 	border-radius: 0;
 	background: transparent;
@@ -99,7 +99,7 @@
 	align-items: center;
 	min-height: 24px;
 	padding: var(--fc-space-1) var(--fc-space-2);
-	border: 1px solid rgba(139, 159, 181, 0.16);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-pill);
 	background: rgba(var(--fc-bg-panel-rgb), 0.56);
 }

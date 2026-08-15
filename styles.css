@@ -49,22 +49,12 @@
 	--fc-header-height: 48px;
 	--fc-home-header-max-width: 1280px;
 
-	--fc-bg-elevated: var(--background-primary);
-	--fc-bg-panel: color-mix(
-		in srgb,
-		var(--background-secondary) 58%,
-		var(--background-primary) 42%
-	);
-	--fc-bg-panel-soft: var(--interactive-normal);
-	--fc-line: color-mix(in srgb, var(--background-modifier-border) 70%, var(--text-muted) 30%);
-	--fc-line-strong: color-mix(
-		in srgb,
-		var(--background-modifier-border-focus) 60%,
-		var(--interactive-accent) 40%
-	);
+	/* ── 文本层级 ───────────────────────────────────────────── */
 	--fc-text: var(--text-normal);
 	--fc-muted: var(--text-muted);
 	--fc-faint: var(--text-faint);
+
+	/* ── 语义状态色（主色=青，危险=红；其余为无语义调色板）────────── */
 	--fc-cyan: var(--interactive-accent);
 	--fc-blue: var(--color-blue);
 	--fc-magenta: var(--color-pink);
@@ -76,23 +66,21 @@
 	--fc-primary: var(--fc-cyan);
 	--fc-danger: var(--fc-red);
 
-	--fc-bg-rgb: var(--mono-rgb-0);
-	--fc-bg-elevated-rgb: var(--mono-rgb-0);
-	--fc-bg-panel-rgb: var(--mono-rgb-0);
-	--fc-cyan-rgb: var(--interactive-accent-rgb);
-	--fc-blue-rgb: var(--color-blue-rgb);
-	--fc-magenta-rgb: var(--color-pink-rgb);
-	--fc-violet-rgb: var(--color-purple-rgb);
-	--fc-lime-rgb: var(--color-green-rgb);
-	--fc-amber-rgb: var(--color-yellow-rgb);
-	--fc-red-rgb: var(--color-red-rgb);
-	--fc-orange-rgb: var(--color-orange-rgb);
-	--fc-black-rgb: var(--mono-rgb-0);
+	/* ── 表面层级（画布 → 区块 → 卡片 → 浮层 → 控件）───────────── */
+	--fc-bg-elevated: var(--background-primary);
+	--fc-bg-panel: color-mix(
+		in srgb,
+		var(--background-secondary) 58%,
+		var(--background-primary) 42%
+	);
+	--fc-bg-panel-soft: var(--interactive-normal);
 	--fc-surface-canvas: var(--background-secondary);
 	--fc-surface-card: var(--background-primary);
 	--fc-surface-section: var(--fc-bg-panel);
 	--fc-surface-raised: color-mix(in srgb, var(--background-primary) 92%, var(--text-normal) 8%);
 	--fc-surface-control: var(--interactive-normal);
+
+	/* ── 交互状态表面（hover / 选中）与禁用透明度 ───────────────── */
 	--fc-surface-hover: color-mix(
 		in srgb,
 		var(--interactive-accent) 12%,
@@ -104,6 +92,21 @@
 		var(--background-primary) 78%
 	);
 	--fc-surface-complete: rgba(var(--fc-lime-rgb), 0.1);
+	/* 禁用态统一用透明度表达，不再单独定义禁用表面色 */
+	--fc-opacity-disabled: 0.45;
+
+	/* ── 边框与分隔线 ────────────────────────────────────────── */
+	--fc-line: color-mix(in srgb, var(--background-modifier-border) 70%, var(--text-muted) 30%);
+	--fc-line-strong: color-mix(
+		in srgb,
+		var(--background-modifier-border-focus) 60%,
+		var(--interactive-accent) 40%
+	);
+	/* 弱分隔线：替换历史硬编码 rgba(139,159,181,α)，随主题自适应 */
+	--fc-line-soft: color-mix(in srgb, var(--background-modifier-border) 60%, transparent);
+	--fc-line-faint: color-mix(in srgb, var(--background-modifier-border) 34%, transparent);
+
+	/* ── 控件表面与边框 ──────────────────────────────────────── */
 	--fc-control-bg: var(--fc-surface-control);
 	--fc-control-bg-hover: var(--fc-surface-hover);
 	--fc-control-border: color-mix(
@@ -111,6 +114,7 @@
 		var(--background-modifier-border-hover) 72%,
 		var(--text-muted) 28%
 	);
+	--fc-control-border-hover: color-mix(in srgb, var(--interactive-accent) 30%, var(--fc-line));
 	--fc-control-border-selected: color-mix(
 		in srgb,
 		var(--interactive-accent) 78%,
@@ -121,6 +125,8 @@
 		var(--text-muted) 68%,
 		var(--interactive-accent) 32%
 	);
+
+	/* ── 输入框 ─────────────────────────────────────────────── */
 	--fc-input-bg: color-mix(
 		in srgb,
 		var(--background-primary) 96%,
@@ -133,12 +139,34 @@
 		var(--text-muted) 42%
 	);
 	--fc-input-border-focus: var(--fc-control-border-selected);
+
+	/* ── 首页主操作（学习 / 刷题）────────────────────────────── */
 	--fc-action-study-start: var(--interactive-accent);
 	--fc-action-study-end: var(--interactive-accent-hover);
 	--fc-action-study-text: var(--text-on-accent);
 	--fc-action-practice-start: var(--fc-control-bg);
 	--fc-action-practice-end: var(--fc-control-bg-hover);
 	--fc-action-practice-text: var(--text-normal);
+
+	/* ── RGB 通道（仅用于 rgba() 半透明 tint）──────────────────── */
+	--fc-bg-rgb: var(--mono-rgb-0);
+	--fc-bg-elevated-rgb: var(--mono-rgb-0);
+	--fc-bg-panel-rgb: var(--mono-rgb-0);
+	--fc-cyan-rgb: var(--interactive-accent-rgb);
+	--fc-blue-rgb: var(--color-blue-rgb);
+	--fc-magenta-rgb: var(--color-pink-rgb);
+	--fc-violet-rgb: var(--color-purple-rgb);
+	--fc-lime-rgb: var(--color-green-rgb);
+	--fc-amber-rgb: var(--color-yellow-rgb);
+	--fc-red-rgb: var(--color-red-rgb);
+	--fc-orange-rgb: var(--color-orange-rgb);
+	/* 固定纯黑/纯白，不随主题翻转：黑用于阴影与遮罩，白用于高光 sheen */
+	--fc-black-rgb: 0, 0, 0;
+	--fc-white-rgb: 255, 255, 255;
+
+	/* ── 遮罩（backdrop scrim）──────────────────────────────── */
+	--fc-overlay: rgba(var(--fc-black-rgb), 0.74);
+	--fc-overlay-heavy: rgba(var(--fc-black-rgb), 0.76);
 
 	--fc-font-ui:
 		ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -191,6 +219,11 @@
 	--fc-motion-modal-in: fc-modal-in 240ms var(--fc-ease-out) both;
 	--fc-motion-sheen: none;
 	--fc-motion-spin: fc-spin 1s linear infinite;
+	--obsidian-tools-home-page-canvas: color-mix(
+		in srgb,
+		var(--background-primary) 97%,
+		var(--obsidian-tools-home-page-accent) 3%
+	);
 
 	font-family: var(--fc-font-ui);
 	font-size: var(--fc-font-md);
@@ -322,7 +355,7 @@
 }
 
 .flashcard-btn:disabled {
-	opacity: 0.45;
+	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
 	transform: none;
 	box-shadow: none;
@@ -454,7 +487,7 @@
 	background: linear-gradient(
 		110deg,
 		transparent 0 40%,
-		rgba(255, 255, 255, 0.32) 50%,
+		rgba(var(--fc-white-rgb), 0.32) 50%,
 		transparent 60% 100%
 	);
 	transform: translateX(-120%);
@@ -502,7 +535,7 @@
 }
 
 .flashcard-control:disabled {
-	opacity: 0.5;
+	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
 }
 
@@ -541,7 +574,7 @@
 }
 
 .flashcard-select:disabled + .flashcard-select-icon {
-	opacity: 0.5;
+	opacity: var(--fc-opacity-disabled);
 }
 
 /* Button size and semantic variants. */
@@ -661,7 +694,7 @@
 
 .flashcard-menu-item:hover:not(:disabled),
 .flashcard-menu-item:focus-visible {
-	border-color: color-mix(in srgb, var(--interactive-accent) 30%, var(--fc-line));
+	border-color: var(--fc-control-border-hover);
 	background: var(--fc-surface-hover);
 	box-shadow: none;
 	outline: none;
@@ -672,7 +705,7 @@
 }
 
 .flashcard-menu-item:disabled {
-	opacity: 0.45;
+	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
 }
 /* Page shells and headers */
@@ -1027,7 +1060,7 @@
 }
 
 .flashcard-root button.flashcard-deck-drag-handle:disabled {
-	opacity: 0.45;
+	opacity: var(--fc-opacity-disabled);
 	cursor: wait;
 }
 
@@ -1195,7 +1228,7 @@
 
 .flashcard-practice-stat-item,
 .flashcard-practice-stat-card {
-	border: 1px solid rgba(139, 159, 181, 0.18);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-panel-rgb), 0.78);
 	transition: var(--fc-transition-lift);
@@ -1236,7 +1269,7 @@
 	border-color: rgba(var(--fc-lime-rgb), 0.62);
 	background: linear-gradient(135deg, var(--fc-action-study-start), var(--fc-action-study-end));
 	color: var(--fc-action-study-text);
-	box-shadow: inset 0 1px 0 rgba(220, 255, 246, 0.16);
+	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.16);
 }
 
 .flashcard-root button.flashcard-deck-action-practice {
@@ -1247,14 +1280,14 @@
 		var(--fc-action-practice-end)
 	);
 	color: var(--fc-action-practice-text);
-	box-shadow: inset 0 1px 0 rgba(225, 248, 255, 0.16);
+	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.16);
 }
 
 .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
 .flashcard-root button.flashcard-deck-action-study:focus-visible {
 	border-color: var(--fc-lime);
 	box-shadow:
-		inset 0 1px 0 rgba(232, 255, 249, 0.24),
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.24),
 		var(--fc-focus-ring),
 		0 8px 20px rgba(var(--fc-lime-rgb), 0.18);
 }
@@ -1263,7 +1296,7 @@
 .flashcard-root button.flashcard-deck-action-practice:focus-visible {
 	border-color: var(--fc-blue);
 	box-shadow:
-		inset 0 1px 0 rgba(232, 249, 255, 0.24),
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.24),
 		var(--fc-focus-ring),
 		0 8px 20px rgba(var(--fc-blue-rgb), 0.18);
 }
@@ -1406,7 +1439,7 @@
 	justify-content: space-between;
 	gap: var(--fc-space-3);
 	padding: var(--fc-space-2);
-	border: 1px solid rgba(139, 159, 181, 0.18);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-panel-rgb), 0.74);
 	animation: var(--fc-motion-rise);
@@ -1497,7 +1530,7 @@
 	align-items: center;
 	gap: var(--fc-space-3);
 	padding: var(--fc-space-3);
-	border: 1px solid rgba(139, 159, 181, 0.18);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-panel-rgb), 0.74);
 }
@@ -1548,8 +1581,8 @@
 		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 42%),
 		rgba(var(--fc-bg-elevated-rgb), 0.34);
 	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.025),
-		0 8px 22px rgba(0, 0, 0, 0.06);
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.025),
+		0 8px 22px rgba(var(--fc-black-rgb), 0.06);
 }
 
 .flashcard-study-hero .flashcard-deck-tag {
@@ -1576,7 +1609,7 @@
 .flashcard-study-day-item {
 	min-height: 52px;
 	padding: var(--fc-space-2) var(--fc-space-4);
-	border: 1px solid rgba(139, 159, 181, 0.2);
+	border: 1px solid var(--fc-line-soft);
 	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.38);
 	border-radius: var(--fc-radius-sm);
 	background:
@@ -1661,7 +1694,7 @@
 	background:
 		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 34%),
 		rgba(var(--fc-bg-panel-rgb), 0.7);
-	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+	box-shadow: 0 8px 20px rgba(var(--fc-black-rgb), 0.12);
 }
 
 .flashcard-study-day-item.current.fc-lift:hover {
@@ -1670,7 +1703,7 @@
 		rgba(var(--fc-bg-panel-rgb), 0.78);
 	box-shadow:
 		inset 3px 0 0 var(--fc-cyan),
-		0 8px 20px rgba(0, 0, 0, 0.12);
+		0 8px 20px rgba(var(--fc-black-rgb), 0.12);
 }
 
 .flashcard-study-day-item.completed.fc-lift:hover {
@@ -1682,7 +1715,7 @@
 .flashcard-deck-settings-field {
 	padding: var(--fc-space-3) 0;
 	border: 0;
-	border-bottom: 1px solid rgba(139, 159, 181, 0.16);
+	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0;
 	background: transparent;
 }
@@ -1697,8 +1730,8 @@
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 44%),
 		rgba(var(--fc-bg-elevated-rgb), 0.64);
 	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.025),
-		0 12px 28px rgba(0, 0, 0, 0.12);
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.025),
+		0 12px 28px rgba(var(--fc-black-rgb), 0.12);
 }
 
 .flashcard-setup-control-group {
@@ -1715,7 +1748,7 @@
 }
 
 .flashcard-setup-control-group + .flashcard-setup-control-group {
-	border-top: 1px solid rgba(139, 159, 181, 0.14);
+	border-top: 1px solid var(--fc-line-faint);
 }
 
 .flashcard-setup-control-copy {
@@ -1724,7 +1757,7 @@
 	gap: var(--fc-space-3);
 	min-width: 0;
 	padding: var(--fc-space-1) var(--fc-space-5) var(--fc-space-1) 0;
-	border-right: 1px solid rgba(139, 159, 181, 0.12);
+	border-right: 1px solid var(--fc-line-faint);
 }
 
 .flashcard-setup-control-icon {
@@ -1740,7 +1773,7 @@
 	color: var(--fc-cyan);
 	box-shadow:
 		inset 0 0 12px rgba(var(--fc-cyan-rgb), 0.04),
-		0 4px 12px rgba(0, 0, 0, 0.08);
+		0 4px 12px rgba(var(--fc-black-rgb), 0.08);
 }
 
 .flashcard-setup-control-text,
@@ -1832,14 +1865,14 @@
 	flex-direction: column;
 	gap: var(--fc-space-3);
 	padding-top: var(--fc-space-3);
-	border-top: 1px solid rgba(139, 159, 181, 0.12);
+	border-top: 1px solid var(--fc-line-faint);
 	animation: var(--fc-motion-fade-in);
 }
 
 .flashcard-root button.flashcard-setup-chip {
 	min-height: var(--fc-control-sm);
 	padding: var(--fc-space-1) var(--fc-space-2);
-	border-color: rgba(139, 159, 181, 0.16);
+	border-color: var(--fc-line-soft);
 	background: rgba(var(--fc-bg-panel-rgb), 0.48);
 	color: var(--fc-muted);
 	font-family: var(--fc-font-data);
@@ -1896,7 +1929,7 @@
 
 .flashcard-study-day-section > .flashcard-study-panel-heading {
 	padding-bottom: var(--fc-space-3);
-	border-bottom: 1px solid rgba(139, 159, 181, 0.14);
+	border-bottom: 1px solid var(--fc-line-faint);
 }
 
 .flashcard-study-action-bar {
@@ -1907,9 +1940,9 @@
 		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 40%),
 		rgba(var(--fc-bg-elevated-rgb), 0.92);
 	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.03),
-		0 -8px 24px rgba(0, 0, 0, 0.12),
-		0 10px 26px rgba(0, 0, 0, 0.08);
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.03),
+		0 -8px 24px rgba(var(--fc-black-rgb), 0.12),
+		0 10px 26px rgba(var(--fc-black-rgb), 0.08);
 }
 
 /* Active study/practice card view */
@@ -2079,7 +2112,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-white-rgb), 0.42), transparent);
 	animation: var(--fc-motion-progress-scan);
 }
 
@@ -2205,7 +2238,7 @@
 	border-top: 1px solid var(--fc-line);
 	border-radius: 0;
 	background: rgba(var(--fc-bg-elevated-rgb), 0.94);
-	box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 -8px 20px rgba(var(--fc-black-rgb), 0.1);
 	backdrop-filter: blur(14px);
 }
 
@@ -2244,7 +2277,7 @@
 	padding: var(--fc-space-1) var(--fc-space-3);
 	border-color: rgba(var(--fc-cyan-rgb), 0.16);
 	background:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent),
+		linear-gradient(180deg, rgba(var(--fc-white-rgb), 0.025), transparent),
 		rgba(var(--fc-bg-panel-rgb), 0.86);
 }
 
@@ -2472,7 +2505,7 @@
 	align-items: center;
 	justify-content: center;
 	padding: var(--fc-space-4);
-	border: 1px solid rgba(139, 159, 181, 0.2);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-md);
 	background: rgba(var(--fc-bg-panel-rgb), 0.82);
 	color: var(--fc-text);
@@ -2891,7 +2924,7 @@
 	border-left-width: 3px;
 	border-radius: var(--fc-radius-md);
 	background: rgba(var(--fc-bg-panel-rgb), 0.62);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 8px 24px rgba(var(--fc-black-rgb), 0.08);
 	animation: var(--fc-motion-answer);
 }
 
@@ -3039,7 +3072,7 @@
 
 .theme-light .flashcard-spelling-input-group input,
 .theme-light .flashcard-spelling-diff {
-	background: rgba(241, 246, 251, 0.94);
+	background: color-mix(in srgb, var(--fc-cyan) 3%, var(--background-primary) 97%);
 	color: var(--fc-text);
 }
 
@@ -3047,14 +3080,14 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.52);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.05), transparent 52%),
-		rgba(247, 251, 254, 0.98);
+		color-mix(in srgb, var(--fc-cyan) 2%, var(--background-primary) 98%);
 	box-shadow: 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.1);
 }
 
 .theme-light .flashcard-root .flashcard-spelling-input-group input:focus {
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 52%),
-		rgba(250, 253, 255, 0.98);
+		color-mix(in srgb, var(--fc-cyan) 1%, var(--background-primary) 99%);
 }
 
 @media (max-width: 640px) {
@@ -3104,8 +3137,8 @@
 		rgba(var(--fc-bg-elevated-rgb), 0.52);
 	color: var(--fc-cyan);
 	box-shadow:
-		inset 0 0 0 1px rgba(255, 255, 255, 0.025),
-		0 4px 12px rgba(0, 0, 0, 0.1);
+		inset 0 0 0 1px rgba(var(--fc-white-rgb), 0.025),
+		0 4px 12px rgba(var(--fc-black-rgb), 0.1);
 	cursor: pointer;
 	transition:
 		transform var(--fc-motion-quick) ease,
@@ -3215,7 +3248,7 @@
 	align-items: center;
 	padding: var(--fc-space-3);
 	border: 0;
-	border-top: 1px solid rgba(139, 159, 181, 0.16);
+	border-top: 1px solid var(--fc-line-soft);
 	border-left: 3px solid transparent;
 	border-radius: 0;
 	background: transparent;
@@ -3273,7 +3306,7 @@
 	align-items: center;
 	min-height: 24px;
 	padding: var(--fc-space-1) var(--fc-space-2);
-	border: 1px solid rgba(139, 159, 181, 0.16);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-pill);
 	background: rgba(var(--fc-bg-panel-rgb), 0.56);
 }
@@ -3325,8 +3358,7 @@
 	padding: var(--fc-space-4);
 	overflow-y: auto;
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%),
-		rgba(0, 0, 0, 0.74);
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%), var(--fc-overlay);
 	backdrop-filter: blur(14px);
 	animation: var(--fc-motion-fade-in);
 }
@@ -3422,7 +3454,7 @@
 
 .flashcard-modal-close:disabled {
 	cursor: not-allowed;
-	opacity: 0.52;
+	opacity: var(--fc-opacity-disabled);
 }
 
 .flashcard-modal-body {
@@ -3436,7 +3468,7 @@
 .flashcard-deck-settings-summary {
 	padding: var(--fc-space-3);
 	border: 0;
-	border-bottom: 1px solid rgba(139, 159, 181, 0.18);
+	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0;
 	background: transparent;
 }
@@ -3524,7 +3556,7 @@
 	gap: var(--fc-space-2);
 	padding: 0 0 var(--fc-space-3);
 	border: 0;
-	border-bottom: 1px solid rgba(139, 159, 181, 0.18);
+	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0;
 	background: transparent;
 }
@@ -3572,7 +3604,7 @@
 .flashcard-confirm-backdrop {
 	background:
 		radial-gradient(circle at 50% 46%, rgba(var(--fc-cyan-rgb), 0.12), transparent 30%),
-		rgba(0, 0, 0, 0.76);
+		var(--fc-overlay-heavy);
 }
 
 .flashcard-confirm-dialog {
@@ -3584,7 +3616,7 @@
 		radial-gradient(circle at 12% 0%, rgba(var(--fc-confirm-rgb), 0.1), transparent 36%),
 		var(--fc-bg-elevated);
 	box-shadow:
-		0 30px 90px rgba(0, 0, 0, 0.58),
+		0 30px 90px rgba(var(--fc-black-rgb), 0.58),
 		0 0 0 1px rgba(var(--fc-confirm-rgb), 0.08),
 		0 0 38px rgba(var(--fc-confirm-rgb), 0.13);
 }
@@ -3697,7 +3729,7 @@
 
 .flashcard-settings-tab .setting-item {
 	padding: var(--fc-space-4);
-	border-top-color: rgba(139, 159, 181, 0.18);
+	border-top-color: var(--fc-line-soft);
 }
 
 .flashcard-settings-tab .setting-item-heading {
@@ -3770,7 +3802,7 @@
 .flashcard-help {
 	margin-top: var(--fc-space-3);
 	padding: var(--fc-space-4);
-	border: 1px solid rgba(139, 159, 181, 0.18);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-md);
 	background: rgba(var(--fc-bg-elevated-rgb), 0.82);
 }
@@ -4250,7 +4282,7 @@
 	.flashcard-setup-control-copy {
 		padding: 0 0 var(--fc-space-3);
 		border-right: 0;
-		border-bottom: 1px solid rgba(139, 159, 181, 0.12);
+		border-bottom: 1px solid var(--fc-line-faint);
 	}
 
 	.flashcard-setup-control-icon {
@@ -6172,7 +6204,7 @@
 .flashcard-settings-tab :is(input, textarea, select):disabled {
 	border-color: var(--fc-line);
 	background: var(--fc-surface-section);
-	opacity: 0.56;
+	opacity: var(--fc-opacity-disabled);
 }
 
 /* Compact actions keep a visible boundary even when their background is transparent. */

@@ -95,7 +95,7 @@
 	align-items: center;
 	justify-content: center;
 	padding: var(--fc-space-4);
-	border: 1px solid rgba(139, 159, 181, 0.2);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-md);
 	background: rgba(var(--fc-bg-panel-rgb), 0.82);
 	color: var(--fc-text);

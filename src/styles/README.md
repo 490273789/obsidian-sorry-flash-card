@@ -54,6 +54,8 @@
 - 大型弹窗：`--fc-radius-lg`（18px）。
 - 胶囊：`--fc-radius-pill`。
 - 普通边框统一为 1px；当前项、问答卡等状态强调边可使用 3px。
+- 分隔线使用 `--fc-line`（普通）、`--fc-line-soft`（弱分隔）与 `--fc-line-faint`（更弱分隔），强调边框使用 `--fc-line-strong`；组件不得再使用硬编码的分隔线颜色（如 `rgba(139,159,181,α)`）。
+- 遮罩（backdrop scrim）使用 `--fc-overlay`（普通弹窗）与 `--fc-overlay-heavy`（重确认弹窗），两者都从固定的 `--fc-black-rgb` 派生。
 - `--fc-surface-canvas`：页面画布，继承 `--background-secondary`。
 - `--fc-surface-section`：页面内的大区块，位于画布与卡片之间。
 - `--fc-surface-card`：主要内容卡片，继承 `--background-primary`。
@@ -68,6 +70,13 @@
 - 普通文字使用 `--fc-text`，次要信息使用 `--fc-muted`，弱提示使用 `--fc-faint`。不得通过随机彩色文字区分无状态含义的数据。
 - 首页学习与刷题主操作分别使用 `--fc-action-study-*` 和 `--fc-action-practice-*`；其他按钮默认保持中性，仅在激活、危险或明确状态时使用语义色。
 - 暗色和亮色主题的普通文字对背景需达到 WCAG AA 4.5:1；新增配色时应保持对比度达标，并在 Obsidian 中检查亮/暗主题。
+
+### 交互状态与遮罩
+
+- hover 表面统一使用 `--fc-surface-hover`，选中态使用 `--fc-surface-selected`；控件边框 hover 使用 `--fc-control-border-hover`，选中边框使用 `--fc-control-border-selected`。
+- 禁用态统一用 `--fc-opacity-disabled`（0.45）表达，不单独定义禁用表面色或边框色。
+- 按下（`:active`）态通过轻微缩放与辉光表达，不改变背景色；键盘焦点统一使用 `--fc-focus-ring`。
+- `--fc-black-rgb` 固定为纯黑（用于阴影与遮罩），`--fc-white-rgb` 固定为纯白（用于高光 sheen 与顶部高光），两者不随主题翻转；其余带 `-rgb` 后缀的通道 token 仅用于 `rgba()` 半透明 tint。
 
 ## 组件规则
 

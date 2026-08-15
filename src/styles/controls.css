@@ -31,7 +31,7 @@
 }
 
 .flashcard-control:disabled {
-	opacity: 0.5;
+	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .flashcard-select:disabled + .flashcard-select-icon {
-	opacity: 0.5;
+	opacity: var(--fc-opacity-disabled);
 }
 
 /* Button size and semantic variants. */
@@ -190,7 +190,7 @@
 
 .flashcard-menu-item:hover:not(:disabled),
 .flashcard-menu-item:focus-visible {
-	border-color: color-mix(in srgb, var(--interactive-accent) 30%, var(--fc-line));
+	border-color: var(--fc-control-border-hover);
 	background: var(--fc-surface-hover);
 	box-shadow: none;
 	outline: none;
@@ -201,6 +201,6 @@
 }
 
 .flashcard-menu-item:disabled {
-	opacity: 0.45;
+	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
 }

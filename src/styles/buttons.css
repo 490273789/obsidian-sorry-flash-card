@@ -43,7 +43,7 @@
 }
 
 .flashcard-btn:disabled {
-	opacity: 0.45;
+	opacity: var(--fc-opacity-disabled);
 	cursor: not-allowed;
 	transform: none;
 	box-shadow: none;
@@ -175,7 +175,7 @@
 	background: linear-gradient(
 		110deg,
 		transparent 0 40%,
-		rgba(255, 255, 255, 0.32) 50%,
+		rgba(var(--fc-white-rgb), 0.32) 50%,
 		transparent 60% 100%
 	);
 	transform: translateX(-120%);

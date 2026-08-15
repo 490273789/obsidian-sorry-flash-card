@@ -1563,7 +1563,7 @@
 .flashcard-settings-tab :is(input, textarea, select):disabled {
 	border-color: var(--fc-line);
 	background: var(--fc-surface-section);
-	opacity: 0.56;
+	opacity: var(--fc-opacity-disabled);
 }
 
 /* Compact actions keep a visible boundary even when their background is transparent. */

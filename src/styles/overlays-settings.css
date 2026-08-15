@@ -46,8 +46,7 @@
 	padding: var(--fc-space-4);
 	overflow-y: auto;
 	background:
-		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%),
-		rgba(0, 0, 0, 0.74);
+		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%), var(--fc-overlay);
 	backdrop-filter: blur(14px);
 	animation: var(--fc-motion-fade-in);
 }
@@ -143,7 +142,7 @@
 
 .flashcard-modal-close:disabled {
 	cursor: not-allowed;
-	opacity: 0.52;
+	opacity: var(--fc-opacity-disabled);
 }
 
 .flashcard-modal-body {
@@ -157,7 +156,7 @@
 .flashcard-deck-settings-summary {
 	padding: var(--fc-space-3);
 	border: 0;
-	border-bottom: 1px solid rgba(139, 159, 181, 0.18);
+	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0;
 	background: transparent;
 }
@@ -245,7 +244,7 @@
 	gap: var(--fc-space-2);
 	padding: 0 0 var(--fc-space-3);
 	border: 0;
-	border-bottom: 1px solid rgba(139, 159, 181, 0.18);
+	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0;
 	background: transparent;
 }
@@ -293,7 +292,7 @@
 .flashcard-confirm-backdrop {
 	background:
 		radial-gradient(circle at 50% 46%, rgba(var(--fc-cyan-rgb), 0.12), transparent 30%),
-		rgba(0, 0, 0, 0.76);
+		var(--fc-overlay-heavy);
 }
 
 .flashcard-confirm-dialog {
@@ -305,7 +304,7 @@
 		radial-gradient(circle at 12% 0%, rgba(var(--fc-confirm-rgb), 0.1), transparent 36%),
 		var(--fc-bg-elevated);
 	box-shadow:
-		0 30px 90px rgba(0, 0, 0, 0.58),
+		0 30px 90px rgba(var(--fc-black-rgb), 0.58),
 		0 0 0 1px rgba(var(--fc-confirm-rgb), 0.08),
 		0 0 38px rgba(var(--fc-confirm-rgb), 0.13);
 }
@@ -418,7 +417,7 @@
 
 .flashcard-settings-tab .setting-item {
 	padding: var(--fc-space-4);
-	border-top-color: rgba(139, 159, 181, 0.18);
+	border-top-color: var(--fc-line-soft);
 }
 
 .flashcard-settings-tab .setting-item-heading {
@@ -491,7 +490,7 @@
 .flashcard-help {
 	margin-top: var(--fc-space-3);
 	padding: var(--fc-space-4);
-	border: 1px solid rgba(139, 159, 181, 0.18);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-md);
 	background: rgba(var(--fc-bg-elevated-rgb), 0.82);
 }

@@ -45,22 +45,12 @@
 	--fc-header-height: 48px;
 	--fc-home-header-max-width: 1280px;
 
-	--fc-bg-elevated: var(--background-primary);
-	--fc-bg-panel: color-mix(
-		in srgb,
-		var(--background-secondary) 58%,
-		var(--background-primary) 42%
-	);
-	--fc-bg-panel-soft: var(--interactive-normal);
-	--fc-line: color-mix(in srgb, var(--background-modifier-border) 70%, var(--text-muted) 30%);
-	--fc-line-strong: color-mix(
-		in srgb,
-		var(--background-modifier-border-focus) 60%,
-		var(--interactive-accent) 40%
-	);
+	/* ── 文本层级 ───────────────────────────────────────────── */
 	--fc-text: var(--text-normal);
 	--fc-muted: var(--text-muted);
 	--fc-faint: var(--text-faint);
+
+	/* ── 语义状态色（主色=青，危险=红；其余为无语义调色板）────────── */
 	--fc-cyan: var(--interactive-accent);
 	--fc-blue: var(--color-blue);
 	--fc-magenta: var(--color-pink);
@@ -72,23 +62,21 @@
 	--fc-primary: var(--fc-cyan);
 	--fc-danger: var(--fc-red);
 
-	--fc-bg-rgb: var(--mono-rgb-0);
-	--fc-bg-elevated-rgb: var(--mono-rgb-0);
-	--fc-bg-panel-rgb: var(--mono-rgb-0);
-	--fc-cyan-rgb: var(--interactive-accent-rgb);
-	--fc-blue-rgb: var(--color-blue-rgb);
-	--fc-magenta-rgb: var(--color-pink-rgb);
-	--fc-violet-rgb: var(--color-purple-rgb);
-	--fc-lime-rgb: var(--color-green-rgb);
-	--fc-amber-rgb: var(--color-yellow-rgb);
-	--fc-red-rgb: var(--color-red-rgb);
-	--fc-orange-rgb: var(--color-orange-rgb);
-	--fc-black-rgb: var(--mono-rgb-0);
+	/* ── 表面层级（画布 → 区块 → 卡片 → 浮层 → 控件）───────────── */
+	--fc-bg-elevated: var(--background-primary);
+	--fc-bg-panel: color-mix(
+		in srgb,
+		var(--background-secondary) 58%,
+		var(--background-primary) 42%
+	);
+	--fc-bg-panel-soft: var(--interactive-normal);
 	--fc-surface-canvas: var(--background-secondary);
 	--fc-surface-card: var(--background-primary);
 	--fc-surface-section: var(--fc-bg-panel);
 	--fc-surface-raised: color-mix(in srgb, var(--background-primary) 92%, var(--text-normal) 8%);
 	--fc-surface-control: var(--interactive-normal);
+
+	/* ── 交互状态表面（hover / 选中）与禁用透明度 ───────────────── */
 	--fc-surface-hover: color-mix(
 		in srgb,
 		var(--interactive-accent) 12%,
@@ -100,6 +88,21 @@
 		var(--background-primary) 78%
 	);
 	--fc-surface-complete: rgba(var(--fc-lime-rgb), 0.1);
+	/* 禁用态统一用透明度表达，不再单独定义禁用表面色 */
+	--fc-opacity-disabled: 0.45;
+
+	/* ── 边框与分隔线 ────────────────────────────────────────── */
+	--fc-line: color-mix(in srgb, var(--background-modifier-border) 70%, var(--text-muted) 30%);
+	--fc-line-strong: color-mix(
+		in srgb,
+		var(--background-modifier-border-focus) 60%,
+		var(--interactive-accent) 40%
+	);
+	/* 弱分隔线：替换历史硬编码 rgba(139,159,181,α)，随主题自适应 */
+	--fc-line-soft: color-mix(in srgb, var(--background-modifier-border) 60%, transparent);
+	--fc-line-faint: color-mix(in srgb, var(--background-modifier-border) 34%, transparent);
+
+	/* ── 控件表面与边框 ──────────────────────────────────────── */
 	--fc-control-bg: var(--fc-surface-control);
 	--fc-control-bg-hover: var(--fc-surface-hover);
 	--fc-control-border: color-mix(
@@ -107,6 +110,7 @@
 		var(--background-modifier-border-hover) 72%,
 		var(--text-muted) 28%
 	);
+	--fc-control-border-hover: color-mix(in srgb, var(--interactive-accent) 30%, var(--fc-line));
 	--fc-control-border-selected: color-mix(
 		in srgb,
 		var(--interactive-accent) 78%,
@@ -117,6 +121,8 @@
 		var(--text-muted) 68%,
 		var(--interactive-accent) 32%
 	);
+
+	/* ── 输入框 ─────────────────────────────────────────────── */
 	--fc-input-bg: color-mix(
 		in srgb,
 		var(--background-primary) 96%,
@@ -129,12 +135,34 @@
 		var(--text-muted) 42%
 	);
 	--fc-input-border-focus: var(--fc-control-border-selected);
+
+	/* ── 首页主操作（学习 / 刷题）────────────────────────────── */
 	--fc-action-study-start: var(--interactive-accent);
 	--fc-action-study-end: var(--interactive-accent-hover);
 	--fc-action-study-text: var(--text-on-accent);
 	--fc-action-practice-start: var(--fc-control-bg);
 	--fc-action-practice-end: var(--fc-control-bg-hover);
 	--fc-action-practice-text: var(--text-normal);
+
+	/* ── RGB 通道（仅用于 rgba() 半透明 tint）──────────────────── */
+	--fc-bg-rgb: var(--mono-rgb-0);
+	--fc-bg-elevated-rgb: var(--mono-rgb-0);
+	--fc-bg-panel-rgb: var(--mono-rgb-0);
+	--fc-cyan-rgb: var(--interactive-accent-rgb);
+	--fc-blue-rgb: var(--color-blue-rgb);
+	--fc-magenta-rgb: var(--color-pink-rgb);
+	--fc-violet-rgb: var(--color-purple-rgb);
+	--fc-lime-rgb: var(--color-green-rgb);
+	--fc-amber-rgb: var(--color-yellow-rgb);
+	--fc-red-rgb: var(--color-red-rgb);
+	--fc-orange-rgb: var(--color-orange-rgb);
+	/* 固定纯黑/纯白，不随主题翻转：黑用于阴影与遮罩，白用于高光 sheen */
+	--fc-black-rgb: 0, 0, 0;
+	--fc-white-rgb: 255, 255, 255;
+
+	/* ── 遮罩（backdrop scrim）──────────────────────────────── */
+	--fc-overlay: rgba(var(--fc-black-rgb), 0.74);
+	--fc-overlay-heavy: rgba(var(--fc-black-rgb), 0.76);
 
 	--fc-font-ui:
 		ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -187,6 +215,11 @@
 	--fc-motion-modal-in: fc-modal-in 240ms var(--fc-ease-out) both;
 	--fc-motion-sheen: none;
 	--fc-motion-spin: fc-spin 1s linear infinite;
+	--obsidian-tools-home-page-canvas: color-mix(
+		in srgb,
+		var(--background-primary) 97%,
+		var(--obsidian-tools-home-page-accent) 3%
+	);
 
 	font-family: var(--fc-font-ui);
 	font-size: var(--fc-font-md);

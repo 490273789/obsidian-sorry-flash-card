@@ -151,7 +151,7 @@
 	border-left-width: 3px;
 	border-radius: var(--fc-radius-md);
 	background: rgba(var(--fc-bg-panel-rgb), 0.62);
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+	box-shadow: 0 8px 24px rgba(var(--fc-black-rgb), 0.08);
 	animation: var(--fc-motion-answer);
 }
 
@@ -299,7 +299,7 @@
 
 .theme-light .flashcard-spelling-input-group input,
 .theme-light .flashcard-spelling-diff {
-	background: rgba(241, 246, 251, 0.94);
+	background: color-mix(in srgb, var(--fc-cyan) 3%, var(--background-primary) 97%);
 	color: var(--fc-text);
 }
 
@@ -307,14 +307,14 @@
 	border-color: rgba(var(--fc-cyan-rgb), 0.52);
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.05), transparent 52%),
-		rgba(247, 251, 254, 0.98);
+		color-mix(in srgb, var(--fc-cyan) 2%, var(--background-primary) 98%);
 	box-shadow: 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.1);
 }
 
 .theme-light .flashcard-root .flashcard-spelling-input-group input:focus {
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 52%),
-		rgba(250, 253, 255, 0.98);
+		color-mix(in srgb, var(--fc-cyan) 1%, var(--background-primary) 99%);
 }
 
 @media (max-width: 640px) {

@@ -119,7 +119,7 @@
 	justify-content: space-between;
 	gap: var(--fc-space-3);
 	padding: var(--fc-space-2);
-	border: 1px solid rgba(139, 159, 181, 0.18);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-panel-rgb), 0.74);
 	animation: var(--fc-motion-rise);
@@ -210,7 +210,7 @@
 	align-items: center;
 	gap: var(--fc-space-3);
 	padding: var(--fc-space-3);
-	border: 1px solid rgba(139, 159, 181, 0.18);
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-sm);
 	background: rgba(var(--fc-bg-panel-rgb), 0.74);
 }
@@ -261,8 +261,8 @@
 		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.07), transparent 42%),
 		rgba(var(--fc-bg-elevated-rgb), 0.34);
 	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.025),
-		0 8px 22px rgba(0, 0, 0, 0.06);
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.025),
+		0 8px 22px rgba(var(--fc-black-rgb), 0.06);
 }
 
 .flashcard-study-hero .flashcard-deck-tag {
@@ -289,7 +289,7 @@
 .flashcard-study-day-item {
 	min-height: 52px;
 	padding: var(--fc-space-2) var(--fc-space-4);
-	border: 1px solid rgba(139, 159, 181, 0.2);
+	border: 1px solid var(--fc-line-soft);
 	border-left: 3px solid rgba(var(--fc-cyan-rgb), 0.38);
 	border-radius: var(--fc-radius-sm);
 	background:
@@ -374,7 +374,7 @@
 	background:
 		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.08), transparent 34%),
 		rgba(var(--fc-bg-panel-rgb), 0.7);
-	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+	box-shadow: 0 8px 20px rgba(var(--fc-black-rgb), 0.12);
 }
 
 .flashcard-study-day-item.current.fc-lift:hover {
@@ -383,7 +383,7 @@
 		rgba(var(--fc-bg-panel-rgb), 0.78);
 	box-shadow:
 		inset 3px 0 0 var(--fc-cyan),
-		0 8px 20px rgba(0, 0, 0, 0.12);
+		0 8px 20px rgba(var(--fc-black-rgb), 0.12);
 }
 
 .flashcard-study-day-item.completed.fc-lift:hover {
@@ -395,7 +395,7 @@
 .flashcard-deck-settings-field {
 	padding: var(--fc-space-3) 0;
 	border: 0;
-	border-bottom: 1px solid rgba(139, 159, 181, 0.16);
+	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0;
 	background: transparent;
 }
@@ -410,8 +410,8 @@
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 44%),
 		rgba(var(--fc-bg-elevated-rgb), 0.64);
 	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.025),
-		0 12px 28px rgba(0, 0, 0, 0.12);
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.025),
+		0 12px 28px rgba(var(--fc-black-rgb), 0.12);
 }
 
 .flashcard-setup-control-group {
@@ -428,7 +428,7 @@
 }
 
 .flashcard-setup-control-group + .flashcard-setup-control-group {
-	border-top: 1px solid rgba(139, 159, 181, 0.14);
+	border-top: 1px solid var(--fc-line-faint);
 }
 
 .flashcard-setup-control-copy {
@@ -437,7 +437,7 @@
 	gap: var(--fc-space-3);
 	min-width: 0;
 	padding: var(--fc-space-1) var(--fc-space-5) var(--fc-space-1) 0;
-	border-right: 1px solid rgba(139, 159, 181, 0.12);
+	border-right: 1px solid var(--fc-line-faint);
 }
 
 .flashcard-setup-control-icon {
@@ -453,7 +453,7 @@
 	color: var(--fc-cyan);
 	box-shadow:
 		inset 0 0 12px rgba(var(--fc-cyan-rgb), 0.04),
-		0 4px 12px rgba(0, 0, 0, 0.08);
+		0 4px 12px rgba(var(--fc-black-rgb), 0.08);
 }
 
 .flashcard-setup-control-text,
@@ -545,14 +545,14 @@
 	flex-direction: column;
 	gap: var(--fc-space-3);
 	padding-top: var(--fc-space-3);
-	border-top: 1px solid rgba(139, 159, 181, 0.12);
+	border-top: 1px solid var(--fc-line-faint);
 	animation: var(--fc-motion-fade-in);
 }
 
 .flashcard-root button.flashcard-setup-chip {
 	min-height: var(--fc-control-sm);
 	padding: var(--fc-space-1) var(--fc-space-2);
-	border-color: rgba(139, 159, 181, 0.16);
+	border-color: var(--fc-line-soft);
 	background: rgba(var(--fc-bg-panel-rgb), 0.48);
 	color: var(--fc-muted);
 	font-family: var(--fc-font-data);
@@ -609,7 +609,7 @@
 
 .flashcard-study-day-section > .flashcard-study-panel-heading {
 	padding-bottom: var(--fc-space-3);
-	border-bottom: 1px solid rgba(139, 159, 181, 0.14);
+	border-bottom: 1px solid var(--fc-line-faint);
 }
 
 .flashcard-study-action-bar {
@@ -620,9 +620,9 @@
 		linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.055), transparent 40%),
 		rgba(var(--fc-bg-elevated-rgb), 0.92);
 	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.03),
-		0 -8px 24px rgba(0, 0, 0, 0.12),
-		0 10px 26px rgba(0, 0, 0, 0.08);
+		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.03),
+		0 -8px 24px rgba(var(--fc-black-rgb), 0.12),
+		0 10px 26px rgba(var(--fc-black-rgb), 0.08);
 }
 
 /* Active study/practice card view */
@@ -792,7 +792,7 @@
 	content: "";
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+	background: linear-gradient(90deg, transparent, rgba(var(--fc-white-rgb), 0.42), transparent);
 	animation: var(--fc-motion-progress-scan);
 }
 
@@ -918,7 +918,7 @@
 	border-top: 1px solid var(--fc-line);
 	border-radius: 0;
 	background: rgba(var(--fc-bg-elevated-rgb), 0.94);
-	box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 -8px 20px rgba(var(--fc-black-rgb), 0.1);
 	backdrop-filter: blur(14px);
 }
 
@@ -957,7 +957,7 @@
 	padding: var(--fc-space-1) var(--fc-space-3);
 	border-color: rgba(var(--fc-cyan-rgb), 0.16);
 	background:
-		linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent),
+		linear-gradient(180deg, rgba(var(--fc-white-rgb), 0.025), transparent),
 		rgba(var(--fc-bg-panel-rgb), 0.86);
 }
 
