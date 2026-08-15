@@ -715,7 +715,6 @@ export const DeckList = React.memo(function DeckList({
 		<>
 			<div className="flashcard-home">
 				<FlashcardHeader
-					className="flashcard-home-header"
 					icon={BookOpen}
 					title={t("home.title")}
 					stats={[
@@ -752,14 +751,12 @@ export const DeckList = React.memo(function DeckList({
 						<div className="flashcard-header-actions">
 							<FlashcardButton
 								preset="icon"
-								className="flashcard-home-header-action"
 								icon={ChartNoAxesColumn}
 								onClick={onOpenStats}
 								title={t("home.statsTitle")}
 							/>
 							<FlashcardButton
 								preset="icon"
-								className="flashcard-home-header-action"
 								icon={RefreshCcw}
 								onClick={() => void home.act({ kind: "refresh" })}
 								disabled={isMutationBusy}
@@ -768,7 +765,6 @@ export const DeckList = React.memo(function DeckList({
 							/>
 							<FlashcardButton
 								preset="icon"
-								className="flashcard-home-header-action"
 								icon={Settings}
 								onClick={onOpenSettings}
 								title={t("home.pluginSettingsTitle")}

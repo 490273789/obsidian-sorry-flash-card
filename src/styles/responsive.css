@@ -4,23 +4,6 @@
 		padding: var(--fc-space-3);
 	}
 
-	.flashcard-home .flashcard-header-stats {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	.flashcard-home .flashcard-header-stat {
-		justify-content: flex-start;
-		padding: var(--fc-space-3);
-	}
-
-	.flashcard-home .flashcard-header-stat:nth-child(odd) {
-		border-left: 0;
-	}
-
-	.flashcard-home .flashcard-header-stat:nth-child(n + 3) {
-		border-top: 1px solid var(--fc-line);
-	}
-
 	.flashcard-deck-item,
 	.flashcard-study-hero {
 		grid-template-columns: 1fr;
@@ -177,14 +160,6 @@
 	.flashcard-identity-migration-card {
 		flex-direction: column;
 		align-items: stretch;
-	}
-
-	.flashcard-home-header .flashcard-header-center {
-		font-size: var(--fc-font-lg);
-	}
-
-	.flashcard-home-header .flashcard-header-badge {
-		display: none;
 	}
 
 	.flashcard-word-list-toolbar {
