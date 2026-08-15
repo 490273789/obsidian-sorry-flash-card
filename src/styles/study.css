@@ -690,10 +690,6 @@
 	align-items: stretch;
 	gap: var(--fc-space-2);
 	padding: var(--fc-space-2) var(--fc-space-3);
-	/* border: 1px solid var(--fc-line); */
-	border-radius: var(--fc-radius-sm);
-	/* background: rgba(var(--fc-bg-elevated-rgb), 0.4); */
-	/* box-shadow: var(--fc-shadow-sm); */
 }
 
 .flashcard-session-metrics {
