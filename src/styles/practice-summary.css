@@ -11,6 +11,7 @@
 	flex-direction: column;
 	gap: var(--fc-space-4);
 	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
 	overscroll-behavior: contain;
 	padding: var(--fc-space-1);
 }

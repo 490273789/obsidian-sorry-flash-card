@@ -36,6 +36,8 @@
 	--fc-space-6: 20px;
 	--fc-space-7: 24px;
 	--fc-space-8: 28px;
+	--fc-space-9: 32px;
+	--fc-space-10: 46px;
 
 	--fc-control-sm: 32px;
 	--fc-control-md: 36px;
@@ -241,10 +243,9 @@
 	box-sizing: border-box;
 	height: 100%;
 	min-height: 100%;
-	/* overflow: hidden; */
+	overflow: hidden;
 	display: flex;
 	flex-direction: column;
-
 	container-name: flashcard-page;
 	container-type: inline-size;
 	padding: var(--fc-space-2);
@@ -257,7 +258,7 @@
 	z-index: 1;
 }
 
-.flashcard-container {
+.workspace-leaf-content .flashcard-container {
 	height: 100%;
 	overflow: hidden;
 	padding: 0;

@@ -97,15 +97,9 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-spelling-hero">
-					<div className="flashcard-study-hero-copy">
-						<div className="flashcard-deck-name-wrapper">
-							<div className="flashcard-deck-name">{deck.name}</div>
-							<div className="flashcard-deck-tag">{deck.tag}</div>
-						</div>
-
-						<div className="flashcard-practice-setup-subtitle">
-							{t("spelling.setupSubtitle")}
-						</div>
+					<div className="flashcard-deck-name-wrapper">
+						<div className="flashcard-deck-name">{deck.name}</div>
+						<div className="flashcard-deck-tag">{deck.tag}</div>
 					</div>
 				</div>
 
@@ -212,18 +206,9 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 				</div>
 
 				<div className="flashcard-study-action-bar">
-					<div>
-						<div className="flashcard-study-action-title">
-							{t("spelling.challenge", { count: currentCount })}
-						</div>
-						<div className="flashcard-study-action-subtitle">
-							{mode === "smart"
-								? t("spelling.smartActionSubtitle")
-								: t("spelling.rangeActionSubtitle")}
-						</div>
-					</div>
 					<FlashcardButton
 						variant="green"
+						preset="show"
 						onClick={handleStart}
 						disabled={currentCount < 1}
 					>

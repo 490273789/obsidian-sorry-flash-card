@@ -188,15 +188,9 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">
-					<div className="flashcard-study-hero-copy flashcard-practice-hero-copy">
-						<div className="flashcard-deck-name-wrapper">
-							<div className="flashcard-deck-name">{deck.name}</div>
-							<div className="flashcard-deck-tag">{deck.tag}</div>
-						</div>
-
-						<div className="flashcard-practice-setup-subtitle">
-							{t("practice.setupSubtitle")}
-						</div>
+					<div className="flashcard-deck-name-wrapper">
+						<div className="flashcard-deck-name">{deck.name}</div>
+						<div className="flashcard-deck-tag">{deck.tag}</div>
 					</div>
 				</div>
 
@@ -333,23 +327,9 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 				</div>
 
 				<div className="flashcard-study-action-bar">
-					<div>
-						<div className="flashcard-study-action-title">
-							{t("practice.challenge", {
-								count: currentQuestionCount,
-							})}
-						</div>
-						<div className="flashcard-study-action-subtitle">
-							{selectionMode === "range"
-								? t("practice.rangeActionSubtitle", {
-										start: rangeStart,
-										end: rangeEnd,
-									})
-								: t("practice.actionSubtitle")}
-						</div>
-					</div>
 					<FlashcardButton
 						variant="green"
+						preset="show"
 						onClick={handleStart}
 						disabled={maxQuestions === 0 || currentQuestionCount < 1}
 					>

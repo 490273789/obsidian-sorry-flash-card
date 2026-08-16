@@ -3,7 +3,8 @@ import {
 	closestCenter,
 	DndContext,
 	KeyboardSensor,
-	PointerSensor,
+	MouseSensor,
+	TouchSensor,
 	useSensor,
 	useSensors,
 	type DragEndEvent,
@@ -23,7 +24,6 @@ import {
 	ChartNoAxesColumn,
 	FileDown,
 	FileText,
-	GripVertical,
 	Inbox,
 	Keyboard,
 	Layers3,
@@ -461,6 +461,13 @@ const DeckCard = memo(function DeckCard({
 		transform,
 		transition,
 	} = useSortable({ id: deck.id, disabled: isReorderDisabled });
+	const setDragNodeRef = useCallback(
+		(node: HTMLElement | null) => {
+			setNodeRef(node);
+			setActivatorNodeRef(node);
+		},
+		[setNodeRef, setActivatorNodeRef],
+	);
 	const totalCards = deck.stats.totalCards;
 	const newCards = deck.stats.newCards;
 	const [showMoreActions, setShowMoreActions] = useState(false);
@@ -518,27 +525,17 @@ const DeckCard = memo(function DeckCard({
 
 	return (
 		<article
-			ref={setNodeRef}
+			ref={setDragNodeRef}
 			className={`flashcard-deck-item fc-lift${showMoreActions ? " is-actions-open" : ""}${isDragging ? " is-dragging" : ""}`}
 			data-deck-id={deck.id}
 			style={{
 				transform: CSS.Transform.toString(transform),
 				transition,
 			}}
+			aria-label={t("home.reorderDeck", { deckName: deck.name })}
+			{...attributes}
+			{...listeners}
 		>
-			<button
-				ref={setActivatorNodeRef}
-				type="button"
-				className="flashcard-deck-drag-handle"
-				disabled={isReorderDisabled}
-				onClick={(event) => event.stopPropagation()}
-				aria-label={t("home.reorderDeck", { deckName: deck.name })}
-				title={t("home.reorderDeck", { deckName: deck.name })}
-				{...attributes}
-				{...listeners}
-			>
-				<GripVertical size={18} />
-			</button>
 			<div className="flashcard-deck-main">
 				<div className="flashcard-deck-headline">
 					<div className="flashcard-deck-name-wrapper">
@@ -577,7 +574,12 @@ const DeckCard = memo(function DeckCard({
 				</div>
 			</div>
 
-			<div className="flashcard-deck-side">
+			<div
+				className="flashcard-deck-side"
+				role="presentation"
+				onMouseDown={(event) => event.stopPropagation()}
+				onTouchStart={(event) => event.stopPropagation()}
+			>
 				<div className="flashcard-deck-actions2">
 					<FlashcardButton
 						variant="green"
@@ -658,8 +660,11 @@ export const DeckList = React.memo(function DeckList({
 	const visibleDeckIds = previewDeckIds ?? snapshotDeckIds;
 	const visibleDecks = orderDeckSnapshots(snapshot.decks, visibleDeckIds);
 	const sensors = useSensors(
-		useSensor(PointerSensor, {
+		useSensor(MouseSensor, {
 			activationConstraint: { distance: 6 },
+		}),
+		useSensor(TouchSensor, {
+			activationConstraint: { delay: 1000, tolerance: 5 },
 		}),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,

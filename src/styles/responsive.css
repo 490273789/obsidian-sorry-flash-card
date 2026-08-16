@@ -46,7 +46,7 @@
 	.flashcard-root {
 		padding: var(--fc-space-2);
 		border-radius: 0;
-		padding-bottom: calc(env(safe-area-inset-bottom, var(--fc-space-6)) + var(--fc-space-4));
+		padding-bottom: calc(env(safe-area-inset-bottom, var(--fc-space-6)) + var(--fc-space-10));
 	}
 
 	.flashcard-home,
@@ -145,7 +145,6 @@
 		flex: 0 0 auto;
 	}
 
-	.flashcard-study-action-bar,
 	.flashcard-practice-answer-buttons,
 	.flashcard-response-controls,
 	.flashcard-modal-footer,
@@ -168,12 +167,6 @@
 
 	.flashcard-deck-actions2 {
 		grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
-	}
-
-	.flashcard-deck-more-actions {
-		right: auto;
-		left: 0;
-		width: 100%;
 	}
 
 	.flashcard-practice-quick-buttons {
@@ -212,7 +205,9 @@
 		grid-template-columns: 1fr;
 	}
 
-	.flashcard-header-stats {
+	.flashcard-header-stats.columns-3,
+	.flashcard-header-stats.columns-4,
+	.flashcard-header-stats.columns-5 {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 0;
 	}
@@ -537,16 +532,15 @@
 		min-width: var(--fc-control-touch);
 		min-height: var(--fc-control-touch);
 	}
-
-	.flashcard-root button.flashcard-deck-drag-handle {
-		width: var(--fc-control-sm);
-		height: var(--fc-control-touch);
-		min-width: 0;
-		min-height: var(--fc-control-touch);
-	}
 }
 
 @container flashcard-page (max-width: 720px) {
+	.flashcard-header-stats.columns-3,
+	.flashcard-header-stats.columns-4,
+	.flashcard-header-stats.columns-5 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
 	.flashcard-deck-index .flashcard-deck-list {
 		grid-template-columns: minmax(0, 1fr);
 		gap: var(--fc-space-3);
@@ -555,13 +549,8 @@
 	.flashcard-deck-list .flashcard-deck-item,
 	.flashcard-deck-list .flashcard-deck-item:nth-last-child(1):nth-child(odd) {
 		grid-column: auto;
-		min-height: 176px;
-		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3) var(--fc-space-8);
-	}
-
-	.flashcard-root .flashcard-deck-list button.flashcard-deck-drag-handle {
-		top: var(--fc-space-4);
-		left: var(--fc-space-1);
+		min-height: 145px;
+		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3);
 	}
 
 	.flashcard-deck-item .flashcard-deck-name {
@@ -583,7 +572,6 @@
 	}
 }
 @media (pointer: coarse) {
-	.flashcard-root button.flashcard-deck-drag-handle,
 	.flashcard-root button.flashcard-deck-action-more,
 	.flashcard-root .flashcard-header-actions .flashcard-btn,
 	.flashcard-root .flashcard-session-actions .flashcard-btn {

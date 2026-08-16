@@ -173,11 +173,9 @@ export const StudySetup = React.memo(function StudySetup({
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero">
-					<div className="flashcard-study-hero-copy">
-						<div className="flashcard-deck-name-wrapper">
-							<div className="flashcard-deck-name">{deck.name}</div>
-							<div className="flashcard-deck-tag">{deck.tag}</div>
-						</div>
+					<div className="flashcard-deck-name-wrapper">
+						<div className="flashcard-deck-name">{deck.name}</div>
+						<div className="flashcard-deck-tag">{deck.tag}</div>
 					</div>
 				</div>
 
@@ -268,26 +266,9 @@ export const StudySetup = React.memo(function StudySetup({
 				)}
 
 				<div className="flashcard-study-action-bar">
-					<div>
-						<div className="flashcard-study-action-title">
-							{allCompleted
-								? t("study.startReviewStage")
-								: hasAnythingToStudy
-									? t("study.readyToStart", {
-											count: todayNewCount + todayReviewCount,
-										})
-									: t("study.tasksCompleted")}
-						</div>
-						<div className="flashcard-study-action-subtitle">
-							{allCompleted
-								? t("study.reviewStageSubtitle")
-								: hasAnythingToStudy
-									? t("study.readySubtitle")
-									: t("study.completedSubtitle")}
-						</div>
-					</div>
 					<FlashcardButton
 						variant="green"
+						preset="show"
 						onClick={handleMainStart}
 						disabled={!hasAnythingToStudy && !allCompleted}
 					>

@@ -28,7 +28,6 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 				icon={ChartBar}
 				title={t("stats.title")}
 				onBack={onBack}
-				right={<span className="flashcard-stats-range">{t("stats.last20Days")}</span>}
 				stats={[
 					{
 						key: "days",
