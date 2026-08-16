@@ -254,12 +254,8 @@
 
 .flashcard-spelling-actions {
 	display: grid;
-	grid-template-columns: minmax(120px, 0.35fr) minmax(180px, 1fr);
+	grid-template-columns: 1fr 2fr;
 	gap: var(--fc-space-2);
-}
-
-.flashcard-spelling-actions > .flashcard-btn:only-child {
-	grid-column: 1 / -1;
 }
 
 .flashcard-spelling-summary-answer-row {
@@ -325,10 +321,6 @@
 	.flashcard-deck-settings-purpose-heading,
 	.flashcard-deck-settings-warning {
 		flex-direction: column;
-	}
-
-	.flashcard-spelling-actions {
-		grid-template-columns: 1fr;
 	}
 
 	.flashcard-spelling-input-group input {

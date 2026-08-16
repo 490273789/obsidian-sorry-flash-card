@@ -132,6 +132,6 @@ describe("spelling session planner", () => {
 					lastAttemptAt: 20,
 				},
 			}),
-		).toEqual({ total: 3, unpracticed: 1, reinforcement: 1, stable: 1 });
+		).toEqual({ total: 3, unpracticed: 1 });
 	});
 });

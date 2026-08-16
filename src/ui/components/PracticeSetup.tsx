@@ -69,7 +69,6 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 	);
 	const rangeQuestionCount = Math.max(0, rangeEnd - rangeStart + 1);
 	const currentQuestionCount = selectionMode === "range" ? rangeQuestionCount : questionCount;
-	const coverage = maxQuestions > 0 ? Math.round((currentQuestionCount / maxQuestions) * 100) : 0;
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = e.target.value;
@@ -160,31 +159,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 
 	return (
 		<div className="flashcard-practice-setup">
-			<FlashcardHeader
-				icon={Target}
-				title={t("practice.title")}
-				onBack={onBack}
-				stats={[
-					{
-						key: "available",
-						value: maxQuestions,
-						label: t("practice.availableQuestions"),
-						tone: "purple",
-					},
-					{
-						key: "selected",
-						value: currentQuestionCount,
-						label: t("practice.currentSelection"),
-						tone: "blue",
-					},
-					{
-						key: "coverage",
-						value: `${coverage}%`,
-						label: t("practice.scanRange"),
-						tone: "green",
-					},
-				]}
-			/>
+			<FlashcardHeader icon={Target} title={t("practice.title")} onBack={onBack} />
 
 			<div className="flashcard-setup-content">
 				<div className="flashcard-study-hero flashcard-practice-hero">

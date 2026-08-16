@@ -74,6 +74,10 @@
 	background: transparent;
 }
 
+.flashcard-header-stats.columns-2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .flashcard-header-stats.columns-3 {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -579,12 +583,12 @@
 	border-bottom-color: var(--fc-line);
 }
 
-.flashcard-home > .flashcard-page-header,
-.flashcard-practice-setup > .flashcard-page-header,
-.flashcard-stats-view > .flashcard-page-header,
-.flashcard-practice-summary > .flashcard-common-header,
-.flashcard-word-list-view > .flashcard-common-header,
-.flashcard-study > .flashcard-session-shell {
+.flashcard-home,
+.flashcard-practice-setup,
+.flashcard-stats-view,
+.flashcard-practice-summary,
+.flashcard-word-list-view,
+.flashcard-study {
 	width: min(var(--fc-home-header-max-width), 100%);
 	margin-inline: auto;
 }
@@ -663,13 +667,6 @@
 	background: var(--fc-surface-raised);
 	box-shadow: var(--fc-shadow-popover);
 	border-color: var(--fc-line-strong);
-}
-
-/* The last deck card sits at the end of the scrollable list, so its
-   more-actions menu opens upward instead of clipping below the fold. */
-.flashcard-deck-list .flashcard-deck-item:last-child .flashcard-deck-more-actions {
-	top: auto;
-	bottom: calc(100% + var(--fc-space-2));
 }
 .theme-light .flashcard-root button.flashcard-btn-green,
 .theme-light .flashcard-root button.flashcard-deck-action-study {
@@ -813,16 +810,11 @@
 		bottom: 0;
 		z-index: 10;
 		align-items: stretch;
-		padding: var(--fc-space-2);
 	}
 
 	.flashcard-study .flashcard-session-toolbar {
 		border-color: var(--fc-line);
 		background: var(--fc-surface-card);
-	}
-
-	.flashcard-study .flashcard-content {
-		padding: var(--fc-space-2) 0;
 	}
 
 	.flashcard-study .flashcard-question,
@@ -833,10 +825,6 @@
 
 	.flashcard-study .flashcard-markdown {
 		font-size: var(--fc-font-lg);
-	}
-
-	.flashcard-study .flashcard-footer {
-		padding: var(--fc-space-2) 0 0;
 	}
 
 	.flashcard-study .flashcard-rating-grid {

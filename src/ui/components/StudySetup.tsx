@@ -162,12 +162,6 @@ export const StudySetup = React.memo(function StudySetup({
 						label: t("study.dueReview"),
 						tone: "purple",
 					},
-					{
-						key: "completed",
-						value: completedDays,
-						label: t("study.completedDays"),
-						tone: "blue",
-					},
 				]}
 			/>
 

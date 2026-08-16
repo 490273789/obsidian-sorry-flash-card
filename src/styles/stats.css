@@ -50,10 +50,6 @@
 	transition: var(--fc-transition-lift);
 }
 
-.flashcard-stats-session:first-child {
-	border-top-color: transparent;
-}
-
 .stats-mode-study {
 	border-left-color: var(--fc-blue);
 }

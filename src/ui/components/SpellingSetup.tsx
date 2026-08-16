@@ -80,18 +80,6 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 						label: t("spelling.unpracticed"),
 						tone: "orange",
 					},
-					{
-						key: "reinforcement",
-						value: stats.reinforcement,
-						label: t("spelling.reinforcement"),
-						tone: "red",
-					},
-					{
-						key: "stable",
-						value: stats.stable,
-						label: t("spelling.stable"),
-						tone: "green",
-					},
 				]}
 			/>
 

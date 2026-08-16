@@ -14,8 +14,6 @@ export interface SpellingSessionPlan {
 export interface SpellingDeckProgressStats {
 	total: number;
 	unpracticed: number;
-	reinforcement: number;
-	stable: number;
 }
 
 export interface SpellingDeckEligibility {
@@ -63,19 +61,13 @@ export function getSpellingDeckProgressStats(
 ): SpellingDeckProgressStats {
 	const eligibleCards = cards.filter((card) => extractSpellingWord(card.front) !== null);
 	let unpracticed = 0;
-	let reinforcement = 0;
-	let stable = 0;
 	for (const card of eligibleCards) {
 		const cardProgress = progress[card.id];
 		if (!cardProgress || cardProgress.attempts === 0) {
 			unpracticed++;
-		} else if (cardProgress.correctStreak >= 2) {
-			stable++;
-		} else {
-			reinforcement++;
 		}
 	}
-	return { total: eligibleCards.length, unpracticed, reinforcement, stable };
+	return { total: eligibleCards.length, unpracticed };
 }
 
 export function planSmartSpellingSession(params: {

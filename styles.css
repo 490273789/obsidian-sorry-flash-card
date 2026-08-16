@@ -770,8 +770,8 @@
 	padding: var(--fc-space-2);
 	border: 1px solid var(--fc-line-strong);
 	border-radius: var(--fc-radius-sm);
-	background: var(--fc-surface-raised);
-	box-shadow: var(--fc-shadow-popover);
+	background: color-mix(in srgb, var(--background-secondary) 85%, var(--text-normal) 15%);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 	animation: var(--fc-motion-fade-in);
 }
 
@@ -783,7 +783,7 @@
 	right: 0;
 }
 
-.flashcard-menu-item {
+.flashcard-menu .flashcard-menu-item {
 	appearance: none;
 	width: 100%;
 	min-height: var(--fc-control-md);
@@ -791,21 +791,24 @@
 	align-items: center;
 	gap: var(--fc-space-2);
 	padding: var(--fc-space-2) var(--fc-space-3);
-	border: 1px solid transparent;
+	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-xs);
-	background: transparent;
-	box-shadow: none;
+	background: color-mix(in srgb, var(--background-primary) 85%, var(--text-normal) 15%);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 	color: var(--fc-text);
 	font: var(--fc-weight-medium) var(--fc-font-sm) / var(--fc-line-tight) var(--fc-font-ui);
 	text-align: left;
 	cursor: pointer;
+	transition:
+		background var(--fc-motion-quick) ease,
+		border-color var(--fc-motion-quick) ease;
 }
 
 .flashcard-menu-item:hover:not(:disabled),
 .flashcard-menu-item:focus-visible {
-	border-color: var(--fc-control-border-hover);
-	background: var(--fc-surface-hover);
-	box-shadow: none;
+	border-color: var(--interactive-accent);
+	background: color-mix(in srgb, var(--interactive-accent) 25%, var(--background-secondary) 75%);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 	outline: none;
 }
 
@@ -969,6 +972,10 @@
 	border: 0;
 	border-radius: 0;
 	background: transparent;
+}
+
+.flashcard-header-stats.columns-2 {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .flashcard-header-stats.columns-3 {
@@ -1476,12 +1483,12 @@
 	border-bottom-color: var(--fc-line);
 }
 
-.flashcard-home > .flashcard-page-header,
-.flashcard-practice-setup > .flashcard-page-header,
-.flashcard-stats-view > .flashcard-page-header,
-.flashcard-practice-summary > .flashcard-common-header,
-.flashcard-word-list-view > .flashcard-common-header,
-.flashcard-study > .flashcard-session-shell {
+.flashcard-home,
+.flashcard-practice-setup,
+.flashcard-stats-view,
+.flashcard-practice-summary,
+.flashcard-word-list-view,
+.flashcard-study {
 	width: min(var(--fc-home-header-max-width), 100%);
 	margin-inline: auto;
 }
@@ -1560,13 +1567,6 @@
 	background: var(--fc-surface-raised);
 	box-shadow: var(--fc-shadow-popover);
 	border-color: var(--fc-line-strong);
-}
-
-/* The last deck card sits at the end of the scrollable list, so its
-   more-actions menu opens upward instead of clipping below the fold. */
-.flashcard-deck-list .flashcard-deck-item:last-child .flashcard-deck-more-actions {
-	top: auto;
-	bottom: calc(100% + var(--fc-space-2));
 }
 .theme-light .flashcard-root button.flashcard-btn-green,
 .theme-light .flashcard-root button.flashcard-deck-action-study {
@@ -1710,16 +1710,11 @@
 		bottom: 0;
 		z-index: 10;
 		align-items: stretch;
-		padding: var(--fc-space-2);
 	}
 
 	.flashcard-study .flashcard-session-toolbar {
 		border-color: var(--fc-line);
 		background: var(--fc-surface-card);
-	}
-
-	.flashcard-study .flashcard-content {
-		padding: var(--fc-space-2) 0;
 	}
 
 	.flashcard-study .flashcard-question,
@@ -1730,10 +1725,6 @@
 
 	.flashcard-study .flashcard-markdown {
 		font-size: var(--fc-font-lg);
-	}
-
-	.flashcard-study .flashcard-footer {
-		padding: var(--fc-space-2) 0 0;
 	}
 
 	.flashcard-study .flashcard-rating-grid {
@@ -2454,13 +2445,16 @@
 	position: sticky;
 	bottom: 0;
 	z-index: 12;
-	padding: var(--fc-space-2) var(--fc-space-3);
-	border: 0;
-	border-top: 1px solid var(--fc-line);
 	border-radius: 0;
-	background: rgba(var(--fc-bg-elevated-rgb), 0.94);
-	box-shadow: 0 -8px 20px rgba(var(--fc-black-rgb), 0.1);
-	backdrop-filter: blur(14px);
+	width: min(760px, 100%);
+	margin-inline: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	backdrop-filter: none;
 }
 
 .flashcard-response-controls,
@@ -2850,15 +2844,8 @@
 	position: sticky;
 	bottom: 0;
 	z-index: 10;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backdrop-filter: blur(14px);
-	border: 1px solid var(--fc-line);
-	background: var(--fc-surface-card);
-	padding: var(--fc-space-2);
-	border-radius: var(--fc-radius-md);
-	box-shadow: var(--fc-shadow-sm);
+	width: min(400px, 100%);
+	margin-inline: auto;
 }
 
 .flashcard-session-toolbar {
@@ -2921,7 +2908,6 @@
 	border-radius: 0;
 	background: transparent;
 	transition: var(--fc-transition-card-switch);
-	padding: var(--fc-space-5) var(--fc-space-3);
 }
 .flashcard-card-stack {
 	display: flex;
@@ -2929,7 +2915,6 @@
 	width: min(760px, 100%);
 	margin-inline: auto;
 	gap: 0;
-	overflow: hidden;
 	border: 1px solid color-mix(in srgb, var(--fc-line) 60%, transparent);
 	border-top-width: 3px;
 	border-top-color: var(--fc-cyan);
@@ -3020,17 +3005,17 @@
 /* ── Labels: pill-style badges ── */
 .flashcard-label {
 	color: var(--fc-faint);
-	font: var(--fc-weight-bold) var(--fc-font-xs) / 1 var(--fc-font-data);
+	font: var(--fc-weight-bold) var(--fc-font-sm) / 1 var(--fc-font-data);
 	margin-bottom: var(--fc-space-4);
 	letter-spacing: 0.02em;
 	text-transform: none;
 	display: inline-flex;
 	align-items: center;
 	gap: var(--fc-space-1);
-	padding: var(--fc-space-half) var(--fc-space-2);
+	padding: var(--fc-space-1) var(--fc-space-3);
 	border-radius: var(--fc-radius-pill);
 	font-family: var(--fc-font-ui);
-	font-size: var(--fc-font-xs);
+	font-size: var(--fc-font-sm);
 	font-weight: var(--fc-weight-semibold);
 	opacity: 0.85;
 }
@@ -3058,17 +3043,6 @@
 	line-height: var(--fc-line-reading);
 	font-family: var(--fc-font-reading);
 }
-.flashcard-footer,
-.theme-light .flashcard-footer {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: var(--fc-space-3) 0 var(--fc-space-1);
-	border: 0;
-	background: transparent;
-	box-shadow: none;
-	backdrop-filter: none;
-}
 
 .flashcard-response-controls,
 .flashcard-practice-response-controls {
@@ -3081,13 +3055,6 @@
 	border-radius: var(--fc-radius-md);
 	background: var(--fc-surface-card);
 	box-shadow: var(--fc-shadow-sm);
-}
-
-.flashcard-footer > .flashcard-btn-show {
-	width: min(620px, 100%);
-	max-width: 100%;
-	margin-inline: auto;
-	flex: 0 1 620px;
 }
 
 .flashcard-rating-grid {
@@ -3881,12 +3848,8 @@
 
 .flashcard-spelling-actions {
 	display: grid;
-	grid-template-columns: minmax(120px, 0.35fr) minmax(180px, 1fr);
+	grid-template-columns: 1fr 2fr;
 	gap: var(--fc-space-2);
-}
-
-.flashcard-spelling-actions > .flashcard-btn:only-child {
-	grid-column: 1 / -1;
 }
 
 .flashcard-spelling-summary-answer-row {
@@ -3952,10 +3915,6 @@
 	.flashcard-deck-settings-purpose-heading,
 	.flashcard-deck-settings-warning {
 		flex-direction: column;
-	}
-
-	.flashcard-spelling-actions {
-		grid-template-columns: 1fr;
 	}
 
 	.flashcard-spelling-input-group input {
@@ -4116,10 +4075,6 @@
 	background: transparent;
 	animation: var(--fc-motion-rise);
 	transition: var(--fc-transition-lift);
-}
-
-.flashcard-stats-session:first-child {
-	border-top-color: transparent;
 }
 
 .stats-mode-study {
@@ -5200,6 +5155,14 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
 	}
 
+	/* On mobile the last deck card sits at the end of the scrollable list,
+	   so its more-actions menu opens upward instead of clipping below the
+	   fold. Desktop keeps every menu opening downward. */
+	.flashcard-deck-list .flashcard-deck-item:last-child .flashcard-deck-more-actions {
+		top: auto;
+		bottom: calc(100% + var(--fc-space-2));
+	}
+
 	.flashcard-practice-quick-buttons {
 		grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
 	}
@@ -5406,11 +5369,6 @@
 		min-height: 126px;
 	}
 
-	.flashcard-study .flashcard-content {
-		gap: var(--fc-space-3);
-		padding: var(--fc-space-2);
-	}
-
 	.flashcard-study .flashcard-question,
 	.flashcard-study .flashcard-answer,
 	.flashcard-study .flashcard-explanation {
@@ -5420,10 +5378,6 @@
 	.flashcard-study .flashcard-markdown {
 		font-size: var(--fc-font-md);
 		line-height: var(--fc-line-body);
-	}
-
-	.flashcard-study .flashcard-footer {
-		padding: var(--fc-space-2);
 	}
 
 	.flashcard-study .flashcard-response-controls {

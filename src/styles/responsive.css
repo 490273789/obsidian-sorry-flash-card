@@ -169,6 +169,14 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
 	}
 
+	/* On mobile the last deck card sits at the end of the scrollable list,
+	   so its more-actions menu opens upward instead of clipping below the
+	   fold. Desktop keeps every menu opening downward. */
+	.flashcard-deck-list .flashcard-deck-item:last-child .flashcard-deck-more-actions {
+		top: auto;
+		bottom: calc(100% + var(--fc-space-2));
+	}
+
 	.flashcard-practice-quick-buttons {
 		grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
 	}
@@ -375,11 +383,6 @@
 		min-height: 126px;
 	}
 
-	.flashcard-study .flashcard-content {
-		gap: var(--fc-space-3);
-		padding: var(--fc-space-2);
-	}
-
 	.flashcard-study .flashcard-question,
 	.flashcard-study .flashcard-answer,
 	.flashcard-study .flashcard-explanation {
@@ -389,10 +392,6 @@
 	.flashcard-study .flashcard-markdown {
 		font-size: var(--fc-font-md);
 		line-height: var(--fc-line-body);
-	}
-
-	.flashcard-study .flashcard-footer {
-		padding: var(--fc-space-2);
 	}
 
 	.flashcard-study .flashcard-response-controls {
