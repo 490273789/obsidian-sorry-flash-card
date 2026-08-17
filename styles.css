@@ -2855,7 +2855,7 @@
 	gap: var(--fc-space-2);
 	padding: var(--fc-space-2) var(--fc-space-3);
 	border-bottom: 1px solid var(--fc-line);
-	background: var(--fc-surface-header-status);
+	/* background: var(--fc-surface-header-status); */
 	box-shadow: none;
 }
 
@@ -2959,9 +2959,9 @@
 	content: "";
 	position: absolute;
 	top: 0;
-	left: var(--fc-space-6);
-	right: var(--fc-space-6);
-	height: 1px;
+	left: var(--fc-space-4);
+	right: var(--fc-space-4);
+	height: 2px;
 	background: linear-gradient(
 		90deg,
 		transparent,
@@ -2991,9 +2991,9 @@
 	content: "";
 	position: absolute;
 	top: 0;
-	left: var(--fc-space-6);
-	right: var(--fc-space-6);
-	height: 1px;
+	left: var(--fc-space-4);
+	right: var(--fc-space-4);
+	height: 2px;
 	background: linear-gradient(
 		90deg,
 		transparent,
@@ -3235,14 +3235,8 @@
 	padding: var(--fc-space-2);
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
-	background: rgba(var(--fc-bg-rgb), 0.54);
-}
-
-.flashcard-root .flashcard-word-list-toolbar .flashcard-btn {
-	border-color: var(--fc-line);
-	background: rgba(var(--fc-bg-panel-rgb), 0.72);
-	color: var(--fc-muted);
-	box-shadow: none;
+	/* background: rgba(var(--fc-bg-rgb), 0.54); */
+	background: var(--fc-surface-card);
 }
 
 .shuffle.active {
@@ -3300,7 +3294,6 @@
 }
 
 .flashcard-root button.flashcard-word-cell {
-	/* Obsidian themes often impose a fixed button height. */
 	height: auto !important;
 	min-height: 0 !important;
 	max-height: none !important;
@@ -3308,9 +3301,9 @@
 	align-items: center;
 	justify-content: center;
 	padding: var(--fc-space-4);
-	border: 1px solid var(--fc-line-soft);
-	border-radius: var(--fc-radius-md);
-	background: rgba(var(--fc-bg-panel-rgb), 0.82);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-section);
 	color: var(--fc-text);
 	cursor: pointer;
 	transition: var(--fc-transition-word-cell);
@@ -3390,19 +3383,6 @@
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);
 	line-height: var(--fc-line-reading);
-}
-
-.flashcard-word-list-toolbar,
-.theme-light .flashcard-word-list-toolbar {
-	border-color: var(--fc-line);
-	border-radius: var(--fc-radius-md);
-	background: var(--fc-surface-card);
-}
-.flashcard-root button.flashcard-word-cell,
-.theme-light .flashcard-root button.flashcard-word-cell {
-	border-color: var(--fc-line);
-	border-radius: var(--fc-radius-sm);
-	background: var(--fc-surface-section);
 }
 /* Practice summary */
 .flashcard-practice-summary {
@@ -4324,14 +4304,45 @@
 }
 
 .flashcard-deck-settings-toggle-label input[type="checkbox"] {
+	appearance: none;
+	-webkit-appearance: none;
 	box-sizing: border-box;
 	width: var(--fc-space-5);
 	height: var(--fc-space-5);
 	min-width: var(--fc-space-5);
 	min-height: var(--fc-space-5);
 	flex: 0 0 var(--fc-space-5);
-	accent-color: var(--fc-cyan);
+	margin: 0;
+	vertical-align: middle;
+	border: 1px solid var(--fc-line-strong);
+	border-radius: var(--fc-radius-sm);
+	background-color: var(--fc-input-bg);
+	position: relative;
+	transition: background-color var(--fc-motion-quick) ease, border-color var(--fc-motion-quick) ease;
 }
+
+.flashcard-deck-settings-toggle-label input[type="checkbox"]:checked {
+	background-color: var(--fc-cyan);
+	border-color: var(--fc-cyan);
+}
+
+.flashcard-deck-settings-toggle-label input[type="checkbox"]:checked::after {
+	content: '';
+	position: absolute;
+	left: 5px;
+	top: 2px;
+	width: 4px;
+	height: 8px;
+	border: solid var(--text-normal);
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+
+.flashcard-deck-settings-toggle-label input[type="checkbox"]:focus {
+	outline: none;
+	box-shadow: var(--fc-focus-ring);
+}
+
 
 .flashcard-deck-settings-field {
 	flex-direction: column;

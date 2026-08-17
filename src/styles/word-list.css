@@ -23,14 +23,8 @@
 	padding: var(--fc-space-2);
 	border: 1px solid var(--fc-line);
 	border-radius: var(--fc-radius-md);
-	background: rgba(var(--fc-bg-rgb), 0.54);
-}
-
-.flashcard-root .flashcard-word-list-toolbar .flashcard-btn {
-	border-color: var(--fc-line);
-	background: rgba(var(--fc-bg-panel-rgb), 0.72);
-	color: var(--fc-muted);
-	box-shadow: none;
+	/* background: rgba(var(--fc-bg-rgb), 0.54); */
+	background: var(--fc-surface-card);
 }
 
 .shuffle.active {
@@ -88,7 +82,6 @@
 }
 
 .flashcard-root button.flashcard-word-cell {
-	/* Obsidian themes often impose a fixed button height. */
 	height: auto !important;
 	min-height: 0 !important;
 	max-height: none !important;
@@ -96,9 +89,9 @@
 	align-items: center;
 	justify-content: center;
 	padding: var(--fc-space-4);
-	border: 1px solid var(--fc-line-soft);
-	border-radius: var(--fc-radius-md);
-	background: rgba(var(--fc-bg-panel-rgb), 0.82);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-section);
 	color: var(--fc-text);
 	cursor: pointer;
 	transition: var(--fc-transition-word-cell);
@@ -178,17 +171,4 @@
 	color: var(--fc-text);
 	font-size: var(--fc-font-md);
 	line-height: var(--fc-line-reading);
-}
-
-.flashcard-word-list-toolbar,
-.theme-light .flashcard-word-list-toolbar {
-	border-color: var(--fc-line);
-	border-radius: var(--fc-radius-md);
-	background: var(--fc-surface-card);
-}
-.flashcard-root button.flashcard-word-cell,
-.theme-light .flashcard-root button.flashcard-word-cell {
-	border-color: var(--fc-line);
-	border-radius: var(--fc-radius-sm);
-	background: var(--fc-surface-section);
 }

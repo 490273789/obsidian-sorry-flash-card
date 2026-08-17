@@ -968,7 +968,7 @@
 	gap: var(--fc-space-2);
 	padding: var(--fc-space-2) var(--fc-space-3);
 	border-bottom: 1px solid var(--fc-line);
-	background: var(--fc-surface-header-status);
+	/* background: var(--fc-surface-header-status); */
 	box-shadow: none;
 }
 
@@ -1072,9 +1072,9 @@
 	content: "";
 	position: absolute;
 	top: 0;
-	left: var(--fc-space-6);
-	right: var(--fc-space-6);
-	height: 1px;
+	left: var(--fc-space-4);
+	right: var(--fc-space-4);
+	height: 2px;
 	background: linear-gradient(
 		90deg,
 		transparent,
@@ -1104,9 +1104,9 @@
 	content: "";
 	position: absolute;
 	top: 0;
-	left: var(--fc-space-6);
-	right: var(--fc-space-6);
-	height: 1px;
+	left: var(--fc-space-4);
+	right: var(--fc-space-4);
+	height: 2px;
 	background: linear-gradient(
 		90deg,
 		transparent,
