@@ -248,6 +248,7 @@
 	height: 100%;
 	min-height: 100%;
 	overflow: hidden;
+	overscroll-behavior: contain;
 	display: flex;
 	flex-direction: column;
 	container-name: flashcard-page;
@@ -265,6 +266,7 @@
 .workspace-leaf-content .flashcard-container {
 	height: 100%;
 	overflow: hidden;
+	overscroll-behavior: contain;
 	padding: 0;
 }
 
@@ -640,7 +642,7 @@
 	background: var(--fc-input-bg);
 	box-shadow: none;
 	color: var(--fc-text);
-	font: var(--fc-weight-regular) var(--fc-font-sm) / var(--fc-line-body) var(--fc-font-ui);
+	font: var(--fc-weight-regular) var(--fc-font-md) / var(--fc-line-body) var(--fc-font-ui);
 	transition:
 		border-color var(--fc-motion-quick) ease,
 		background var(--fc-motion-quick) ease,
@@ -906,9 +908,9 @@
 .flashcard-stats-view,
 .flashcard-word-list-view {
 	height: 100%;
-	height: 100vh;
-	height: 100dvh;
+	flex: 1 1 100%;
 	min-height: 0;
+	max-height: 100%;
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-4);
@@ -924,6 +926,7 @@
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
 	box-sizing: border-box;
 	padding: 0 var(--fc-space-2);
@@ -2900,6 +2903,7 @@
 	min-height: 0;
 	flex: 1;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
 	display: flex;
 	flex-direction: column;
@@ -4187,6 +4191,7 @@
 	justify-content: center;
 	padding: var(--fc-space-4);
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%), var(--fc-overlay);
@@ -4275,6 +4280,7 @@
 	min-height: 0;
 	flex: 1;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
 	padding: var(--fc-space-4);
 }
@@ -4318,7 +4324,9 @@
 	border-radius: var(--fc-radius-sm);
 	background-color: var(--fc-input-bg);
 	position: relative;
-	transition: background-color var(--fc-motion-quick) ease, border-color var(--fc-motion-quick) ease;
+	transition:
+		background-color var(--fc-motion-quick) ease,
+		border-color var(--fc-motion-quick) ease;
 }
 
 .flashcard-deck-settings-toggle-label input[type="checkbox"]:checked {
@@ -4327,7 +4335,7 @@
 }
 
 .flashcard-deck-settings-toggle-label input[type="checkbox"]:checked::after {
-	content: '';
+	content: "";
 	position: absolute;
 	left: 5px;
 	top: 2px;
@@ -4342,7 +4350,6 @@
 	outline: none;
 	box-shadow: var(--fc-focus-ring);
 }
-
 
 .flashcard-deck-settings-field {
 	flex-direction: column;
@@ -4999,6 +5006,11 @@
 @media (max-width: 900px) {
 	.flashcard-root {
 		padding: var(--fc-space-3);
+		padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-header-height));
+	}
+
+	.flashcard-root:focus-within {
+		padding-bottom: var(--fc-space-3);
 	}
 
 	.flashcard-deck-item,
@@ -5042,8 +5054,17 @@
 @media (max-width: 640px) {
 	.flashcard-root {
 		padding: var(--fc-space-2);
+		padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-header-height));
 		border-radius: 0;
-		padding-bottom: calc(env(safe-area-inset-bottom, var(--fc-space-6)) + var(--fc-space-10));
+	}
+
+	.flashcard-root:focus-within {
+		padding-bottom: var(--fc-space-2);
+	}
+
+	.flashcard-deck-list,
+	.flashcard-stats-body {
+		padding-bottom: var(--fc-space-4);
 	}
 
 	.flashcard-home,
@@ -5465,24 +5486,22 @@
 		padding: max(env(safe-area-inset-top, 0px), var(--fc-space-2)) var(--fc-space-2)
 			max(env(safe-area-inset-bottom, 0px), var(--fc-space-2));
 		overflow: hidden;
+		overscroll-behavior: contain;
 	}
 
 	.flashcard-modal {
-		max-height: calc(100svh - 16px);
-		max-height: calc(100dvh - 16px);
+		max-height: min(92vh, calc(100% - 16px));
 		border-radius: var(--fc-radius-md);
 	}
 
 	.flashcard-deck-settings-modal,
 	.flashcard-card-editor-modal {
-		max-height: 80svh;
-		max-height: 80dvh;
+		max-height: min(84vh, calc(100% - 24px));
 	}
 
 	.flashcard-card-editor-modal {
 		width: min(100%, 680px);
-		height: min(680px, calc(100svh - 16px));
-		height: min(680px, calc(100dvh - 16px));
+		height: min(680px, 92vh, calc(100% - 16px));
 	}
 
 	.flashcard-card-editor-body {
@@ -5499,6 +5518,17 @@
 		align-items: stretch;
 	}
 
+	.flashcard-root input,
+	.flashcard-root textarea,
+	.flashcard-root select,
+	.flashcard-control,
+	.flashcard-practice-input,
+	.flashcard-settings-tab input,
+	.flashcard-settings-tab textarea,
+	.flashcard-settings-tab select {
+		font-size: var(--fc-font-md);
+	}
+
 	.flashcard-settings-tab button,
 	.flashcard-settings-tab input,
 	.flashcard-settings-tab select {
@@ -5513,11 +5543,14 @@
 @media (pointer: coarse) {
 	.flashcard-root button,
 	.flashcard-root input,
+	.flashcard-root textarea,
 	.flashcard-root select,
 	.flashcard-settings-tab button,
 	.flashcard-settings-tab input,
+	.flashcard-settings-tab textarea,
 	.flashcard-settings-tab select {
 		min-height: var(--fc-control-touch);
+		font-size: var(--fc-font-md);
 	}
 
 	.flashcard-root button.flashcard-btn-icon,

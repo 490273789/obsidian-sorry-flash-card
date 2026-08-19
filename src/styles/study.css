@@ -1013,6 +1013,7 @@
 	min-height: 0;
 	flex: 1;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
 	display: flex;
 	flex-direction: column;

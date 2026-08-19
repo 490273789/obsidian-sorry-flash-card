@@ -45,6 +45,7 @@
 	justify-content: center;
 	padding: var(--fc-space-4);
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
 	background:
 		linear-gradient(135deg, rgba(var(--fc-cyan-rgb), 0.12), transparent 38%), var(--fc-overlay);
@@ -133,6 +134,7 @@
 	min-height: 0;
 	flex: 1;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
 	padding: var(--fc-space-4);
 }
@@ -176,7 +178,9 @@
 	border-radius: var(--fc-radius-sm);
 	background-color: var(--fc-input-bg);
 	position: relative;
-	transition: background-color var(--fc-motion-quick) ease, border-color var(--fc-motion-quick) ease;
+	transition:
+		background-color var(--fc-motion-quick) ease,
+		border-color var(--fc-motion-quick) ease;
 }
 
 .flashcard-deck-settings-toggle-label input[type="checkbox"]:checked {
@@ -185,7 +189,7 @@
 }
 
 .flashcard-deck-settings-toggle-label input[type="checkbox"]:checked::after {
-	content: '';
+	content: "";
 	position: absolute;
 	left: 5px;
 	top: 2px;
@@ -200,7 +204,6 @@
 	outline: none;
 	box-shadow: var(--fc-focus-ring);
 }
-
 
 .flashcard-deck-settings-field {
 	flex-direction: column;

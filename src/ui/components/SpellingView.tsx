@@ -59,26 +59,29 @@ export const SpellingView = React.memo(function SpellingView({
 
 		ownerWindow.requestAnimationFrame(() => {
 			const scroller = inputElement.closest<HTMLElement>(".flashcard-content");
-			const overlap = inputElement.getBoundingClientRect().bottom + 24 - visibleBottom;
-			if (scroller && overlap > 0) {
+			if (!scroller) return;
+			const inputRect = inputElement.getBoundingClientRect();
+			const scrollerRect = scroller.getBoundingClientRect();
+			const effectiveBottom = Math.min(scrollerRect.bottom, visibleBottom);
+			const overlap = inputRect.bottom + 16 - effectiveBottom;
+			if (overlap > 0) {
 				scroller.scrollBy({ top: overlap, behavior: "smooth" });
-				return;
 			}
-			inputElement.scrollIntoView({
-				block: "nearest",
-				behavior: "smooth",
-			});
 		});
 	}, []);
 
 	const handleInputBlur = useCallback(() => {
 		viewRef.current?.style.removeProperty("--fc-keyboard-inset");
+		const ownerWindow = inputRef.current?.ownerDocument.defaultView;
+		if (ownerWindow && ownerWindow.scrollY > 0) {
+			ownerWindow.scrollTo({ top: 0, behavior: "instant" });
+		}
 	}, []);
 
 	useEffect(() => {
 		pronunciationRuntime.stop();
 		setInput("");
-		window.setTimeout(() => inputRef.current?.focus(), 0);
+		window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0);
 	}, [currentCard.identity, pronunciationRuntime]);
 
 	useEffect(() => () => pronunciationRuntime.stop(), [pronunciationRuntime]);
@@ -119,7 +122,7 @@ export const SpellingView = React.memo(function SpellingView({
 				outcome.feedback.kind === "correction-incorrect"
 			) {
 				setInput("");
-				window.setTimeout(() => inputRef.current?.focus(), 0);
+				window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0);
 			}
 		},
 		[currentCard, isTransitioning, session.reference, transition],

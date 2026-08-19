@@ -10,7 +10,7 @@
 	background: var(--fc-input-bg);
 	box-shadow: none;
 	color: var(--fc-text);
-	font: var(--fc-weight-regular) var(--fc-font-sm) / var(--fc-line-body) var(--fc-font-ui);
+	font: var(--fc-weight-regular) var(--fc-font-md) / var(--fc-line-body) var(--fc-font-ui);
 	transition:
 		border-color var(--fc-motion-quick) ease,
 		background var(--fc-motion-quick) ease,

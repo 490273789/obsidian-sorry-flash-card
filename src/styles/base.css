@@ -244,6 +244,7 @@
 	height: 100%;
 	min-height: 100%;
 	overflow: hidden;
+	overscroll-behavior: contain;
 	display: flex;
 	flex-direction: column;
 	container-name: flashcard-page;
@@ -261,6 +262,7 @@
 .workspace-leaf-content .flashcard-container {
 	height: 100%;
 	overflow: hidden;
+	overscroll-behavior: contain;
 	padding: 0;
 }
 
