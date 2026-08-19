@@ -7,6 +7,10 @@ export type {
 } from "./FlashcardButton";
 export { FlashcardInput, FlashcardTextarea } from "./FlashcardInput";
 export type { FlashcardInputProps, FlashcardTextareaProps } from "./FlashcardInput";
+export { FlashcardCheckbox } from "./FlashcardCheckbox";
+export type { FlashcardCheckboxProps } from "./FlashcardCheckbox";
+export { FlashcardSlider } from "./FlashcardSlider";
+export type { FlashcardSliderProps } from "./FlashcardSlider";
 export { FlashcardSelect } from "./FlashcardSelect";
 export type { FlashcardSelectProps } from "./FlashcardSelect";
 export { FlashcardMenu } from "./FlashcardMenu";

@@ -268,3 +268,291 @@
 	background: var(--fc-surface-section);
 	opacity: var(--fc-opacity-disabled);
 }
+
+/* Custom Checkbox Control */
+.flashcard-checkbox {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	position: relative;
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	font-size: var(--fc-font-sm);
+	color: var(--fc-text);
+	line-height: var(--fc-line-body);
+}
+
+.flashcard-checkbox.is-disabled {
+	opacity: var(--fc-opacity-disabled);
+	cursor: not-allowed;
+}
+
+.flashcard-checkbox-native {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+	margin: 0;
+	padding: 0;
+	pointer-events: none;
+}
+
+.flashcard-checkbox-box {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 18px;
+	height: 18px;
+	min-width: 18px;
+	min-height: 18px;
+	flex: 0 0 18px;
+	border: 1.5px solid var(--fc-line-strong);
+	border-radius: var(--fc-radius-xs);
+	background: var(--fc-input-bg);
+	color: var(--text-on-accent, #ffffff);
+	transition:
+		border-color var(--fc-motion-quick) ease,
+		background var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+}
+
+.flashcard-checkbox:hover:not(.is-disabled) .flashcard-checkbox-box {
+	border-color: var(--fc-control-border-selected);
+	background: var(--fc-input-bg-hover);
+}
+
+.flashcard-checkbox-native:focus-visible + .flashcard-checkbox-box {
+	border-color: var(--fc-control-border-selected);
+	box-shadow:
+		0 0 0 2px var(--background-primary),
+		0 0 0 4px color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+}
+
+.flashcard-checkbox-native:checked + .flashcard-checkbox-box {
+	background: var(--fc-cyan);
+	border-color: var(--fc-cyan);
+}
+
+.flashcard-checkbox.is-invalid .flashcard-checkbox-box {
+	border-color: var(--fc-danger);
+}
+
+.flashcard-checkbox-icon {
+	opacity: 0;
+	transform: scale(0.6);
+	transition:
+		opacity var(--fc-motion-quick) ease,
+		transform var(--fc-motion-quick) ease;
+}
+
+.flashcard-checkbox-native:checked + .flashcard-checkbox-box .flashcard-checkbox-icon {
+	opacity: 1;
+	transform: scale(1);
+}
+
+.flashcard-checkbox-label {
+	font-weight: var(--fc-weight-semibold);
+	color: var(--fc-text);
+}
+
+/* Custom Slider / Range Control */
+.flashcard-slider-wrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+	min-height: var(--fc-control-sm);
+}
+
+.flashcard-slider-wrapper.is-disabled {
+	opacity: var(--fc-opacity-disabled);
+	cursor: not-allowed;
+}
+
+/* Reset Obsidian slider variables on the container and the input */
+.flashcard-slider-wrapper,
+.flashcard-root input[type="range"].flashcard-slider,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider,
+.modal input[type="range"].flashcard-slider,
+input[type="range"].flashcard-slider {
+	--slider-width: 100%;
+	--slider-track-height: 6px;
+	--slider-thumb-width: 18px;
+	--slider-thumb-height: 18px;
+	--slider-thumb-radius: 50%;
+	--slider-thumb-y: -3px;
+	--slider-thumb-background: #ffffff;
+	--slider-thumb-border-width: 2px;
+	--slider-thumb-border-color: var(--fc-cyan);
+}
+
+.flashcard-root input[type="range"].flashcard-slider,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider,
+.modal input[type="range"].flashcard-slider,
+input[type="range"].flashcard-slider {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	width: 100% !important;
+	min-width: 0 !important;
+	max-width: 100% !important;
+	height: 24px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: none !important;
+	box-shadow: none !important;
+	cursor: pointer;
+	outline: none;
+}
+
+.flashcard-root input[type="range"].flashcard-slider:disabled,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider:disabled,
+.modal input[type="range"].flashcard-slider:disabled,
+input[type="range"].flashcard-slider:disabled {
+	cursor: not-allowed;
+	opacity: var(--fc-opacity-disabled);
+}
+
+/* WebKit / Chromium Track */
+.flashcard-root input[type="range"].flashcard-slider::-webkit-slider-runnable-track,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider::-webkit-slider-runnable-track,
+.modal input[type="range"].flashcard-slider::-webkit-slider-runnable-track,
+input[type="range"].flashcard-slider::-webkit-slider-runnable-track {
+	width: 100% !important;
+	height: 6px !important;
+	border-radius: var(--fc-radius-pill) !important;
+	background: linear-gradient(
+		to right,
+		var(--fc-cyan) 0%,
+		var(--fc-cyan) var(--slider-progress, 0%),
+		var(--fc-line-strong) var(--slider-progress, 0%),
+		var(--fc-line-strong) 100%
+	) !important;
+	border: none !important;
+	box-shadow: none !important;
+	transition: background var(--fc-motion-quick) ease;
+}
+
+/* WebKit / Chromium Thumb */
+.flashcard-root input[type="range"].flashcard-slider::-webkit-slider-thumb,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider::-webkit-slider-thumb,
+.modal input[type="range"].flashcard-slider::-webkit-slider-thumb,
+input[type="range"].flashcard-slider::-webkit-slider-thumb {
+	-webkit-appearance: none !important;
+	appearance: none !important;
+	box-sizing: border-box !important;
+	width: 18px !important;
+	height: 18px !important;
+	margin: 0 !important;
+	margin-top: -6px !important;
+	margin-bottom: 0 !important;
+	top: 0 !important;
+	border-radius: 50% !important;
+	background: #ffffff !important;
+	border: 2px solid var(--fc-cyan) !important;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+	cursor: pointer;
+	transition:
+		transform var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+}
+
+.flashcard-root input[type="range"].flashcard-slider:hover:not(:disabled)::-webkit-slider-thumb,
+.flashcard-deck-settings-modal
+	input[type="range"].flashcard-slider:hover:not(:disabled)::-webkit-slider-thumb,
+.modal input[type="range"].flashcard-slider:hover:not(:disabled)::-webkit-slider-thumb,
+input[type="range"].flashcard-slider:hover:not(:disabled)::-webkit-slider-thumb {
+	transform: scale(1.15);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+}
+
+.flashcard-root input[type="range"].flashcard-slider:active:not(:disabled)::-webkit-slider-thumb,
+.flashcard-deck-settings-modal
+	input[type="range"].flashcard-slider:active:not(:disabled)::-webkit-slider-thumb,
+.modal input[type="range"].flashcard-slider:active:not(:disabled)::-webkit-slider-thumb,
+input[type="range"].flashcard-slider:active:not(:disabled)::-webkit-slider-thumb {
+	transform: scale(1.25);
+	background: var(--fc-cyan) !important;
+	border-color: #ffffff !important;
+}
+
+.flashcard-root input[type="range"].flashcard-slider:focus-visible::-webkit-slider-thumb,
+.flashcard-deck-settings-modal
+	input[type="range"].flashcard-slider:focus-visible::-webkit-slider-thumb,
+.modal input[type="range"].flashcard-slider:focus-visible::-webkit-slider-thumb,
+input[type="range"].flashcard-slider:focus-visible::-webkit-slider-thumb {
+	box-shadow:
+		0 0 0 3px color-mix(in srgb, var(--interactive-accent) 40%, transparent),
+		0 2px 6px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Firefox Track */
+.flashcard-root input[type="range"].flashcard-slider::-moz-range-track,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider::-moz-range-track,
+.modal input[type="range"].flashcard-slider::-moz-range-track,
+input[type="range"].flashcard-slider::-moz-range-track {
+	width: 100% !important;
+	height: 6px !important;
+	border-radius: var(--fc-radius-pill) !important;
+	background: var(--fc-line-strong) !important;
+	border: none !important;
+	box-shadow: none !important;
+}
+
+.flashcard-root input[type="range"].flashcard-slider::-moz-range-progress,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider::-moz-range-progress,
+.modal input[type="range"].flashcard-slider::-moz-range-progress,
+input[type="range"].flashcard-slider::-moz-range-progress {
+	height: 6px !important;
+	border-radius: var(--fc-radius-pill) !important;
+	background: var(--fc-cyan) !important;
+}
+
+/* Firefox Thumb */
+.flashcard-root input[type="range"].flashcard-slider::-moz-range-thumb,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider::-moz-range-thumb,
+.modal input[type="range"].flashcard-slider::-moz-range-thumb,
+input[type="range"].flashcard-slider::-moz-range-thumb {
+	box-sizing: border-box !important;
+	width: 18px !important;
+	height: 18px !important;
+	border-radius: 50% !important;
+	background: #ffffff !important;
+	border: 2px solid var(--fc-cyan) !important;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+	cursor: pointer;
+	transition:
+		transform var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+}
+
+.flashcard-root input[type="range"].flashcard-slider:hover:not(:disabled)::-moz-range-thumb,
+.flashcard-deck-settings-modal
+	input[type="range"].flashcard-slider:hover:not(:disabled)::-moz-range-thumb,
+.modal input[type="range"].flashcard-slider:hover:not(:disabled)::-moz-range-thumb,
+input[type="range"].flashcard-slider:hover:not(:disabled)::-moz-range-thumb {
+	transform: scale(1.15);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+}
+
+.flashcard-root input[type="range"].flashcard-slider:active:not(:disabled)::-moz-range-thumb,
+.flashcard-deck-settings-modal
+	input[type="range"].flashcard-slider:active:not(:disabled)::-moz-range-thumb,
+.modal input[type="range"].flashcard-slider:active:not(:disabled)::-moz-range-thumb,
+input[type="range"].flashcard-slider:active:not(:disabled)::-moz-range-thumb {
+	transform: scale(1.25);
+	background: var(--fc-cyan) !important;
+	border-color: #ffffff !important;
+}
+
+.flashcard-root input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb,
+.flashcard-deck-settings-modal input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb,
+.modal input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb,
+input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
+	box-shadow:
+		0 0 0 3px color-mix(in srgb, var(--interactive-accent) 40%, transparent),
+		0 2px 6px rgba(0, 0, 0, 0.45) !important;
+}

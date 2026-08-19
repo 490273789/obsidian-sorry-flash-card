@@ -163,48 +163,6 @@
 	font-weight: var(--fc-weight-semibold);
 }
 
-.flashcard-deck-settings-toggle-label input[type="checkbox"] {
-	appearance: none;
-	-webkit-appearance: none;
-	box-sizing: border-box;
-	width: var(--fc-space-5);
-	height: var(--fc-space-5);
-	min-width: var(--fc-space-5);
-	min-height: var(--fc-space-5);
-	flex: 0 0 var(--fc-space-5);
-	margin: 0;
-	vertical-align: middle;
-	border: 1px solid var(--fc-line-strong);
-	border-radius: var(--fc-radius-sm);
-	background-color: var(--fc-input-bg);
-	position: relative;
-	transition:
-		background-color var(--fc-motion-quick) ease,
-		border-color var(--fc-motion-quick) ease;
-}
-
-.flashcard-deck-settings-toggle-label input[type="checkbox"]:checked {
-	background-color: var(--fc-cyan);
-	border-color: var(--fc-cyan);
-}
-
-.flashcard-deck-settings-toggle-label input[type="checkbox"]:checked::after {
-	content: "";
-	position: absolute;
-	left: 5px;
-	top: 2px;
-	width: 4px;
-	height: 8px;
-	border: solid var(--text-normal);
-	border-width: 0 2px 2px 0;
-	transform: rotate(45deg);
-}
-
-.flashcard-deck-settings-toggle-label input[type="checkbox"]:focus {
-	outline: none;
-	box-shadow: var(--fc-focus-ring);
-}
-
 .flashcard-deck-settings-field {
 	flex-direction: column;
 	align-items: stretch;
@@ -222,11 +180,6 @@
 .flashcard-deck-settings-field label strong,
 .flashcard-deck-settings-summary-value {
 	color: var(--fc-text);
-}
-
-.flashcard-deck-settings-field input[type="range"] {
-	width: 100%;
-	accent-color: var(--fc-cyan);
 }
 
 .flashcard-deck-settings-field-row {

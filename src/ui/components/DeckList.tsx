@@ -46,9 +46,11 @@ import type {
 	DeckHomeSnapshot,
 } from "../../decks/deckHome";
 import { FlashcardButton } from "./FlashcardButton";
+import { FlashcardCheckbox } from "./FlashcardCheckbox";
 import { FlashcardInput } from "./FlashcardInput";
 import { FlashcardMenu, type FlashcardMenuItem } from "./FlashcardMenu";
 import { FlashcardSelect } from "./FlashcardSelect";
+import { FlashcardSlider } from "./FlashcardSlider";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
 import { formatStudyOrder } from "../../i18n";
@@ -152,20 +154,17 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 									<strong>{t("deckSettings.wordLearningTitle")}</strong>
 									<p>{t("deckSettings.wordLearningDescription")}</p>
 								</div>
-								<label className="flashcard-deck-settings-toggle-label">
-									<input
-										type="checkbox"
-										checked={draft.wordLearningEnabled}
-										{...initialFocusProps}
-										onChange={(event) =>
-											onChange({
-												field: "wordLearningEnabled",
-												value: event.target.checked,
-											})
-										}
-									/>
-									<span>{t("deckSettings.wordLearningToggle")}</span>
-								</label>
+								<FlashcardCheckbox
+									checked={draft.wordLearningEnabled}
+									{...initialFocusProps}
+									onChange={(event) =>
+										onChange({
+											field: "wordLearningEnabled",
+											value: event.target.checked,
+										})
+									}
+									label={t("deckSettings.wordLearningToggle")}
+								/>
 							</div>
 
 							{draft.wordLearningEnabled && !hasStableIdentities && (
@@ -234,19 +233,16 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 						</div>
 
 						<div className="flashcard-deck-settings-toggle flashcard-deck-settings-card">
-							<label className="flashcard-deck-settings-toggle-label">
-								<input
-									type="checkbox"
-									checked={draft.useCustom}
-									onChange={(e) =>
-										onChange({
-											field: "useCustom",
-											value: e.target.checked,
-										})
-									}
-								/>
-								<span>{t("deckSettings.useCustom")}</span>
-							</label>
+							<FlashcardCheckbox
+								checked={draft.useCustom}
+								onChange={(e) =>
+									onChange({
+										field: "useCustom",
+										value: e.target.checked,
+									})
+								}
+								label={t("deckSettings.useCustom")}
+							/>
 							<p className="flashcard-deck-settings-toggle-copy">
 								{t("deckSettings.useCustomCopy")}
 							</p>
@@ -298,8 +294,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										<span>{t("deckSettings.dailyNewCards")}</span>
 										<strong>{draft.dailyNewCards}</strong>
 									</label>
-									<input
-										type="range"
+									<FlashcardSlider
 										min={1}
 										max={200}
 										value={draft.dailyNewCards}
@@ -337,8 +332,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										<span>{t("deckSettings.dailyReviewCards")}</span>
 										<strong>{draft.dailyReviewCards}</strong>
 									</label>
-									<input
-										type="range"
+									<FlashcardSlider
 										min={1}
 										max={500}
 										step={10}
@@ -371,8 +365,7 @@ const DeckSettingsModal = memo(function DeckSettingsModal({
 										<span>{t("deckSettings.targetRetention")}</span>
 										<strong>{draft.requestRetention.toFixed(2)}</strong>
 									</label>
-									<input
-										type="range"
+									<FlashcardSlider
 										min={0.7}
 										max={0.99}
 										step={0.01}

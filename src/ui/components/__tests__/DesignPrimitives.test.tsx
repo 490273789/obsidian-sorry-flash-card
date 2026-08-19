@@ -3,9 +3,11 @@ import { Settings, X } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { FlashcardButton } from "../FlashcardButton";
+import { FlashcardCheckbox } from "../FlashcardCheckbox";
 import { FlashcardInput, FlashcardTextarea } from "../FlashcardInput";
 import { FlashcardMenu } from "../FlashcardMenu";
 import { FlashcardSelect } from "../FlashcardSelect";
+import { FlashcardSlider } from "../FlashcardSlider";
 
 describe("design primitives", () => {
 	it("renders semantic button variants and sizes", () => {
@@ -92,5 +94,40 @@ describe("design primitives", () => {
 		expect(html).toContain('aria-haspopup="menu"');
 		expect(html).toContain('aria-expanded="false"');
 		expect(html).toContain("flashcard-menu-trigger");
+	});
+
+	it("renders custom checkbox with accessible native input, visual box, and label", () => {
+		const html = renderToStaticMarkup(
+			<FlashcardCheckbox checked disabled invalid label="启用拼写" aria-label="拼写选项" />,
+		);
+
+		expect(html).toContain("flashcard-checkbox");
+		expect(html).toContain("flashcard-checkbox-native");
+		expect(html).toContain("flashcard-checkbox-box");
+		expect(html).toContain("flashcard-checkbox-label");
+		expect(html).toContain("启用拼写");
+		expect(html).toContain("is-disabled");
+		expect(html).toContain("is-invalid");
+		expect(html).toContain('type="checkbox"');
+	});
+
+	it("renders slider with calculated progress css variable and track attributes", () => {
+		const html = renderToStaticMarkup(
+			<FlashcardSlider
+				min={0}
+				max={100}
+				value={25}
+				step={5}
+				onChange={vi.fn()}
+				aria-label="每日新卡"
+			/>,
+		);
+
+		expect(html).toContain("flashcard-slider-wrapper");
+		expect(html).toContain("flashcard-slider");
+		expect(html).toContain('type="range"');
+		expect(html).toContain("--slider-progress:25%");
+		expect(html).toContain('min="0"');
+		expect(html).toContain('max="100"');
 	});
 });
