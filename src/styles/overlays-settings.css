@@ -502,7 +502,7 @@
 }
 .flashcard-modal {
 	width: min(560px, 100%);
-	max-height: calc(100dvh - 32px);
+	max-height: 85dvh;
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;

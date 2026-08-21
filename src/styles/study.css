@@ -305,10 +305,14 @@
 
 .flashcard-setup-segment-btn svg {
 	flex: 0 0 auto;
+	transition:
+		color 0.18s ease,
+		filter 0.18s ease;
 }
 
 .flashcard-setup-segment-btn.active svg {
 	color: var(--fc-cyan);
+	filter: drop-shadow(0 0 4px color-mix(in srgb, var(--interactive-accent) 35%, transparent));
 }
 
 .flashcard-setup-segment-label {
@@ -815,48 +819,68 @@
 
 .flashcard-setup-segmented {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: var(--fc-space-half);
+	grid-auto-flow: column;
+	grid-auto-columns: 1fr;
+	gap: 4px;
 	min-inline-size: 0;
 	margin: 0;
-	padding: var(--fc-space-1);
-	border: none;
-	border-radius: var(--fc-radius-sm);
-	background: var(--fc-surface-control);
-	box-shadow: none;
+	padding: 4px;
+	border: 1px solid var(--fc-line-soft);
+	border-radius: var(--fc-radius-md);
+	background: color-mix(in srgb, var(--background-secondary) 75%, var(--background-primary) 25%);
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .flashcard-root button.flashcard-setup-segment-btn {
 	justify-content: center;
+	align-items: center;
 	gap: var(--fc-space-2);
 	min-height: var(--fc-control-md);
 	padding: var(--fc-space-2) var(--fc-space-3);
-	border-radius: calc(var(--fc-radius-sm) - var(--fc-space-half));
-	color: var(--fc-muted);
-	border: none;
+	border-radius: calc(var(--fc-radius-md) - 3px);
+	border: 1px solid transparent;
 	background: transparent;
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	font-weight: var(--fc-weight-medium);
+	box-shadow: none;
+	transition:
+		background 0.18s ease,
+		color 0.18s ease,
+		border-color 0.18s ease,
+		box-shadow 0.18s ease;
+	cursor: pointer;
+}
+
+.flashcard-root button.flashcard-setup-segment-btn:hover:not(:disabled) {
+	color: var(--fc-text);
+	background: var(--fc-surface-hover);
+	border-color: transparent;
 	box-shadow: none;
 }
 
-.flashcard-root button.flashcard-setup-segment-btn:hover:not(:disabled),
 .flashcard-root button.flashcard-setup-segment-btn:focus-visible {
-	color: var(--fc-text);
-	background: var(--fc-surface-hover);
-	box-shadow: none;
+	outline: none;
+	box-shadow: 0 0 0 2px var(--interactive-accent);
 }
 
 .flashcard-root button.flashcard-setup-segment-btn.active {
 	animation: none;
-	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
+	background: color-mix(in srgb, var(--interactive-accent) 18%, var(--background-primary) 82%);
+	border-color: color-mix(in srgb, var(--interactive-accent) 40%, transparent);
 	color: var(--fc-text);
-	box-shadow: none;
+	box-shadow:
+		0 1px 3px rgba(0, 0, 0, 0.22),
+		0 0 10px color-mix(in srgb, var(--interactive-accent) 14%, transparent);
 	font-weight: var(--fc-weight-semibold);
 }
 
-.flashcard-root button.flashcard-setup-segment-btn.active:hover:not(:disabled),
-.flashcard-root button.flashcard-setup-segment-btn.active:focus-visible {
-	background: color-mix(in srgb, var(--interactive-accent) 52%, var(--background-primary) 48%);
-	box-shadow: none;
+.flashcard-root button.flashcard-setup-segment-btn.active:hover:not(:disabled) {
+	background: color-mix(in srgb, var(--interactive-accent) 24%, var(--background-primary) 76%);
+	border-color: color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+	box-shadow:
+		0 2px 5px rgba(0, 0, 0, 0.26),
+		0 0 12px color-mix(in srgb, var(--interactive-accent) 20%, transparent);
 }
 
 .flashcard-root button.flashcard-setup-chip.active {
@@ -1287,26 +1311,32 @@
 }
 
 .theme-light .flashcard-setup-segmented {
-	border: none;
-	background: var(--fc-surface-control);
-	box-shadow: none;
+	border: 1px solid var(--fc-line-soft);
+	background: color-mix(in srgb, var(--background-secondary) 85%, var(--background-primary) 15%);
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.theme-light .flashcard-root button.flashcard-setup-segment-btn,
-.theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
-	border: none;
+.theme-light .flashcard-root button.flashcard-setup-segment-btn {
+	border: 1px solid transparent;
+	color: var(--fc-muted);
 }
 
 .theme-light .flashcard-root button.flashcard-setup-segment-btn.active {
-	background: color-mix(in srgb, var(--interactive-accent) 38%, var(--background-primary) 62%);
+	background: var(--background-primary);
+	border: 1px solid color-mix(in srgb, var(--interactive-accent) 32%, var(--fc-line) 68%);
 	color: var(--fc-text);
-	box-shadow: none;
+	box-shadow:
+		0 1px 4px rgba(0, 0, 0, 0.08),
+		0 2px 8px color-mix(in srgb, var(--interactive-accent) 12%, transparent);
 }
 
 .theme-light .flashcard-root button.flashcard-setup-segment-btn.active:hover:not(:disabled),
 .theme-light .flashcard-root button.flashcard-setup-segment-btn.active:focus-visible {
-	background: color-mix(in srgb, var(--interactive-accent) 52%, var(--background-primary) 48%);
-	box-shadow: none;
+	background: var(--background-primary);
+	border-color: color-mix(in srgb, var(--interactive-accent) 48%, var(--fc-line) 52%);
+	box-shadow:
+		0 2px 6px rgba(0, 0, 0, 0.1),
+		0 3px 10px color-mix(in srgb, var(--interactive-accent) 18%, transparent);
 }
 
 .theme-light .flashcard-root button.flashcard-setup-chip.active {

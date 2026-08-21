@@ -13,7 +13,6 @@ export const DEFAULT_PRACTICE_MESSAGES: Record<
 > = {
 	zh: {
 		perfect: [
-			"这波装稳了🎉",
 			"沉浸式装 X🌟",
 			"帅是一种常态💪",
 			"优雅，实在是优雅💎",
@@ -21,13 +20,11 @@ export const DEFAULT_PRACTICE_MESSAGES: Record<
 			"Practice界的扛把子🔥",
 		],
 		error: [
-			"这波菜稳了💩",
 			"沉浸式翻车🌟",
 			"错是一种常态❌",
 			"拉胯，实在是拉胯💔",
 			"错题小能手🏆",
 			"翻车界的扛把子🔥",
-			"菜鸡实锤了🐔",
 		],
 	},
 	en: {
@@ -431,7 +428,7 @@ const translations = {
 		"practice.incorrect": "错误: ",
 		"practice.timeSpent": "用时: ",
 		"practice.incorrectList": "错题列表 ({count} 题)",
-		"practice.restart": "再装一次",
+		"practice.restart": "再刷一次",
 		"practice.failed": "错题练习 ({count})",
 		"practice.home": "返回题库",
 		"practice.questionLabel": "问:",
