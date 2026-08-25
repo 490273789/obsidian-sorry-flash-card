@@ -128,14 +128,12 @@ npm run check:all
 npm run check:all
 npm run build
 
-# 2. 更新版本号（会自动更新 manifest.json、versions.json 并 stage）
-npm version patch   # 小修补 4.5.0 -> 4.5.1
-# 或 npm version minor # 新功能 4.5.0 -> 4.6.0
-# 或 npm version major # 主版本 4.5.0 -> 5.0.0
+# 2. 更新版本号（会自动更新 package.json、锁文件、manifest.json、versions.json，
+#    并创建 release commit 与 tag；除非显式使用 --no-git-tag-version）
+npm version patch -m "chore(release): bump version to %s"   # 小修补 4.5.0 -> 4.5.1
+# 或 npm version minor -m "chore(release): bump version to %s" # 新功能 4.5.0 -> 4.6.0
+# 或 npm version major -m "chore(release): bump version to %s" # 主版本 4.5.0 -> 5.0.0
 
-# 3. 提交版本发布记录
-git commit -m "chore(release): bump version to x.y.z"
-
-# 4. 推送分支与对应 tag
+# 3. 检查 npm 自动创建的 release commit 与 tag，然后推送
 git push origin main --tags
 ```
