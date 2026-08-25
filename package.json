@@ -17,7 +17,10 @@
 		"lint": "npm run typecheck && oxlint src",
 		"lint:fix": "oxlint src --fix",
 		"format": "oxfmt .",
-		"format:check": "oxfmt . --check"
+		"format:check": "oxfmt . --check",
+		"check:all": "npm run format:check && npm run lint && npm run test",
+		"setup-hooks": "node scripts/setup-hooks.mjs",
+		"prepare": "node scripts/setup-hooks.mjs"
 	},
 	"dependencies": {
 		"@dnd-kit/core": "^6.3.1",

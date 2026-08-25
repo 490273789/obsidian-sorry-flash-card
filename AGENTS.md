@@ -60,6 +60,8 @@ npm run lint
 npm run lint:fix
 npm run format:check
 npm run format
+npm run check:all
+npm run setup-hooks
 ```
 
 `npm run build` runs TypeScript checking and the production Vite bundle. Treat it as the primary validation command after code changes.
@@ -175,7 +177,20 @@ Scheduling lives in `src/sessions/scheduler.ts` and uses `ts-fsrs`.
 - Keep controls keyboard-friendly; existing shortcuts are part of the product behavior.
 - Update `src/styles/` for visual changes and avoid inline style proliferation.
 - Keep `src/styles/index.css` as the only style entry point and preserve its partial import order; pronunciation-specific styles live in `src/styles/pronunciation.css`.
-- Check mobile constraints when touching layout because the README promises mobile compatibility.
+
+## Git Commit & Workflow Conventions
+
+All commits must follow the [Conventional Commits 1.0.0](https://www.conventionalcommits.org/) specification and the project guide in `docs/git-commit-guide.md`.
+
+- **Commit Format**: `<type>(<scope>): <subject>` (e.g. `feat(ui): add drag-and-drop sorting to deck list`).
+- **Types**: `feat`, `fix`, `style`, `refactor`, `perf`, `test`, `docs`, `chore`, `revert`.
+- **Project Scopes**: `ui`, `styles`, `cards`, `parser`, `identity`, `session`, `pronunciation`, `deck`, `obsidian`, `settings`, `storage`, `history`, `word-list`, `i18n`, `deps`, `release`.
+- **Subject Rules**:
+    - Be specific and descriptive. Avoid vague summaries like `ui update`, `fix bug`, or `update`.
+    - Use imperative, present-tense verbs (e.g. `add`, `fix`, `refactor` or Chinese equivalents `新增`, `修复`, `重构`).
+    - Do not end subject lines with a period.
+- **Atomic Commits**: Keep commits focused and single-purpose; do not mix unrelated refactors, UI tweaks, and bug fixes into a single commit.
+- **Verification Hooks**: Pre-commit lint/format checks and commit-msg verification are configured via `scripts/setup-hooks.mjs`. Use `npm run check:all` to run the full pre-commit pipeline manually.
 
 ## Validation Checklist
 
@@ -184,12 +199,14 @@ Before finishing a code-change task:
 1. Run `npm test` when the change touches testable logic, parsing, scheduling, spelling, pronunciation, PDF presentation helpers, data helpers, or any area with existing tests. Style-only changes do not require new tests.
 2. Run `npm run build`.
 3. Run `npm run lint` when the change touches TypeScript/React patterns, Obsidian API usage, or shared modules.
-4. Run `npm run format:check` when files were broadly edited or formatting may have changed.
-5. For UI work, inspect the relevant view in Obsidian when feasible, or clearly state that only build/lint validation was run.
-6. For settings-tab changes, explicitly verify that the settings tab is not blank.
-7. For pronunciation changes, test the affected fallback path when feasible and state which of local voice, cached audio, Azure, or OpenAI was actually exercised.
-8. For PDF export changes, state whether a real desktop export was manually verified.
-9. Mention any validation command or manual check that could not be run.
+4. Run `npm run format:check` when files were broadly edited or formatting may have changed (or `npm run format` to auto-fix).
+5. Run `npm run check:all` for comprehensive pre-commit verification.
+6. Verify commit messages conform to Conventional Commits before submitting or prompting.
+7. For UI work, inspect the relevant view in Obsidian when feasible, or clearly state that only build/lint validation was run.
+8. For settings-tab changes, explicitly verify that the settings tab is not blank.
+9. For pronunciation changes, test the affected fallback path when feasible and state which of local voice, cached audio, Azure, or OpenAI was actually exercised.
+10. For PDF export changes, state whether a real desktop export was manually verified.
+11. Mention any validation command or manual check that could not be run.
 
 ## Files to Treat Carefully
 
