@@ -59,6 +59,7 @@ import {
 	planRangeSpellingSession,
 	planSmartSpellingSession,
 } from "./spellingSessionPlanner";
+import { getCardsForDay } from "./sessionPlanner";
 
 export interface SessionCardSnapshot {
 	readonly identity: string;
@@ -380,7 +381,6 @@ export interface SessionPersistenceTransition {
 export interface SessionLifecycleRepository extends StudyCardScheduler {
 	getDeck(id: string): Deck | undefined;
 	getCard(deckId: string, cardId: string): FlashCard | undefined;
-	getCardsForDay(deckId: string, dayIndex: number): FlashCard[];
 	getEffectiveStudySettings(deckId: string): StudySettings;
 	getSettings(): Pick<FlashcardSettings, "wordLearningDecks">;
 	getSpellingProgress(): Record<string, SpellingCardProgress>;
@@ -611,9 +611,11 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 					? planDayPracticeSession({
 							deckId: request.deckId,
 							direction: request.direction,
-							cards: this.repository.getCardsForDay(
-								request.deckId,
+							cards: getCardsForDay(
+								deck,
 								request.selection.dayIndex,
+								this.repository.getEffectiveStudySettings(request.deckId)
+									.dailyNewCards,
 							),
 							studyOrder: request.selection.studyOrder,
 							shuffle: this.shuffle,
@@ -663,8 +665,12 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 			request.selection.kind === "study-day"
 				? {
 						cardIds: this.shuffle(
-							this.repository
-								.getCardsForDay(request.deckId, request.selection.dayIndex)
+							getCardsForDay(
+								deck,
+								request.selection.dayIndex,
+								this.repository.getEffectiveStudySettings(request.deckId)
+									.dailyNewCards,
+							)
 								.filter((card) => extractSpellingWord(card.front) !== null)
 								.map((card) => card.id),
 						),

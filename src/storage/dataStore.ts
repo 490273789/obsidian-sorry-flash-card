@@ -4,7 +4,6 @@ import {
 	Deck,
 	FlashCard,
 	DeckStats,
-	StudyDayInfo,
 	FlashcardSettings,
 	StudySettings,
 	StudyHistoryEntry,
@@ -114,9 +113,6 @@ export class DataStore {
 	/** Sorted non-new due times per deck, used by DeckHome's next-wake timer. */
 	private deckDueTimes = new Map<string, number[]>();
 	private deckDueTimesValid = false;
-	/** Per-deck cached index-ordered card arrays; invalidated only for decks whose cards changed. */
-	private sortedCardsCache = new Map<string, FlashCard[]>();
-	private sortedCardsDirty = new Set<string>();
 
 	constructor(plugin: Plugin, settings?: FlashcardSettings) {
 		this.plugin = plugin;
@@ -367,11 +363,7 @@ export class DataStore {
 		// Card positions are unchanged by a session transition, so the card index
 		// stays valid; only the touched decks need their derived caches refreshed.
 		for (const deckId of updatedDeckIds) {
-			this.sortedCardsDirty.add(deckId);
 			this.refreshDeckDueTimes(deckId, nextDecks);
-		}
-		for (const deckId of transition.incrementStudyCountFor) {
-			this.sortedCardsDirty.add(deckId);
 		}
 		this.publishRevision();
 	}
@@ -431,8 +423,6 @@ export class DataStore {
 	private refreshDerivedState(): void {
 		this.rebuildCardIndex();
 		this.deckDueTimesValid = false;
-		this.sortedCardsCache.clear();
-		this.sortedCardsDirty.clear();
 	}
 
 	private rebuildCardIndex(): void {
@@ -478,17 +468,6 @@ export class DataStore {
 		const dueTimes = collectDeckDueTimes(deck);
 		if (dueTimes.length === 0) this.deckDueTimes.delete(deckId);
 		else this.deckDueTimes.set(deckId, dueTimes);
-	}
-
-	/** Index-ordered cards for a deck, cached until the deck's cards actually change. */
-	private getSortedCards(deckId: string): FlashCard[] {
-		const cached = this.sortedCardsCache.get(deckId);
-		if (cached && !this.sortedCardsDirty.has(deckId)) return cached;
-		const deck = this.decks.get(deckId);
-		const sorted = deck ? [...deck.cards].sort((a, b) => a.indexInFile - b.indexInFile) : [];
-		this.sortedCardsCache.set(deckId, sorted);
-		this.sortedCardsDirty.delete(deckId);
-		return sorted;
 	}
 
 	createContinuityStateStore(): ContinuityStateStore {
@@ -694,89 +673,6 @@ export class DataStore {
 				...overrides.fsrsParameters,
 			},
 		};
-	}
-
-	/**
-	 * Get the list of learning days for a deck with completion status
-	 */
-	getDayList(deckId: string): StudyDayInfo[] {
-		const deck = this.decks.get(deckId);
-		if (!deck) return [];
-
-		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
-		const sortedCards = this.getSortedCards(deckId);
-		const totalCards = sortedCards.length;
-		if (totalCards === 0) return [];
-
-		const numDays = Math.ceil(totalCards / dailyNewCards);
-		const days: StudyDayInfo[] = [];
-		let foundCurrent = false;
-
-		for (let i = 0; i < numDays; i++) {
-			const start = i * dailyNewCards;
-			const end = Math.min(start + dailyNewCards, totalCards);
-			const dayCards = sortedCards.slice(start, end);
-			const studiedCards = dayCards.filter((c) => c.fsrsCard.state !== State.New).length;
-			const isCompleted = studiedCards === dayCards.length;
-			const isCurrent = !isCompleted && !foundCurrent;
-			if (isCurrent) foundCurrent = true;
-
-			days.push({
-				dayIndex: i,
-				startCardIndex: start,
-				endCardIndex: end,
-				totalCards: dayCards.length,
-				studiedCards,
-				isCompleted,
-				isCurrent,
-				isLocked: !isCompleted && !isCurrent,
-			});
-		}
-
-		return days;
-	}
-
-	/**
-	 * Get the count of new and due cards for today's session
-	 */
-	getTodayStudyCounts(deckId: string): {
-		newCount: number;
-		reviewCount: number;
-	} {
-		const deck = this.decks.get(deckId);
-		if (!deck) return { newCount: 0, reviewCount: 0 };
-
-		const { dailyNewCards, dailyReviewCards } = this.getEffectiveStudySettings(deckId);
-		const now = new Date();
-		let newCards = 0;
-		let dueCards = 0;
-
-		for (const card of deck.cards) {
-			if (card.fsrsCard.state === State.New) {
-				newCards++;
-			} else if (card.fsrsCard.due <= now) {
-				dueCards++;
-			}
-		}
-
-		return {
-			newCount: Math.min(dailyNewCards, newCards),
-			reviewCount: Math.min(dailyReviewCards, dueCards),
-		};
-	}
-
-	/**
-	 * Get all cards for a specific day index (for review practice)
-	 */
-	getCardsForDay(deckId: string, dayIndex: number): FlashCard[] {
-		const deck = this.decks.get(deckId);
-		if (!deck) return [];
-
-		const { dailyNewCards } = this.getEffectiveStudySettings(deckId);
-		const sortedCards = this.getSortedCards(deckId);
-		const start = dayIndex * dailyNewCards;
-		const end = Math.min(start + dailyNewCards, sortedCards.length);
-		return sortedCards.slice(start, end);
 	}
 
 	rateStudyCard(card: Card, rating: StudyRating): StudyCardSchedule {

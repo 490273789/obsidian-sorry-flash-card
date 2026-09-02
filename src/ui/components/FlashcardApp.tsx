@@ -17,6 +17,7 @@ import {
 	type SessionLifecycle,
 	type SessionStartRequest,
 } from "../../sessions/sessionLifecycle";
+import { getStudySetupPlan } from "../../sessions/sessionPlanner";
 import { getSpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
@@ -770,19 +771,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				if (!deck) {
 					return renderHome();
 				}
-				const dayList = dataStore.getDayList(viewState.deckId);
-				const { newCount, reviewCount } = dataStore.getTodayStudyCounts(viewState.deckId);
 				const effectiveSettings = dataStore.getEffectiveStudySettings(viewState.deckId);
+				const plan = getStudySetupPlan(
+					deck,
+					effectiveSettings,
+					new Date(),
+					viewState.initialStudyOrder,
+				);
 				return (
 					<StudySetup
 						key={deck.id}
 						deck={deck}
-						dayList={dayList}
-						todayNewCount={newCount}
-						todayReviewCount={reviewCount}
-						defaultStudyOrder={
-							viewState.initialStudyOrder ?? effectiveSettings.studyOrder
-						}
+						plan={plan}
 						defaultDirection={viewState.initialDirection ?? "normal"}
 						spellingEnabled={Boolean(settings.wordLearningDecks[viewState.deckId])}
 						onStartSession={handleStartSession}

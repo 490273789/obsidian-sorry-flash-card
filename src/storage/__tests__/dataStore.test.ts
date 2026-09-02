@@ -720,20 +720,6 @@ describe("DataStore deck scanning and study plans", () => {
 			reviewCards: 1,
 			relearningCards: 1,
 		});
-		expect(store.getTodayStudyCounts(deck.id)).toEqual({ newCount: 2, reviewCount: 1 });
-		expect(
-			store
-				.getDayList(deck.id)
-				.map((day) => [day.dayIndex, day.isCompleted, day.isCurrent, day.isLocked]),
-		).toEqual([
-			[0, false, true, false],
-			[1, false, false, true],
-			[2, true, false, false],
-		]);
-		expect(store.getCardsForDay(deck.id, 1).map((card) => card.id)).toEqual([
-			"notes/deck.md::2",
-			"notes/deck.md::3",
-		]);
 	});
 
 	it("returns the earliest future due time when another card is already overdue", async () => {

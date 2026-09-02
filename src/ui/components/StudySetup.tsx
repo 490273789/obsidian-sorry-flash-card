@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import {
 	CircleCheck,
 	Target,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { CardDirection, Deck, StudyDayInfo } from "../../shared/types";
 import type { SessionStartRequest } from "../../sessions/sessionLifecycle";
+import type { StudySetupPlan } from "../../sessions/sessionPlanner";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
@@ -18,10 +19,7 @@ import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 interface StudySetupProps {
 	deck: Deck;
-	todayNewCount: number;
-	todayReviewCount: number;
-	dayList: StudyDayInfo[];
-	defaultStudyOrder: "sequential" | "random";
+	plan: StudySetupPlan;
 	defaultDirection?: CardDirection;
 	spellingEnabled: boolean;
 	onStartSession: (request: SessionStartRequest) => void;
@@ -124,26 +122,25 @@ const StudyDayRow = memo(function StudyDayRow({
 
 export const StudySetup = React.memo(function StudySetup({
 	deck,
-	todayNewCount,
-	todayReviewCount,
-	dayList,
-	defaultStudyOrder,
+	plan,
 	defaultDirection = "normal",
 	spellingEnabled,
 	onStartSession,
 	onBack,
 }: StudySetupProps) {
 	const { t } = useI18n();
-	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(defaultStudyOrder);
+	const [studyOrder, setStudyOrder] = useState<"sequential" | "random">(plan.defaultStudyOrder);
 	const [direction, setDirection] = useState<CardDirection>(defaultDirection);
 
-	const completedDays = useMemo(
-		() => dayList.reduce((total, day) => total + (day.isCompleted ? 1 : 0), 0),
-		[dayList],
-	);
-	const allCompleted = dayList.length > 0 && completedDays === dayList.length;
-	const hasAnythingToStudy = todayNewCount > 0 || todayReviewCount > 0;
-	const todayTotal = todayNewCount + todayReviewCount;
+	const {
+		dayList,
+		todayNewCount,
+		todayReviewCount,
+		completedDays,
+		allCompleted,
+		hasAnythingToStudy,
+		todayTotal,
+	} = plan;
 
 	const handleMainStart = useCallback(() => {
 		onStartSession({
