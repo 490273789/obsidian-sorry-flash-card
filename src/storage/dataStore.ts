@@ -22,6 +22,7 @@ import type {
 } from "../identity/cardIdentityContinuity";
 import type { SessionPersistenceTransition } from "../sessions/sessionLifecycle";
 import { normalizePronunciationSettings } from "../pronunciation/pronunciationSettings";
+import { formatLocalDateKey, pruneStudyHistory } from "../history/studyHistory";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -351,17 +352,17 @@ export class DataStore {
 		for (const entry of transition.historyEntries) {
 			nextHistory.push({
 				...entry,
-				date: formatLocalDate(now),
+				date: formatLocalDateKey(now),
 				timestamp: now.getTime(),
 			});
 		}
-		pruneStudyHistory(nextHistory);
+		const prunedHistory = pruneStudyHistory(nextHistory);
 
 		await this.plugin.saveData(
-			this.buildStoredData(nextDecks, nextHistory, nextSpellingProgress),
+			this.buildStoredData(nextDecks, prunedHistory, nextSpellingProgress),
 		);
 		this.decks = nextDecks;
-		this.studyHistory = nextHistory;
+		this.studyHistory = prunedHistory;
 		this.spellingProgress = nextSpellingProgress;
 		// Card positions are unchanged by a session transition, so the card index
 		// stays valid; only the touched decks need their derived caches refreshed.
@@ -818,12 +819,7 @@ export class DataStore {
 	/** Record a word-list visit, which is outside SessionLifecycle. */
 	async recordWordListSession(deckId: string, deckName: string, duration: number): Promise<void> {
 		const now = new Date();
-		// Local YYYY-MM-DD
-		const date = [
-			now.getFullYear(),
-			String(now.getMonth() + 1).padStart(2, "0"),
-			String(now.getDate()).padStart(2, "0"),
-		].join("-");
+		const date = formatLocalDateKey(now);
 
 		const nextHistory = [...this.studyHistory];
 		nextHistory.push({
@@ -833,21 +829,15 @@ export class DataStore {
 			mode: "word-list",
 			cardCount: 0,
 			duration,
-			timestamp: Date.now(),
+			timestamp: now.getTime(),
 		});
 
-		// Prune to last 20 distinct days
-		const days = [...new Set(nextHistory.map((e) => e.date))].sort().reverse();
-		if (days.length > 20) {
-			const keep = new Set(days.slice(0, 20));
-			const retained = nextHistory.filter((e) => keep.has(e.date));
-			nextHistory.splice(0, nextHistory.length, ...retained);
-		}
+		const prunedHistory = pruneStudyHistory(nextHistory);
 
 		await this.plugin.saveData(
-			this.buildStoredData(this.decks, nextHistory, this.spellingProgress),
+			this.buildStoredData(this.decks, prunedHistory, this.spellingProgress),
 		);
-		this.studyHistory = nextHistory;
+		this.studyHistory = prunedHistory;
 		this.publishRevision();
 	}
 
@@ -1089,20 +1079,4 @@ function applySpellingAttempt(
 		lastAttemptAt: attemptedAt,
 		...(correct ? {} : { lastIncorrectAt: attemptedAt }),
 	};
-}
-
-function formatLocalDate(date: Date): string {
-	return [
-		date.getFullYear(),
-		String(date.getMonth() + 1).padStart(2, "0"),
-		String(date.getDate()).padStart(2, "0"),
-	].join("-");
-}
-
-function pruneStudyHistory(history: StudyHistoryEntry[]): void {
-	const days = [...new Set(history.map((entry) => entry.date))].sort().reverse();
-	if (days.length <= 20) return;
-	const keep = new Set(days.slice(0, 20));
-	const retained = history.filter((entry) => keep.has(entry.date));
-	history.splice(0, history.length, ...retained);
 }

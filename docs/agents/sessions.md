@@ -37,6 +37,7 @@ Pure engines and planners under `src/sessions/` are internal seams. Keep React, 
 
 ## Practice and spelling
 
+- Session startup uses domain-owned `SessionStartRequest`, `PracticeSelection`, and `SpellingSelection` definitions; restarting a completed practice/spelling session routes via `getRestartViewState(setupDefaults)`.
 - Practice selection belongs in `practiceSessionPlanner.ts`; transitions/results belong in `sessionEngine.ts` and are orchestrated by `SessionLifecycle`.
 - Spelling eligibility and answer normalization live in `src/cards/spellingWord.ts`. A spellable front is a single-line Latin word or phrase, optionally wrapped in one ATX heading or one Markdown emphasis wrapper.
 - Spelling planning/readiness lives in `spellingSessionPlanner.ts`; retrieval/correction transitions live in `spellingSessionEngine.ts`.

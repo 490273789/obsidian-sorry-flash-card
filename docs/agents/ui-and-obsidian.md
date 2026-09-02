@@ -5,7 +5,7 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 ## React and Obsidian boundaries
 
 - Keep React components functional and colocated under `src/ui/components/`; prefer existing component boundaries before adding new ones.
-- `FlashcardApp` owns navigation/setup drafts and adapts shared service snapshots. It must not become a second authority for deck, session, identity, or pronunciation state.
+- `FlashcardApp` owns navigation/setup drafts and adapts shared service snapshots. It carries initial setup options directly in `ViewState` instead of managing separate `useState` default buckets. It must not become a second authority for deck, session, identity, or pronunciation state.
 - Render card Markdown with Obsidian `MarkdownRenderer`, never raw HTML injection.
 - Use the shared modal primitives under `src/ui/modal/` and the existing confirmation/card-editor components before creating a new overlay system.
 - Use `lucide-react` for new React icon buttons. Keep controls keyboard-friendly and preserve existing shortcuts.

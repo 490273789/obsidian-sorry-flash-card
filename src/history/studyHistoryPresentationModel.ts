@@ -1,5 +1,6 @@
 import type { Language, StudyHistoryEntry } from "../shared/types";
 import { formatCompactDuration, type TranslationKey } from "../i18n";
+import { formatLocalDateKey } from "./studyHistory";
 
 export type StudyHistoryTranslator = (
 	key: TranslationKey,
@@ -129,12 +130,4 @@ function formatStudyHistoryDate(
 		weekday: "short",
 	}).format(date);
 	return t("stats.dateWithLabel", { date: display, label: weekday });
-}
-
-function formatLocalDateKey(date: Date): string {
-	return [
-		date.getFullYear(),
-		String(date.getMonth() + 1).padStart(2, "0"),
-		String(date.getDate()).padStart(2, "0"),
-	].join("-");
 }

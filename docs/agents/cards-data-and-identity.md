@@ -28,7 +28,7 @@ Vault scanning reads file snapshots in the Obsidian adapter and delegates synchr
 
 - A vault-wide UUID carries card identity and learning state across content edits, reorder, and moves between decks.
 - Never copy marker syntax into feature code. Use `src/cards/cardFormat.ts` and `src/cards/deckSourceEditor.ts`.
-- Route plugin-initiated card add/edit/delete actions through `CardIdentityContinuity.change()`; do not mutate Markdown and then patch persisted cards separately.
+- Route plugin-initiated card add/edit/delete actions through `CardIdentityContinuity.change()` and pre-check editability via `CardIdentityContinuity.prepareEdit()`; card syntax and reserved-marker validations belong authoritatively to the domain layer. Do not mutate Markdown and then patch persisted cards separately.
 - Synchronization, explicit legacy migration, duplicate repair, ambiguous successor resolution, resumable journals, and session reconciliation belong to `src/identity/cardIdentityContinuity.ts`.
 - Do not guess identity successors from content similarity or position. Conflicts and ambiguities require the existing explicit repair workflow.
 - Affected sources retain their last-known-good deck state until repair completes. Preserve fresh-content checks, per-source atomic writes, single-writer behavior, and resumable recovery.

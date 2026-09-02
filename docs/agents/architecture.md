@@ -26,8 +26,8 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 | Card continuity     | `src/identity/cardIdentityContinuity.ts`         | Synchronization, migration, repair, source changes, stable card identity continuity                                                        |
 | Persistence         | `src/storage/dataStore.ts`                       | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                       |
 | Pronunciation       | `src/pronunciation/`                             | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                            |
-| Pure card logic     | `src/cards/`                                     | Parsing, formatting, source mutation, deck index building, spelling extraction/comparison                                                  |
-| Presentation models | `src/history/`, `src/wordList/`, `src/settings/` | Pure display definitions and derived presentation state                                                                                    |
+| Pure card logic     | `src/cards/`                                     | Parsing, formatting, source mutation, spelling extraction/comparison                                                                       |
+| Presentation models | `src/history/`, `src/wordList/`, `src/settings/` | Pure display definitions, derived presentation state, and history retention pruning                                                        |
 
 ## Boundary rules
 
@@ -43,9 +43,9 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 Use ADR status, not filename order, to decide what is current. Notable current decisions:
 
 - ADR-0003: pure settings view model with an Obsidian rendering adapter.
-- ADR-0004: pure deck index builder.
+- ADR-0004: pure deck index builder (superseded by ADR-0007).
 - ADR-0005: study rating and true undo semantics.
-- ADR-0007: stable card identity continuity; it supersedes ADR-0001.
+- ADR-0007: stable card identity continuity; it supersedes ADR-0001 and ADR-0004.
 - ADR-0008: unified `SessionLifecycle`; it supersedes the runtime-store shape described in ADR-0007.
 - ADR-0009: pronunciation runtime owns committed pronunciation configuration.
 - ADR-0010: one shared deep `DeckHome`.
