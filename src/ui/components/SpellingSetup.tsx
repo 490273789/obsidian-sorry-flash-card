@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BrainCircuit, Keyboard, ListOrdered, SlidersHorizontal } from "lucide-react";
-import type { Deck } from "../../shared/types";
+import type { Deck, SpellingSelection } from "../../shared/types";
+import type { SessionStartRequest } from "../../sessions/sessionLifecycle";
 import type { SpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
@@ -10,40 +11,38 @@ import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 const QUICK_COUNTS = [10, 20, 50];
 
-export type SpellingSessionStartOptions =
-	| { mode: "smart"; questionCount: number }
-	| { mode: "range"; startIndex: number; endIndex: number };
-
 interface SpellingSetupProps {
 	deck: Deck;
 	stats: SpellingDeckProgressStats;
-	defaultOptions?: SpellingSessionStartOptions;
-	onStart: (options: SpellingSessionStartOptions) => void;
+	initialSelection?: SpellingSelection;
+	onStartSession: (request: SessionStartRequest) => void;
 	onBack: () => void;
 }
 
 export const SpellingSetup = React.memo(function SpellingSetup({
 	deck,
 	stats,
-	defaultOptions,
-	onStart,
+	initialSelection,
+	onStartSession,
 	onBack,
 }: SpellingSetupProps) {
 	const { t } = useI18n();
 	const maxQuestions = stats.total;
 	const defaultCount = Math.min(20, maxQuestions);
-	const [mode, setMode] = useState<"smart" | "range">(defaultOptions?.mode ?? "smart");
+	const [mode, setMode] = useState<"smart" | "range">(
+		initialSelection?.kind === "range" ? "range" : "smart",
+	);
 	const [questionCount, setQuestionCount] = useState(
-		defaultOptions?.mode === "smart"
-			? Math.min(defaultOptions.questionCount, maxQuestions)
+		initialSelection?.kind === "smart"
+			? Math.min(initialSelection.questionCount, maxQuestions)
 			: defaultCount,
 	);
 	const [rangeStart, setRangeStart] = useState(
-		defaultOptions?.mode === "range" ? Math.max(1, defaultOptions.startIndex) : 1,
+		initialSelection?.kind === "range" ? Math.max(1, initialSelection.startIndex) : 1,
 	);
 	const [rangeEnd, setRangeEnd] = useState(
-		defaultOptions?.mode === "range"
-			? Math.min(defaultOptions.endIndex, maxQuestions)
+		initialSelection?.kind === "range"
+			? Math.min(initialSelection.endIndex, maxQuestions)
 			: defaultCount,
 	);
 	const rangeCount = Math.max(0, rangeEnd - rangeStart + 1);
@@ -51,14 +50,25 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 
 	const handleStart = () => {
 		if (mode === "range") {
-			onStart({
-				mode: "range",
-				startIndex: rangeStart,
-				endIndex: rangeEnd,
+			onStartSession({
+				mode: "spelling",
+				deckId: deck.id,
+				selection: {
+					kind: "range",
+					startIndex: rangeStart,
+					endIndex: rangeEnd,
+				},
 			});
 			return;
 		}
-		onStart({ mode: "smart", questionCount });
+		onStartSession({
+			mode: "spelling",
+			deckId: deck.id,
+			selection: {
+				kind: "smart",
+				questionCount,
+			},
+		});
 	};
 
 	return (

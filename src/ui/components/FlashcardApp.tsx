@@ -8,20 +8,25 @@ import React, {
 	useSyncExternalStore,
 } from "react";
 import { App, Component, MarkdownRenderer, Notice, TFile } from "obsidian";
-import { ViewState, FlashcardSettings, CardDirection } from "../../shared/types";
+import { ViewState, FlashcardSettings } from "../../shared/types";
 import { DataStore } from "../../storage/dataStore";
 import type { DeckHome, DeckHomeDestination, DeckHomeOutcome } from "../../decks/deckHome";
-import type { LifecycleOutcome, SessionLifecycle } from "../../sessions/sessionLifecycle";
+import {
+	getRestartViewState,
+	type LifecycleOutcome,
+	type SessionLifecycle,
+	type SessionStartRequest,
+} from "../../sessions/sessionLifecycle";
 import { getSpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
-import { PracticeSetup, type PracticeSessionStartOptions } from "./PracticeSetup";
+import { PracticeSetup } from "./PracticeSetup";
 import { PracticeView } from "./PracticeView";
 import { PracticeSummary } from "./PracticeSummary";
 import { WordListView } from "./WordListView";
 import { StudySetup } from "./StudySetup";
 import { StatsView } from "./StatsView";
-import { SpellingSetup, type SpellingSessionStartOptions } from "./SpellingSetup";
+import { SpellingSetup } from "./SpellingSetup";
 import { SpellingView } from "./SpellingView";
 import { SpellingSummary } from "./SpellingSummary";
 import { I18nProvider } from "./I18nContext";
@@ -207,15 +212,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const [cardEditor, setCardEditor] = useState<CardEditorState | null>(null);
 	const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null);
 	const confirmationRef = useRef<ConfirmationState | null>(null);
-	const [practiceSetupDefaults, setPracticeSetupDefaults] =
-		useState<PracticeSessionStartOptions | null>(null);
-	const [spellingSetupDefaults, setSpellingSetupDefaults] =
-		useState<SpellingSessionStartOptions | null>(null);
-	const [studySetupDefaults, setStudySetupDefaults] = useState<{
-		deckId: string;
-		studyOrder: "sequential" | "random";
-		direction: CardDirection;
-	} | null>(null);
 	// Track when word-list view was opened for duration recording
 	const wordListStartTime = useRef<number | null>(null);
 
@@ -489,13 +485,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					return;
 				}
 				if (destination === "study") {
-					setStudySetupDefaults(null);
 					setViewState({ type: "study-setup", deckId });
 				} else if (destination === "practice") {
-					setPracticeSetupDefaults(null);
 					setViewState({ type: "practice-setup", deckId });
 				} else if (destination === "spelling") {
-					setSpellingSetupDefaults(null);
 					setViewState({ type: "spelling-setup", deckId });
 				} else {
 					wordListStartTime.current = Date.now();
@@ -506,45 +499,16 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[deckHome, reportDeckHomeOutcome],
 	);
 
-	const handleStartStudyFromSetup = useCallback(
-		async (deckId: string, studyOrder: "sequential" | "random", direction: CardDirection) => {
-			const outcome = await sessionLifecycle.start({
-				mode: "study",
-				deckId,
-				studyOrder,
-				direction,
-			});
-			reportLifecycleOutcome(outcome, t("notice.todayComplete"));
-		},
-		[reportLifecycleOutcome, sessionLifecycle, t],
-	);
-
-	const handleStudyDay = useCallback(
-		async (
-			deckId: string,
-			dayIndex: number,
-			studyOrder: "sequential" | "random",
-			direction: CardDirection,
-		) => {
-			const outcome = await sessionLifecycle.start({
-				mode: "practice",
-				deckId,
-				direction,
-				selection: { kind: "study-day", dayIndex, studyOrder },
-			});
-			reportLifecycleOutcome(outcome);
-		},
-		[reportLifecycleOutcome, sessionLifecycle],
-	);
-
-	const handleSpellingDay = useCallback(
-		async (deckId: string, dayIndex: number) => {
-			const outcome = await sessionLifecycle.start({
-				mode: "spelling",
-				deckId,
-				selection: { kind: "study-day", dayIndex },
-			});
-			reportLifecycleOutcome(outcome, t("spelling.dayInvalid"));
+	const handleStartSession = useCallback(
+		async (request: SessionStartRequest) => {
+			const outcome = await sessionLifecycle.start(request);
+			const fallbackNotice =
+				request.mode === "study"
+					? t("notice.todayComplete")
+					: request.mode === "spelling" && request.selection.kind === "study-day"
+						? t("spelling.dayInvalid")
+						: t("notice.deckEmpty");
+			reportLifecycleOutcome(outcome, fallbackNotice);
 		},
 		[reportLifecycleOutcome, sessionLifecycle, t],
 	);
@@ -602,52 +566,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[handleCloseWordList],
 	);
 
-	// Practice mode handlers
-	const handleStartPractice = useCallback(
-		async (deckId: string, options: PracticeSessionStartOptions) => {
-			const outcome = await sessionLifecycle.start({
-				mode: "practice",
-				deckId,
-				direction: options.direction,
-				selection:
-					options.mode === "range"
-						? {
-								kind: "range",
-								startIndex: options.startIndex,
-								endIndex: options.endIndex,
-							}
-						: {
-								kind: "random",
-								questionCount: options.questionCount,
-							},
-			});
-			reportLifecycleOutcome(outcome, t("notice.deckEmpty"));
-		},
-		[reportLifecycleOutcome, sessionLifecycle, t],
-	);
-
-	const handleStartSpelling = useCallback(
-		async (deckId: string, options: SpellingSessionStartOptions) => {
-			const outcome = await sessionLifecycle.start({
-				mode: "spelling",
-				deckId,
-				selection:
-					options.mode === "range"
-						? {
-								kind: "range",
-								startIndex: options.startIndex,
-								endIndex: options.endIndex,
-							}
-						: {
-								kind: "smart",
-								questionCount: options.questionCount,
-							},
-			});
-			reportLifecycleOutcome(outcome, t("notice.deckEmpty"));
-		},
-		[reportLifecycleOutcome, sessionLifecycle, t],
-	);
-
 	const handleRetryIncorrect = useCallback(async () => {
 		const result = sessionLifecycle.getSnapshot();
 		if (result.kind !== "result") return;
@@ -660,53 +578,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleResultRestart = useCallback(async () => {
 		const result = sessionLifecycle.getSnapshot();
 		if (result.kind !== "result") return;
-		const defaults = result.setupDefaults;
 		const outcome = await sessionLifecycle.act(result.reference, {
 			kind: "dismiss",
 		});
-		if (!reportLifecycleOutcome(outcome)) return;
-		if (defaults.selection.kind === "study-day") {
-			if (defaults.mode === "practice") {
-				setStudySetupDefaults({
-					deckId: defaults.deckId,
-					studyOrder: defaults.selection.studyOrder,
-					direction: defaults.direction,
-				});
-			}
-			setViewState({ type: "study-setup", deckId: defaults.deckId });
-			return;
+		if (reportLifecycleOutcome(outcome)) {
+			setViewState(getRestartViewState(result.setupDefaults));
 		}
-		if (defaults.mode === "practice") {
-			setPracticeSetupDefaults(
-				defaults.selection.kind === "range"
-					? {
-							mode: "range",
-							startIndex: defaults.selection.startIndex,
-							endIndex: defaults.selection.endIndex,
-							direction: defaults.direction,
-						}
-					: {
-							mode: "random-count",
-							questionCount: defaults.selection.questionCount,
-							direction: defaults.direction,
-						},
-			);
-			setViewState({ type: "practice-setup", deckId: defaults.deckId });
-			return;
-		}
-		setSpellingSetupDefaults(
-			defaults.selection.kind === "range"
-				? {
-						mode: "range",
-						startIndex: defaults.selection.startIndex,
-						endIndex: defaults.selection.endIndex,
-					}
-				: {
-						mode: "smart",
-						questionCount: defaults.selection.questionCount,
-					},
-		);
-		setViewState({ type: "spelling-setup", deckId: defaults.deckId });
 	}, [reportLifecycleOutcome, sessionLifecycle]);
 
 	const handleResultHome = useCallback(async () => {
@@ -718,7 +595,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		if (reportLifecycleOutcome(outcome)) setViewState({ type: "home" });
 	}, [reportLifecycleOutcome, sessionLifecycle]);
 
-	// Stable summary/setup handlers so memoized views skip unrelated re-renders.
 	const handlePracticeRestart = useCallback(
 		() => void handleResultRestart(),
 		[handleResultRestart],
@@ -728,41 +604,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[handleRetryIncorrect],
 	);
 	const handleResultHomeClick = useCallback(() => void handleResultHome(), [handleResultHome]);
-	const handleStudyStart = useCallback(
-		(order: "sequential" | "random", direction: CardDirection) => {
-			if (viewState.type !== "study-setup") return;
-			void handleStartStudyFromSetup(viewState.deckId, order, direction);
-		},
-		[handleStartStudyFromSetup, viewState],
-	);
-	const handleStudyDayStart = useCallback(
-		(dayIndex: number, order: "sequential" | "random", direction: CardDirection) => {
-			if (viewState.type !== "study-setup") return;
-			void handleStudyDay(viewState.deckId, dayIndex, order, direction);
-		},
-		[handleStudyDay, viewState],
-	);
-	const handleStudyDaySpelling = useCallback(
-		(dayIndex: number) => {
-			if (viewState.type !== "study-setup") return;
-			void handleSpellingDay(viewState.deckId, dayIndex);
-		},
-		[handleSpellingDay, viewState],
-	);
-	const handlePracticeStart = useCallback(
-		(options: PracticeSessionStartOptions) => {
-			if (viewState.type !== "practice-setup") return;
-			void handleStartPractice(viewState.deckId, options);
-		},
-		[handleStartPractice, viewState],
-	);
-	const handleSpellingStart = useCallback(
-		(options: SpellingSessionStartOptions) => {
-			if (viewState.type !== "spelling-setup") return;
-			void handleStartSpelling(viewState.deckId, options);
-		},
-		[handleStartSpelling, viewState],
-	);
 	const handleWordListBack = useCallback(() => {
 		if (viewState.type !== "word-list") return;
 		handleCloseWordListForDeck(viewState.deckId);
@@ -940,19 +781,11 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						todayNewCount={newCount}
 						todayReviewCount={reviewCount}
 						defaultStudyOrder={
-							studySetupDefaults?.deckId === viewState.deckId
-								? studySetupDefaults.studyOrder
-								: effectiveSettings.studyOrder
+							viewState.initialStudyOrder ?? effectiveSettings.studyOrder
 						}
-						defaultDirection={
-							studySetupDefaults?.deckId === viewState.deckId
-								? studySetupDefaults.direction
-								: "normal"
-						}
-						onStart={handleStudyStart}
-						onStartDay={handleStudyDayStart}
+						defaultDirection={viewState.initialDirection ?? "normal"}
 						spellingEnabled={Boolean(settings.wordLearningDecks[viewState.deckId])}
-						onStartDaySpelling={handleStudyDaySpelling}
+						onStartSession={handleStartSession}
 						onBack={handleBackHome}
 					/>
 				);
@@ -967,9 +800,10 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 					<PracticeSetup
 						key={deck.id}
 						deck={deck}
-						defaultDirection={practiceSetupDefaults?.direction ?? "normal"}
-						defaultOptions={practiceSetupDefaults ?? undefined}
-						onStartPractice={handlePracticeStart}
+						defaultDirection={viewState.initialDirection ?? "normal"}
+						initialSelection={viewState.initialSelection}
+						initialDirection={viewState.initialDirection}
+						onStartSession={handleStartSession}
 						onBack={handleBackHome}
 					/>
 				);
@@ -989,8 +823,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 								dataStore.getSpellingProgress(),
 							)
 						}
-						defaultOptions={spellingSetupDefaults ?? undefined}
-						onStart={handleSpellingStart}
+						initialSelection={viewState.initialSelection}
+						onStartSession={handleStartSession}
 						onBack={handleBackHome}
 					/>
 				);

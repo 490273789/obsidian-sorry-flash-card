@@ -22,7 +22,7 @@ Read this guide before changing Markdown card syntax, parsing, indexing, card so
 - A stable identity marker immediately before the front is `<!-- wsr-card-id: <uuid> -->`.
 - Legacy cards without a marker may still parse with `${filePath}::${index}`, but continuity workflows must not treat that positional ID as a stable migrated identity.
 
-Vault scanning reads file snapshots in the Obsidian adapter and passes them to the pure `src/cards/deckIndexBuilder.ts`. Keep file I/O out of the builder. Per-file failures must not prevent unaffected sources from being indexed.
+Vault scanning reads file snapshots in the Obsidian adapter and delegates synchronization, tag discovery, and deck index construction to `src/identity/cardIdentityContinuity.ts`. Keep file I/O out of the pure parser. Per-file failures must not prevent unaffected sources from being indexed.
 
 ## Stable identity and source edits
 
@@ -42,7 +42,6 @@ Treat these files as compatibility boundaries:
 - `src/cards/parser.ts`
 - `src/cards/cardFormat.ts`
 - `src/cards/deckSourceEditor.ts`
-- `src/cards/deckIndexBuilder.ts`
 - `src/identity/cardIdentityContinuity.ts`
 - `src/obsidian/cardIdentityContinuityAdapters.ts`
 

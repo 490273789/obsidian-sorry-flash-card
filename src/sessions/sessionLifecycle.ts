@@ -14,15 +14,18 @@ import type {
 	Deck,
 	FlashCard,
 	FlashcardSettings,
+	PracticeSelection,
+	PracticeResult,
+	PracticeSession,
 	SessionOriginDeckSnapshot,
 	SpellingCardProgress,
 	SpellingResult,
+	SpellingSelection,
 	SpellingSession,
 	StudyRating,
 	StudySession,
 	StudySettings,
-	PracticeResult,
-	PracticeSession,
+	ViewState,
 } from "../shared/types";
 import { shuffleArray } from "../shared/utils";
 import type { StudyCardScheduler } from "./studySessionEngine";
@@ -167,19 +170,7 @@ export type ActiveLifecycleSnapshot =
 	| ActivePracticeSnapshot
 	| ActiveSpellingSnapshot;
 
-export type PracticeSelection =
-	| { readonly kind: "random"; readonly questionCount: number }
-	| { readonly kind: "range"; readonly startIndex: number; readonly endIndex: number }
-	| {
-			readonly kind: "study-day";
-			readonly dayIndex: number;
-			readonly studyOrder: StudySettings["studyOrder"];
-	  };
-
-export type SpellingSelection =
-	| { readonly kind: "smart"; readonly questionCount: number }
-	| { readonly kind: "range"; readonly startIndex: number; readonly endIndex: number }
-	| { readonly kind: "study-day"; readonly dayIndex: number };
+export type { PracticeSelection, SpellingSelection };
 
 export type SessionStartRequest =
 	| {
@@ -240,6 +231,42 @@ export interface SpellingResultSnapshot {
 }
 
 export type ResultLifecycleSnapshot = PracticeResultSnapshot | SpellingResultSnapshot;
+
+export function getRestartViewState(
+	setupDefaults:
+		| Readonly<Extract<SessionStartRequest, { mode: "practice" }>>
+		| Readonly<Extract<SessionStartRequest, { mode: "spelling" }>>,
+): ViewState {
+	if (setupDefaults.selection.kind === "study-day") {
+		if (setupDefaults.mode === "practice") {
+			return {
+				type: "study-setup",
+				deckId: setupDefaults.deckId,
+				initialStudyOrder: setupDefaults.selection.studyOrder,
+				initialDirection: setupDefaults.direction,
+			};
+		}
+		return {
+			type: "study-setup",
+			deckId: setupDefaults.deckId,
+		};
+	}
+
+	if (setupDefaults.mode === "practice") {
+		return {
+			type: "practice-setup",
+			deckId: setupDefaults.deckId,
+			initialSelection: setupDefaults.selection,
+			initialDirection: setupDefaults.direction,
+		};
+	}
+
+	return {
+		type: "spelling-setup",
+		deckId: setupDefaults.deckId,
+		initialSelection: setupDefaults.selection,
+	};
+}
 
 export type SessionLifecycleSnapshot =
 	| IdleLifecycleSnapshot

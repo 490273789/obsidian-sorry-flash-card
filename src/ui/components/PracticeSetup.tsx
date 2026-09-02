@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Target, Shuffle, SlidersHorizontal, Repeat2, ListOrdered } from "lucide-react";
-import { CardDirection, Deck } from "../../shared/types";
+import type { CardDirection, Deck, PracticeSelection } from "../../shared/types";
+import type { SessionStartRequest } from "../../sessions/sessionLifecycle";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { FlashcardInput } from "./FlashcardInput";
@@ -9,34 +10,23 @@ import { SetupControlGroup, SetupSelector } from "./SetupSelector";
 
 const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
-type PracticeSelectionMode = "random-count" | "range";
-
-export type PracticeSessionStartOptions =
-	| {
-			mode: "random-count";
-			questionCount: number;
-			direction: CardDirection;
-	  }
-	| {
-			mode: "range";
-			startIndex: number;
-			endIndex: number;
-			direction: CardDirection;
-	  };
+type PracticeSelectionMode = "random" | "range";
 
 interface PracticeSetupProps {
 	deck: Deck;
-	defaultDirection: CardDirection;
-	defaultOptions?: PracticeSessionStartOptions;
-	onStartPractice: (options: PracticeSessionStartOptions) => void;
+	defaultDirection?: CardDirection;
+	initialSelection?: PracticeSelection;
+	initialDirection?: CardDirection;
+	onStartSession: (request: SessionStartRequest) => void;
 	onBack: () => void;
 }
 
 export const PracticeSetup = React.memo(function PracticeSetup({
 	deck,
-	defaultDirection,
-	defaultOptions,
-	onStartPractice,
+	defaultDirection = "normal",
+	initialSelection,
+	initialDirection,
+	onStartSession,
 	onBack,
 }: PracticeSetupProps) {
 	const { t } = useI18n();
@@ -44,19 +34,19 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 	const maxRangeStart = Math.max(1, maxQuestions - 1);
 	const defaultQuestionCount = Math.min(50, maxQuestions);
 	const initialQuestionCount =
-		defaultOptions?.mode === "random-count"
-			? Math.min(defaultOptions.questionCount, maxQuestions)
+		initialSelection?.kind === "random"
+			? Math.min(initialSelection.questionCount, maxQuestions)
 			: defaultQuestionCount;
 	const initialRangeStart =
-		defaultOptions?.mode === "range"
-			? Math.min(Math.max(1, defaultOptions.startIndex), maxRangeStart)
+		initialSelection?.kind === "range"
+			? Math.min(Math.max(1, initialSelection.startIndex), maxRangeStart)
 			: 1;
 	const initialRangeEnd =
-		defaultOptions?.mode === "range"
-			? Math.min(defaultOptions.endIndex, maxQuestions)
+		initialSelection?.kind === "range"
+			? Math.min(initialSelection.endIndex, maxQuestions)
 			: defaultQuestionCount;
 	const [selectionMode, setSelectionMode] = useState<PracticeSelectionMode>(
-		defaultOptions?.mode ?? "random-count",
+		initialSelection?.kind === "range" ? "range" : "random",
 	);
 	const [questionCount, setQuestionCount] = useState(initialQuestionCount);
 	const [inputValue, setInputValue] = useState(initialQuestionCount.toString());
@@ -64,9 +54,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 	const [rangeEnd, setRangeEnd] = useState(initialRangeEnd);
 	const [rangeStartInput, setRangeStartInput] = useState(initialRangeStart.toString());
 	const [rangeEndInput, setRangeEndInput] = useState(initialRangeEnd.toString());
-	const [direction, setDirection] = useState<CardDirection>(
-		defaultOptions?.direction ?? defaultDirection,
-	);
+	const [direction, setDirection] = useState<CardDirection>(initialDirection ?? defaultDirection);
 	const rangeQuestionCount = Math.max(0, rangeEnd - rangeStart + 1);
 	const currentQuestionCount = selectionMode === "range" ? rangeQuestionCount : questionCount;
 
@@ -112,21 +100,29 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 			syncRange(start, end);
 
 			if (end >= start && end <= maxQuestions) {
-				onStartPractice({
-					mode: "range",
-					startIndex: start,
-					endIndex: end,
+				onStartSession({
+					mode: "practice",
+					deckId: deck.id,
 					direction,
+					selection: {
+						kind: "range",
+						startIndex: start,
+						endIndex: end,
+					},
 				});
 			}
 			return;
 		}
 
 		if (questionCount >= 1 && questionCount <= maxQuestions) {
-			onStartPractice({
-				mode: "random-count",
-				questionCount,
+			onStartSession({
+				mode: "practice",
+				deckId: deck.id,
 				direction,
+				selection: {
+					kind: "random",
+					questionCount,
+				},
 			});
 		}
 	};
@@ -180,7 +176,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 							ariaLabel={t("practice.chooseCount")}
 							options={[
 								{
-									value: "random-count",
+									value: "random",
 									label: t("practice.modeRandomCount"),
 									icon: Shuffle,
 								},
@@ -194,7 +190,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 						/>
 
 						<div className="flashcard-setup-control-detail">
-							{selectionMode === "random-count" ? (
+							{selectionMode === "random" ? (
 								<>
 									<div className="flashcard-practice-quick-buttons">
 										{QUICK_QUESTION_COUNTS.map((count) => (

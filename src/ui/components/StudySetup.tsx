@@ -9,7 +9,8 @@ import {
 	Repeat2,
 	Keyboard,
 } from "lucide-react";
-import { CardDirection, Deck, StudyDayInfo } from "../../shared/types";
+import type { CardDirection, Deck, StudyDayInfo } from "../../shared/types";
+import type { SessionStartRequest } from "../../sessions/sessionLifecycle";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { useI18n } from "./I18nContext";
@@ -22,43 +23,50 @@ interface StudySetupProps {
 	dayList: StudyDayInfo[];
 	defaultStudyOrder: "sequential" | "random";
 	defaultDirection?: CardDirection;
-	onStart: (studyOrder: "sequential" | "random", direction: CardDirection) => void;
-	onStartDay: (
-		dayIndex: number,
-		studyOrder: "sequential" | "random",
-		direction: CardDirection,
-	) => void;
 	spellingEnabled: boolean;
-	onStartDaySpelling: (dayIndex: number) => void;
+	onStartSession: (request: SessionStartRequest) => void;
 	onBack: () => void;
 }
 
 interface StudyDayRowProps {
+	deckId: string;
 	day: StudyDayInfo;
 	direction: CardDirection;
-	onStartDay: (
-		dayIndex: number,
-		studyOrder: "sequential" | "random",
-		direction: CardDirection,
-	) => void;
 	spellingEnabled: boolean;
-	onStartDaySpelling: (dayIndex: number) => void;
+	onStartSession: (request: SessionStartRequest) => void;
 }
 
 const StudyDayRow = memo(function StudyDayRow({
+	deckId,
 	day,
 	direction,
-	onStartDay,
 	spellingEnabled,
-	onStartDaySpelling,
+	onStartSession,
 }: StudyDayRowProps) {
 	const { t } = useI18n();
 	const handleReview = useCallback(() => {
-		onStartDay(day.dayIndex, "random", direction);
-	}, [day.dayIndex, direction, onStartDay]);
+		onStartSession({
+			mode: "practice",
+			deckId,
+			direction,
+			selection: {
+				kind: "study-day",
+				dayIndex: day.dayIndex,
+				studyOrder: "random",
+			},
+		});
+	}, [day.dayIndex, deckId, direction, onStartSession]);
+
 	const handleSpelling = useCallback(() => {
-		onStartDaySpelling(day.dayIndex);
-	}, [day.dayIndex, onStartDaySpelling]);
+		onStartSession({
+			mode: "spelling",
+			deckId,
+			selection: {
+				kind: "study-day",
+				dayIndex: day.dayIndex,
+			},
+		});
+	}, [day.dayIndex, deckId, onStartSession]);
 
 	return (
 		<div
@@ -121,10 +129,8 @@ export const StudySetup = React.memo(function StudySetup({
 	dayList,
 	defaultStudyOrder,
 	defaultDirection = "normal",
-	onStart,
-	onStartDay,
 	spellingEnabled,
-	onStartDaySpelling,
+	onStartSession,
 	onBack,
 }: StudySetupProps) {
 	const { t } = useI18n();
@@ -140,8 +146,13 @@ export const StudySetup = React.memo(function StudySetup({
 	const todayTotal = todayNewCount + todayReviewCount;
 
 	const handleMainStart = useCallback(() => {
-		onStart(allCompleted ? "random" : studyOrder, direction);
-	}, [allCompleted, direction, onStart, studyOrder]);
+		onStartSession({
+			mode: "study",
+			deckId: deck.id,
+			studyOrder: allCompleted ? "random" : studyOrder,
+			direction,
+		});
+	}, [allCompleted, deck.id, direction, onStartSession, studyOrder]);
 
 	return (
 		<div className="flashcard-practice-setup">
@@ -248,11 +259,11 @@ export const StudySetup = React.memo(function StudySetup({
 							{dayList.map((day) => (
 								<StudyDayRow
 									key={day.dayIndex}
+									deckId={deck.id}
 									day={day}
 									direction={direction}
-									onStartDay={onStartDay}
 									spellingEnabled={spellingEnabled}
-									onStartDaySpelling={onStartDaySpelling}
+									onStartSession={onStartSession}
 								/>
 							))}
 						</div>

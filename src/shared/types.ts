@@ -231,16 +231,44 @@ export interface RatingButton {
 	intervalDesc: string;
 }
 
+export type PracticeSelection =
+	| { readonly kind: "random"; readonly questionCount: number }
+	| { readonly kind: "range"; readonly startIndex: number; readonly endIndex: number }
+	| {
+			readonly kind: "study-day";
+			readonly dayIndex: number;
+			readonly studyOrder: StudySettings["studyOrder"];
+	  };
+
+export type SpellingSelection =
+	| { readonly kind: "smart"; readonly questionCount: number }
+	| { readonly kind: "range"; readonly startIndex: number; readonly endIndex: number }
+	| { readonly kind: "study-day"; readonly dayIndex: number };
+
 /**
  * React-owned setup and ordinary navigation state. Active sessions and retained
  * results are represented exclusively by SessionLifecycleSnapshot.
  */
 export type ViewState =
 	| { type: "home" }
-	| { type: "study-setup"; deckId: string }
+	| {
+			type: "study-setup";
+			deckId: string;
+			initialStudyOrder?: "sequential" | "random";
+			initialDirection?: CardDirection;
+	  }
 	| { type: "word-list"; deckId: string }
-	| { type: "practice-setup"; deckId: string }
-	| { type: "spelling-setup"; deckId: string }
+	| {
+			type: "practice-setup";
+			deckId: string;
+			initialSelection?: PracticeSelection;
+			initialDirection?: CardDirection;
+	  }
+	| {
+			type: "spelling-setup";
+			deckId: string;
+			initialSelection?: SpellingSelection;
+	  }
 	| { type: "stats" };
 
 /**
