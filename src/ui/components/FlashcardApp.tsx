@@ -28,10 +28,8 @@ import { I18nProvider } from "./I18nContext";
 import { createTranslator } from "../../i18n";
 import { CardEditorModal, type CardEditorSavePayload } from "./CardEditorModal";
 import { ConfirmDialog, type ConfirmDialogTone } from "./ConfirmDialog";
-import type {
-	CardChangeOutcome,
-	CardIdentityContinuity,
-} from "../../identity/cardIdentityContinuity";
+import type { CardIdentityContinuity } from "../../identity/cardIdentityContinuity";
+import { describeCardChangeOutcome } from "../../identity/synchronizationFeedback";
 import {
 	shouldAutoPronounceSpellingFeedback,
 	waitForSpellingPronunciation,
@@ -44,8 +42,8 @@ interface FlashcardAppProps {
 	app: App;
 	modalHost: HTMLElement;
 	dataStore: DataStore;
-	cardIdentityContinuity: CardIdentityContinuity;
 	sessionLifecycle: SessionLifecycle;
+	cardIdentityContinuity: CardIdentityContinuity;
 	pronunciationRuntime: PronunciationRuntime;
 	deckHome: DeckHome;
 	settings: FlashcardSettings;
@@ -61,7 +59,6 @@ type CardEditorState =
 			mode: "edit";
 			deckId: string;
 			cardId: string;
-			cardIndex: number;
 			front: string;
 			back: string;
 			explanation: string;
@@ -368,69 +365,47 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		[confirmAction, deckHome, deckHomeOwnerId, t],
 	);
 
-	const ensureDeckEditable = useCallback(
-		async (deckId: string): Promise<boolean> => {
-			const condition = cardIdentityContinuity.inspect().sources[deckId];
-			if (!condition || condition.type === "current") return true;
-			if (condition.type === "last-known-good") {
-				new Notice(t("identity.editNeedsRepair"));
-				return false;
-			}
-			return handleRequestHomeMigration(deckId);
-		},
-		[cardIdentityContinuity, handleRequestHomeMigration, t],
-	);
-
 	const handleOpenEditCard = useCallback(
 		(deckId: string, cardId: string) => {
 			void (async () => {
-				const card = dataStore.getCard(deckId, cardId);
-				if (!card) {
+				const preparation = await cardIdentityContinuity.prepareEdit(deckId, cardId);
+				if (preparation.kind === "not-found") {
 					new Notice(t("notice.cardMissing"));
 					return;
 				}
-				if (!(await ensureDeckEditable(deckId))) return;
+				if (preparation.kind === "blocked") {
+					if (preparation.reason === "migration-required") {
+						await handleRequestHomeMigration(deckId);
+					} else {
+						new Notice(t("identity.editNeedsRepair"));
+					}
+					return;
+				}
 
-				const editableCard =
-					dataStore.getCard(deckId, cardId) ??
-					dataStore.getDeck(deckId)?.cards[card.indexInFile];
-				if (!editableCard) {
-					new Notice(t("notice.cardMissing"));
-					return;
-				}
 				setCardEditor({
 					mode: "edit",
 					deckId,
-					cardId: editableCard.id,
-					cardIndex: editableCard.indexInFile,
-					front: editableCard.front,
-					back: editableCard.back,
-					explanation: editableCard.explanation ?? "",
+					cardId: preparation.card.id,
+					front: preparation.card.front,
+					back: preparation.card.back,
+					explanation: preparation.card.explanation ?? "",
 				});
 			})();
 		},
-		[dataStore, ensureDeckEditable, t],
+		[cardIdentityContinuity, handleRequestHomeMigration, t],
 	);
 
 	const handleSaveCardEditor = useCallback(
 		async ({ deckId, front, back, explanation }: CardEditorSavePayload) => {
 			if (!cardEditor) return;
-			if (!(await ensureDeckEditable(deckId))) return;
 
 			try {
-				const currentCardIdentity =
-					cardEditor.mode === "edit"
-						? (dataStore.getCard(cardEditor.deckId, cardEditor.cardId)?.id ??
-							dataStore.getDeck(cardEditor.deckId)?.cards[cardEditor.cardIndex]?.id)
-						: undefined;
-				if (cardEditor.mode === "edit" && !currentCardIdentity) {
-					throw new Error(t("notice.cardMissing"));
-				}
 				const outcome =
 					cardEditor.mode === "edit"
 						? await cardIdentityContinuity.change({
 								kind: "edit",
-								cardIdentity: currentCardIdentity ?? cardEditor.cardId,
+								deckId: cardEditor.deckId,
+								cardIdentity: cardEditor.cardId,
 								content: { front, back, explanation },
 							})
 						: await cardIdentityContinuity.change({
@@ -438,8 +413,12 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 								deckId,
 								content: { front, back, explanation },
 							});
+				if (outcome.kind === "blocked" && outcome.reason === "migration-required") {
+					await handleRequestHomeMigration(deckId);
+					return;
+				}
 				if (outcome.kind !== "applied") {
-					throw new Error(getCardChangeFailureMessage(outcome, t));
+					throw new Error(describeCardChangeOutcome(outcome, settings.language));
 				}
 				if (cardEditor.mode === "edit") {
 					new Notice(t("notice.cardSaved"));
@@ -453,7 +432,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				throw error;
 			}
 		},
-		[cardEditor, cardIdentityContinuity, dataStore, ensureDeckEditable, t],
+		[cardEditor, cardIdentityContinuity, handleRequestHomeMigration, settings.language, t],
 	);
 
 	const reportLifecycleOutcome = useCallback(
@@ -804,11 +783,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 
 	const handleDeleteCard = useCallback(
 		async (deckId: string, cardId: string) => {
-			const card = dataStore.getCard(deckId, cardId);
-			if (!card) {
-				new Notice(t("notice.cardMissing"));
-				return;
-			}
 			const confirmed = await confirmAction(
 				t("cardEditor.deleteCurrentTitle"),
 				t("cardEditor.deleteConfirm"),
@@ -816,23 +790,19 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				"danger",
 			);
 			if (!confirmed) return;
-			if (!(await ensureDeckEditable(deckId))) return;
-
-			const currentCardIdentity =
-				dataStore.getCard(deckId, cardId)?.id ??
-				dataStore.getDeck(deckId)?.cards[card.indexInFile]?.id;
-			if (!currentCardIdentity) {
-				new Notice(t("notice.cardMissing"));
-				return;
-			}
 
 			try {
 				const outcome = await cardIdentityContinuity.change({
 					kind: "delete",
-					cardIdentity: currentCardIdentity,
+					deckId,
+					cardIdentity: cardId,
 				});
+				if (outcome.kind === "blocked" && outcome.reason === "migration-required") {
+					await handleRequestHomeMigration(deckId);
+					return;
+				}
 				if (outcome.kind !== "applied") {
-					throw new Error(getCardChangeFailureMessage(outcome, t));
+					throw new Error(describeCardChangeOutcome(outcome, settings.language));
 				}
 				new Notice(t("notice.cardDeleted"));
 			} catch (error) {
@@ -841,7 +811,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				new Notice(t("notice.cardDeleteFailed", { message }));
 			}
 		},
-		[cardIdentityContinuity, confirmAction, dataStore, ensureDeckEditable, t],
+		[cardIdentityContinuity, confirmAction, handleRequestHomeMigration, settings.language, t],
 	);
 
 	const handleDeleteCardRequest = useCallback(
@@ -1077,19 +1047,3 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		</I18nProvider>
 	);
 };
-
-function getCardChangeFailureMessage(
-	outcome: Exclude<CardChangeOutcome, { kind: "applied" }>,
-	t: ReturnType<typeof createTranslator>,
-): string {
-	switch (outcome.kind) {
-		case "blocked":
-			return outcome.reason === "migration-required"
-				? t("identity.editNeedsMigration")
-				: t("identity.editNeedsRepair");
-		case "source-changing":
-			return t("identity.sourceChanging");
-		case "failed":
-			return outcome.message;
-	}
-}

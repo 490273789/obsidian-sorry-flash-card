@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useId, useMemo, useState } from "react";
 import { FilePlus2, Pencil, Sparkles, X } from "lucide-react";
 import type { Deck } from "../../shared/types";
-import { containsReservedMarkerLine } from "../../cards/cardFormat";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardTextarea } from "./FlashcardInput";
 import { FlashcardSelect } from "./FlashcardSelect";
@@ -62,18 +61,6 @@ export const CardEditorModal = memo(function CardEditorModal({
 
 		if (!trimmedDeckId) {
 			setError(t("cardEditor.deckRequired"));
-			return;
-		}
-		if (!trimmedFront) {
-			setError(t("cardEditor.frontRequired"));
-			return;
-		}
-		if (!trimmedBack) {
-			setError(t("cardEditor.backRequired"));
-			return;
-		}
-		if ([trimmedFront, trimmedBack, trimmedExplanation].some(containsReservedMarkerLine)) {
-			setError(t("cardEditor.markerReserved"));
 			return;
 		}
 

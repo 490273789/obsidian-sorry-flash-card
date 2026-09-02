@@ -882,4 +882,192 @@ apple back
 			fsrsCard: { reps: 7 },
 		});
 	});
+
+	describe("prepareEdit", () => {
+		it("returns ready when card exists in a current deck", async () => {
+			const path = "notes/deck.md";
+			const card = makeCard(APPLE_ID, "苹果", 7, path);
+			const stateStore = new MemoryStateStore({
+				configuredTags: ["#单词"],
+				decks: new Map([[path, makeDeck(path, [card])]]),
+				continuity: { sources: { [path]: { type: "current" } }, issues: [], journal: null },
+			});
+			const sourceStore = new MemorySourceStore([
+				{
+					path,
+					basename: "deck",
+					content: `#单词\n<!-- wsr-card-id: ${APPLE_ID} -->\n苹果\n??\napple\n;;`,
+				},
+			]);
+			const continuity = createCardIdentityContinuity({
+				sources: sourceStore,
+				state: stateStore,
+				createIdentity: () => "test-id",
+			});
+
+			const preparation = await continuity.prepareEdit(path, APPLE_ID);
+
+			expect(preparation).toEqual({
+				kind: "ready",
+				card: expect.objectContaining({ id: APPLE_ID, front: "苹果" }),
+			});
+		});
+
+		it("returns ready when card is resolved by file index", async () => {
+			const path = "notes/deck.md";
+			const card = makeCard(APPLE_ID, "苹果", 7, path);
+			const stateStore = new MemoryStateStore({
+				configuredTags: ["#单词"],
+				decks: new Map([[path, makeDeck(path, [card])]]),
+				continuity: { sources: { [path]: { type: "current" } }, issues: [], journal: null },
+			});
+			const sourceStore = new MemorySourceStore([
+				{
+					path,
+					basename: "deck",
+					content: `#单词\n<!-- wsr-card-id: ${APPLE_ID} -->\n苹果\n??\napple\n;;`,
+				},
+			]);
+			const continuity = createCardIdentityContinuity({
+				sources: sourceStore,
+				state: stateStore,
+				createIdentity: () => "test-id",
+			});
+
+			const preparation = await continuity.prepareEdit(path, "0");
+
+			expect(preparation).toEqual({
+				kind: "ready",
+				card: expect.objectContaining({ id: APPLE_ID, front: "苹果" }),
+			});
+		});
+
+		it("returns blocked migration-required when deck is legacy", async () => {
+			const path = "notes/legacy.md";
+			const card = makeCard(`${path}::0`, "苹果", 7, path);
+			const stateStore = new MemoryStateStore({
+				configuredTags: ["#单词"],
+				decks: new Map([[path, makeDeck(path, [card])]]),
+				continuity: {
+					sources: { [path]: { type: "legacy", cardCount: 1 } },
+					issues: [],
+					journal: null,
+				},
+			});
+			const sourceStore = new MemorySourceStore([
+				{
+					path,
+					basename: "legacy",
+					content: `#单词\n苹果\n??\napple\n;;`,
+				},
+			]);
+			const continuity = createCardIdentityContinuity({
+				sources: sourceStore,
+				state: stateStore,
+				createIdentity: () => "test-id",
+			});
+
+			const preparation = await continuity.prepareEdit(path, `${path}::0`);
+
+			expect(preparation).toEqual({
+				kind: "blocked",
+				reason: "migration-required",
+			});
+		});
+
+		it("returns not-found when card is absent", async () => {
+			const path = "notes/deck.md";
+			const stateStore = new MemoryStateStore({
+				configuredTags: ["#单词"],
+				decks: new Map([[path, makeDeck(path, [])]]),
+				continuity: { sources: { [path]: { type: "current" } }, issues: [], journal: null },
+			});
+			const sourceStore = new MemorySourceStore([
+				{
+					path,
+					basename: "deck",
+					content: `#单词\n`,
+				},
+			]);
+			const continuity = createCardIdentityContinuity({
+				sources: sourceStore,
+				state: stateStore,
+				createIdentity: () => "test-id",
+			});
+
+			const preparation = await continuity.prepareEdit(path, "missing-id");
+
+			expect(preparation).toEqual({ kind: "not-found" });
+		});
+	});
+
+	describe("change validation errors", () => {
+		it("returns validation-failed when card contains reserved marker", async () => {
+			const path = "notes/deck.md";
+			const card = makeCard(APPLE_ID, "苹果", 7, path);
+			const stateStore = new MemoryStateStore({
+				configuredTags: ["#单词"],
+				decks: new Map([[path, makeDeck(path, [card])]]),
+				continuity: { sources: { [path]: { type: "current" } }, issues: [], journal: null },
+			});
+			const sourceStore = new MemorySourceStore([
+				{
+					path,
+					basename: "deck",
+					content: `#单词\n<!-- wsr-card-id: ${APPLE_ID} -->\n苹果\n??\napple\n;;`,
+				},
+			]);
+			const continuity = createCardIdentityContinuity({
+				sources: sourceStore,
+				state: stateStore,
+				createIdentity: () => "test-id",
+			});
+
+			const outcome = await continuity.change({
+				kind: "edit",
+				deckId: path,
+				cardIdentity: APPLE_ID,
+				content: { front: "苹果\n??\n侵入", back: "apple" },
+			});
+
+			expect(outcome).toEqual({
+				kind: "validation-failed",
+				error: { type: "reserved-marker", marker: "??" },
+			});
+		});
+
+		it("returns validation-failed when front is empty", async () => {
+			const path = "notes/deck.md";
+			const card = makeCard(APPLE_ID, "苹果", 7, path);
+			const stateStore = new MemoryStateStore({
+				configuredTags: ["#单词"],
+				decks: new Map([[path, makeDeck(path, [card])]]),
+				continuity: { sources: { [path]: { type: "current" } }, issues: [], journal: null },
+			});
+			const sourceStore = new MemorySourceStore([
+				{
+					path,
+					basename: "deck",
+					content: `#单词\n<!-- wsr-card-id: ${APPLE_ID} -->\n苹果\n??\napple\n;;`,
+				},
+			]);
+			const continuity = createCardIdentityContinuity({
+				sources: sourceStore,
+				state: stateStore,
+				createIdentity: () => "test-id",
+			});
+
+			const outcome = await continuity.change({
+				kind: "edit",
+				deckId: path,
+				cardIdentity: APPLE_ID,
+				content: { front: "   ", back: "apple" },
+			});
+
+			expect(outcome).toEqual({
+				kind: "validation-failed",
+				error: { type: "missing-front" },
+			});
+		});
+	});
 });

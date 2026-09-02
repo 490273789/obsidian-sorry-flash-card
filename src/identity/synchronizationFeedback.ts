@@ -1,10 +1,47 @@
 import { translate } from "../i18n";
 import type { Language } from "../shared/types";
 import type {
+	CardChangeOutcome,
 	CardIdentityContinuitySnapshot,
 	CardIdentityIssue,
+	CardValidationError,
 	SynchronizeOutcome,
 } from "./cardIdentityContinuity";
+
+export function describeCardChangeOutcome(
+	outcome: Exclude<CardChangeOutcome, { kind: "applied" }>,
+	language: Language,
+): string {
+	switch (outcome.kind) {
+		case "blocked":
+			return outcome.reason === "migration-required"
+				? translate(language, "identity.editNeedsMigration")
+				: translate(language, "identity.editNeedsRepair");
+		case "source-changing":
+			return translate(language, "identity.sourceChanging");
+		case "validation-failed":
+			return describeCardValidationError(outcome.error, language);
+		case "failed":
+			return outcome.message;
+	}
+}
+
+export function describeCardValidationError(
+	error: CardValidationError,
+	language: Language,
+): string {
+	switch (error.type) {
+		case "missing-front":
+			return translate(language, "cardEditor.frontRequired");
+		case "missing-back":
+			return translate(language, "cardEditor.backRequired");
+		case "reserved-marker":
+			return translate(language, "cardEditor.markerReserved");
+		case "card-not-found":
+		case "source-file-invalid":
+			return translate(language, "notice.cardMissing");
+	}
+}
 
 export function describeSynchronizationOutcome(
 	outcome: SynchronizeOutcome,

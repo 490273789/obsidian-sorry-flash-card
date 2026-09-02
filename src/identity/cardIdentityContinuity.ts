@@ -3,6 +3,9 @@ import {
 	editDeckSource,
 	registerMissingCardIdentities,
 	rewriteCardIdentityMarkers,
+	DeckSourceEditException,
+	type DeckSourceEditError,
+	type DeckSourceEditResult,
 } from "../cards/deckSourceEditor";
 import { extractFirstTag, parseFlashcards } from "../cards/parser";
 import { extractSpellingWord } from "../cards/spellingWord";
@@ -170,10 +173,12 @@ export interface CardContentChange {
 	explanation?: string;
 }
 
+export type CardValidationError = DeckSourceEditError;
+
 export type PluginCardChange =
 	| { kind: "add"; deckId: string; content: CardContentChange }
-	| { kind: "edit"; cardIdentity: string; content: CardContentChange }
-	| { kind: "delete"; cardIdentity: string };
+	| { kind: "edit"; cardIdentity: string; content: CardContentChange; deckId?: string }
+	| { kind: "delete"; cardIdentity: string; deckId?: string };
 
 export type CardChangeOutcome =
 	| { kind: "applied"; cardIdentity?: string }
@@ -182,11 +187,22 @@ export type CardChangeOutcome =
 			reason: "source-needs-repair" | "migration-required";
 			issueId?: string;
 	  }
+	| { kind: "validation-failed"; error: CardValidationError }
 	| { kind: "source-changing"; deckId: string }
 	| { kind: "failed"; retryable: boolean; message: string };
 
+export type CardEditPreparation =
+	| { readonly kind: "ready"; readonly card: FlashCard }
+	| {
+			readonly kind: "blocked";
+			readonly reason: "source-needs-repair" | "migration-required";
+			readonly issueId?: string;
+	  }
+	| { readonly kind: "not-found" };
+
 export interface CardIdentityContinuity {
 	synchronize(): Promise<SynchronizeOutcome>;
+	prepareEdit(deckId: string, cardId: string): Promise<CardEditPreparation>;
 	change(change: PluginCardChange): Promise<CardChangeOutcome>;
 	inspect(): CardIdentityContinuitySnapshot;
 	resolve(resolution: ContinuityResolution): Promise<ResolutionOutcome>;
@@ -443,6 +459,50 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 		}
 	}
 
+	prepareEdit(deckId: string, cardId: string): Promise<CardEditPreparation> {
+		return this.enqueue(() => this.prepareEditNow(deckId, cardId));
+	}
+
+	private async prepareEditNow(deckId: string, cardId: string): Promise<CardEditPreparation> {
+		const currentState = await this.options.state.load();
+		const deck =
+			currentState.decks.get(deckId) ??
+			Array.from(currentState.decks.values()).find((candidate) =>
+				candidate.cards.some(
+					(card) =>
+						card.id === cardId ||
+						(Number.isInteger(Number(cardId)) && card.indexInFile === Number(cardId)),
+				),
+			);
+		if (!deck) {
+			return { kind: "not-found" };
+		}
+
+		const condition = currentState.continuity.sources[deck.filePath];
+		if (condition?.type === "legacy") {
+			return { kind: "blocked", reason: "migration-required" };
+		}
+		if (condition?.type === "last-known-good") {
+			const issue = currentState.continuity.issues.find((candidate) =>
+				candidate.affectedSources.includes(deck.filePath),
+			);
+			return {
+				kind: "blocked",
+				reason: "source-needs-repair",
+				issueId: issue?.id,
+			};
+		}
+
+		const card =
+			deck.cards.find((candidate) => candidate.id === cardId) ??
+			(Number.isInteger(Number(cardId)) ? deck.cards[Number(cardId)] : undefined);
+		if (!card) {
+			return { kind: "not-found" };
+		}
+
+		return { kind: "ready", card };
+	}
+
 	change(change: PluginCardChange): Promise<CardChangeOutcome> {
 		return this.enqueue(() => this.changeNow(change));
 	}
@@ -466,9 +526,15 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 			const deck =
 				change.kind === "add"
 					? currentState.decks.get(change.deckId)
-					: Array.from(currentState.decks.values()).find((candidate) =>
-							candidate.cards.some((card) => card.id === change.cardIdentity),
-						);
+					: ((change.deckId ? currentState.decks.get(change.deckId) : undefined) ??
+						Array.from(currentState.decks.values()).find((candidate) =>
+							candidate.cards.some(
+								(card) =>
+									card.id === change.cardIdentity ||
+									(Number.isInteger(Number(change.cardIdentity)) &&
+										card.indexInFile === Number(change.cardIdentity)),
+							),
+						));
 			if (!deck) {
 				return {
 					kind: "failed",
@@ -501,19 +567,40 @@ class DefaultCardIdentityContinuity implements CardIdentityContinuity {
 				};
 			}
 			const newIdentity = change.kind === "add" ? this.options.createIdentity() : undefined;
-			const editResult = editDeckSource(
-				document.content,
-				deck,
-				change.kind === "add"
-					? { type: "add", cardId: newIdentity, ...change.content }
-					: change.kind === "edit"
-						? {
-								type: "update",
-								cardId: change.cardIdentity,
-								...change.content,
-							}
-						: { type: "delete", cardId: change.cardIdentity },
-			);
+			let editResult: DeckSourceEditResult;
+			try {
+				if (change.kind === "add") {
+					editResult = editDeckSource(document.content, deck, {
+						type: "add",
+						cardId: newIdentity,
+						...change.content,
+					});
+				} else {
+					const targetCardIdentity =
+						(
+							deck.cards.find((c) => c.id === change.cardIdentity) ??
+							(Number.isInteger(Number(change.cardIdentity))
+								? deck.cards[Number(change.cardIdentity)]
+								: undefined)
+						)?.id ?? change.cardIdentity;
+					editResult = editDeckSource(
+						document.content,
+						deck,
+						change.kind === "edit"
+							? {
+									type: "update",
+									cardId: targetCardIdentity,
+									...change.content,
+								}
+							: { type: "delete", cardId: targetCardIdentity },
+					);
+				}
+			} catch (error) {
+				if (error instanceof DeckSourceEditException) {
+					return { kind: "validation-failed", error: error.editError };
+				}
+				throw error;
+			}
 			const writeResult = await this.options.sources.replaceIfUnchanged(
 				deck.filePath,
 				document.content,

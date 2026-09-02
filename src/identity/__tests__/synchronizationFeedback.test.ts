@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { CardIdentityContinuitySnapshot, SynchronizeOutcome } from "../cardIdentityContinuity";
-import { describeSynchronizationOutcome } from "../synchronizationFeedback";
+import {
+	describeCardChangeOutcome,
+	describeSynchronizationOutcome,
+} from "../synchronizationFeedback";
 
 const CONFLICT_ID = "73688849-a7f8-4b7c-9f46-4a3d75d7b5c5";
 
@@ -97,5 +100,71 @@ describe("synchronization feedback", () => {
 		expect(
 			describeSynchronizationOutcome({ kind: "current", changedDeckIds: [] }, snapshot, "zh"),
 		).toBeNull();
+	});
+
+	describe("card change feedback", () => {
+		it("translates blocked outcomes correctly in Chinese and English", () => {
+			expect(
+				describeCardChangeOutcome({ kind: "blocked", reason: "migration-required" }, "zh"),
+			).toBe("请先迁移该题库的卡片身份，再编辑卡片");
+
+			expect(
+				describeCardChangeOutcome({ kind: "blocked", reason: "migration-required" }, "en"),
+			).toBe("Migrate this deck's card identities before editing cards");
+
+			expect(
+				describeCardChangeOutcome({ kind: "blocked", reason: "source-needs-repair" }, "zh"),
+			).toBe("请先修复该题库的卡片身份问题，再编辑卡片");
+
+			expect(
+				describeCardChangeOutcome({ kind: "blocked", reason: "source-needs-repair" }, "en"),
+			).toBe("Repair this deck's card identity issue before editing cards");
+		});
+
+		it("translates validation errors correctly", () => {
+			expect(
+				describeCardChangeOutcome(
+					{ kind: "validation-failed", error: { type: "missing-front" } },
+					"zh",
+				),
+			).toBe("正面不能为空");
+
+			expect(
+				describeCardChangeOutcome(
+					{ kind: "validation-failed", error: { type: "missing-back" } },
+					"zh",
+				),
+			).toBe("背面不能为空");
+
+			expect(
+				describeCardChangeOutcome(
+					{
+						kind: "validation-failed",
+						error: { type: "reserved-marker", marker: "??" },
+					},
+					"zh",
+				),
+			).toBe("内容中不能单独一行使用 ??、:: 或 ;;，这些是卡片结构标记");
+
+			expect(
+				describeCardChangeOutcome(
+					{ kind: "validation-failed", error: { type: "card-not-found" } },
+					"zh",
+				),
+			).toBe("题目不存在");
+		});
+
+		it("translates source-changing and generic failure", () => {
+			expect(
+				describeCardChangeOutcome({ kind: "source-changing", deckId: "deck.md" }, "zh"),
+			).toBe("源文档正在变化，请刷新后重试");
+
+			expect(
+				describeCardChangeOutcome(
+					{ kind: "failed", retryable: false, message: "Custom error message" },
+					"zh",
+				),
+			).toBe("Custom error message");
+		});
 	});
 });

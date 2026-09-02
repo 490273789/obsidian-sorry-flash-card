@@ -160,6 +160,7 @@ function makeIdentity(
 ): CardIdentityContinuity {
 	return {
 		synchronize: vi.fn().mockResolvedValue({ kind: "current", changedDeckIds: [] }),
+		prepareEdit: vi.fn().mockResolvedValue({ kind: "not-found" }),
 		change: vi.fn(),
 		inspect: vi.fn(() => snapshot),
 		resolve,
