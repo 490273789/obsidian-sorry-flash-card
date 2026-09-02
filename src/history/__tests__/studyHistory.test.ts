@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { StudyHistoryEntry } from "../../shared/types";
-import { formatLocalDateKey, MAX_STUDY_HISTORY_DAYS, pruneStudyHistory } from "../studyHistory";
+import {
+	appendStudyHistory,
+	createWordListHistoryEntry,
+	formatLocalDateKey,
+	MAX_STUDY_HISTORY_DAYS,
+	pruneStudyHistory,
+} from "../studyHistory";
 
 function makeEntry(date: string, mode: StudyHistoryEntry["mode"] = "study"): StudyHistoryEntry {
 	return {
@@ -95,6 +101,92 @@ describe("studyHistory", () => {
 			pruneStudyHistory(entries, 2);
 
 			expect(entries).toEqual(originalCopy);
+		});
+	});
+
+	describe("createWordListHistoryEntry", () => {
+		it("returns null when duration is under 5 seconds", () => {
+			const entry = createWordListHistoryEntry("deck-1", "Deck 1", 1000, 5000); // 4 seconds
+			expect(entry).toBeNull();
+		});
+
+		it("returns entry when duration is at least 5 seconds", () => {
+			const now = new Date("2026-08-02T12:00:00.000Z");
+			const entry = createWordListHistoryEntry("deck-1", "Deck 1", 1000, 6500, now); // 5 seconds
+			expect(entry).toEqual({
+				date: "2026-08-02",
+				deckId: "deck-1",
+				deckName: "Deck 1",
+				mode: "word-list",
+				cardCount: 0,
+				duration: 5,
+				timestamp: now.getTime(),
+			});
+		});
+	});
+
+	describe("appendStudyHistory", () => {
+		it("returns a copy when newEntries is empty", () => {
+			const history = [makeEntry("2026-08-01")];
+			const result = appendStudyHistory(history, []);
+			expect(result).toEqual(history);
+			expect(result).not.toBe(history);
+		});
+
+		it("auto-stamps date and timestamp when appending pending entries", () => {
+			const now = new Date("2026-08-05T15:30:00.000Z");
+			const history = [makeEntry("2026-08-01")];
+			const result = appendStudyHistory(
+				history,
+				[
+					{
+						deckId: "deck-2",
+						deckName: "Deck 2",
+						mode: "practice",
+						cardCount: 5,
+						duration: 60,
+					},
+				],
+				now,
+			);
+
+			expect(result).toHaveLength(2);
+			expect(result[1]).toEqual({
+				deckId: "deck-2",
+				deckName: "Deck 2",
+				mode: "practice",
+				cardCount: 5,
+				duration: 60,
+				date: "2026-08-05",
+				timestamp: now.getTime(),
+			});
+		});
+
+		it("auto-prunes when appended entries exceed maxDays", () => {
+			const entries: StudyHistoryEntry[] = [];
+			for (let day = 1; day <= 20; day++) {
+				const dayStr = String(day).padStart(2, "0");
+				entries.push(makeEntry(`2026-08-${dayStr}`));
+			}
+			const now = new Date("2026-08-21T10:00:00.000Z");
+			const result = appendStudyHistory(
+				entries,
+				[
+					{
+						deckId: "deck-1",
+						deckName: "Deck 1",
+						mode: "study",
+						cardCount: 10,
+						duration: 100,
+					},
+				],
+				now,
+				20,
+			);
+
+			expect(result).toHaveLength(20);
+			expect(result[0]?.date).toBe("2026-08-02");
+			expect(result[result.length - 1]?.date).toBe("2026-08-21");
 		});
 	});
 });

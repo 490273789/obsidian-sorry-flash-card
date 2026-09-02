@@ -21,7 +21,7 @@ import type {
 } from "../identity/cardIdentityContinuity";
 import type { SessionPersistenceTransition } from "../sessions/sessionLifecycle";
 import { normalizePronunciationSettings } from "../pronunciation/pronunciationSettings";
-import { formatLocalDateKey, pruneStudyHistory } from "../history/studyHistory";
+import { appendStudyHistory, createWordListHistoryEntry } from "../history/studyHistory";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -309,7 +309,6 @@ export class DataStore {
 	 */
 	async commitSessionTransition(transition: SessionPersistenceTransition): Promise<void> {
 		const nextDecks = cloneDecksForTransition(this.decks, transition, this.cardIndex);
-		const nextHistory = [...this.studyHistory];
 		const nextSpellingProgress = cloneSpellingProgress(this.spellingProgress);
 		const updatedDeckIds = new Set<string>();
 		const now = new Date();
@@ -345,20 +344,13 @@ export class DataStore {
 			);
 		}
 
-		for (const entry of transition.historyEntries) {
-			nextHistory.push({
-				...entry,
-				date: formatLocalDateKey(now),
-				timestamp: now.getTime(),
-			});
-		}
-		const prunedHistory = pruneStudyHistory(nextHistory);
+		const nextHistory = appendStudyHistory(this.studyHistory, transition.historyEntries, now);
 
 		await this.plugin.saveData(
-			this.buildStoredData(nextDecks, prunedHistory, nextSpellingProgress),
+			this.buildStoredData(nextDecks, nextHistory, nextSpellingProgress),
 		);
 		this.decks = nextDecks;
-		this.studyHistory = prunedHistory;
+		this.studyHistory = nextHistory;
 		this.spellingProgress = nextSpellingProgress;
 		// Card positions are unchanged by a session transition, so the card index
 		// stays valid; only the touched decks need their derived caches refreshed.
@@ -713,28 +705,26 @@ export class DataStore {
 	}
 
 	/** Record a word-list visit, which is outside SessionLifecycle. */
-	async recordWordListSession(deckId: string, deckName: string, duration: number): Promise<void> {
-		const now = new Date();
-		const date = formatLocalDateKey(now);
+	async recordWordListVisit(
+		deckId: string,
+		deckName: string,
+		startTimeMs: number,
+		endTimeMs: number,
+	): Promise<void> {
+		const entry = createWordListHistoryEntry(deckId, deckName, startTimeMs, endTimeMs);
+		if (!entry) return;
 
-		const nextHistory = [...this.studyHistory];
-		nextHistory.push({
-			date,
-			deckId,
-			deckName,
-			mode: "word-list",
-			cardCount: 0,
-			duration,
-			timestamp: now.getTime(),
-		});
-
-		const prunedHistory = pruneStudyHistory(nextHistory);
-
+		const nextHistory = appendStudyHistory(this.studyHistory, [entry]);
 		await this.plugin.saveData(
-			this.buildStoredData(this.decks, prunedHistory, this.spellingProgress),
+			this.buildStoredData(this.decks, nextHistory, this.spellingProgress),
 		);
-		this.studyHistory = prunedHistory;
+		this.studyHistory = nextHistory;
 		this.publishRevision();
+	}
+
+	async recordWordListSession(deckId: string, deckName: string, duration: number): Promise<void> {
+		const now = Date.now();
+		return this.recordWordListVisit(deckId, deckName, now - duration * 1000, now);
 	}
 
 	/**

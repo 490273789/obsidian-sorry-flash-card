@@ -536,11 +536,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const handleCloseWordList = useCallback(
 		(deckId: string) => {
 			if (wordListStartTime.current !== null) {
-				const duration = Math.floor((Date.now() - wordListStartTime.current) / 1000);
-				if (duration >= 5) {
-					const deck = dataStore.getDeck(deckId);
-					void dataStore.recordWordListSession(deckId, deck?.name ?? deckId, duration);
-				}
+				const deck = dataStore.getDeck(deckId);
+				void dataStore.recordWordListVisit(
+					deckId,
+					deck?.name ?? deckId,
+					wordListStartTime.current,
+					Date.now(),
+				);
 				wordListStartTime.current = null;
 			}
 			setViewState({ type: "home" });
