@@ -35,7 +35,10 @@ import { createTranslator } from "../../i18n";
 import { CardEditorModal, type CardEditorSavePayload } from "./CardEditorModal";
 import { ConfirmDialog, type ConfirmDialogTone } from "./ConfirmDialog";
 import type { CardIdentityContinuity } from "../../identity/cardIdentityContinuity";
-import { describeCardChangeOutcome } from "../../identity/synchronizationFeedback";
+import {
+	executeCardMutationWorkflow,
+	type CardMutationRequest,
+} from "../../identity/cardMutationWorkflow";
 import {
 	shouldAutoPronounceSpellingFeedback,
 	waitForSpellingPronunciation,
@@ -396,37 +399,31 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		async ({ deckId, front, back, explanation }: CardEditorSavePayload) => {
 			if (!cardEditor) return;
 
-			try {
-				const outcome =
-					cardEditor.mode === "edit"
-						? await cardIdentityContinuity.change({
-								kind: "edit",
-								deckId: cardEditor.deckId,
-								cardIdentity: cardEditor.cardId,
-								content: { front, back, explanation },
-							})
-						: await cardIdentityContinuity.change({
-								kind: "add",
-								deckId,
-								content: { front, back, explanation },
-							});
-				if (outcome.kind === "blocked" && outcome.reason === "migration-required") {
-					await handleRequestHomeMigration(deckId);
-					return;
-				}
-				if (outcome.kind !== "applied") {
-					throw new Error(describeCardChangeOutcome(outcome, settings.language));
-				}
-				if (cardEditor.mode === "edit") {
-					new Notice(t("notice.cardSaved"));
-				} else {
-					new Notice(t("notice.cardAdded"));
-				}
+			const request: CardMutationRequest =
+				cardEditor.mode === "edit"
+					? {
+							kind: "edit",
+							deckId: cardEditor.deckId,
+							cardId: cardEditor.cardId,
+							content: { front, back, explanation },
+						}
+					: {
+							kind: "create",
+							deckId,
+							content: { front, back, explanation },
+						};
+
+			const outcome = await executeCardMutationWorkflow(cardIdentityContinuity, request, {
+				language: settings.language,
+				onRequestMigration: handleRequestHomeMigration,
+				notify: (msg) => new Notice(msg),
+				t,
+			});
+
+			if (outcome.kind === "applied") {
 				setCardEditor(null);
-			} catch (error) {
-				const message = error instanceof Error ? error.message : t("cardEditor.saveFailed");
-				new Notice(t("notice.cardSaveFailed", { message }));
-				throw error;
+			} else if (outcome.kind === "failed") {
+				throw new Error(outcome.message);
 			}
 		},
 		[cardEditor, cardIdentityContinuity, handleRequestHomeMigration, settings.language, t],
@@ -635,25 +632,20 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			);
 			if (!confirmed) return;
 
-			try {
-				const outcome = await cardIdentityContinuity.change({
+			await executeCardMutationWorkflow(
+				cardIdentityContinuity,
+				{
 					kind: "delete",
 					deckId,
-					cardIdentity: cardId,
-				});
-				if (outcome.kind === "blocked" && outcome.reason === "migration-required") {
-					await handleRequestHomeMigration(deckId);
-					return;
-				}
-				if (outcome.kind !== "applied") {
-					throw new Error(describeCardChangeOutcome(outcome, settings.language));
-				}
-				new Notice(t("notice.cardDeleted"));
-			} catch (error) {
-				const message =
-					error instanceof Error ? error.message : t("cardEditor.deleteFailed");
-				new Notice(t("notice.cardDeleteFailed", { message }));
-			}
+					cardId,
+				},
+				{
+					language: settings.language,
+					onRequestMigration: handleRequestHomeMigration,
+					notify: (msg) => new Notice(msg),
+					t,
+				},
+			);
 		},
 		[cardIdentityContinuity, confirmAction, handleRequestHomeMigration, settings.language, t],
 	);

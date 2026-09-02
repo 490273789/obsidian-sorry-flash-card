@@ -1,6 +1,6 @@
 import { createEmptyCard } from "ts-fsrs";
 import { describe, expect, it } from "vitest";
-import { DeckSourceEditException, editDeckSource } from "../deckSourceEditor";
+import { DeckSourceEditException, editDeckSource, validateCardDraft } from "../deckSourceEditor";
 import type { Deck, FlashCard } from "../../shared/types";
 
 function makeDeck(cardCount: number): Deck {
@@ -237,5 +237,38 @@ pear
 				editError: { type: "source-file-invalid" },
 			});
 		}
+	});
+
+	describe("validateCardDraft", () => {
+		it("returns missing-front for empty front content", () => {
+			expect(validateCardDraft("", "back")).toEqual({ type: "missing-front" });
+			expect(validateCardDraft("   ", "back")).toEqual({ type: "missing-front" });
+		});
+
+		it("returns missing-back for empty back content", () => {
+			expect(validateCardDraft("front", "")).toEqual({ type: "missing-back" });
+			expect(validateCardDraft("front", "  \n  ")).toEqual({ type: "missing-back" });
+		});
+
+		it("returns reserved-marker when content contains separator lines", () => {
+			expect(validateCardDraft("front\n;;", "back")).toEqual({
+				type: "reserved-marker",
+				marker: ";;",
+			});
+			expect(validateCardDraft("front", "back\n??")).toEqual({
+				type: "reserved-marker",
+				marker: "??",
+			});
+			expect(validateCardDraft("front", "back", "exp\n::")).toEqual({
+				type: "reserved-marker",
+				marker: "::",
+			});
+		});
+
+		it("returns null for valid card draft", () => {
+			expect(
+				validateCardDraft("Valid Front", "Valid Back", "Optional Explanation"),
+			).toBeNull();
+		});
 	});
 });

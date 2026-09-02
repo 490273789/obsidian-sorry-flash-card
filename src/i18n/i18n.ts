@@ -1005,7 +1005,7 @@ const translations = {
 
 export type TranslationKey = keyof typeof translations.zh;
 
-type TranslationVars = Record<string, string | number>;
+export type TranslationVars = Record<string, string | number>;
 
 export function normalizeLanguage(language: unknown): Language {
 	return language === "en" || language === "zh" ? language : DEFAULT_LANGUAGE;

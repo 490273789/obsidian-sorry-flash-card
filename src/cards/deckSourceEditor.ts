@@ -250,19 +250,32 @@ function findCard(deck: Deck, cardId: string): FlashCard {
 	return card;
 }
 
-function assertValidCardContent(front: string, back: string, explanation?: string): void {
+export function validateCardDraft(
+	front: string,
+	back: string,
+	explanation?: string,
+): DeckSourceEditError | null {
 	if (!front.trim()) {
-		throw new DeckSourceEditException({ type: "missing-front" });
+		return { type: "missing-front" };
 	}
 	if (!back.trim()) {
-		throw new DeckSourceEditException({ type: "missing-back" });
+		return { type: "missing-back" };
 	}
 
 	for (const value of [front, back, explanation ?? ""]) {
 		const marker = findReservedMarkerLine(value);
 		if (marker) {
-			throw new DeckSourceEditException({ type: "reserved-marker", marker });
+			return { type: "reserved-marker", marker };
 		}
+	}
+
+	return null;
+}
+
+function assertValidCardContent(front: string, back: string, explanation?: string): void {
+	const error = validateCardDraft(front, back, explanation);
+	if (error) {
+		throw new DeckSourceEditException(error);
 	}
 }
 
