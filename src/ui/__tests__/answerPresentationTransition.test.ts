@@ -13,8 +13,10 @@ import type {
 } from "../../sessions/sessionLifecycle";
 import {
 	createAnswerPresentationTransition,
+	shouldAutoPronounceSpellingFeedback,
 	type AnswerPresentationClock,
 } from "../answerPresentationTransition";
+import type { PronunciationRuntime } from "../../pronunciation";
 
 class ScriptedLifecycle implements SessionLifecycle {
 	readonly listeners = new Set<() => void>();
@@ -216,8 +218,9 @@ function deferred<T>() {
 }
 
 async function flushPromises(): Promise<void> {
-	await Promise.resolve();
-	await Promise.resolve();
+	for (let i = 0; i < 10; i++) {
+		await Promise.resolve();
+	}
 }
 
 describe("AnswerPresentationTransition", () => {
@@ -482,5 +485,253 @@ describe("AnswerPresentationTransition", () => {
 			activity: { kind: "idle" },
 		});
 		unsubscribeAgain();
+	});
+
+	describe("spelling auto pronunciation integration", () => {
+		it("identifies correct feedback for auto pronunciation", () => {
+			expect(shouldAutoPronounceSpellingFeedback("retrieval-correct")).toBe(true);
+			expect(shouldAutoPronounceSpellingFeedback("correction-correct")).toBe(true);
+			expect(shouldAutoPronounceSpellingFeedback("retrieval-incorrect")).toBe(false);
+			expect(shouldAutoPronounceSpellingFeedback("correction-incorrect")).toBe(false);
+		});
+
+		it("auto-pronounces and advances with zero delay on successful playback", async () => {
+			const initial = activeSpelling("one", 1);
+			const next = activeSpelling("two", 2);
+			const lifecycle = new ScriptedLifecycle(initial);
+			const clock = new FakeClock();
+			const speakMock = vi.fn().mockResolvedValue({ status: "success", source: "local" });
+			const runtime = {
+				getSnapshot: () => ({
+					settings: { spellingAutoPlay: true },
+				}),
+				speak: speakMock,
+				stop: vi.fn(),
+			} as unknown as PronunciationRuntime;
+
+			lifecycle.onAct = async () => {
+				lifecycle.publish(next);
+				return {
+					kind: "applied",
+					snapshot: next,
+					feedback: feedback("retrieval-correct"),
+				};
+			};
+
+			const subject = createAnswerPresentationTransition({
+				lifecycle,
+				clock,
+				pronunciationRuntime: runtime,
+			});
+			const unsubscribe = subject.subscribe(() => undefined);
+
+			const pending = subject.act({
+				kind: "spelling-answer",
+				reference: initial.reference,
+				input: "hello",
+			});
+			await flushPromises();
+
+			expect(speakMock).toHaveBeenCalledWith("hello", "auto");
+			expect(clock.delays).toContain(0);
+			expect(clock.pendingCount).toBe(1);
+			clock.runNext();
+
+			expect(await pending).toMatchObject({ kind: "applied" });
+			expect(subject.getSnapshot().activity.kind).toBe("idle");
+			unsubscribe();
+		});
+
+		it("restores remaining 550ms delay on pronunciation failure", async () => {
+			const initial = activeSpelling("one", 1);
+			const next = activeSpelling("two", 2);
+			const lifecycle = new ScriptedLifecycle(initial);
+			const clock = new FakeClock();
+			let now = 1000;
+			const speakMock = vi.fn().mockImplementation(async () => {
+				now += 100;
+				return { status: "failed", reason: "playback" };
+			});
+			const runtime = {
+				getSnapshot: () => ({
+					settings: { spellingAutoPlay: true },
+				}),
+				speak: speakMock,
+				stop: vi.fn(),
+			} as unknown as PronunciationRuntime;
+
+			lifecycle.onAct = async () => {
+				lifecycle.publish(next);
+				return {
+					kind: "applied",
+					snapshot: next,
+					feedback: feedback("retrieval-correct"),
+				};
+			};
+
+			const subject = createAnswerPresentationTransition({
+				lifecycle,
+				clock,
+				pronunciationRuntime: runtime,
+				now: () => now,
+			});
+			const unsubscribe = subject.subscribe(() => undefined);
+
+			const pending = subject.act({
+				kind: "spelling-answer",
+				reference: initial.reference,
+				input: "hello",
+			});
+			await flushPromises();
+
+			expect(speakMock).toHaveBeenCalledWith("hello", "auto");
+			// 550 - 100 = 450
+			expect(clock.delays).toContain(450);
+			clock.runNext();
+
+			expect(await pending).toMatchObject({ kind: "applied" });
+			unsubscribe();
+		});
+
+		it("stops playback when the 8000ms maximum wait times out", async () => {
+			const initial = activeSpelling("one", 1);
+			const next = activeSpelling("two", 2);
+			const lifecycle = new ScriptedLifecycle(initial);
+			const clock = new FakeClock();
+			let now = 1000;
+			const stopMock = vi.fn();
+			const speakMock = vi.fn().mockReturnValue(new Promise(() => undefined));
+			const runtime = {
+				getSnapshot: () => ({
+					settings: { spellingAutoPlay: true },
+				}),
+				speak: speakMock,
+				stop: stopMock,
+			} as unknown as PronunciationRuntime;
+
+			lifecycle.onAct = async () => {
+				lifecycle.publish(next);
+				return {
+					kind: "applied",
+					snapshot: next,
+					feedback: feedback("retrieval-correct"),
+				};
+			};
+
+			const subject = createAnswerPresentationTransition({
+				lifecycle,
+				clock,
+				pronunciationRuntime: runtime,
+				now: () => now,
+			});
+			const unsubscribe = subject.subscribe(() => undefined);
+
+			const pending = subject.act({
+				kind: "spelling-answer",
+				reference: initial.reference,
+				input: "hello",
+			});
+			await flushPromises();
+
+			expect(clock.delays).toContain(8000);
+			now += 8000;
+			clock.runNext(); // trigger timeout
+			await flushPromises();
+
+			expect(stopMock).toHaveBeenCalled();
+			expect(clock.delays).toContain(0);
+			clock.runNext(); // trigger 0ms delay
+
+			expect(await pending).toMatchObject({ kind: "applied" });
+			unsubscribe();
+		});
+
+		it("skips pronunciation and uses standard 550ms delay when autoplay is disabled", async () => {
+			const initial = activeSpelling("one", 1);
+			const next = activeSpelling("two", 2);
+			const lifecycle = new ScriptedLifecycle(initial);
+			const clock = new FakeClock();
+			const speakMock = vi.fn();
+			const runtime = {
+				getSnapshot: () => ({
+					settings: { spellingAutoPlay: false },
+				}),
+				speak: speakMock,
+				stop: vi.fn(),
+			} as unknown as PronunciationRuntime;
+
+			lifecycle.onAct = async () => {
+				lifecycle.publish(next);
+				return {
+					kind: "applied",
+					snapshot: next,
+					feedback: feedback("retrieval-correct"),
+				};
+			};
+
+			const subject = createAnswerPresentationTransition({
+				lifecycle,
+				clock,
+				pronunciationRuntime: runtime,
+			});
+			const unsubscribe = subject.subscribe(() => undefined);
+
+			const pending = subject.act({
+				kind: "spelling-answer",
+				reference: initial.reference,
+				input: "hello",
+			});
+			await flushPromises();
+
+			expect(speakMock).not.toHaveBeenCalled();
+			expect(clock.delays).toEqual([550]);
+			clock.runNext();
+
+			expect(await pending).toMatchObject({ kind: "applied" });
+			unsubscribe();
+		});
+
+		it("stops pronunciation on cancellation during playback", async () => {
+			const initial = activeSpelling("one", 1);
+			const next = activeSpelling("two", 2);
+			const lifecycle = new ScriptedLifecycle(initial);
+			const clock = new FakeClock();
+			const stopMock = vi.fn();
+			const speakMock = vi.fn().mockReturnValue(new Promise(() => undefined));
+			const runtime = {
+				getSnapshot: () => ({
+					settings: { spellingAutoPlay: true },
+				}),
+				speak: speakMock,
+				stop: stopMock,
+			} as unknown as PronunciationRuntime;
+
+			lifecycle.onAct = async () => {
+				lifecycle.publish(next);
+				return {
+					kind: "applied",
+					snapshot: next,
+					feedback: feedback("retrieval-correct"),
+				};
+			};
+
+			const subject = createAnswerPresentationTransition({
+				lifecycle,
+				clock,
+				pronunciationRuntime: runtime,
+			});
+			const unsubscribe = subject.subscribe(() => undefined);
+
+			const pending = subject.act({
+				kind: "spelling-answer",
+				reference: initial.reference,
+				input: "hello",
+			});
+			await flushPromises();
+
+			unsubscribe();
+			expect(stopMock).toHaveBeenCalled();
+			expect(await pending).toEqual({ kind: "cancelled" });
+		});
 	});
 });

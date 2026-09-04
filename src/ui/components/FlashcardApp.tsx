@@ -42,11 +42,7 @@ import {
 	executeCardMutationWorkflow,
 	type CardMutationRequest,
 } from "../../identity/cardMutationWorkflow";
-import {
-	shouldAutoPronounceSpellingFeedback,
-	waitForSpellingPronunciation,
-	type PronunciationRuntime,
-} from "../../pronunciation";
+import type { PronunciationRuntime } from "../../pronunciation";
 import { ModalProvider } from "../modal";
 import { createAnswerPresentationTransition } from "../answerPresentationTransition";
 
@@ -102,17 +98,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		() =>
 			createAnswerPresentationTransition({
 				lifecycle: sessionLifecycle,
-				prepareSpellingAdvance: async (feedback) => {
-					const autoPlay = pronunciationRuntime.getSnapshot().settings.spellingAutoPlay;
-					if (autoPlay && shouldAutoPronounceSpellingFeedback(feedback.kind)) {
-						await waitForSpellingPronunciation(
-							pronunciationRuntime,
-							feedback.expectedAnswer,
-						);
-						return 0;
-					}
-					return 550;
-				},
+				pronunciationRuntime,
 			}),
 		[pronunciationRuntime, sessionLifecycle],
 	);

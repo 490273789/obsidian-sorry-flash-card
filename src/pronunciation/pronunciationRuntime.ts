@@ -1,5 +1,5 @@
 import { requestUrl, type App, type RequestUrlParam } from "obsidian";
-import type { PronunciationAccent, PronunciationSettings } from "../shared/types";
+import type { CardDirection, PronunciationAccent, PronunciationSettings } from "../shared/types";
 import { extractSpellingWord } from "../cards/spellingWord";
 import { IndexedDbPronunciationAudioCache, createPronunciationCacheKey } from "./audioCache";
 import {
@@ -768,4 +768,19 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 			},
 		);
 	});
+}
+
+export function shouldAutoPronounceSessionCard(options: {
+	wordLearningEnabled: boolean;
+	autoPlayEnabled: boolean;
+	direction: CardDirection;
+	answerVisible: boolean;
+	word: string | null;
+}): boolean {
+	return Boolean(
+		options.wordLearningEnabled &&
+		options.autoPlayEnabled &&
+		options.word &&
+		(options.direction === "normal" || options.answerVisible),
+	);
 }

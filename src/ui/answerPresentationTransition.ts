@@ -9,6 +9,7 @@ import type {
 	SpellingLifecycleFeedback,
 } from "../sessions/sessionLifecycle";
 import type { StudyRating } from "../shared/types";
+import type { PronunciationOutcome, PronunciationRuntime } from "../pronunciation/types";
 
 export type AnswerPresentationAction =
 	| {
@@ -57,6 +58,8 @@ export interface AnswerPresentationClock {
 export interface CreateAnswerPresentationTransitionOptions {
 	lifecycle: SessionLifecycle;
 	clock?: AnswerPresentationClock;
+	pronunciationRuntime?: PronunciationRuntime;
+	now?: () => number;
 	prepareSpellingAdvance?: (feedback: SpellingLifecycleFeedback) => Promise<number>;
 }
 
@@ -77,6 +80,11 @@ const browserClock: AnswerPresentationClock = {
 };
 
 const DEFAULT_SPELLING_FEEDBACK_DELAY = 550;
+const MAX_AUTO_PRONUNCIATION_WAIT_MS = 8000;
+
+export function shouldAutoPronounceSpellingFeedback(feedbackKind: string): boolean {
+	return feedbackKind === "retrieval-correct" || feedbackKind === "correction-correct";
+}
 
 export function createAnswerPresentationTransition(
 	options: CreateAnswerPresentationTransitionOptions,
@@ -87,6 +95,8 @@ export function createAnswerPresentationTransition(
 class DefaultAnswerPresentationTransition implements AnswerPresentationTransition {
 	private readonly listeners = new Set<() => void>();
 	private readonly clock: AnswerPresentationClock;
+	private readonly pronunciationRuntime?: PronunciationRuntime;
+	private readonly now: () => number;
 	private readonly prepareSpellingAdvance: (
 		feedback: SpellingLifecycleFeedback,
 	) => Promise<number>;
@@ -99,11 +109,15 @@ class DefaultAnswerPresentationTransition implements AnswerPresentationTransitio
 	private unsubscribeLifecycle: (() => void) | null = null;
 	private generation = 0;
 	private pendingDelay: PendingDelay | null = null;
+	private cancelPendingSpellingAdvance: (() => void) | null = null;
 
 	constructor(private readonly options: CreateAnswerPresentationTransitionOptions) {
 		this.clock = options.clock ?? browserClock;
+		this.pronunciationRuntime = options.pronunciationRuntime;
+		this.now = options.now ?? Date.now;
 		this.prepareSpellingAdvance =
-			options.prepareSpellingAdvance ?? (async () => DEFAULT_SPELLING_FEEDBACK_DELAY);
+			options.prepareSpellingAdvance ??
+			((feedback) => this.defaultPrepareSpellingAdvance(feedback));
 		this.latestLifecycle = options.lifecycle.getSnapshot();
 		this.presentedLifecycle = this.latestLifecycle;
 		this.snapshot = this.buildSnapshot();
@@ -260,11 +274,67 @@ class DefaultAnswerPresentationTransition implements AnswerPresentationTransitio
 
 	private cancelPendingTransition(): void {
 		this.generation++;
+		this.pronunciationRuntime?.stop();
+		if (this.cancelPendingSpellingAdvance) {
+			this.cancelPendingSpellingAdvance();
+			this.cancelPendingSpellingAdvance = null;
+		}
 		if (this.pendingDelay) {
 			this.clock.clearTimeout(this.pendingDelay.handle);
 			this.pendingDelay.resolve(false);
 			this.pendingDelay = null;
 		}
+	}
+
+	private async defaultPrepareSpellingAdvance(
+		feedback: SpellingLifecycleFeedback,
+	): Promise<number> {
+		if (!this.pronunciationRuntime || !shouldAutoPronounceSpellingFeedback(feedback.kind)) {
+			return DEFAULT_SPELLING_FEEDBACK_DELAY;
+		}
+
+		const autoPlay = this.pronunciationRuntime.getSnapshot().settings.spellingAutoPlay;
+		if (!autoPlay) {
+			return DEFAULT_SPELLING_FEEDBACK_DELAY;
+		}
+
+		const startedAt = this.now();
+		let timeoutHandle: unknown = null;
+
+		const timedTimeout = new Promise<{ status: "cancelled" }>((resolve) => {
+			timeoutHandle = this.clock.setTimeout(() => {
+				this.pronunciationRuntime?.stop();
+				resolve({ status: "cancelled" });
+			}, MAX_AUTO_PRONUNCIATION_WAIT_MS);
+		});
+
+		let cancelAdvance: (() => void) | null = null;
+		const cancelledPromise = new Promise<{ status: "cancelled" }>((resolve) => {
+			cancelAdvance = () => resolve({ status: "cancelled" });
+		});
+		this.cancelPendingSpellingAdvance = cancelAdvance;
+
+		let speaking: Promise<PronunciationOutcome>;
+		try {
+			speaking = Promise.resolve(
+				this.pronunciationRuntime.speak(feedback.expectedAnswer, "auto"),
+			).catch(() => ({ status: "failed" as const, reason: "playback" as const }));
+		} catch {
+			speaking = Promise.resolve({ status: "failed" as const, reason: "playback" as const });
+		}
+
+		const outcome = await Promise.race([speaking, timedTimeout, cancelledPromise]);
+		this.cancelPendingSpellingAdvance = null;
+		if (timeoutHandle !== null) {
+			this.clock.clearTimeout(timeoutHandle);
+		}
+
+		if (outcome.status === "success") {
+			return 0;
+		}
+
+		const elapsed = this.now() - startedAt;
+		return Math.max(0, DEFAULT_SPELLING_FEEDBACK_DELAY - elapsed);
 	}
 
 	private isCurrent(generation: number): boolean {
