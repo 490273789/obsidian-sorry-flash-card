@@ -9,6 +9,7 @@ export default defineConfig({
 		"node_modules",
 		"dist",
 		"main.js",
+		"styles.css",
 		"vite.config.ts",
 		"version-bump.mjs",
 		"versions.json",
