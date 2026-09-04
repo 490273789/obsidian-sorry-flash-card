@@ -17,6 +17,7 @@ import {
 	planSmartSpellingSession,
 	planRangeSpellingSession,
 	planIncorrectSpellingSession,
+	planRetryIncorrectSession,
 	planSessionQueue,
 } from "../sessionPlanner";
 
@@ -633,6 +634,71 @@ describe("SessionPlanner", () => {
 				kind: "success",
 				cardIds: [STABLE_ONE],
 				direction: "normal",
+			});
+		});
+	});
+
+	describe("planRetryIncorrectSession", () => {
+		const card1 = makeCard("c1", State.Review, new Date(), 0, "apple", "苹果");
+		const card2 = makeCard(
+			"c2",
+			State.Review,
+			new Date(),
+			1,
+			"invalid spelling 123",
+			"无效拼写",
+		);
+		const cardMap = new Map<string, FlashCard>([
+			["c1", card1],
+			["c2", card2],
+		]);
+		const getCard = (id: string) => cardMap.get(id) ?? null;
+
+		it("plans practice retry including all existing cards and preserves direction", () => {
+			const result = planRetryIncorrectSession({
+				mode: "practice",
+				direction: "reversed",
+				incorrectCardIdentities: ["c1", "c2", "missing"],
+				getCard,
+				shuffle: (ids) => ids,
+			});
+
+			expect(result).toEqual({
+				kind: "success",
+				cardIds: ["c1", "c2"],
+				direction: "reversed",
+				omittedCardCount: 1,
+			});
+		});
+
+		it("plans spelling retry filtering out invalid spellable fronts", () => {
+			const result = planRetryIncorrectSession({
+				mode: "spelling",
+				direction: "normal",
+				incorrectCardIdentities: ["c1", "c2"],
+				getCard,
+				shuffle: (ids) => ids,
+			});
+
+			expect(result).toEqual({
+				kind: "success",
+				cardIds: ["c1"],
+				direction: "normal",
+				omittedCardCount: 1,
+			});
+		});
+
+		it("rejects when no cards are retryable", () => {
+			const result = planRetryIncorrectSession({
+				mode: "spelling",
+				direction: "normal",
+				incorrectCardIdentities: ["c2", "missing"],
+				getCard,
+			});
+
+			expect(result).toEqual({
+				kind: "rejected",
+				reason: "no-retryable-cards",
 			});
 		});
 	});

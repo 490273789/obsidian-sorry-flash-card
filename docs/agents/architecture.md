@@ -17,17 +17,17 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 
 ## Module ownership
 
-| Area                | Primary modules                                  | Owns                                                                                                                                       |
-| ------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Obsidian boundary   | `src/obsidian/`                                  | Plugin/view lifecycle, vault adapters, commands, notices, settings rendering, identity modals                                              |
-| UI                  | `src/ui/`                                        | Navigation drafts, rendering, keyboard events, modals, presentation timing adapters                                                        |
-| Deck home           | `src/decks/deckHome.ts`                          | Shared home snapshot, deck readiness, settings draft, refresh/migration/save/export activity, navigation revalidation, reorder persistence |
-| Sessions            | `src/sessions/sessionLifecycle.ts`               | The single idle/active/result lifecycle and durable transitions for study/practice/spelling                                                |
-| Card continuity     | `src/identity/cardIdentityContinuity.ts`         | Synchronization, migration, repair, source changes, stable card identity continuity                                                        |
-| Persistence         | `src/storage/dataStore.ts`                       | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                       |
-| Pronunciation       | `src/pronunciation/`                             | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                            |
-| Pure card logic     | `src/cards/`                                     | Parsing, formatting, source mutation, spelling extraction/comparison                                                                       |
-| Presentation models | `src/history/`, `src/wordList/`, `src/settings/` | Pure display definitions, derived presentation state, and history retention pruning                                                        |
+| Area                | Primary modules                                  | Owns                                                                                                                                                                                                  |
+| ------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Obsidian boundary   | `src/obsidian/`                                  | Plugin/view lifecycle, vault adapters, commands, notices, settings rendering, identity modals                                                                                                         |
+| UI                  | `src/ui/`                                        | Navigation drafts, rendering, keyboard events, modals, presentation timing adapters                                                                                                                   |
+| Deck home           | `src/decks/deckHome.ts`                          | Shared home snapshot, deck readiness, settings draft, refresh/migration/save/export activity, navigation revalidation, reorder persistence, word list visit recording, and read facades for deck data |
+| Sessions            | `src/sessions/sessionLifecycle.ts`               | The single idle/active/result lifecycle and durable transitions for study/practice/spelling                                                                                                           |
+| Card continuity     | `src/identity/cardIdentityContinuity.ts`         | Synchronization, migration, repair, source changes, stable card identity continuity                                                                                                                   |
+| Persistence         | `src/storage/dataStore.ts`                       | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                                                                                  |
+| Pronunciation       | `src/pronunciation/`                             | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                                                                                       |
+| Pure card logic     | `src/cards/`                                     | Parsing, formatting, source mutation, spelling extraction/comparison                                                                                                                                  |
+| Presentation models | `src/history/`, `src/wordList/`, `src/settings/` | Pure display definitions, derived presentation state, and history retention pruning                                                                                                                   |
 
 ## Boundary rules
 

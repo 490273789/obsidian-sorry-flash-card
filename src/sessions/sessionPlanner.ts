@@ -458,6 +458,50 @@ export function planIncorrectSpellingSession(params: {
 	};
 }
 
+export type RetryIncorrectSessionPlanResult =
+	| {
+			readonly kind: "success";
+			readonly cardIds: string[];
+			readonly direction: CardDirection;
+			readonly omittedCardCount: number;
+	  }
+	| {
+			readonly kind: "rejected";
+			readonly reason: "no-retryable-cards";
+	  };
+
+export function planRetryIncorrectSession(params: {
+	mode: "practice" | "spelling";
+	direction: CardDirection;
+	incorrectCardIdentities: readonly string[];
+	getCard: (cardId: string) => FlashCard | null | undefined;
+	shuffle?: ShuffleCardIds;
+}): RetryIncorrectSessionPlanResult {
+	const retryableCards: FlashCard[] = [];
+	for (const identity of params.incorrectCardIdentities) {
+		const card = params.getCard(identity);
+		if (card && (params.mode === "practice" || extractSpellingWord(card.front) !== null)) {
+			retryableCards.push(card);
+		}
+	}
+
+	if (retryableCards.length === 0) {
+		return { kind: "rejected", reason: "no-retryable-cards" };
+	}
+
+	const omittedCardCount = params.incorrectCardIdentities.length - retryableCards.length;
+	const shuffle = params.shuffle ?? shuffleArray;
+	const uniqueCardIds = Array.from(new Set(retryableCards.map((c) => c.id)));
+	const cardIds = shuffle(uniqueCardIds);
+
+	return {
+		kind: "success",
+		cardIds,
+		direction: params.mode === "practice" ? params.direction : "normal",
+		omittedCardCount,
+	};
+}
+
 export function planSessionQueue(
 	request: SessionStartRequest,
 	deck: Deck,

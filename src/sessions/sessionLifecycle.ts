@@ -43,11 +43,7 @@ import {
 	createSpellingSession,
 	getCurrentSpellingCardId,
 } from "./spellingSessionEngine";
-import {
-	planIncorrectPracticeSession,
-	planIncorrectSpellingSession,
-	planSessionQueue,
-} from "./sessionPlanner";
+import { planRetryIncorrectSession, planSessionQueue } from "./sessionPlanner";
 
 export interface SessionCardSnapshot {
 	readonly identity: string;
@@ -820,22 +816,18 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 		if (action.kind !== "retry-incorrect") {
 			return this.rejected("action-not-available");
 		}
-		const retryable = state.incorrectCards.filter((card) => {
-			const current = this.repository.getCard(state.originDeck.id, card.identity);
-			return (
-				current &&
-				(state.mode === "practice" || extractSpellingWord(current.front) !== null)
-			);
+		const planResult = planRetryIncorrectSession({
+			mode: state.mode,
+			direction: state.mode === "practice" ? state.result.direction : "normal",
+			incorrectCardIdentities: state.incorrectCards.map((card) => card.identity),
+			getCard: (cardId) => this.repository.getCard(state.originDeck.id, cardId),
+			shuffle: this.shuffle,
 		});
-		if (retryable.length === 0) return this.rejected("no-retryable-cards");
-		const omittedCardCount = state.incorrectCards.length - retryable.length;
+		if (planResult.kind === "rejected") {
+			return this.rejected(planResult.reason);
+		}
+
 		if (state.mode === "practice") {
-			const plan = planIncorrectPracticeSession({
-				deckId: state.originDeck.id,
-				direction: state.result.direction,
-				cardIds: retryable.map((card) => card.identity),
-				shuffle: this.shuffle,
-			});
 			this.publish({
 				kind: "active",
 				mode: "practice",
@@ -843,8 +835,8 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 				session: {
 					...createPracticeSession({
 						deckId: state.originDeck.id,
-						direction: plan.direction,
-						cardIds: plan.cardIds,
+						direction: planResult.direction,
+						cardIds: planResult.cardIds,
 						startTime: this.now(),
 					}),
 					originDeck: state.originDeck,
@@ -852,11 +844,6 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 				setupDefaults: state.setupDefaults,
 			});
 		} else {
-			const plan = planIncorrectSpellingSession({
-				deckId: state.originDeck.id,
-				cardIds: retryable.map((card) => card.identity),
-				shuffle: this.shuffle,
-			});
 			this.publish({
 				kind: "active",
 				mode: "spelling",
@@ -864,7 +851,7 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 				session: {
 					...createSpellingSession({
 						deckId: state.originDeck.id,
-						cardIds: plan.cardIds,
+						cardIds: planResult.cardIds,
 						startTime: this.now(),
 					}),
 					originDeck: state.originDeck,
@@ -872,7 +859,7 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 				setupDefaults: state.setupDefaults,
 			});
 		}
-		return this.applied(undefined, omittedCardCount);
+		return this.applied(undefined, planResult.omittedCardCount);
 	}
 
 	private async exitActive(state: InternalActiveState): Promise<LifecycleOutcome> {

@@ -175,13 +175,15 @@ export const WordListView = React.memo(function WordListView({
 	onRecordVisit,
 }: WordListViewProps) {
 	const { t } = useI18n();
-	const startTimeRef = useRef<number>(Date.now());
+	const onRecordVisitRef = useRef(onRecordVisit);
+	onRecordVisitRef.current = onRecordVisit;
+
 	useEffect(() => {
-		const startTime = startTimeRef.current;
+		const startTime = Date.now();
 		return () => {
-			onRecordVisit?.(startTime, Date.now());
+			onRecordVisitRef.current?.(startTime, Date.now());
 		};
-	}, [deck.id, onRecordVisit]);
+	}, []);
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 	const listRef = useRef<HTMLDivElement | null>(null);
 	const sourceItems = useMemo(() => buildWordListItems(deck.cards), [deck.cards]);

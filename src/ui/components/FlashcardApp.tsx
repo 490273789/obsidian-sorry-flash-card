@@ -216,6 +216,13 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		setViewState({ type: "stats" });
 	}, []);
 
+	const handleRecordWordListVisit = useCallback(
+		(deckId: string, startTimeMs: number, endTimeMs: number) => {
+			void deckHome.recordWordListVisit(deckId, startTimeMs, endTimeMs);
+		},
+		[deckHome],
+	);
+
 	const handleOpenAddCard = useCallback(() => {
 		const firstDeck = deckHomeSnapshot.decks[0];
 		if (!firstDeck) {
@@ -790,7 +797,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 						deck={deck}
 						onBack={handleBackHome}
 						onRecordVisit={(startTimeMs, endTimeMs) => {
-							void deckHome.recordWordListVisit(deck.id, startTimeMs, endTimeMs);
+							handleRecordWordListVisit(deck.id, startTimeMs, endTimeMs);
 						}}
 					/>
 				);

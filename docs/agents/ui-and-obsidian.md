@@ -6,6 +6,8 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 - Keep React components functional and colocated under `src/ui/components/`; prefer existing component boundaries before adding new ones.
 - `FlashcardApp` owns navigation/setup drafts and adapts shared service snapshots. It carries initial setup options directly in `ViewState` instead of managing separate `useState` default buckets. It must not become a second authority for deck, session, identity, or pronunciation state.
+- `DeckHome` provides read and recording facades (such as `getDeck`, `getStudyHistory`, and `recordWordListVisit`) to prevent UI components from piercing through to the low-level `DataStore`.
+- `DeckSettingsModal` is isolated from `DeckList` to manage deck-level configuration, reusing pure definitions from `src/settings/studySettingsMeta.ts`.
 - Render card Markdown with Obsidian `MarkdownRenderer`, never raw HTML injection.
 - Use the shared modal primitives under `src/ui/modal/` and the existing confirmation/card-editor components before creating a new overlay system.
 - Use `lucide-react` for new React icon buttons. Keep controls keyboard-friendly and preserve existing shortcuts.
@@ -15,7 +17,7 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 `src/decks/deckHome.ts` is one shared plugin-lifetime module used by every open flashcard view.
 
-- It owns home totals, per-deck study/spelling readiness, migration summary, one settings draft, refresh/migration/save activity, reorder persistence, PDF export activity, and navigation revalidation.
+- It owns home totals, per-deck study/spelling readiness, migration summary, one settings draft, refresh/migration/save activity, reorder persistence, PDF export activity, word list visit recording, deck read facades, and navigation revalidation.
 - React owns rendering, menus, modal visibility, confirmations, drag interaction, and final navigation handoff.
 - Mutating operations are mutually exclusive; PDF export is a separate single-flight read-only activity.
 - Do not derive competing readiness rules or raw deck-home statistics inside components.
