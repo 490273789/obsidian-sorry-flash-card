@@ -8,6 +8,7 @@ import type {
 	StudySettings,
 } from "../shared/types";
 import type { PronunciationCacheUsage, PronunciationSnapshot } from "../pronunciation";
+import { STUDY_SETTINGS_LIMITS, STUDY_ORDER_OPTIONS, parseStudyOrder } from "./studySettingsMeta";
 
 export type SettingsActionResult = void | Promise<void>;
 
@@ -282,9 +283,9 @@ export function buildSettingsViewModel(
 					controls: [
 						{
 							type: "slider",
-							min: 1,
-							max: 200,
-							step: 1,
+							min: STUDY_SETTINGS_LIMITS.dailyNewCards.min,
+							max: STUDY_SETTINGS_LIMITS.dailyNewCards.max,
+							step: STUDY_SETTINGS_LIMITS.dailyNewCards.step,
 							value: state.settings.dailyNewCards,
 							onChange: actions.setDailyNewCards,
 						},
@@ -297,9 +298,9 @@ export function buildSettingsViewModel(
 					controls: [
 						{
 							type: "slider",
-							min: 1,
-							max: 500,
-							step: 10,
+							min: STUDY_SETTINGS_LIMITS.dailyReviewCards.min,
+							max: STUDY_SETTINGS_LIMITS.dailyReviewCards.max,
+							step: STUDY_SETTINGS_LIMITS.dailyReviewCards.step,
 							value: state.settings.dailyReviewCards,
 							onChange: actions.setDailyReviewCards,
 						},
@@ -313,16 +314,12 @@ export function buildSettingsViewModel(
 						{
 							type: "select",
 							value: state.settings.studyOrder,
-							options: [
-								{
-									value: "sequential",
-									label: t("order.sequential"),
-								},
-								{
-									value: "random",
-									label: t("order.random"),
-								},
-							],
+							options: STUDY_ORDER_OPTIONS.map((order) => ({
+								value: order,
+								label: t(
+									order === "sequential" ? "order.sequential" : "order.random",
+								),
+							})),
 							onChange: (value) => actions.setStudyOrder(parseStudyOrder(value)),
 						},
 					],
@@ -556,9 +553,9 @@ export function buildSettingsViewModel(
 					controls: [
 						{
 							type: "slider",
-							min: 0.7,
-							max: 0.99,
-							step: 0.01,
+							min: STUDY_SETTINGS_LIMITS.requestRetention.min,
+							max: STUDY_SETTINGS_LIMITS.requestRetention.max,
+							step: STUDY_SETTINGS_LIMITS.requestRetention.step,
 							value: state.settings.fsrsParameters.requestRetention,
 							onChange: actions.setRequestRetention,
 						},
@@ -571,9 +568,9 @@ export function buildSettingsViewModel(
 					controls: [
 						{
 							type: "integerText",
-							placeholder: "365",
-							min: 30,
-							max: 3650,
+							placeholder: String(STUDY_SETTINGS_LIMITS.maximumInterval.default),
+							min: STUDY_SETTINGS_LIMITS.maximumInterval.min,
+							max: STUDY_SETTINGS_LIMITS.maximumInterval.max,
 							value: state.settings.fsrsParameters.maximumInterval,
 							onChange: actions.setMaximumInterval,
 						},
@@ -614,10 +611,6 @@ export function getUnusedTags(availableTags: string[], configuredTags: string[])
 
 function parseLanguage(value: string): Language {
 	return value === "en" ? "en" : "zh";
-}
-
-function parseStudyOrder(value: string): StudySettings["studyOrder"] {
-	return value === "sequential" ? "sequential" : "random";
 }
 
 function parsePronunciationAccent(value: string): PronunciationAccent {

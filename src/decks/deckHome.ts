@@ -16,6 +16,11 @@ import type {
 	StudyHistoryEntry,
 	StudySettings,
 } from "../shared/types";
+import {
+	calculateEstimatedDays,
+	calculateDailyNewCardsFromDays,
+	parseMaximumInterval,
+} from "../settings/studySettingsMeta";
 import type { DeckPdfExportProgress, DeckPdfExportResult } from "./deckPdfExporter";
 
 export interface DeckHomeTotals {
@@ -577,7 +582,7 @@ class DefaultDeckHome implements DeckHome {
 				overrides?.fsrsParameters?.maximumInterval ??
 					settings.fsrsParameters.maximumInterval,
 			),
-			daysToComplete: String(calculateDaysToComplete(deck.cards.length, dailyNewCards)),
+			daysToComplete: String(calculateEstimatedDays(deck.cards.length, dailyNewCards)),
 			wordLearningEnabled: settings.wordLearningDecks[deckId] === true,
 		};
 		this.publish();
@@ -598,14 +603,11 @@ class DefaultDeckHome implements DeckHome {
 			draft.daysToComplete = change.value;
 			const days = Number.parseInt(change.value, 10);
 			if (Number.isFinite(days) && days >= 1 && deck.cards.length > 0) {
-				draft.dailyNewCards = Math.max(
-					1,
-					Math.min(200, Math.ceil(deck.cards.length / days)),
-				);
+				draft.dailyNewCards = calculateDailyNewCardsFromDays(deck.cards.length, days);
 			}
 		} else if (change.field === "dailyNewCards") {
 			draft.dailyNewCards = change.value;
-			draft.daysToComplete = String(calculateDaysToComplete(deck.cards.length, change.value));
+			draft.daysToComplete = String(calculateEstimatedDays(deck.cards.length, change.value));
 		} else {
 			assignSettingsChange(draft, change);
 		}
@@ -638,7 +640,10 @@ class DefaultDeckHome implements DeckHome {
 		this.publish();
 		try {
 			const settings = this.options.repository.getSettings();
-			const maximumInterval = Number.parseInt(draft.maximumInterval, 10);
+			const maximumInterval = parseMaximumInterval(
+				draft.maximumInterval,
+				settings.fsrsParameters.maximumInterval,
+			);
 			await this.options.saveSettingsPatch({
 				deckId: draft.deckId,
 				overrides: draft.useCustom
@@ -648,10 +653,7 @@ class DefaultDeckHome implements DeckHome {
 							studyOrder: draft.studyOrder,
 							fsrsParameters: {
 								requestRetention: draft.requestRetention,
-								maximumInterval:
-									Number.isFinite(maximumInterval) && maximumInterval >= 30
-										? maximumInterval
-										: settings.fsrsParameters.maximumInterval,
+								maximumInterval,
 							},
 						}
 					: null,
@@ -976,11 +978,6 @@ function assignSettingsChange(
 			draft.wordLearningEnabled = change.value;
 			break;
 	}
-}
-
-function calculateDaysToComplete(totalCards: number, dailyNewCards: number): number {
-	if (totalCards <= 0) return 0;
-	return Math.ceil(totalCards / dailyNewCards);
 }
 
 function cloneDeck(deck: Deck): Deck {

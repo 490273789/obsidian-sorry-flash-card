@@ -27,3 +27,5 @@ export { WordListView } from "./WordListView";
 export { StudySetup } from "./StudySetup";
 export { StatsView } from "./StatsView";
 export { PronunciationButton } from "./PronunciationButton";
+export { DeckSettingsModal } from "./DeckSettingsModal";
+export type { DeckSettingsModalProps } from "./DeckSettingsModal";
