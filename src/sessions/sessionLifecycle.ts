@@ -37,29 +37,17 @@ import {
 	getStudyProgress,
 	undoStudyAnswer,
 } from "./studySessionEngine";
-import {
-	answerPracticeCard,
-	createPracticeSessionFromPlan,
-	previousPracticeCard,
-} from "./sessionEngine";
-import {
-	planDayPracticeSession,
-	planIncorrectPracticeSession,
-	planRandomPracticeSession,
-	planRangePracticeSession,
-} from "./practiceSessionPlanner";
+import { answerPracticeCard, createPracticeSession, previousPracticeCard } from "./sessionEngine";
 import {
 	answerSpellingCard,
 	createSpellingSession,
 	getCurrentSpellingCardId,
 } from "./spellingSessionEngine";
 import {
-	evaluateSpellingDeckEligibility,
+	planIncorrectPracticeSession,
 	planIncorrectSpellingSession,
-	planRangeSpellingSession,
-	planSmartSpellingSession,
-} from "./spellingSessionPlanner";
-import { getCardsForDay } from "./sessionPlanner";
+	planSessionQueue,
+} from "./sessionPlanner";
 
 export interface SessionCardSnapshot {
 	readonly identity: string;
@@ -584,15 +572,27 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 	): InternalActiveState | null {
 		const originDeck = { id: deck.id, name: deck.name };
 		const key = this.makeKey(request.mode);
+		const planResult = planSessionQueue(request, deck, {
+			settings: this.repository.getEffectiveStudySettings(request.deckId),
+			isSpellingEnabled: Boolean(
+				this.repository.getSettings().wordLearningDecks[request.deckId],
+			),
+			spellingProgress: this.repository.getSpellingProgress(),
+			now: new Date(this.now()),
+			shuffle: this.shuffle,
+		});
+
+		if (planResult.kind === "rejected") {
+			if (planResult.reason === "no-eligible-cards") return null;
+			throw new StartRejectionError(planResult.reason);
+		}
+
 		if (request.mode === "study") {
 			const session = createStudySession({
 				deckId: request.deckId,
-				cards: deck.cards,
-				settings: this.repository.getEffectiveStudySettings(request.deckId),
-				studyOrderOverride: request.studyOrder,
-				direction: request.direction,
-				now: this.now(),
-				shuffle: this.shuffle,
+				direction: planResult.direction,
+				cardIds: planResult.cardIds,
+				startTime: this.now(),
 			});
 			return session
 				? {
@@ -606,90 +606,23 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 		}
 
 		if (request.mode === "practice") {
-			const plan =
-				request.selection.kind === "study-day"
-					? planDayPracticeSession({
-							deckId: request.deckId,
-							direction: request.direction,
-							cards: getCardsForDay(
-								deck,
-								request.selection.dayIndex,
-								this.repository.getEffectiveStudySettings(request.deckId)
-									.dailyNewCards,
-							),
-							studyOrder: request.selection.studyOrder,
-							shuffle: this.shuffle,
-						})
-					: request.selection.kind === "range"
-						? planRangePracticeSession({
-								deckId: request.deckId,
-								direction: request.direction,
-								cards: deck.cards,
-								startIndex: request.selection.startIndex,
-								endIndex: request.selection.endIndex,
-								shuffle: this.shuffle,
-							})
-						: planRandomPracticeSession({
-								deckId: request.deckId,
-								direction: request.direction,
-								cards: deck.cards,
-								questionCount: request.selection.questionCount,
-								shuffle: this.shuffle,
-							});
-			if (plan.cardIds.length === 0) return null;
 			return {
 				kind: "active",
 				mode: "practice",
 				key,
 				session: {
-					...createPracticeSessionFromPlan({ plan, startTime: this.now() }),
+					...createPracticeSession({
+						deckId: request.deckId,
+						direction: planResult.direction,
+						cardIds: planResult.cardIds,
+						startTime: this.now(),
+					}),
 					originDeck,
 				},
 				setupDefaults: cloneStartRequest(request),
 			};
 		}
 
-		const spellingEligibility = evaluateSpellingDeckEligibility(
-			deck,
-			Boolean(this.repository.getSettings().wordLearningDecks[request.deckId]),
-		);
-		if (!spellingEligibility.enabled) {
-			throw new StartRejectionError("spelling-not-enabled");
-		}
-		if (!spellingEligibility.hasStableIdentities) {
-			throw new StartRejectionError("stable-card-identity-required");
-		}
-		const eligibleCardIds = new Set(spellingEligibility.eligibleCardIds);
-		const eligibleCards = deck.cards.filter((card) => eligibleCardIds.has(card.id));
-		const plan =
-			request.selection.kind === "study-day"
-				? {
-						cardIds: this.shuffle(
-							getCardsForDay(
-								deck,
-								request.selection.dayIndex,
-								this.repository.getEffectiveStudySettings(request.deckId)
-									.dailyNewCards,
-							)
-								.filter((card) => extractSpellingWord(card.front) !== null)
-								.map((card) => card.id),
-						),
-					}
-				: request.selection.kind === "range"
-					? planRangeSpellingSession({
-							deckId: request.deckId,
-							cards: eligibleCards,
-							startIndex: request.selection.startIndex,
-							endIndex: request.selection.endIndex,
-							shuffle: this.shuffle,
-						})
-					: planSmartSpellingSession({
-							deckId: request.deckId,
-							cards: eligibleCards,
-							progress: this.repository.getSpellingProgress(),
-							questionCount: request.selection.questionCount,
-						});
-		if (plan.cardIds.length === 0) return null;
 		return {
 			kind: "active",
 			mode: "spelling",
@@ -697,7 +630,7 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 			session: {
 				...createSpellingSession({
 					deckId: request.deckId,
-					cardIds: plan.cardIds,
+					cardIds: planResult.cardIds,
 					startTime: this.now(),
 				}),
 				originDeck,
@@ -908,7 +841,12 @@ class DefaultSessionLifecycle implements SessionLifecycle, ContinuitySessionAdap
 				mode: "practice",
 				key: this.makeKey("practice"),
 				session: {
-					...createPracticeSessionFromPlan({ plan, startTime: this.now() }),
+					...createPracticeSession({
+						deckId: state.originDeck.id,
+						direction: plan.direction,
+						cardIds: plan.cardIds,
+						startTime: this.now(),
+					}),
 					originDeck: state.originDeck,
 				},
 				setupDefaults: state.setupDefaults,

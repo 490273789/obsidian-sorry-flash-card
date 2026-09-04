@@ -7,7 +7,7 @@ import type {
 import {
 	evaluateSpellingDeckEligibility,
 	type SpellingDeckEligibility,
-} from "../sessions/spellingSessionPlanner";
+} from "../sessions/sessionPlanner";
 import type { Deck, DeckStats, FlashcardSettings, StudySettings } from "../shared/types";
 import type { DeckPdfExportProgress, DeckPdfExportResult } from "./deckPdfExporter";
 

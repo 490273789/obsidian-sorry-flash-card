@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Target, Shuffle, SlidersHorizontal, Repeat2, ListOrdered } from "lucide-react";
-import type { CardDirection, Deck, PracticeSelection } from "../../shared/types";
+import type { CardDirection, Deck } from "../../shared/types";
 import type { SessionStartRequest } from "../../sessions/sessionLifecycle";
+import type { PracticeSetupPlan } from "../../sessions/sessionPlanner";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { FlashcardInput } from "./FlashcardInput";
@@ -14,8 +15,8 @@ type PracticeSelectionMode = "random" | "range";
 
 interface PracticeSetupProps {
 	deck: Deck;
+	plan: PracticeSetupPlan;
 	defaultDirection?: CardDirection;
-	initialSelection?: PracticeSelection;
 	initialDirection?: CardDirection;
 	onStartSession: (request: SessionStartRequest) => void;
 	onBack: () => void;
@@ -23,37 +24,24 @@ interface PracticeSetupProps {
 
 export const PracticeSetup = React.memo(function PracticeSetup({
 	deck,
+	plan,
 	defaultDirection = "normal",
-	initialSelection,
 	initialDirection,
 	onStartSession,
 	onBack,
 }: PracticeSetupProps) {
 	const { t } = useI18n();
-	const maxQuestions = deck.cards.length;
-	const maxRangeStart = Math.max(1, maxQuestions - 1);
-	const defaultQuestionCount = Math.min(50, maxQuestions);
-	const initialQuestionCount =
-		initialSelection?.kind === "random"
-			? Math.min(initialSelection.questionCount, maxQuestions)
-			: defaultQuestionCount;
-	const initialRangeStart =
-		initialSelection?.kind === "range"
-			? Math.min(Math.max(1, initialSelection.startIndex), maxRangeStart)
-			: 1;
-	const initialRangeEnd =
-		initialSelection?.kind === "range"
-			? Math.min(initialSelection.endIndex, maxQuestions)
-			: defaultQuestionCount;
+	const maxQuestions = plan.maxQuestions;
+	const maxRangeStart = plan.maxRangeStart;
 	const [selectionMode, setSelectionMode] = useState<PracticeSelectionMode>(
-		initialSelection?.kind === "range" ? "range" : "random",
+		plan.initialSelectionMode,
 	);
-	const [questionCount, setQuestionCount] = useState(initialQuestionCount);
-	const [inputValue, setInputValue] = useState(initialQuestionCount.toString());
-	const [rangeStart, setRangeStart] = useState(initialRangeStart);
-	const [rangeEnd, setRangeEnd] = useState(initialRangeEnd);
-	const [rangeStartInput, setRangeStartInput] = useState(initialRangeStart.toString());
-	const [rangeEndInput, setRangeEndInput] = useState(initialRangeEnd.toString());
+	const [questionCount, setQuestionCount] = useState(plan.initialQuestionCount);
+	const [inputValue, setInputValue] = useState(plan.initialQuestionCount.toString());
+	const [rangeStart, setRangeStart] = useState(plan.initialRangeStart);
+	const [rangeEnd, setRangeEnd] = useState(plan.initialRangeEnd);
+	const [rangeStartInput, setRangeStartInput] = useState(plan.initialRangeStart.toString());
+	const [rangeEndInput, setRangeEndInput] = useState(plan.initialRangeEnd.toString());
 	const [direction, setDirection] = useState<CardDirection>(initialDirection ?? defaultDirection);
 	const rangeQuestionCount = Math.max(0, rangeEnd - rangeStart + 1);
 	const currentQuestionCount = selectionMode === "range" ? rangeQuestionCount : questionCount;

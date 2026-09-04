@@ -17,8 +17,11 @@ import {
 	type SessionLifecycle,
 	type SessionStartRequest,
 } from "../../sessions/sessionLifecycle";
-import { getStudySetupPlan } from "../../sessions/sessionPlanner";
-import { getSpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
+import {
+	getStudySetupPlan,
+	getPracticeSetupPlan,
+	getSpellingSetupPlan,
+} from "../../sessions/sessionPlanner";
 import { DeckList } from "./DeckList";
 import { CardView } from "./CardView";
 import { PracticeSetup } from "./PracticeSetup";
@@ -614,12 +617,23 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		void revision;
 		return dataStore.getStudyHistory();
 	}, [dataStore, revision]);
-	const spellingSetupStats = useMemo(() => {
+	const practiceSetupPlan = useMemo(() => {
+		void revision;
+		if (viewState.type !== "practice-setup") return null;
+		const deck = dataStore.getDeck(viewState.deckId);
+		if (!deck) return null;
+		return getPracticeSetupPlan(deck, viewState.initialSelection);
+	}, [dataStore, revision, viewState]);
+	const spellingSetupPlan = useMemo(() => {
 		void revision;
 		if (viewState.type !== "spelling-setup") return null;
 		const deck = dataStore.getDeck(viewState.deckId);
 		if (!deck) return null;
-		return getSpellingDeckProgressStats(deck.cards, dataStore.getSpellingProgress());
+		return getSpellingSetupPlan(
+			deck,
+			dataStore.getSpellingProgress(),
+			viewState.initialSelection,
+		);
 	}, [dataStore, revision, viewState]);
 
 	const handleDeleteCard = useCallback(
@@ -790,12 +804,14 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 				if (!deck) {
 					return renderHome();
 				}
+				const plan =
+					practiceSetupPlan ?? getPracticeSetupPlan(deck, viewState.initialSelection);
 				return (
 					<PracticeSetup
 						key={deck.id}
 						deck={deck}
+						plan={plan}
 						defaultDirection={viewState.initialDirection ?? "normal"}
-						initialSelection={viewState.initialSelection}
 						initialDirection={viewState.initialDirection}
 						onStartSession={handleStartSession}
 						onBack={handleBackHome}
@@ -806,18 +822,18 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			case "spelling-setup": {
 				const deck = dataStore.getDeck(viewState.deckId);
 				if (!deck) return renderHome();
+				const plan =
+					spellingSetupPlan ??
+					getSpellingSetupPlan(
+						deck,
+						dataStore.getSpellingProgress(),
+						viewState.initialSelection,
+					);
 				return (
 					<SpellingSetup
 						key={deck.id}
 						deck={deck}
-						stats={
-							spellingSetupStats ??
-							getSpellingDeckProgressStats(
-								deck.cards,
-								dataStore.getSpellingProgress(),
-							)
-						}
-						initialSelection={viewState.initialSelection}
+						plan={plan}
 						onStartSession={handleStartSession}
 						onBack={handleBackHome}
 					/>

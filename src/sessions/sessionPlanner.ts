@@ -1,5 +1,6 @@
 import { State } from "ts-fsrs";
 import type {
+	CardDirection,
 	Deck,
 	FlashCard,
 	PracticeSelection,
@@ -8,10 +9,10 @@ import type {
 	StudyDayInfo,
 	StudySettings,
 } from "../shared/types";
-import {
-	getSpellingDeckProgressStats,
-	type SpellingDeckProgressStats,
-} from "./spellingSessionPlanner";
+import { shuffleArray } from "../shared/utils";
+import { extractSpellingWord, validateSpellingDeck } from "../cards/spellingWord";
+import { isStableCardIdentity } from "../identity/cardIdentity";
+import type { SessionStartRequest } from "./sessionLifecycle";
 
 export interface StudySetupPlan {
 	readonly dayList: StudyDayInfo[];
@@ -43,6 +44,71 @@ export interface SpellingSetupPlan {
 	readonly initialRangeEnd: number;
 	readonly initialSelectionMode: "smart" | "range";
 }
+
+export type PracticeSessionPlanSource = "study-day" | "random" | "range" | "incorrect-retry";
+
+export type ShuffleCardIds = (cardIds: string[]) => string[];
+
+export interface PracticeSessionPlan {
+	source: PracticeSessionPlanSource;
+	deckId: string;
+	direction: CardDirection;
+	cardIds: string[];
+	requestedQuestionCount?: number;
+	requestedCardRange?: {
+		startIndex: number;
+		endIndex: number;
+	};
+	studyOrder?: StudySettings["studyOrder"];
+}
+
+export type SpellingSessionPlanSource = "smart" | "range" | "incorrect-retry";
+
+export interface SpellingSessionPlan {
+	source: SpellingSessionPlanSource;
+	deckId: string;
+	cardIds: string[];
+}
+
+export interface SpellingDeckProgressStats {
+	total: number;
+	unpracticed: number;
+}
+
+export interface SpellingDeckEligibility {
+	enabled: boolean;
+	hasStableIdentities: boolean;
+	canStart: boolean;
+	valid: boolean;
+	ready: boolean;
+	issueCount: number;
+	eligibleCardIds: string[];
+	invalidCards: Array<{ cardId: string; indexInFile: number; front: string }>;
+}
+
+export type SpellingShuffle = (cardIds: string[]) => string[];
+
+export interface SessionPlanningContext {
+	readonly settings: Pick<StudySettings, "dailyNewCards" | "dailyReviewCards" | "studyOrder">;
+	readonly isSpellingEnabled?: boolean;
+	readonly spellingProgress?: Readonly<Record<string, SpellingCardProgress>>;
+	readonly shuffle?: (cardIds: string[]) => string[];
+	readonly now?: Date;
+}
+
+export type SessionQueuePlanResult =
+	| {
+			readonly kind: "success";
+			readonly cardIds: string[];
+			readonly direction: CardDirection;
+	  }
+	| {
+			readonly kind: "rejected";
+			readonly reason:
+				| "no-eligible-cards"
+				| "spelling-not-enabled"
+				| "stable-card-identity-required";
+	  };
 
 export function sortDeckCards(cards: readonly FlashCard[]): FlashCard[] {
 	return [...cards].sort((a, b) => a.indexInFile - b.indexInFile);
@@ -208,5 +274,362 @@ export function getSpellingSetupPlan(
 	};
 }
 
-export * from "./practiceSessionPlanner";
-export * from "./spellingSessionPlanner";
+export function evaluateSpellingDeckEligibility(
+	deck: Pick<Deck, "cards">,
+	enabled: boolean,
+): SpellingDeckEligibility {
+	const validation = validateSpellingDeck(deck);
+	const unstableCardIds = deck.cards
+		.filter((card) => !isStableCardIdentity(card.id))
+		.map((card) => card.id);
+	const issueCount = new Set([
+		...validation.invalidCards.map((card) => card.cardId),
+		...unstableCardIds,
+	]).size;
+	const hasStableIdentities = unstableCardIds.length === 0;
+
+	return {
+		enabled,
+		hasStableIdentities,
+		canStart: validation.canStart,
+		valid: validation.valid,
+		ready: enabled && hasStableIdentities && validation.canStart,
+		issueCount,
+		eligibleCardIds: validation.eligibleCardIds,
+		invalidCards: validation.invalidCards,
+	};
+}
+
+export function getSpellingDeckProgressStats(
+	cards: readonly FlashCard[],
+	progress: Readonly<Record<string, SpellingCardProgress>>,
+): SpellingDeckProgressStats {
+	const eligibleCards = cards.filter((card) => extractSpellingWord(card.front) !== null);
+	let unpracticed = 0;
+	for (const card of eligibleCards) {
+		const cardProgress = progress[card.id];
+		if (!cardProgress || cardProgress.attempts === 0) {
+			unpracticed++;
+		}
+	}
+	return { total: eligibleCards.length, unpracticed };
+}
+
+export function planDayPracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cards: FlashCard[];
+	studyOrder: StudySettings["studyOrder"];
+	shuffle?: ShuffleCardIds;
+}): PracticeSessionPlan {
+	const cardIds = getCardIds(params.cards);
+
+	return {
+		source: "study-day",
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds:
+			params.studyOrder === "random" ? (params.shuffle ?? shuffleArray)(cardIds) : cardIds,
+		studyOrder: params.studyOrder,
+	};
+}
+
+export function planRandomPracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cards: FlashCard[];
+	questionCount: number;
+	shuffle?: ShuffleCardIds;
+}): PracticeSessionPlan {
+	const questionLimit = normalizeQuestionLimit(params.questionCount, params.cards.length);
+	const cardIds = (params.shuffle ?? shuffleArray)(getCardIds(params.cards)).slice(
+		0,
+		questionLimit,
+	);
+
+	return {
+		source: "random",
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds,
+		requestedQuestionCount: params.questionCount,
+	};
+}
+
+export function planRangePracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cards: FlashCard[];
+	startIndex: number;
+	endIndex: number;
+	shuffle?: ShuffleCardIds;
+}): PracticeSessionPlan {
+	const range = normalizeCardRange(params.startIndex, params.endIndex, params.cards.length);
+	const rangedCards = range ? params.cards.slice(range.startIndex - 1, range.endIndex) : [];
+	const cardIds = (params.shuffle ?? shuffleArray)(getCardIds(rangedCards));
+
+	return {
+		source: "range",
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds,
+		requestedCardRange: {
+			startIndex: params.startIndex,
+			endIndex: params.endIndex,
+		},
+	};
+}
+
+export function planIncorrectPracticeSession(params: {
+	deckId: string;
+	direction: CardDirection;
+	cardIds: string[];
+	shuffle?: ShuffleCardIds;
+}): PracticeSessionPlan {
+	return {
+		source: "incorrect-retry",
+		deckId: params.deckId,
+		direction: params.direction,
+		cardIds: (params.shuffle ?? shuffleArray)(Array.from(new Set(params.cardIds))),
+	};
+}
+
+export function planSmartSpellingSession(params: {
+	deckId: string;
+	cards: FlashCard[];
+	progress: Readonly<Record<string, SpellingCardProgress>>;
+	questionCount: number;
+	random?: () => number;
+}): SpellingSessionPlan {
+	const random = params.random ?? Math.random;
+	const ranked = params.cards.map((card) => ({
+		card,
+		tieBreaker: random(),
+		progress: params.progress[card.id],
+	}));
+	ranked.sort((left, right) => {
+		const leftRank = getProgressRank(left.progress);
+		const rightRank = getProgressRank(right.progress);
+		return (
+			leftRank.priority - rightRank.priority ||
+			leftRank.correctStreak - rightRank.correctStreak ||
+			leftRank.accuracy - rightRank.accuracy ||
+			leftRank.lastAttemptAt - rightRank.lastAttemptAt ||
+			left.tieBreaker - right.tieBreaker
+		);
+	});
+
+	return {
+		source: "smart",
+		deckId: params.deckId,
+		cardIds: ranked
+			.slice(0, normalizeQuestionLimit(params.questionCount, params.cards.length))
+			.map(({ card }) => card.id),
+	};
+}
+
+export function planRangeSpellingSession(params: {
+	deckId: string;
+	cards: FlashCard[];
+	startIndex: number;
+	endIndex: number;
+	shuffle?: SpellingShuffle;
+}): SpellingSessionPlan {
+	const range = normalizeCardRange(params.startIndex, params.endIndex, params.cards.length);
+	const cardIds = range
+		? params.cards.slice(range.startIndex - 1, range.endIndex).map((card) => card.id)
+		: [];
+	return {
+		source: "range",
+		deckId: params.deckId,
+		cardIds: (params.shuffle ?? shuffleArray)(cardIds),
+	};
+}
+
+export function planIncorrectSpellingSession(params: {
+	deckId: string;
+	cardIds: string[];
+	shuffle?: SpellingShuffle;
+}): SpellingSessionPlan {
+	return {
+		source: "incorrect-retry",
+		deckId: params.deckId,
+		cardIds: (params.shuffle ?? shuffleArray)(Array.from(new Set(params.cardIds))),
+	};
+}
+
+export function planSessionQueue(
+	request: SessionStartRequest,
+	deck: Deck,
+	context: SessionPlanningContext,
+): SessionQueuePlanResult {
+	const shuffle = context.shuffle ?? shuffleArray;
+
+	if (request.mode === "study") {
+		const direction: CardDirection = request.direction ?? "normal";
+		const studyOrder = request.studyOrder ?? context.settings.studyOrder;
+		const now = context.now ?? new Date();
+		const newCards: FlashCard[] = [];
+		const dueCards: FlashCard[] = [];
+
+		for (const card of deck.cards) {
+			if (card.fsrsCard.state === State.New) {
+				newCards.push(card);
+			} else if (card.fsrsCard.due <= now) {
+				dueCards.push(card);
+			}
+		}
+
+		const dailyNew = Math.max(0, context.settings.dailyNewCards);
+		const dailyReview = Math.max(0, context.settings.dailyReviewCards);
+		const selectedNew = newCards.slice(0, dailyNew);
+		const selectedDue = dueCards.slice(0, dailyReview);
+		let cardIds = [...selectedNew, ...selectedDue].map((card) => card.id);
+
+		if (studyOrder === "random") {
+			cardIds = shuffle(cardIds);
+		}
+
+		if (cardIds.length === 0) {
+			return { kind: "rejected", reason: "no-eligible-cards" };
+		}
+		return { kind: "success", cardIds, direction };
+	}
+
+	if (request.mode === "practice") {
+		const direction: CardDirection = request.direction;
+		let plan: PracticeSessionPlan;
+
+		if (request.selection.kind === "study-day") {
+			plan = planDayPracticeSession({
+				deckId: request.deckId,
+				direction,
+				cards: getCardsForDay(
+					deck,
+					request.selection.dayIndex,
+					context.settings.dailyNewCards,
+				),
+				studyOrder: request.selection.studyOrder,
+				shuffle,
+			});
+		} else if (request.selection.kind === "range") {
+			plan = planRangePracticeSession({
+				deckId: request.deckId,
+				direction,
+				cards: deck.cards,
+				startIndex: request.selection.startIndex,
+				endIndex: request.selection.endIndex,
+				shuffle,
+			});
+		} else {
+			plan = planRandomPracticeSession({
+				deckId: request.deckId,
+				direction,
+				cards: deck.cards,
+				questionCount: request.selection.questionCount,
+				shuffle,
+			});
+		}
+
+		if (plan.cardIds.length === 0) {
+			return { kind: "rejected", reason: "no-eligible-cards" };
+		}
+		return { kind: "success", cardIds: plan.cardIds, direction };
+	}
+
+	// mode === "spelling"
+	const isEnabled = Boolean(context.isSpellingEnabled);
+	const eligibility = evaluateSpellingDeckEligibility(deck, isEnabled);
+	if (!eligibility.enabled) {
+		return { kind: "rejected", reason: "spelling-not-enabled" };
+	}
+	if (!eligibility.hasStableIdentities) {
+		return { kind: "rejected", reason: "stable-card-identity-required" };
+	}
+
+	const eligibleCardIdSet = new Set(eligibility.eligibleCardIds);
+	const eligibleCards = deck.cards.filter((card) => eligibleCardIdSet.has(card.id));
+	let cardIds: string[];
+
+	if (request.selection.kind === "study-day") {
+		const dayCards = getCardsForDay(
+			deck,
+			request.selection.dayIndex,
+			context.settings.dailyNewCards,
+		);
+		const eligibleDayCards = dayCards.filter((card) => eligibleCardIdSet.has(card.id));
+		cardIds = shuffle(eligibleDayCards.map((card) => card.id));
+	} else if (request.selection.kind === "range") {
+		const plan = planRangeSpellingSession({
+			deckId: request.deckId,
+			cards: eligibleCards,
+			startIndex: request.selection.startIndex,
+			endIndex: request.selection.endIndex,
+			shuffle,
+		});
+		cardIds = plan.cardIds;
+	} else {
+		const plan = planSmartSpellingSession({
+			deckId: request.deckId,
+			cards: eligibleCards,
+			progress: context.spellingProgress ?? {},
+			questionCount: request.selection.questionCount,
+		});
+		cardIds = plan.cardIds;
+	}
+
+	if (cardIds.length === 0) {
+		return { kind: "rejected", reason: "no-eligible-cards" };
+	}
+	return { kind: "success", cardIds, direction: "normal" };
+}
+
+function getCardIds(cards: FlashCard[]): string[] {
+	return cards.map((card) => card.id);
+}
+
+function getProgressRank(progress: SpellingCardProgress | undefined): {
+	priority: number;
+	correctStreak: number;
+	accuracy: number;
+	lastAttemptAt: number;
+} {
+	if (!progress || progress.attempts === 0) {
+		return {
+			priority: 1,
+			correctStreak: 0,
+			accuracy: 0,
+			lastAttemptAt: 0,
+		};
+	}
+	return {
+		priority: progress.correctStreak === 0 ? 0 : 2,
+		correctStreak: progress.correctStreak,
+		accuracy: progress.correctAttempts / progress.attempts,
+		lastAttemptAt: progress.lastAttemptAt,
+	};
+}
+
+function normalizeQuestionLimit(questionCount: number, cardCount: number): number {
+	if (!Number.isFinite(questionCount)) return 0;
+	return Math.max(0, Math.min(cardCount, Math.floor(questionCount)));
+}
+
+function normalizeCardRange(
+	startIndex: number,
+	endIndex: number,
+	cardCount: number,
+): { startIndex: number; endIndex: number } | null {
+	if (
+		!Number.isFinite(startIndex) ||
+		!Number.isFinite(endIndex) ||
+		!Number.isFinite(cardCount) ||
+		cardCount < 1
+	) {
+		return null;
+	}
+	const normalizedStart = Math.max(1, Math.floor(startIndex));
+	const normalizedEnd = Math.min(cardCount, Math.floor(endIndex));
+	if (normalizedStart > normalizedEnd) return null;
+	return { startIndex: normalizedStart, endIndex: normalizedEnd };
+}

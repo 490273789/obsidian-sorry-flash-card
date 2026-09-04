@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { BrainCircuit, Keyboard, ListOrdered, SlidersHorizontal } from "lucide-react";
-import type { Deck, SpellingSelection } from "../../shared/types";
+import type { Deck } from "../../shared/types";
 import type { SessionStartRequest } from "../../sessions/sessionLifecycle";
-import type { SpellingDeckProgressStats } from "../../sessions/spellingSessionPlanner";
+import type { SpellingSetupPlan } from "../../sessions/sessionPlanner";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardHeader } from "./FlashcardHeader";
 import { FlashcardInput } from "./FlashcardInput";
@@ -13,38 +13,24 @@ const QUICK_COUNTS = [10, 20, 50];
 
 interface SpellingSetupProps {
 	deck: Deck;
-	stats: SpellingDeckProgressStats;
-	initialSelection?: SpellingSelection;
+	plan: SpellingSetupPlan;
 	onStartSession: (request: SessionStartRequest) => void;
 	onBack: () => void;
 }
 
 export const SpellingSetup = React.memo(function SpellingSetup({
 	deck,
-	stats,
-	initialSelection,
+	plan,
 	onStartSession,
 	onBack,
 }: SpellingSetupProps) {
 	const { t } = useI18n();
-	const maxQuestions = stats.total;
-	const defaultCount = Math.min(20, maxQuestions);
-	const [mode, setMode] = useState<"smart" | "range">(
-		initialSelection?.kind === "range" ? "range" : "smart",
-	);
-	const [questionCount, setQuestionCount] = useState(
-		initialSelection?.kind === "smart"
-			? Math.min(initialSelection.questionCount, maxQuestions)
-			: defaultCount,
-	);
-	const [rangeStart, setRangeStart] = useState(
-		initialSelection?.kind === "range" ? Math.max(1, initialSelection.startIndex) : 1,
-	);
-	const [rangeEnd, setRangeEnd] = useState(
-		initialSelection?.kind === "range"
-			? Math.min(initialSelection.endIndex, maxQuestions)
-			: defaultCount,
-	);
+	const maxQuestions = plan.maxQuestions;
+	const stats = plan.stats;
+	const [mode, setMode] = useState<"smart" | "range">(plan.initialSelectionMode);
+	const [questionCount, setQuestionCount] = useState(plan.initialQuestionCount);
+	const [rangeStart, setRangeStart] = useState(plan.initialRangeStart);
+	const [rangeEnd, setRangeEnd] = useState(plan.initialRangeEnd);
 	const rangeCount = Math.max(0, rangeEnd - rangeStart + 1);
 	const currentCount = mode === "smart" ? questionCount : rangeCount;
 

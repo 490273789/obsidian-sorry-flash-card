@@ -12,7 +12,7 @@ import {
 	planRandomPracticeSession,
 	type PracticeSessionPlan,
 	type ShuffleCardIds,
-} from "./practiceSessionPlanner";
+} from "./sessionPlanner";
 
 export {
 	answerStudyCard,
@@ -34,12 +34,12 @@ export {
 	planIncorrectPracticeSession,
 	planRangePracticeSession,
 	planRandomPracticeSession,
-} from "./practiceSessionPlanner";
+} from "./sessionPlanner";
 export type {
 	PracticeSessionPlan,
 	PracticeSessionPlanSource,
 	ShuffleCardIds,
-} from "./practiceSessionPlanner";
+} from "./sessionPlanner";
 
 export type PracticeSessionStep =
 	| {

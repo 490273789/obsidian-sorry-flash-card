@@ -11,7 +11,6 @@ import {
 	type StudyCardScheduler,
 } from "../studySessionEngine";
 import type { FlashCard, StudySession } from "../../shared/types";
-import { DEFAULT_SETTINGS } from "../../shared/types";
 
 function makeCard(id: string, state: State, due: Date, indexInFile: number): FlashCard {
 	return {
@@ -58,52 +57,34 @@ function makeScheduler(repeatInSession = false): StudyCardScheduler {
 }
 
 describe("createStudySession", () => {
-	it("selects new cards before due review cards and applies the study order", () => {
-		const cards = [
-			makeCard("new-1", State.New, new Date("2026-07-03T00:00:00.000Z"), 0),
-			makeCard("new-2", State.New, new Date("2026-07-03T00:00:00.000Z"), 1),
-			makeCard("new-3", State.New, new Date("2026-07-03T00:00:00.000Z"), 2),
-			makeCard("due-1", State.Review, new Date("2026-07-01T00:00:00.000Z"), 3),
-			makeCard("later", State.Review, new Date("2026-08-01T00:00:00.000Z"), 4),
-		];
-
-		const sequential = createStudySession({
-			deckId: "notes/deck.md",
-			cards,
-			settings: {
-				...DEFAULT_SETTINGS,
-				dailyNewCards: 2,
-				dailyReviewCards: 1,
-				studyOrder: "sequential",
-			},
-			direction: "reversed",
-			now: Date.parse("2026-07-03T00:00:00.000Z"),
-		});
-		const random = createStudySession({
-			deckId: "notes/deck.md",
-			cards,
-			settings: {
-				...DEFAULT_SETTINGS,
-				dailyNewCards: 2,
-				dailyReviewCards: 1,
-				studyOrder: "random",
-			},
-			direction: "normal",
-			now: Date.parse("2026-07-03T00:00:00.000Z"),
-			shuffle: (ids) => [...ids].reverse(),
-		});
-
-		expect(sequential).toMatchObject({
+	it("initializes a study session with supplied cardIds and direction", () => {
+		const session = createStudySession({
 			deckId: "notes/deck.md",
 			direction: "reversed",
-			cardQueue: ["new-1", "new-2", "due-1"],
+			cardIds: ["card-1", "card-2", "card-3"],
+			startTime: 12345,
+		});
+
+		expect(session).toEqual({
+			deckId: "notes/deck.md",
+			direction: "reversed",
+			cardQueue: ["card-1", "card-2", "card-3"],
 			currentIndex: 0,
-			startTime: Date.parse("2026-07-03T00:00:00.000Z"),
+			startTime: 12345,
 			repeatQueue: [],
 			history: [],
 			answerEvents: [],
+			unavailableCardIds: [],
 		});
-		expect(random?.cardQueue).toEqual(["due-1", "new-2", "new-1"]);
+	});
+
+	it("returns null when cardIds is empty", () => {
+		const session = createStudySession({
+			deckId: "notes/deck.md",
+			direction: "normal",
+			cardIds: [],
+		});
+		expect(session).toBeNull();
 	});
 });
 

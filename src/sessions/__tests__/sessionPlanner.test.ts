@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { State } from "ts-fsrs";
-import type { Deck, FlashCard, StudySettings } from "../../shared/types";
+import type { Deck, FlashCard, SpellingCardProgress, StudySettings } from "../../shared/types";
 import {
 	getDayList,
 	getTodayStudyCounts,
@@ -9,6 +9,15 @@ import {
 	getPracticeSetupPlan,
 	getSpellingSetupPlan,
 	sortDeckCards,
+	planDayPracticeSession,
+	planRandomPracticeSession,
+	planRangePracticeSession,
+	planIncorrectPracticeSession,
+	evaluateSpellingDeckEligibility,
+	planSmartSpellingSession,
+	planRangeSpellingSession,
+	planIncorrectSpellingSession,
+	planSessionQueue,
 } from "../sessionPlanner";
 
 function makeCard(
@@ -274,6 +283,357 @@ describe("SessionPlanner", () => {
 			expect(plan.stats.unpracticed).toBe(1);
 			expect(plan.maxQuestions).toBe(2);
 			expect(plan.initialSelectionMode).toBe("smart");
+		});
+	});
+
+	describe("practice session planning", () => {
+		it("plans study-day practice in supplied card order", () => {
+			const plan = planDayPracticeSession({
+				deckId: "notes/deck.md",
+				direction: "normal",
+				cards: [
+					makeCard("card-1", State.New, new Date(), 0),
+					makeCard("card-2", State.New, new Date(), 1),
+				],
+				studyOrder: "sequential",
+				shuffle: (ids) => [...ids].reverse(),
+			});
+
+			expect(plan).toEqual({
+				source: "study-day",
+				deckId: "notes/deck.md",
+				direction: "normal",
+				cardIds: ["card-1", "card-2"],
+				studyOrder: "sequential",
+			});
+		});
+
+		it("plans randomized study-day practice with injected shuffle", () => {
+			const plan = planDayPracticeSession({
+				deckId: "notes/deck.md",
+				direction: "reversed",
+				cards: [
+					makeCard("card-1", State.New, new Date(), 0),
+					makeCard("card-2", State.New, new Date(), 1),
+				],
+				studyOrder: "random",
+				shuffle: (ids) => [...ids].reverse(),
+			});
+
+			expect(plan).toEqual({
+				source: "study-day",
+				deckId: "notes/deck.md",
+				direction: "reversed",
+				cardIds: ["card-2", "card-1"],
+				studyOrder: "random",
+			});
+		});
+
+		it("plans random practice by shuffling and limiting supplied cards", () => {
+			const plan = planRandomPracticeSession({
+				deckId: "notes/deck.md",
+				direction: "normal",
+				cards: [
+					makeCard("card-1", State.New, new Date(), 0),
+					makeCard("card-2", State.New, new Date(), 1),
+					makeCard("card-3", State.New, new Date(), 2),
+				],
+				questionCount: 2,
+				shuffle: (ids) => [...ids].reverse(),
+			});
+
+			expect(plan).toEqual({
+				source: "random",
+				deckId: "notes/deck.md",
+				direction: "normal",
+				cardIds: ["card-3", "card-2"],
+				requestedQuestionCount: 2,
+			});
+		});
+
+		it("plans range practice and clamps to available bounds", () => {
+			const plan = planRangePracticeSession({
+				deckId: "notes/deck.md",
+				direction: "normal",
+				cards: [
+					makeCard("card-1", State.New, new Date(), 0),
+					makeCard("card-2", State.New, new Date(), 1),
+					makeCard("card-3", State.New, new Date(), 2),
+				],
+				startIndex: 2,
+				endIndex: 3,
+				shuffle: (ids) => [...ids].reverse(),
+			});
+
+			expect(plan.cardIds).toEqual(["card-3", "card-2"]);
+		});
+
+		it("plans incorrect-retry practice without mutating input", () => {
+			const input = ["c1", "c2", "c1"];
+			const plan = planIncorrectPracticeSession({
+				deckId: "notes/deck.md",
+				direction: "reversed",
+				cardIds: input,
+				shuffle: (ids) => [...ids].reverse(),
+			});
+
+			expect(input).toEqual(["c1", "c2", "c1"]);
+			expect(plan.cardIds).toEqual(["c2", "c1"]);
+		});
+	});
+
+	describe("spelling session planning", () => {
+		const STABLE_ONE = "550e8400-e29b-41d4-a716-446655440000";
+		const STABLE_TWO = "7d444840-9dc0-11d1-b245-5ffdce74fad2";
+
+		it("derives complete deck eligibility from enablement, identity, and content", () => {
+			const eligible = makeCard(STABLE_ONE, State.New, new Date(), 0, "hello world", "back");
+			const invalid = makeCard(
+				STABLE_TWO,
+				State.New,
+				new Date(),
+				1,
+				"science / fair",
+				"back",
+			);
+
+			expect(evaluateSpellingDeckEligibility({ cards: [eligible, invalid] }, true)).toEqual({
+				enabled: true,
+				hasStableIdentities: true,
+				canStart: true,
+				valid: false,
+				ready: true,
+				issueCount: 1,
+				eligibleCardIds: [STABLE_ONE],
+				invalidCards: [
+					{
+						cardId: STABLE_TWO,
+						indexInFile: 1,
+						front: "science / fair",
+					},
+				],
+			});
+		});
+
+		it("prioritizes last-wrong, unseen, then weaker cards in smart mode", () => {
+			const cards = [
+				makeCard("wrong", State.New, new Date(), 0, "apple", "back"),
+				makeCard("new", State.New, new Date(), 1, "banana", "back"),
+				makeCard("weak", State.New, new Date(), 2, "cherry", "back"),
+				makeCard("strong", State.New, new Date(), 3, "date", "back"),
+			];
+			const progress: Record<string, SpellingCardProgress> = {
+				wrong: {
+					attempts: 2,
+					correctAttempts: 1,
+					correctStreak: 0,
+					lastAttemptAt: 40,
+					lastIncorrectAt: 40,
+				},
+				weak: { attempts: 4, correctAttempts: 2, correctStreak: 1, lastAttemptAt: 20 },
+				strong: { attempts: 4, correctAttempts: 4, correctStreak: 3, lastAttemptAt: 10 },
+			};
+
+			const plan = planSmartSpellingSession({
+				deckId: "deck.md",
+				cards,
+				progress,
+				questionCount: 4,
+				random: () => 0,
+			});
+
+			expect(plan.cardIds).toEqual(["wrong", "new", "weak", "strong"]);
+		});
+
+		it("normalizes ranges and shuffles retry cards", () => {
+			const cards = [
+				makeCard("c1", State.New, new Date(), 0, "one", "back"),
+				makeCard("c2", State.New, new Date(), 1, "two", "back"),
+				makeCard("c3", State.New, new Date(), 2, "three", "back"),
+			];
+			expect(
+				planRangeSpellingSession({
+					deckId: "deck.md",
+					cards,
+					startIndex: 2,
+					endIndex: 3,
+					shuffle: (ids) => [...ids].reverse(),
+				}).cardIds,
+			).toEqual(["c3", "c2"]);
+
+			expect(
+				planIncorrectSpellingSession({
+					deckId: "deck.md",
+					cardIds: ["c1", "c1", "c2"],
+					shuffle: (ids) => ids,
+				}).cardIds,
+			).toEqual(["c1", "c2"]);
+		});
+	});
+
+	describe("planSessionQueue (Unified Seam)", () => {
+		it("plans study queue selecting new cards first then due reviews", () => {
+			const now = new Date("2026-08-02T12:00:00.000Z");
+			const overdue = new Date("2026-08-01T12:00:00.000Z");
+			const future = new Date("2026-08-05T12:00:00.000Z");
+
+			const deck = makeDeck([
+				makeCard("n1", State.New, overdue, 0),
+				makeCard("n2", State.New, overdue, 1),
+				makeCard("r1", State.Review, overdue, 2),
+				makeCard("r2", State.Review, future, 3),
+			]);
+
+			const result = planSessionQueue(
+				{ mode: "study", deckId: deck.id, direction: "reversed", studyOrder: "sequential" },
+				deck,
+				{
+					settings: { dailyNewCards: 2, dailyReviewCards: 1, studyOrder: "sequential" },
+					now,
+				},
+			);
+
+			expect(result).toEqual({
+				kind: "success",
+				cardIds: ["n1", "n2", "r1"],
+				direction: "reversed",
+			});
+		});
+
+		it("returns no-eligible-cards when study queue is empty", () => {
+			const now = new Date("2026-08-02T12:00:00.000Z");
+			const future = new Date("2026-08-05T12:00:00.000Z");
+
+			const deck = makeDeck([makeCard("r1", State.Review, future, 0)]);
+
+			const result = planSessionQueue(
+				{
+					mode: "study",
+					deckId: deck.id,
+					direction: "normal",
+					studyOrder: "sequential",
+				},
+				deck,
+				{
+					settings: { dailyNewCards: 2, dailyReviewCards: 2, studyOrder: "sequential" },
+					now,
+				},
+			);
+
+			expect(result).toEqual({
+				kind: "rejected",
+				reason: "no-eligible-cards",
+			});
+		});
+
+		it("plans practice queue with random selection", () => {
+			const deck = makeDeck([
+				makeCard("c1", State.New, new Date(), 0),
+				makeCard("c2", State.New, new Date(), 1),
+			]);
+
+			const result = planSessionQueue(
+				{
+					mode: "practice",
+					deckId: deck.id,
+					direction: "normal",
+					selection: { kind: "random", questionCount: 1 },
+				},
+				deck,
+				{
+					settings: defaultSettings,
+					shuffle: (ids) => ids,
+				},
+			);
+
+			expect(result).toEqual({
+				kind: "success",
+				cardIds: ["c1"],
+				direction: "normal",
+			});
+		});
+
+		it("returns spelling-not-enabled when spelling is disabled for deck", () => {
+			const deck = makeDeck([
+				makeCard(
+					"550e8400-e29b-41d4-a716-446655440000",
+					State.New,
+					new Date(),
+					0,
+					"apple",
+					"苹果",
+				),
+			]);
+
+			const result = planSessionQueue(
+				{
+					mode: "spelling",
+					deckId: deck.id,
+					selection: { kind: "smart", questionCount: 10 },
+				},
+				deck,
+				{
+					settings: defaultSettings,
+					isSpellingEnabled: false,
+				},
+			);
+
+			expect(result).toEqual({
+				kind: "rejected",
+				reason: "spelling-not-enabled",
+			});
+		});
+
+		it("returns stable-card-identity-required when spelling deck has legacy unstable identities", () => {
+			const deck = makeDeck([
+				makeCard("notes/deck.md::0", State.New, new Date(), 0, "apple", "苹果"),
+			]);
+
+			const result = planSessionQueue(
+				{
+					mode: "spelling",
+					deckId: deck.id,
+					selection: { kind: "smart", questionCount: 10 },
+				},
+				deck,
+				{
+					settings: defaultSettings,
+					isSpellingEnabled: true,
+				},
+			);
+
+			expect(result).toEqual({
+				kind: "rejected",
+				reason: "stable-card-identity-required",
+			});
+		});
+
+		it("plans spelling queue filtering out non-spelling cards", () => {
+			const STABLE_ONE = "550e8400-e29b-41d4-a716-446655440000";
+			const STABLE_TWO = "7d444840-9dc0-11d1-b245-5ffdce74fad2";
+			const deck = makeDeck([
+				makeCard(STABLE_ONE, State.New, new Date(), 0, "apple", "苹果"),
+				makeCard(STABLE_TWO, State.New, new Date(), 1, "science / fair", "科学展"),
+			]);
+
+			const result = planSessionQueue(
+				{
+					mode: "spelling",
+					deckId: deck.id,
+					selection: { kind: "smart", questionCount: 10 },
+				},
+				deck,
+				{
+					settings: defaultSettings,
+					isSpellingEnabled: true,
+				},
+			);
+
+			expect(result).toEqual({
+				kind: "success",
+				cardIds: [STABLE_ONE],
+				direction: "normal",
+			});
 		});
 	});
 });

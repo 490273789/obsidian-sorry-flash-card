@@ -1,14 +1,11 @@
 import type { Card } from "ts-fsrs";
-import { State } from "ts-fsrs";
 import type {
 	CardDirection,
 	FlashCard,
 	StudyAnswerEvent,
 	StudyRating,
 	StudySession,
-	StudySettings,
 } from "../shared/types";
-import { shuffleArray } from "../shared/utils";
 
 export type { StudyRating };
 
@@ -58,43 +55,18 @@ export interface StudySessionUndoStep {
 
 export function createStudySession(params: {
 	deckId: string;
-	cards: FlashCard[];
-	settings: StudySettings;
-	studyOrderOverride?: StudySettings["studyOrder"];
 	direction?: CardDirection;
-	now?: number;
-	shuffle?: (cardIds: string[]) => string[];
+	cardIds: string[];
+	startTime?: number;
 }): StudySession | null {
-	const now = params.now ?? Date.now();
-	const studyOrder = params.studyOrderOverride ?? params.settings.studyOrder;
-	const newCards: FlashCard[] = [];
-	const dueCards: FlashCard[] = [];
-	const currentTime = new Date(now);
-
-	for (const card of params.cards) {
-		if (card.fsrsCard.state === State.New) {
-			newCards.push(card);
-		} else if (card.fsrsCard.due <= currentTime) {
-			dueCards.push(card);
-		}
-	}
-
-	const selectedNew = newCards.slice(0, params.settings.dailyNewCards);
-	const selectedDue = dueCards.slice(0, params.settings.dailyReviewCards);
-	let cardQueue = [...selectedNew, ...selectedDue].map((card) => card.id);
-
-	if (studyOrder === "random") {
-		cardQueue = params.shuffle ? params.shuffle(cardQueue) : shuffleArray(cardQueue);
-	}
-
-	if (cardQueue.length === 0) return null;
+	if (params.cardIds.length === 0) return null;
 
 	return {
 		deckId: params.deckId,
 		direction: params.direction ?? "normal",
-		cardQueue,
+		cardQueue: [...params.cardIds],
 		currentIndex: 0,
-		startTime: now,
+		startTime: params.startTime ?? Date.now(),
 		repeatQueue: [],
 		history: [],
 		answerEvents: [],
