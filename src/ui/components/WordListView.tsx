@@ -29,6 +29,7 @@ import { ModalSurface } from "../modal";
 interface WordListViewProps {
 	deck: Deck;
 	onBack: () => void;
+	onRecordVisit?: (startTimeMs: number, endTimeMs: number) => void;
 }
 
 interface WordRowProps {
@@ -168,8 +169,19 @@ const WordExplanationModal = memo(function WordExplanationModal({
 	);
 });
 
-export const WordListView = React.memo(function WordListView({ deck, onBack }: WordListViewProps) {
+export const WordListView = React.memo(function WordListView({
+	deck,
+	onBack,
+	onRecordVisit,
+}: WordListViewProps) {
 	const { t } = useI18n();
+	const startTimeRef = useRef<number>(Date.now());
+	useEffect(() => {
+		const startTime = startTimeRef.current;
+		return () => {
+			onRecordVisit?.(startTime, Date.now());
+		};
+	}, [deck.id, onRecordVisit]);
 	const scrollRef = useRef<HTMLDivElement | null>(null);
 	const listRef = useRef<HTMLDivElement | null>(null);
 	const sourceItems = useMemo(() => buildWordListItems(deck.cards), [deck.cards]);

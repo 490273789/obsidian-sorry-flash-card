@@ -4,7 +4,14 @@ import type {
 	CardIdentityContinuity,
 	CardIdentityContinuitySnapshot,
 } from "../../identity/cardIdentityContinuity";
-import { DEFAULT_SETTINGS, type Deck, type FlashcardSettings } from "../../shared/types";
+import {
+	DEFAULT_SETTINGS,
+	type Deck,
+	type FlashcardSettings,
+	type SpellingCardProgress,
+	type StudyHistoryEntry,
+	type StudySettings,
+} from "../../shared/types";
 import {
 	createDeckHome,
 	type DeckHomeClock,
@@ -64,6 +71,17 @@ class MemoryRepository implements DeckHomeRepository {
 	private revision = 1;
 	private readonly listeners = new Set<() => void>();
 	readonly statsReads = new Map<string, number>();
+
+	getDeck?: (deckId: string) => Deck | undefined;
+	getEffectiveStudySettings?: (deckId: string) => StudySettings;
+	getSpellingProgress?: () => Readonly<Record<string, SpellingCardProgress>>;
+	getStudyHistory?: () => StudyHistoryEntry[];
+	recordWordListVisit?: (
+		deckId: string,
+		deckName: string,
+		startTimeMs: number,
+		endTimeMs: number,
+	) => Promise<void>;
 
 	constructor(
 		public decks: Deck[],
@@ -550,5 +568,70 @@ describe("DeckHome", () => {
 		home.subscribe(vi.fn());
 
 		expect(home.getSnapshot().totals.dueCards).toBe(1);
+	});
+
+	it("falls back safely for query and record facade methods when repository does not provide them", async () => {
+		const deck = makeDeck();
+		const home = createDeckHome({
+			repository: new MemoryRepository([deck]),
+			identity: makeIdentity(),
+			saveSettingsPatch: vi.fn(),
+			exportDeck: vi.fn(),
+			report: (event) => events.push(event),
+		});
+
+		expect(home.getDeck(deck.id)).toEqual(deck);
+		expect(home.getDeck("non-existent")).toBeUndefined();
+		expect(home.getEffectiveStudySettings(deck.id)).toBeDefined();
+		expect(home.getEffectiveStudySettings(deck.id).dailyNewCards).toBe(
+			DEFAULT_SETTINGS.dailyNewCards,
+		);
+		expect(home.getSpellingProgress()).toEqual({});
+		expect(home.getStudyHistory()).toEqual([]);
+
+		await expect(home.recordWordListVisit(deck.id, 1000, 2000)).resolves.toBeUndefined();
+	});
+
+	it("delegates query and record facade methods to repository when available", async () => {
+		const deck = makeDeck();
+		const memoryRepo = new MemoryRepository([deck]);
+		const customSettings = {
+			...DEFAULT_SETTINGS,
+			dailyNewCards: 42,
+		};
+		const customSpellingProgress = {
+			completedCounts: { "card-1": 3 },
+			history: [],
+		};
+		const customHistory = [
+			{
+				date: "2026-08-02",
+				cardsStudied: 10,
+				timeSpentSeconds: 120,
+			},
+		];
+		const recordWordListVisitSpy = vi.fn().mockResolvedValue(undefined);
+
+		memoryRepo.getDeck = (id: string) => (id === deck.id ? deck : undefined);
+		memoryRepo.getEffectiveStudySettings = vi.fn().mockReturnValue(customSettings);
+		memoryRepo.getSpellingProgress = vi.fn().mockReturnValue(customSpellingProgress);
+		memoryRepo.getStudyHistory = vi.fn().mockReturnValue(customHistory);
+		memoryRepo.recordWordListVisit = recordWordListVisitSpy;
+
+		const home = createDeckHome({
+			repository: memoryRepo,
+			identity: makeIdentity(),
+			saveSettingsPatch: vi.fn(),
+			exportDeck: vi.fn(),
+			report: (event) => events.push(event),
+		});
+
+		expect(home.getDeck(deck.id)).toBe(deck);
+		expect(home.getEffectiveStudySettings(deck.id)).toBe(customSettings);
+		expect(home.getSpellingProgress()).toBe(customSpellingProgress);
+		expect(home.getStudyHistory()).toBe(customHistory);
+
+		await home.recordWordListVisit(deck.id, 1000, 2000);
+		expect(recordWordListVisitSpy).toHaveBeenCalledWith(deck.id, deck.name, 1000, 2000);
 	});
 });

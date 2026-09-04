@@ -1,6 +1,5 @@
 import React, { memo, useCallback, useId, useMemo, useState } from "react";
 import { FilePlus2, Pencil, Sparkles, X } from "lucide-react";
-import type { Deck } from "../../shared/types";
 import { FlashcardButton } from "./FlashcardButton";
 import { FlashcardTextarea } from "./FlashcardInput";
 import { FlashcardSelect } from "./FlashcardSelect";
@@ -8,6 +7,12 @@ import { useI18n } from "./I18nContext";
 import { ModalSurface } from "../modal";
 
 export type CardEditorMode = "create" | "edit";
+
+export interface CardEditorDeckOption {
+	readonly id: string;
+	readonly name: string;
+	readonly tag: string;
+}
 
 export interface CardEditorSavePayload {
 	deckId: string;
@@ -18,7 +23,7 @@ export interface CardEditorSavePayload {
 
 interface CardEditorModalProps {
 	mode: CardEditorMode;
-	decks: Deck[];
+	decks: ReadonlyArray<CardEditorDeckOption>;
 	initialDeckId: string | null;
 	initialFront: string;
 	initialBack: string;

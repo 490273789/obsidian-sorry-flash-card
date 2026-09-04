@@ -2,7 +2,6 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import React from "react";
 import { FlashcardApp } from "../ui/components/FlashcardApp";
-import { DataStore } from "../storage/dataStore";
 import { FlashcardSettings } from "../shared/types";
 import { translate } from "../i18n";
 import type { CardIdentityContinuity } from "../identity/cardIdentityContinuity";
@@ -14,7 +13,6 @@ export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
 export class FlashcardView extends ItemView {
 	private root: Root | null = null;
-	private dataStore: DataStore;
 	private cardIdentityContinuity: CardIdentityContinuity;
 	private sessionLifecycle: SessionLifecycle;
 	private pronunciationRuntime: PronunciationRuntime;
@@ -25,7 +23,6 @@ export class FlashcardView extends ItemView {
 
 	constructor(
 		leaf: WorkspaceLeaf,
-		dataStore: DataStore,
 		cardIdentityContinuity: CardIdentityContinuity,
 		sessionLifecycle: SessionLifecycle,
 		pronunciationRuntime: PronunciationRuntime,
@@ -34,7 +31,6 @@ export class FlashcardView extends ItemView {
 		onOpenSettings: () => void,
 	) {
 		super(leaf);
-		this.dataStore = dataStore;
 		this.cardIdentityContinuity = cardIdentityContinuity;
 		this.sessionLifecycle = sessionLifecycle;
 		this.pronunciationRuntime = pronunciationRuntime;
@@ -81,7 +77,6 @@ export class FlashcardView extends ItemView {
 				<FlashcardApp
 					app={this.app}
 					modalHost={this.modalHost}
-					dataStore={this.dataStore}
 					cardIdentityContinuity={this.cardIdentityContinuity}
 					sessionLifecycle={this.sessionLifecycle}
 					pronunciationRuntime={this.pronunciationRuntime}

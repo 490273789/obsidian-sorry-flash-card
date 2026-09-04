@@ -8,7 +8,14 @@ import {
 	evaluateSpellingDeckEligibility,
 	type SpellingDeckEligibility,
 } from "../sessions/sessionPlanner";
-import type { Deck, DeckStats, FlashcardSettings, StudySettings } from "../shared/types";
+import type {
+	Deck,
+	DeckStats,
+	FlashcardSettings,
+	SpellingCardProgress,
+	StudyHistoryEntry,
+	StudySettings,
+} from "../shared/types";
 import type { DeckPdfExportProgress, DeckPdfExportResult } from "./deckPdfExporter";
 
 export interface DeckHomeTotals {
@@ -211,8 +218,18 @@ export interface DeckHomeRepository {
 	getRevision(): number;
 	subscribe(listener: () => void): () => void;
 	getAllDecks(): Deck[];
+	getDeck?(deckId: string): Deck | undefined;
 	getDeckStats(deck: Deck, now?: Date): DeckStats;
 	getSettings(): FlashcardSettings;
+	getEffectiveStudySettings?(deckId: string): StudySettings;
+	getSpellingProgress?(): Readonly<Record<string, SpellingCardProgress>>;
+	getStudyHistory?(): StudyHistoryEntry[];
+	recordWordListVisit?(
+		deckId: string,
+		deckName: string,
+		startTimeMs: number,
+		endTimeMs: number,
+	): Promise<void>;
 	/** Earliest future due time (epoch ms) across all decks, or null when nothing is due later. */
 	getNextDueTime(now: Date): number | null;
 }
@@ -246,6 +263,11 @@ export interface DeckHome {
 	getSnapshot(): DeckHomeSnapshot;
 	subscribe(listener: () => void): () => void;
 	act(action: DeckHomeAction): Promise<DeckHomeOutcome>;
+	getDeck(deckId: string): Deck | undefined;
+	getEffectiveStudySettings(deckId: string): StudySettings;
+	getSpellingProgress(): Readonly<Record<string, SpellingCardProgress>>;
+	getStudyHistory(): StudyHistoryEntry[];
+	recordWordListVisit(deckId: string, startTimeMs: number, endTimeMs: number): Promise<void>;
 	dispose(): void;
 }
 
@@ -360,6 +382,50 @@ class DefaultDeckHome implements DeckHome {
 		this.unsubscribeRepository();
 		this.stopTimer();
 		this.listeners.clear();
+	}
+
+	getDeck(deckId: string): Deck | undefined {
+		return (
+			this.options.repository.getDeck?.(deckId) ??
+			this.options.repository.getAllDecks().find((candidate) => candidate.id === deckId)
+		);
+	}
+
+	getEffectiveStudySettings(deckId: string): StudySettings {
+		if (this.options.repository.getEffectiveStudySettings) {
+			return this.options.repository.getEffectiveStudySettings(deckId);
+		}
+		const settings = this.options.repository.getSettings();
+		const overrides = settings.deckStudySettings?.[deckId] ?? {};
+		return {
+			dailyNewCards: settings.dailyNewCards,
+			dailyReviewCards: settings.dailyReviewCards,
+			studyOrder: settings.studyOrder,
+			fsrsParameters: {
+				...settings.fsrsParameters,
+				...overrides.fsrsParameters,
+			},
+			...overrides,
+		};
+	}
+
+	getSpellingProgress(): Readonly<Record<string, SpellingCardProgress>> {
+		return this.options.repository.getSpellingProgress?.() ?? {};
+	}
+
+	getStudyHistory(): StudyHistoryEntry[] {
+		return this.options.repository.getStudyHistory?.() ?? [];
+	}
+
+	async recordWordListVisit(
+		deckId: string,
+		startTimeMs: number,
+		endTimeMs: number,
+	): Promise<void> {
+		if (!this.options.repository.recordWordListVisit) return;
+		const deck = this.getDeck(deckId);
+		const deckName = deck ? deck.name : deckId;
+		await this.options.repository.recordWordListVisit(deckId, deckName, startTimeMs, endTimeMs);
 	}
 
 	private async refresh(): Promise<DeckHomeOutcome> {

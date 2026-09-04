@@ -98,7 +98,6 @@ export default class FlashcardPlugin extends Plugin {
 			(leaf) =>
 				new FlashcardView(
 					leaf,
-					this.dataStore,
 					this.cardIdentityContinuity,
 					this.sessionLifecycle,
 					this.pronunciationRuntime,
