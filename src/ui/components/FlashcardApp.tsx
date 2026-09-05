@@ -562,8 +562,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	// Cached derived data keyed on the store revision.
 	const studyHistory = useMemo(() => {
 		void deckHomeSnapshot.revision;
+		if (viewState.type !== "stats") return null;
 		return deckHome.getStudyHistory();
-	}, [deckHome, deckHomeSnapshot.revision]);
+	}, [deckHome, deckHomeSnapshot.revision, viewState.type]);
 	const practiceSetupPlan = useMemo(() => {
 		void deckHomeSnapshot.revision;
 		if (viewState.type !== "practice-setup") return null;
@@ -805,7 +806,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			}
 
 			case "stats":
-				return <StatsView history={studyHistory} onBack={handleBackHome} />;
+				return <StatsView history={studyHistory ?? []} onBack={handleBackHome} />;
 
 			case "home":
 			default:
