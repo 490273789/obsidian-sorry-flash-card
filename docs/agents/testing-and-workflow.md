@@ -29,7 +29,7 @@ npm run setup-hooks
 
 - Edit TypeScript/React under `src/` and CSS under `src/styles/`.
 - Do not hand-edit generated root `main.js` or `styles.css`; regenerate them with `npm run build` when the task requires distributable artifacts.
-- Change `manifest.json` and `versions.json` only for an intentional release/version task. Use `npm version patch|minor|major -m "chore(release): bump version to %s"` as documented; do not invoke the lifecycle script with `npm run version` directly.
+- Change `manifest.json` and `versions.json` only for an intentional release/version task. Use `pnpm release:patch|minor|major` as documented; do not invoke the lifecycle script with `pnpm run version` directly.
 - Preserve the local style: tabs in TypeScript, explicit interfaces/types, and named helpers where surrounding code uses them.
 - Avoid dependency/lockfile churn unless dependency work is in scope.
 
@@ -61,5 +61,5 @@ Follow Conventional Commits and `docs/git-commit-guide.md`.
 - Common types: `feat`, `fix`, `style`, `refactor`, `perf`, `test`, `docs`, `chore`, `revert`.
 - Common scopes: `ui`, `styles`, `cards`, `parser`, `identity`, `session`, `pronunciation`, `deck`, `obsidian`, `settings`, `storage`, `history`, `word-list`, `i18n`, `deps`, `release`.
 - Hooks configured by `scripts/setup-hooks.mjs` enforce pre-commit checks and commit-message format.
-- `npm version patch|minor|major -m "chore(release): bump version to %s"` runs `version-bump.mjs` and, unless npm is explicitly configured otherwise, creates the Conventional Commit-compatible release commit and tag. Do not add a redundant second release commit.
+- `pnpm release:patch|minor|major` runs `scripts/version-bump.mjs` to keep `package.json`, `manifest.json`, and `versions.json` in sync, and creates the Conventional Commit-compatible release commit and tag. Do not add a redundant second release commit.
 - Do not create a commit, bump a version, push, release, or deploy unless the user asks for that action.

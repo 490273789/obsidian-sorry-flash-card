@@ -26,7 +26,7 @@ jobs:
             - name: Verify tag and manifest versions
               env:
                   RELEASE_TAG: ${{ github.ref_name }}
-              run: node -e "const fs=require('node:fs');const p=require('./package.json');const m=require('./manifest.json');const v=require('./versions.json');if(p.version!==process.env.RELEASE_TAG||m.version!==process.env.RELEASE_TAG||(!v[process.env.RELEASE_TAG]&&!Object.values(v).includes(m.minAppVersion)))process.exit(1)"
+              run: node -e "const fs=require('node:fs');const p=require('./package.json');const m=require('./manifest.json');const v=require('./versions.json');if(p.version!==process.env.RELEASE_TAG||m.version!==process.env.RELEASE_TAG||!v[process.env.RELEASE_TAG])process.exit(1)"
             - run: pnpm run check:all
             - run: pnpm build
             - uses: actions/attest-build-provenance@v4

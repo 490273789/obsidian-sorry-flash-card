@@ -11,7 +11,7 @@ export default defineConfig({
 		"main.js",
 		"styles.css",
 		"vite.config.ts",
-		"version-bump.mjs",
+		"scripts/version-bump.mjs",
 		"versions.json",
 	],
 	options: {
