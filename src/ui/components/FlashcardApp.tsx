@@ -195,22 +195,9 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null);
 	const confirmationRef = useRef<ConfirmationState | null>(null);
 
-	// Fallback component for renders where no caller component was provided.
-	// Unloaded when FlashcardApp unmounts.
-	const fallbackMarkdownComponentRef = useRef<Component | null>(null);
-	useEffect(() => {
-		return () => {
-			fallbackMarkdownComponentRef.current?.unload();
-			fallbackMarkdownComponentRef.current = null;
-		};
-	}, []);
 	const renderMarkdown = useCallback(
 		async (content: string, el: HTMLElement, component?: Component): Promise<void> => {
-			const targetComponent =
-				component ??
-				fallbackMarkdownComponentRef.current ??
-				(fallbackMarkdownComponentRef.current = new Component());
-			await MarkdownRenderer.render(app, content, el, "", targetComponent);
+			await MarkdownRenderer.render(app, content, el, "", component ?? new Component());
 		},
 		[app],
 	);

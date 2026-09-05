@@ -82,9 +82,9 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 									</div>
 
 									<div className="flashcard-stats-sessions">
-										{entries.map((entry, idx) => (
+										{entries.map((entry) => (
 											<div
-												key={`${entry.timestamp}-${entry.mode}-${idx}`}
+												key={`${entry.timestamp}-${entry.deckId}-${entry.mode}`}
 												className={`flashcard-stats-session ${
 													STUDY_HISTORY_MODE_PRESENTATION[entry.mode].cls
 												} fc-lift`}
