@@ -68,7 +68,6 @@
 	display: grid;
 	gap: 0;
 	margin: 0;
-	padding: var(--fc-space-2) 0;
 	list-style: none;
 	border: 0;
 	border-radius: 0;
@@ -236,16 +235,15 @@
 
 .flashcard-deck-list .flashcard-deck-item {
 	content-visibility: auto;
-	min-height: 148px;
+	min-height: 140px;
 	position: relative;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
-	padding: var(--fc-space-5) var(--fc-space-5) var(--fc-space-4) var(--fc-space-5);
+	padding: var(--fc-space-4);
 	border: 1px solid rgba(var(--fc-cyan-rgb), 0.18);
 	border-left: 2px solid rgba(var(--fc-cyan-rgb), 0.42);
 	border-radius: var(--fc-radius-md);
-
 	animation: var(--fc-motion-rise);
 	cursor: grab;
 	-webkit-touch-callout: none;
