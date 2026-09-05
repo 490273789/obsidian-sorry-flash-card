@@ -1,45 +1,42 @@
-name: Release Plugin
+name: Draft release
 
 on:
     push:
         tags:
-            - "*"
+            - "*.*.*"
 
 permissions:
     contents: write
+    id-token: write
+    attestations: write
 
 jobs:
-    build:
+    release:
         runs-on: ubuntu-latest
-
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
+            - uses: actions/checkout@v6
+            - uses: pnpm/action-setup@v6
               with:
-                  node-version: 20
-                  cache: "npm"
-
-            - name: Install dependencies
-              run: npm ci
-
-            - name: Run code validation
-              run: npm run check:all
-
-            - name: Build plugin
-              run: npm run build
-
-            - name: Create GitHub Release
-              uses: softprops/action-gh-release@v2
+                  version: 11.15.1
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - name: Verify tag and manifest versions
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  RELEASE_TAG: ${{ github.ref_name }}
+              run: node -e "const fs=require('node:fs');const p=require('./package.json');const m=require('./manifest.json');const v=require('./versions.json');if(p.version!==process.env.RELEASE_TAG||m.version!==process.env.RELEASE_TAG||(!v[process.env.RELEASE_TAG]&&!Object.values(v).includes(m.minAppVersion)))process.exit(1)"
+            - run: pnpm run check:all
+            - run: pnpm build
+            - uses: actions/attest-build-provenance@v4
+              if: ${{ !github.event.repository.private }}
               with:
-                  files: |
+                  subject-path: |
                       main.js
                       manifest.json
                       styles.css
-                  generate_release_notes: true
-                  draft: false
-                  prerelease: false
+            - name: Create draft GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh release create "${{ github.ref_name }}" main.js manifest.json styles.css --draft --generate-notes --title "${{ github.ref_name }}"
