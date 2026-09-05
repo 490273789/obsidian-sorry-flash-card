@@ -195,15 +195,22 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	const [confirmation, setConfirmation] = useState<ConfirmationState | null>(null);
 	const confirmationRef = useRef<ConfirmationState | null>(null);
 
-	// Reuse a single Component for every Markdown render and unload it when the
-	// app unmounts, instead of allocating a new Component per card.
-	const markdownComponentRef = useRef<Component | null>(null);
+	// Fallback component for renders where no caller component was provided.
+	// Unloaded when FlashcardApp unmounts.
+	const fallbackMarkdownComponentRef = useRef<Component | null>(null);
+	useEffect(() => {
+		return () => {
+			fallbackMarkdownComponentRef.current?.unload();
+			fallbackMarkdownComponentRef.current = null;
+		};
+	}, []);
 	const renderMarkdown = useCallback(
-		async (content: string, el: HTMLElement): Promise<void> => {
-			if (!markdownComponentRef.current) {
-				markdownComponentRef.current = new Component();
-			}
-			await MarkdownRenderer.render(app, content, el, "", markdownComponentRef.current);
+		async (content: string, el: HTMLElement, component?: Component): Promise<void> => {
+			const targetComponent =
+				component ??
+				fallbackMarkdownComponentRef.current ??
+				(fallbackMarkdownComponentRef.current = new Component());
+			await MarkdownRenderer.render(app, content, el, "", targetComponent);
 		},
 		[app],
 	);
@@ -282,12 +289,6 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 		return () => {
 			confirmationRef.current?.resolve(false);
 			confirmationRef.current = null;
-		};
-	}, []);
-	useEffect(() => {
-		return () => {
-			markdownComponentRef.current?.unload();
-			markdownComponentRef.current = null;
 		};
 	}, []);
 	useEffect(() => {

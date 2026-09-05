@@ -103,6 +103,50 @@ good morning
 		expect(cachedRead).toHaveBeenCalledWith(discoveredFile);
 	});
 
+	it("skips files that are indexed with no tags when pre-filtering", async () => {
+		const configuredFile = Object.assign(new TFile(), {
+			path: "notes/words.md",
+			basename: "words",
+		});
+		const untaggedFile = Object.assign(new TFile(), {
+			path: "notes/journal.md",
+			basename: "journal",
+		});
+		const unindexedFile = Object.assign(new TFile(), {
+			path: "notes/new.md",
+			basename: "new",
+		});
+		const read = vi.fn(async () => "");
+		const cachedRead = vi.fn(async () => "");
+		const app = {
+			vault: {
+				getMarkdownFiles: () => [configuredFile, untaggedFile, unindexedFile],
+				read,
+				cachedRead,
+				getAbstractFileByPath: () => null,
+				process: vi.fn(),
+			},
+			metadataCache: {
+				getFileCache: (file: TFile) => {
+					if (file === configuredFile) return { tags: [{ tag: "#单词" }] };
+					if (file === untaggedFile) return { tags: [] };
+					return null; // unindexedFile
+				},
+			},
+		} as unknown as App;
+
+		const store = createObsidianContinuitySourceStore(app);
+		const docs = await store.list(["#单词"]);
+
+		// configuredFile and unindexedFile should be read
+		expect(read).toHaveBeenCalledWith(configuredFile);
+		expect(read).toHaveBeenCalledWith(unindexedFile);
+		// untaggedFile should be completely skipped
+		expect(read).not.toHaveBeenCalledWith(untaggedFile);
+		expect(cachedRead).not.toHaveBeenCalledWith(untaggedFile);
+		expect(docs.map((d) => d.path)).toEqual(["notes/words.md", "notes/new.md"]);
+	});
+
 	it("uses an uncached read so migration previews match atomic writes", async () => {
 		const path = "notes/legacy.md";
 		const currentContent = `#单词

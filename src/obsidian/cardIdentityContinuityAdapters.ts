@@ -37,9 +37,13 @@ class ObsidianContinuitySourceStore implements ContinuitySourceStore {
 			}
 			const cache = metadataCache!.getFileCache(file);
 			// Missing metadata keeps the file on the authoritative read path.
-			// Parsed unrelated tags use cached content only for tag discovery.
-			if (!cache || !cache.tags || cache.tags.length === 0) {
+			// Files indexed with no tags are skipped: they cannot match configured tags
+			// nor contribute unconfigured tags for discovery.
+			if (!cache) {
 				candidates.push({ file, discoveryOnly: false });
+				continue;
+			}
+			if (!cache.tags || cache.tags.length === 0) {
 				continue;
 			}
 			const hasConfiguredTag = cache.tags.some((entry) =>
