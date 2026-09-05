@@ -59,7 +59,7 @@
 .flashcard-header-overview {
 	width: 100%;
 	border-bottom: none;
-	border-radius: 0 0 var(--fc-radius-xs) var(--fc-radius-xs);
+	border-radius: 0 0 var(--fc-radius-sm) var(--fc-radius-sm);
 	background: var(--fc-surface-header-status);
 }
 
@@ -97,7 +97,7 @@
 	justify-content: center;
 	min-height: 0;
 	gap: var(--fc-space-2);
-	padding: var(--fc-space-1) var(--fc-space-3);
+	padding: var(--fc-space-2) var(--fc-space-3);
 	border: 0;
 	border-radius: 0;
 	background: transparent;
