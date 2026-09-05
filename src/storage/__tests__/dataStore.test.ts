@@ -780,4 +780,70 @@ describe("DataStore deck scanning and study plans", () => {
 		expect(dates.has("2026-06-01")).toBe(false);
 		expect(plugin.saveData).toHaveBeenCalledTimes(1);
 	});
+
+	it("preserves card object identities and reuses serialized card cache for untouched cards", async () => {
+		const card1 = makeCard("card-1", State.New, new Date("2026-08-01T00:00:00.000Z"), 0);
+		const card2 = makeCard("card-2", State.New, new Date("2026-08-01T00:00:00.000Z"), 1);
+		const card3 = makeCard("card-3", State.New, new Date("2026-08-01T00:00:00.000Z"), 2);
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [card1, card2, card3],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-08-01T00:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+
+		const initialDeck = store.getDeck(deck.id)!;
+		const initialCard1 = initialDeck.cards[0]!;
+		const initialCard2 = initialDeck.cards[1]!;
+		const initialCard3 = initialDeck.cards[2]!;
+
+		// Commit transition updating only card-1
+		const updatedFsrs1 = { ...initialCard1.fsrsCard, state: State.Review, reps: 1 };
+		await store.commitSessionTransition({
+			cardUpdates: [{ deckId: deck.id, cardId: initialCard1.id, fsrsCard: updatedFsrs1 }],
+			incrementStudyCountFor: [deck.id],
+			spellingAttempts: [],
+			historyEntries: [],
+		});
+
+		const nextDeck = store.getDeck(deck.id)!;
+		// Updated card has a new object reference
+		expect(nextDeck.cards[0]).not.toBe(initialCard1);
+		expect(nextDeck.cards[0]!.fsrsCard.state).toBe(State.Review);
+		// Untouched cards preserve their object references (structural sharing)
+		expect(nextDeck.cards[1]).toBe(initialCard2);
+		expect(nextDeck.cards[2]).toBe(initialCard3);
+
+		// Verify serialized cards for untouched cards were cached and reused
+		const firstSavedData = plugin.saveData.mock.calls[0]![0] as StoredData;
+		const savedCard2First = firstSavedData.decks[deck.id]!.cards[1]!;
+		const savedCard3First = firstSavedData.decks[deck.id]!.cards[2]!;
+
+		// Second transition updating only card-1 again
+		const updatedFsrs2 = { ...nextDeck.cards[0]!.fsrsCard, reps: 2 };
+		await store.commitSessionTransition({
+			cardUpdates: [{ deckId: deck.id, cardId: initialCard1.id, fsrsCard: updatedFsrs2 }],
+			incrementStudyCountFor: [deck.id],
+			spellingAttempts: [],
+			historyEntries: [],
+		});
+
+		const secondSavedData = plugin.saveData.mock.calls[1]![0] as StoredData;
+		const savedCard2Second = secondSavedData.decks[deck.id]!.cards[1]!;
+		const savedCard3Second = secondSavedData.decks[deck.id]!.cards[2]!;
+
+		// SerializedCard for untouched cards must be the identical cached object instance
+		expect(savedCard2Second).toBe(savedCard2First);
+		expect(savedCard3Second).toBe(savedCard3First);
+	});
 });

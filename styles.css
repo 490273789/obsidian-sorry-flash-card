@@ -1,8 +1,7 @@
 /*
  * Source CSS entry for the Obsidian plugin.
  * Vite bundles these imports into the root styles.css artifact.
- */
-/*
+ *//*
  * WSR Flash Card editorial UI foundations
  * Scope all styles to the plugin root/settings tab to avoid leaking into Obsidian.
  */
@@ -316,6 +315,7 @@
 	box-shadow: var(--fc-glow-cyan);
 	transform: none;
 }
+
 /* Buttons */
 .flashcard-btn {
 	appearance: none;
@@ -1188,6 +1188,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 		0 0 0 3px color-mix(in srgb, var(--interactive-accent) 40%, transparent),
 		0 2px 6px rgba(0, 0, 0, 0.45) !important;
 }
+
 /* Page shells and headers */
 .flashcard-home,
 .flashcard-study,
@@ -2176,6 +2177,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 	margin: 0 auto;
 	flex: 0 0 auto;
 }
+
 /* Study and practice setup */
 
 .flashcard-setup-content > * {
@@ -3706,6 +3708,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 	font-size: var(--fc-font-md);
 	line-height: var(--fc-line-reading);
 }
+
 /* Practice summary */
 .flashcard-practice-summary {
 	overflow: hidden;
@@ -3894,6 +3897,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 	background: rgba(var(--fc-bg-elevated-rgb), 0.94);
 	box-shadow: var(--fc-shadow);
 }
+
 .flashcard-deck-actions2.has-spelling {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -4234,6 +4238,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 	background: var(--fc-surface-card);
 	box-shadow: none;
 }
+
 .flashcard-pronunciation-row {
 	display: block;
 	min-width: 0;
@@ -4327,6 +4332,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 		animation: none;
 	}
 }
+
 /* Stats */
 .flashcard-stats-body {
 	flex: 1 1 auto;
@@ -4462,6 +4468,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 .flashcard-stats-session.stats-mode-list {
 	border-left-width: 3px;
 }
+
 /* Empty state */
 .flashcard-empty {
 	margin: auto;
@@ -5037,6 +5044,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 .flashcard-settings-tab textarea {
 	border-radius: var(--fc-radius-sm);
 }
+
 /* Form focus and scrollbars */
 .flashcard-root input:focus,
 .flashcard-root select:focus,
@@ -5273,6 +5281,7 @@ input[type="range"].flashcard-slider:focus-visible::-moz-range-thumb {
 		transition-duration: 1ms !important;
 	}
 }
+
 /* Tablet and narrow panes */
 @media (max-width: 900px) {
 	.flashcard-root {

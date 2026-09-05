@@ -110,6 +110,12 @@ export class DataStore {
 	 * every answer commit.
 	 */
 	private serializedDeckCache = new WeakMap<Deck, SerializedDeck>();
+	/**
+	 * Serialization cache keyed by card object identity. Untouched cards retain
+	 * their object identity across session transitions, so their serialized form
+	 * can be reused without recreating ISO date strings and objects.
+	 */
+	private serializedCardCache = new WeakMap<FlashCard, SerializedCard>();
 	/** Sorted non-new due times per deck, used by DeckHome's next-wake timer. */
 	private deckDueTimes = new Map<string, number[]>();
 	private deckDueTimesValid = false;
@@ -505,8 +511,20 @@ export class DataStore {
 	private serializeDeck(deck: Deck): SerializedDeck {
 		return {
 			...deck,
-			cards: deck.cards.map((card) => this.serializeCard(card)),
+			cards: deck.cards.map((card) => this.getSerializedCard(card)),
 		};
+	}
+
+	/**
+	 * Returns the serialized form of a card, reusing the cached copy when the
+	 * card object reference has not changed since the last serialization.
+	 */
+	private getSerializedCard(card: FlashCard): SerializedCard {
+		const cached = this.serializedCardCache.get(card);
+		if (cached) return cached;
+		const serialized = this.serializeCard(card);
+		this.serializedCardCache.set(card, serialized);
+		return serialized;
 	}
 
 	/**
@@ -875,7 +893,7 @@ function cloneDecksForTransition(
 		}
 		next.set(deckId, {
 			...deck,
-			cards: deck.cards.map((card) => ({ ...card })),
+			cards: [...deck.cards],
 		});
 	}
 	return next;
