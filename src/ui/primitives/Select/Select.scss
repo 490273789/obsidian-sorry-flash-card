@@ -1,0 +1,29 @@
+// =============================================================================
+// Select Component Styles (SCSS)
+// =============================================================================
+
+.flashcard-select-shell {
+	position: relative;
+	min-width: 0;
+	display: inline-flex;
+	align-items: center;
+	width: 100%;
+
+	.flashcard-select {
+		appearance: none;
+		width: 100%;
+		padding-right: var(--fc-space-8);
+		cursor: pointer;
+
+		&:disabled + .flashcard-select-icon {
+			opacity: var(--fc-opacity-disabled);
+		}
+	}
+
+	.flashcard-select-icon {
+		position: absolute;
+		right: var(--fc-space-3);
+		pointer-events: none;
+		color: var(--fc-muted);
+	}
+}

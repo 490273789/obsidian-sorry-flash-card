@@ -2,26 +2,42 @@
 
 插件保留当前低饱和、舒适紧凑的风格。界面直接继承 Obsidian 的系统主题与强调色；颜色用于表达操作层级和状态，不用于装饰无语义的数据。普通层级依靠背景、边框和留白建立，阴影只用于菜单、弹窗等真正离开文档流的浮层。
 
-`index.css` 是 `src/obsidian/main.ts` 引入的唯一 CSS 入口。Vite 会跟随它的导入并生成 Obsidian 使用的根目录 `styles.css`。不要手工编辑根目录 `styles.css`，应运行 `npm run build` 重新生成。
+`index.scss` 是 `src/obsidian/main.ts` 引入的唯一样式入口。Vite 会跟随它的导入并通过 Sass 预处理器编译生成 Obsidian 使用的根目录 `styles.css`。不要手工编辑根目录 `styles.css`，应运行 `npm run build` 重新生成。
 
-## 文件结构
+## 文件结构与组件就近样式（Colocation）
 
-保持以下导入顺序（`index.css` 中不可调换）：
+项目样式采用“**全局基础令牌 + 基础组件就近样式 + 业务视图就近样式**”的清晰分层架构：
 
-- `base.css`：设计 token（唯一来源）、根容器框架（`.flashcard-root` 的唯一静态定义，含表面归一）、动效变量与少量共享工具类（`.fc-kicker`、`.fc-lift`、`.blue/green/purple/orange/red`）。
-- `buttons.css`：共享按钮基础样式和评分按钮元数据。
-- `controls.css`：按钮尺寸/语义变体、输入框、下拉框与菜单组件。
-- `home.css`：页面框架、公共标题栏、首页牌组列表和共享统计卡。
-- `study.css`：学习/刷题设置、活动卡片会话、底部操作区和完成状态。
-- `word-list.css`：单词列表工具栏、虚拟列表行和解释面板。
-- `practice-summary.css`：刷题结果和错题列表。
-- `spelling.css`：拼写练习的输入、反馈与总结。
-- `pronunciation.css`：发音按钮与语音播放状态。
-- `stats.css`：历史与统计视图。
-- `overlays-settings.css`：空状态、弹窗、牌组/卡片编辑器和设置页。
-- `motion.css`：焦点、滚动条、关键帧和减少动态效果规则。
-- `responsive.css`：窄窗口和移动端布局覆盖。
-- `editorial.css`：最终视觉统一层。它只覆盖规则、不定义 token，负责把各视图归一为中性表面，并承载少量 `.theme-light` 光学修正与容器查询布局。
+### 1. 全局样式体系 (`src/styles/`)
+
+- `mixins.scss`：高频 SCSS 混入（如 `fc-focus-ring`、`fc-flex-center`、`fc-truncate`、`fc-scrollbar` 等）。
+- `base.scss`：设计 token（唯一来源，`--fc-*`）、根容器框架（`.flashcard-root` 的定义与表面归一）。
+- `settings.scss`：Obsidian 设置面板与设置弹窗相关的样式。
+- `motion.scss`：全局动画与关键帧（尊重 `prefers-reduced-motion`）。
+- `responsive.scss`：全局小屏幕和移动端粗指针媒体查询适配。
+- `index.scss`：主样式入口，负责按序汇入全局层、基础组件层及业务视图层。
+
+### 2. 基础 UI 组件样式 (`src/ui/primitives/**/`)
+
+每个基础控件拥有独立目录，TSX 与对应 SCSS 样式同目录存放并导出：
+
+- `Button/` (`Button.scss`)、`Input/` (`Input.scss`)、`Select/` (`Select.scss`)、`Checkbox/` (`Checkbox.scss`)、`Slider/` (`Slider.scss`)
+- `Menu/` (`Menu.scss`)、`Modal/` (`Modal.scss`)、`ConfirmDialog/` (`ConfirmDialog.scss`)
+- `Header/` (`FlashcardHeader.scss`)、`SessionTimer/` (`SessionTimer.scss`)、`SessionToolbar/` (`SessionToolbar.scss`)、`SetupSelector/` (`SetupSelector.scss`)
+- `Markdown/` (`Markdown.scss`)、`PronunciationButton/` (`PronunciationButton.scss`)
+
+### 3. 业务视图组件样式 (`src/ui/views/**/`)
+
+每个独立视图模块同样遵循 Colocation 模式，将页面结构与专属样式内聚管理：
+
+- `Home/` (`DeckList.scss`)
+- `Study/` (`StudySetup.scss`)
+- `Card/` (`Card.scss`)
+- `Practice/` (`Practice.scss`)
+- `Spelling/` (`Spelling.scss`)
+- `WordList/` (`WordList.scss`)
+- `Stats/` (`Stats.scss`)
+- `DeckSettings/` (`DeckSettingsModal.scss`)
 
 ### Token 唯一来源
 

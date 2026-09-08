@@ -1,31 +1,93 @@
-export { FlashcardButton } from "./FlashcardButton";
-export type {
-	ButtonVariant,
-	ButtonPreset,
-	ButtonSize,
-	FlashcardButtonProps,
-} from "./FlashcardButton";
-export { FlashcardInput, FlashcardTextarea } from "./FlashcardInput";
-export type { FlashcardInputProps, FlashcardTextareaProps } from "./FlashcardInput";
-export { FlashcardCheckbox } from "./FlashcardCheckbox";
-export type { FlashcardCheckboxProps } from "./FlashcardCheckbox";
-export { FlashcardSlider } from "./FlashcardSlider";
-export type { FlashcardSliderProps } from "./FlashcardSlider";
-export { FlashcardSelect } from "./FlashcardSelect";
-export type { FlashcardSelectProps } from "./FlashcardSelect";
-export { FlashcardMenu } from "./FlashcardMenu";
-export type { FlashcardMenuItem, FlashcardMenuProps } from "./FlashcardMenu";
-export { FlashcardHeader } from "./FlashcardHeader";
-export type { FlashcardHeaderStat, FlashcardHeaderStatTone } from "./FlashcardHeader";
-export { DeckList } from "./DeckList";
-export { CardView } from "./CardView";
-export { FlashcardApp } from "./FlashcardApp";
-export { PracticeSetup } from "./PracticeSetup";
-export { PracticeView } from "./PracticeView";
-export { PracticeSummary } from "./PracticeSummary";
-export { WordListView } from "./WordListView";
-export { StudySetup } from "./StudySetup";
-export { StatsView } from "./StatsView";
-export { PronunciationButton } from "./PronunciationButton";
-export { DeckSettingsModal } from "./DeckSettingsModal";
-export type { DeckSettingsModalProps } from "./DeckSettingsModal";
+// =============================================================================
+// Backward compatibility layer for src/ui/components
+// Re-exports all components from new primitives and views locations
+// =============================================================================
+
+export {
+	FlashcardButton,
+	Button,
+	type ButtonVariant,
+	type ButtonPreset,
+	type ButtonSize,
+	type FlashcardButtonProps,
+	type ButtonProps,
+	FlashcardInput,
+	Input,
+	FlashcardTextarea,
+	Textarea,
+	type FlashcardInputProps,
+	type InputProps,
+	type FlashcardTextareaProps,
+	type TextareaProps,
+	FlashcardCheckbox,
+	Checkbox,
+	type FlashcardCheckboxProps,
+	type CheckboxProps,
+	FlashcardSlider,
+	Slider,
+	type FlashcardSliderProps,
+	type SliderProps,
+	FlashcardSelect,
+	Select,
+	type FlashcardSelectProps,
+	type SelectProps,
+	FlashcardMenu,
+	Menu,
+	type FlashcardMenuItem,
+	type MenuItem,
+	type FlashcardMenuProps,
+	type MenuProps,
+	FlashcardHeader,
+	Header,
+	type FlashcardHeaderProps,
+	type HeaderProps,
+	type FlashcardHeaderStat,
+	type FlashcardHeaderStatTone,
+	Modal,
+	ModalProvider,
+	ModalSurface,
+	type ModalId,
+	ConfirmDialog,
+	type ConfirmDialogProps,
+	type ConfirmDialogTone,
+	SessionTimer,
+	formatElapsedTime,
+	SessionToolbar,
+	type SessionToolbarProps,
+	SetupSelector,
+	SetupControlGroup,
+	type SetupSelectorOption,
+	type SetupControlGroupProps,
+	MarkdownContent,
+	renderMarkdownWithLifecycle,
+	type MarkdownRendererFn,
+	PronounceableMarkdown,
+	type PronounceableMarkdownProps,
+	PronunciationButton,
+	type PronunciationButtonProps,
+	type PronunciationButtonRuntimeProps,
+} from "../primitives";
+
+export {
+	DeckList,
+	CardView,
+	CardEditorModal,
+	type CardEditorDeckOption,
+	type CardEditorMode,
+	type CardEditorSavePayload,
+	PracticeSetup,
+	PracticeView,
+	PracticeSummary,
+	WordListView,
+	StudySetup,
+	StatsView,
+	SpellingSetup,
+	SpellingView,
+	SpellingSummary,
+	DeckSettingsModal,
+	type DeckSettingsModalProps,
+} from "../views";
+
+export { I18nProvider, useI18n } from "../context/I18nContext";
+export { useLatestRef, useWindowKeyDown } from "../hooks/hooks";
+export { FlashcardApp } from "../FlashcardApp";

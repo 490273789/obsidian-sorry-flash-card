@@ -1,0 +1,104 @@
+// =============================================================================
+// Input & Textarea Component Styles (SCSS)
+// =============================================================================
+
+.flashcard-control {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: var(--fc-control-md);
+	margin: 0;
+	padding: var(--fc-space-2) var(--fc-space-3);
+	border: 1px solid var(--fc-input-border);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-input-bg);
+	box-shadow: none;
+	color: var(--fc-text);
+	font: var(--fc-weight-regular) var(--fc-font-md) / var(--fc-line-body) var(--fc-font-ui);
+	transition:
+		border-color var(--fc-motion-quick) ease,
+		background var(--fc-motion-quick) ease,
+		box-shadow var(--fc-motion-quick) ease;
+
+	&:hover:not(:disabled) {
+		border-color: var(--fc-control-border);
+		background: var(--fc-input-bg-hover);
+	}
+
+	&:focus,
+	&:focus-visible {
+		border-color: var(--fc-input-border-focus);
+		background: var(--fc-input-bg);
+		outline: none;
+	}
+
+	&:disabled {
+		opacity: var(--fc-opacity-disabled);
+		cursor: not-allowed;
+	}
+
+	&.is-invalid,
+	&[aria-invalid="true"] {
+		border-color: var(--fc-danger);
+	}
+
+	&::placeholder {
+		color: var(--fc-faint);
+		opacity: 1;
+	}
+}
+
+.flashcard-textarea {
+	min-height: calc(var(--fc-control-touch) * 2);
+	resize: vertical;
+}
+
+// ── Obsidian 宿主与设置页输入框统一处理 ──────────────────────────────────────────
+.flashcard-root,
+.flashcard-settings-tab {
+	:is(
+		input:not(
+			[type="checkbox"],
+			[type="radio"],
+			[type="range"],
+			[type="color"],
+			[type="file"],
+			[type="button"],
+			[type="submit"],
+			[type="reset"],
+			[type="hidden"]
+		),
+		textarea
+	) {
+		border: 1px solid var(--fc-input-border);
+		background: var(--fc-input-bg);
+		color: var(--fc-text);
+		caret-color: var(--fc-cyan);
+		box-shadow: none;
+		transition:
+			border-color var(--fc-motion-quick) ease,
+			background var(--fc-motion-quick) ease,
+			box-shadow var(--fc-motion-quick) ease;
+
+		&:hover:not(:disabled):not([readonly]) {
+			border-color: var(--fc-line-strong);
+			background: var(--fc-input-bg-hover);
+		}
+
+		&:focus {
+			border-color: var(--fc-control-border-selected);
+			background: var(--fc-input-bg);
+			outline: none;
+		}
+
+		&::placeholder {
+			color: var(--fc-faint);
+			opacity: 1;
+		}
+
+		&:disabled {
+			border-color: var(--fc-line);
+			background: var(--fc-surface-section);
+			opacity: var(--fc-opacity-disabled);
+		}
+	}
+}

@@ -1,5 +1,5 @@
 import { Notice, Platform, Plugin, WorkspaceLeaf } from "obsidian";
-import "../styles/index.css";
+import "../styles/index.scss";
 import { FlashcardSettings, DEFAULT_SETTINGS } from "../shared/types";
 import { DataStore } from "../storage/dataStore";
 import { FlashcardView, VIEW_TYPE_FLASHCARD } from "./FlashcardView";

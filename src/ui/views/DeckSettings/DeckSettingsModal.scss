@@ -1,0 +1,83 @@
+// =============================================================================
+// DeckSettingsModal Styles (SCSS)
+// =============================================================================
+
+.flashcard-deck-settings-modal {
+	max-height: 80vh;
+	max-height: 80dvh;
+}
+
+.flashcard-deck-settings-card,
+.flashcard-deck-settings-summary {
+	padding: var(--fc-space-3);
+	border: 0;
+	border-bottom: 1px solid var(--fc-line-soft);
+	border-radius: 0;
+	background: transparent;
+}
+
+.flashcard-deck-settings-toggle,
+.flashcard-deck-settings-fields {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+}
+
+.flashcard-deck-settings-toggle-label {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	color: var(--fc-text);
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-deck-settings-toggle-copy,
+.flashcard-deck-settings-hint,
+.flashcard-deck-settings-summary-label,
+.flashcard-deck-settings-days-unit,
+.flashcard-deck-settings-days-hint {
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+	line-height: var(--fc-line-body);
+}
+
+.flashcard-deck-settings-field {
+	flex-direction: column;
+	align-items: stretch;
+
+	label {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fc-space-2);
+		color: var(--fc-muted);
+		font-size: var(--fc-font-sm);
+
+		strong {
+			color: var(--fc-text);
+		}
+	}
+
+	input,
+	select {
+		border-color: var(--fc-input-border);
+		border-radius: var(--fc-radius-sm);
+		background: var(--fc-input-bg);
+		color: var(--fc-text);
+	}
+}
+
+.flashcard-deck-settings-summary-value {
+	color: var(--fc-text);
+}
+
+.flashcard-deck-settings-field-row {
+	align-items: flex-start;
+}
+
+.flashcard-deck-settings-days-inputs {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	flex-wrap: wrap;
+}

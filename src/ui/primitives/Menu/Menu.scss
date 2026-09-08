@@ -1,0 +1,82 @@
+// =============================================================================
+// Menu Component Styles (SCSS)
+// =============================================================================
+
+.flashcard-menu-root {
+	position: relative;
+	min-width: 0;
+
+	&.is-start .flashcard-menu {
+		left: 0;
+	}
+
+	&.is-end .flashcard-menu {
+		right: 0;
+	}
+
+	.flashcard-menu-trigger {
+		width: var(--fc-control-md);
+		height: var(--fc-control-md);
+		min-width: var(--fc-control-md);
+		padding: 0;
+	}
+
+	.flashcard-menu {
+		position: absolute;
+		top: calc(100% + var(--fc-space-2));
+		z-index: 30;
+		width: max-content;
+		min-width: 200px;
+		max-width: min(280px, calc(100vw - var(--fc-space-6)));
+		display: grid;
+		gap: var(--fc-space-1);
+		padding: var(--fc-space-2);
+		border: 1px solid var(--fc-line-strong);
+		border-radius: var(--fc-radius-sm);
+		background: color-mix(in srgb, var(--background-secondary) 85%, var(--text-normal) 15%);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		animation: var(--fc-motion-fade-in);
+
+		.flashcard-menu-item {
+			appearance: none;
+			width: 100%;
+			min-height: var(--fc-control-md);
+			display: flex;
+			align-items: center;
+			gap: var(--fc-space-2);
+			padding: var(--fc-space-2) var(--fc-space-3);
+			border: 1px solid var(--fc-line-soft);
+			border-radius: var(--fc-radius-xs);
+			background: color-mix(in srgb, var(--background-primary) 85%, var(--text-normal) 15%);
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+			color: var(--fc-text);
+			font: var(--fc-weight-medium) var(--fc-font-sm) / var(--fc-line-tight) var(--fc-font-ui);
+			text-align: left;
+			cursor: pointer;
+			transition:
+				background var(--fc-motion-quick) ease,
+				border-color var(--fc-motion-quick) ease;
+
+			&:hover:not(:disabled),
+			&:focus-visible {
+				border-color: var(--interactive-accent);
+				background: color-mix(
+					in srgb,
+					var(--interactive-accent) 25%,
+					var(--background-secondary) 75%
+				);
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+				outline: none;
+			}
+
+			&.is-danger {
+				color: var(--fc-danger);
+			}
+
+			&:disabled {
+				opacity: var(--fc-opacity-disabled);
+				cursor: not-allowed;
+			}
+		}
+	}
+}

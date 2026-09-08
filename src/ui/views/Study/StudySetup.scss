@@ -1,0 +1,89 @@
+// =============================================================================
+// StudySetup Styles (SCSS)
+// =============================================================================
+
+.flashcard-study-setup {
+	width: min(850px, 100%);
+	margin: 0 auto;
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	padding: 0 var(--fc-space-2) var(--fc-control-touch);
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+}
+
+.flashcard-study-options {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid var(--fc-line-soft);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-card);
+	overflow: hidden;
+}
+
+.flashcard-study-day-list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-2);
+}
+
+.flashcard-study-day-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--fc-space-3) var(--fc-space-4);
+	border: 1px solid var(--fc-line-soft);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-card);
+	transition: background var(--fc-motion-quick) ease;
+
+	&.completed {
+		opacity: 0.75;
+	}
+
+	.flashcard-study-day-name {
+		color: var(--fc-text);
+		font-weight: var(--fc-weight-semibold);
+		display: inline-flex;
+		align-items: center;
+		gap: var(--fc-space-2);
+		font-size: var(--fc-font-md);
+	}
+
+	.flashcard-study-day-today-badge {
+		border-radius: var(--fc-radius-pill);
+		background: rgba(var(--fc-magenta-rgb), 0.16);
+		color: var(--fc-magenta);
+		font-size: var(--fc-font-xs);
+		padding: var(--fc-space-1) var(--fc-space-2);
+	}
+
+	.flashcard-study-day-count {
+		color: var(--fc-muted);
+		font-family: var(--fc-font-ui);
+		font-size: var(--fc-font-sm);
+		min-width: 60px;
+		min-height: var(--fc-control-md);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 var(--fc-space-3);
+		border: 1px solid var(--fc-line);
+		border-radius: var(--fc-radius-sm);
+		background: transparent;
+		font-weight: var(--fc-weight-semibold);
+		line-height: var(--fc-line-tight);
+		text-align: center;
+	}
+}
+
+.flashcard-study-start-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-4) 0;
+}

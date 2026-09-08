@@ -4,12 +4,12 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 ## React and Obsidian boundaries
 
-- Keep React components functional and colocated under `src/ui/components/`; prefer existing component boundaries before adding new ones.
-- `FlashcardApp` owns navigation/setup drafts and adapts shared service snapshots. It carries initial setup options directly in `ViewState` instead of managing separate `useState` default buckets. It must not become a second authority for deck, session, identity, or pronunciation state.
+- Keep React components functional and organized by layer: UI primitives live under `src/ui/primitives/` (with colocated `.scss` styles), business feature views live under `src/ui/views/` (with colocated `.scss` styles), and `src/ui/components/index.ts` provides backward-compatible re-exports.
+- `FlashcardApp` (`src/ui/FlashcardApp.tsx`) owns navigation/setup drafts and adapts shared service snapshots. It carries initial setup options directly in `ViewState` instead of managing separate `useState` default buckets. It must not become a second authority for deck, session, identity, or pronunciation state.
 - `DeckHome` provides read and recording facades (such as `getDeck`, `getStudyHistory`, and `recordWordListVisit`) to prevent UI components from piercing through to the low-level `DataStore`.
 - `DeckSettingsModal` is isolated from `DeckList` to manage deck-level configuration, reusing pure definitions from `src/settings/studySettingsMeta.ts`.
 - Render card Markdown with Obsidian `MarkdownRenderer`, never raw HTML injection.
-- Use the shared modal primitives under `src/ui/modal/` and the existing confirmation/card-editor components before creating a new overlay system.
+- Use the shared modal primitives under `src/ui/primitives/Modal/` and the existing confirmation/card-editor components before creating a new overlay system.
 - Use `lucide-react` for new React icon buttons. Keep controls keyboard-friendly and preserve existing shortcuts.
 - Keep copy Chinese-first and route user-visible strings through `src/i18n/`.
 
@@ -36,8 +36,8 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 ## Styling
 
-- Edit CSS only under `src/styles/`. `src/styles/index.css` is the sole entry imported by `src/obsidian/main.ts`; Vite generates root `styles.css`.
-- Preserve the actual partial import order in `src/styles/index.css`: base, buttons, controls, home, study, word list, practice summary, spelling, pronunciation, stats, overlays/settings, motion, responsive.
+- Edit SCSS under `src/styles/` (for globals) and beside components under `src/ui/primitives/` and `src/ui/views/`. `src/styles/index.scss` is the sole entry imported by `src/obsidian/main.ts`; Vite generates root `styles.css`.
+- Preserve the cascade import order in `src/styles/index.scss`: base tokens & mixins, settings, primitives, views, motion, and responsive.
 - Reuse existing `--fc-*` tokens and Obsidian theme tokens. Avoid inline-style proliferation, new parallel token systems, or fixed light/dark palettes.
 - Keep touch targets, keyboard focus, reduced-motion behavior, responsive layouts, and light/dark contrast intact.
 - For a visible regression, make the smallest effective repair before considering broader redesign.

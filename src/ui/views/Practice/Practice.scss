@@ -1,0 +1,262 @@
+// =============================================================================
+// Practice Module Styles (SCSS)
+// =============================================================================
+
+.flashcard-practice-setup {
+	width: min(850px, 100%);
+	margin: 0 auto;
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	padding: 0 var(--fc-space-2) var(--fc-control-touch);
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+}
+
+.flashcard-practice-input {
+	border-color: var(--fc-input-border);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-input-bg);
+	color: var(--fc-text);
+}
+
+.flashcard-practice-response-controls {
+	display: grid;
+	grid-template-columns: 42px minmax(0, 1fr);
+	width: min(860px, 100%);
+	max-width: none;
+	margin-inline: auto;
+	gap: var(--fc-space-2);
+}
+
+.flashcard-practice-answer-buttons {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--fc-space-2);
+	width: 100%;
+}
+
+.flashcard-practice-btn-wrong {
+	flex: 1;
+	min-height: 48px;
+	border-color: rgba(var(--fc-red-rgb), 0.36);
+	background: rgba(var(--fc-red-rgb), 0.08);
+	color: var(--fc-red);
+
+	&:hover:not(:disabled) {
+		background: rgba(var(--fc-red-rgb), 0.16);
+	}
+}
+
+.flashcard-practice-btn-correct {
+	flex: 1;
+	min-height: 48px;
+	border-color: rgba(var(--fc-lime-rgb), 0.42);
+	background: rgba(var(--fc-lime-rgb), 0.1);
+	color: var(--fc-lime);
+
+	&:hover:not(:disabled) {
+		background: rgba(var(--fc-lime-rgb), 0.18);
+	}
+}
+
+// ── Practice Summary ─────────────────────────────────────────────────────────
+.flashcard-practice-summary {
+	overflow: hidden;
+	padding: var(--fc-space-1);
+
+	&-scroll {
+		min-height: 0;
+		flex: 1 1 auto;
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-4);
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior: contain;
+		padding: var(--fc-space-1);
+	}
+
+	&-header {
+		position: relative;
+		overflow: hidden;
+		padding: var(--fc-space-6);
+		border: 1px solid rgba(var(--fc-magenta-rgb), 0.2);
+		border-radius: var(--fc-radius-md);
+		background: rgba(var(--fc-bg-elevated-rgb), 0.9);
+		text-align: center;
+		box-shadow: var(--fc-shadow);
+		animation: var(--fc-motion-complete-pop);
+	}
+
+	&-title {
+		position: relative;
+		z-index: 1;
+		color: var(--fc-text);
+		font-size: var(--fc-font-xl);
+		font-weight: var(--fc-weight-semibold);
+	}
+
+	&-deck {
+		position: relative;
+		z-index: 1;
+		margin-top: var(--fc-space-2);
+		color: var(--fc-muted);
+		font-size: var(--fc-font-sm);
+	}
+
+	&-stats,
+	.flashcard-practice-incorrect-section {
+		width: min(720px, 100%);
+		margin: 0 auto;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		box-shadow: none;
+	}
+
+	.flashcard-practice-incorrect-section {
+		padding-top: var(--fc-space-4);
+		border-top: 1px solid var(--fc-line);
+	}
+
+	&-actions {
+		width: min(560px, 100%);
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+		gap: var(--fc-space-2);
+		flex: 0 0 auto;
+		margin: 0 auto;
+		padding: var(--fc-space-2);
+		border: 1px solid var(--fc-line);
+		border-radius: var(--fc-radius-md);
+		background: var(--fc-surface-card);
+		box-shadow: var(--fc-shadow);
+	}
+}
+
+.flashcard-practice-stat-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-bottom: var(--fc-space-3);
+	padding: var(--fc-space-4);
+	text-align: center;
+	animation: var(--fc-motion-rise);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-card);
+
+	.flashcard-practice-stat-value {
+		font-size: var(--fc-font-display);
+		font-family: var(--fc-font-data);
+		font-weight: var(--fc-weight-bold);
+	}
+}
+
+.flashcard-practice-stat-row {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--fc-space-3);
+}
+
+.flashcard-practice-stat-item {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-3);
+	animation: var(--fc-motion-rise);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-card);
+
+	&.flashcard-practice-stat-correct .flashcard-practice-stat-icon {
+		color: var(--fc-lime);
+	}
+
+	&.flashcard-practice-stat-wrong .flashcard-practice-stat-icon {
+		color: var(--fc-red);
+	}
+}
+
+.flashcard-practice-stat-text {
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+
+	strong {
+		color: var(--fc-text);
+	}
+}
+
+.flashcard-practice-incorrect-title {
+	display: flex;
+	align-items: center;
+	gap: var(--fc-space-2);
+	margin: 0 0 var(--fc-space-3);
+	color: var(--fc-text);
+	font-size: var(--fc-font-lg);
+}
+
+.flashcard-practice-incorrect-item {
+	content-visibility: auto;
+	contain-intrinsic-size: 0 96px;
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr);
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-3);
+	border: 1px solid rgba(var(--fc-red-rgb), 0.22);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-card);
+	animation: var(--fc-motion-rise);
+}
+
+.flashcard-practice-incorrect-index {
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid rgba(var(--fc-red-rgb), 0.4);
+	border-radius: var(--fc-radius-pill);
+	color: var(--fc-red);
+	font-family: var(--fc-font-data);
+	font-weight: var(--fc-weight-semibold);
+}
+
+.flashcard-practice-incorrect-content {
+	min-width: 0;
+}
+
+.flashcard-practice-incorrect-question,
+.flashcard-practice-incorrect-answer,
+.flashcard-practice-incorrect-explanation {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: var(--fc-space-2);
+}
+
+.flashcard-practice-incorrect-label {
+	white-space: nowrap;
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+}
+
+.flashcard-practice-incorrect-question,
+.flashcard-practice-incorrect-answer {
+	margin-bottom: var(--fc-space-2);
+}
+
+.flashcard-practice-incorrect-text {
+	color: var(--fc-text);
+	font-size: var(--fc-font-sm);
+	line-height: var(--fc-line-body);
+
+	p {
+		margin: 0;
+	}
+}

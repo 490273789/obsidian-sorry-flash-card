@@ -1,0 +1,121 @@
+// =============================================================================
+// Modal Primitive Styles (SCSS)
+// =============================================================================
+
+.flashcard-modal-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: var(--fc-space-4);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	background: rgba(var(--fc-black-rgb), 0.72);
+	backdrop-filter: blur(8px);
+	animation: var(--fc-motion-fade-in);
+
+	&[aria-hidden="true"] {
+		pointer-events: none;
+	}
+}
+
+.flashcard-modal {
+	width: min(560px, 100%);
+	max-height: 85dvh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	animation: var(--fc-motion-modal-in);
+	border: 1px solid var(--fc-line);
+	background: var(--fc-surface-card);
+	border-radius: var(--fc-radius-md);
+	box-shadow: var(--fc-shadow-overlay);
+
+	&-header,
+	&-footer {
+		display: flex;
+		gap: var(--fc-space-3);
+		padding: var(--fc-space-4);
+		background: var(--fc-surface-section);
+	}
+
+	&-header {
+		align-items: flex-start;
+		justify-content: space-between;
+		border-bottom: 1px solid var(--fc-line);
+	}
+
+	&-footer {
+		justify-content: flex-end;
+		border-top: 1px solid var(--fc-line);
+	}
+
+	&-heading {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-2);
+	}
+
+	&-kicker {
+		width: fit-content;
+		max-width: 100%;
+	}
+
+	&-title {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--fc-space-2);
+		color: var(--fc-text);
+		font-size: var(--fc-font-md);
+		font-weight: var(--fc-weight-semibold);
+	}
+
+	&-subtitle {
+		color: var(--fc-muted);
+		font-size: var(--fc-font-sm);
+		line-height: var(--fc-line-body);
+	}
+
+	&-body {
+		min-height: 0;
+		flex: 1;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		-webkit-overflow-scrolling: touch;
+		padding: var(--fc-space-4);
+	}
+
+	&-close {
+		width: var(--fc-control-md);
+		height: var(--fc-control-md);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid rgba(var(--fc-red-rgb), 0.24);
+		border-radius: var(--fc-radius-sm);
+		background: rgba(var(--fc-red-rgb), 0.08);
+		color: var(--fc-red);
+		cursor: pointer;
+		transition: var(--fc-transition-modal-control);
+
+		&:hover {
+			border-color: rgba(var(--fc-red-rgb), 0.48);
+			outline: none;
+		}
+
+		&:focus-visible {
+			border-color: rgba(var(--fc-red-rgb), 0.48);
+			box-shadow: 0 0 18px rgba(var(--fc-red-rgb), 0.12);
+			outline: none;
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+			opacity: var(--fc-opacity-disabled);
+		}
+	}
+}

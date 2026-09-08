@@ -1,4 +1,5 @@
 allowBuilds:
+    "@parcel/watcher": true
     esbuild: true
 minimumReleaseAgeExclude:
     - obsidian@1.13.1

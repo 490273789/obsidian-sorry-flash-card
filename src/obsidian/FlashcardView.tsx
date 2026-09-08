@@ -1,7 +1,7 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import React from "react";
-import { FlashcardApp } from "../ui/components/FlashcardApp";
+import { FlashcardApp } from "../ui/FlashcardApp";
 import { FlashcardSettings } from "../shared/types";
 import { translate } from "../i18n";
 import type { CardIdentityContinuity } from "../identity/cardIdentityContinuity";

@@ -1,0 +1,270 @@
+// =============================================================================
+// Button Component Styles (SCSS)
+// =============================================================================
+
+.flashcard-btn {
+	appearance: none;
+	position: relative;
+	min-width: 0;
+	min-height: var(--fc-control-md);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-2) var(--fc-space-3);
+	border: 1px solid var(--fc-control-border);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-control-bg);
+	box-shadow: var(--fc-shadow-sm);
+	color: var(--fc-text);
+	font: var(--fc-weight-medium) var(--fc-font-sm) / var(--fc-line-tight) var(--fc-font-ui);
+	text-align: center;
+	cursor: pointer;
+	transition: var(--fc-transition-button);
+
+	> span {
+		min-width: 0;
+	}
+
+	&:hover:not(:disabled) {
+		background: var(--fc-control-bg-hover);
+		outline: none;
+	}
+
+	&:focus-visible {
+		box-shadow: var(--fc-glow-cyan);
+		outline: 2px solid var(--interactive-accent);
+		outline-offset: 2px;
+	}
+
+	&:active:not(:disabled) {
+		transform: translateY(1px);
+		box-shadow: none;
+	}
+
+	&:disabled {
+		opacity: var(--fc-opacity-disabled);
+		cursor: not-allowed;
+		transform: none;
+		box-shadow: none;
+	}
+
+	&.active,
+	&[aria-pressed="true"] {
+		border-color: var(--fc-control-border-selected);
+		background: var(--fc-surface-selected);
+		color: var(--fc-text);
+		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--interactive-accent) 24%, transparent);
+		animation: none;
+	}
+
+	// ── 尺寸变体 (Size Variants) ──────────────────────────────────────────────
+	&-sm {
+		min-height: var(--fc-control-sm);
+		padding: var(--fc-space-1) var(--fc-space-2);
+	}
+
+	&-md {
+		min-height: var(--fc-control-md);
+	}
+
+	&-lg {
+		min-height: var(--fc-control-touch);
+		padding: var(--fc-space-3) var(--fc-space-4);
+		font-size: var(--fc-font-md);
+	}
+
+	// ── 预设形状 (Shape Presets) ──────────────────────────────────────────────
+	&-icon,
+	&-prev {
+		width: var(--fc-control-md);
+		height: var(--fc-control-md);
+		min-width: var(--fc-control-md);
+		min-height: var(--fc-control-md);
+		padding: 0;
+		flex: 0 0 auto;
+
+		svg {
+			display: block;
+			flex: 0 0 auto;
+			stroke: currentColor;
+		}
+	}
+
+	&-show {
+		width: 100%;
+		// min-height: 50px;
+		overflow: hidden;
+		font-size: var(--fc-font-md);
+		letter-spacing: 0.02em;
+	}
+
+	// ── 语义与颜色变体 (Color & Semantic Variants) ────────────────────────────
+	&-primary {
+		border-color: var(--interactive-accent);
+		background: var(--interactive-accent);
+		color: var(--text-on-accent);
+		box-shadow: none;
+
+		&:hover:not(:disabled),
+		&:focus-visible {
+			border-color: var(--interactive-accent-hover);
+			background: var(--interactive-accent-hover);
+		}
+	}
+
+	&-secondary {
+		border-color: var(--fc-control-border);
+		background: var(--fc-control-bg);
+		color: var(--fc-text);
+		box-shadow: none;
+	}
+
+	&-danger {
+		border-color: rgba(var(--fc-red-rgb), 0.36);
+		background: rgba(var(--fc-red-rgb), 0.08);
+		color: var(--fc-red);
+		box-shadow: none;
+	}
+
+	&-green {
+		border-color: rgba(var(--fc-lime-rgb), 0.42);
+		background:
+			linear-gradient(135deg, rgba(var(--fc-lime-rgb), 0.24), rgba(var(--fc-cyan-rgb), 0.14)),
+			rgba(var(--fc-bg-elevated-rgb), 0.94);
+		color: var(--fc-text);
+	}
+
+	&-blue {
+		border-color: color-mix(in srgb, var(--fc-secondary) 55%, transparent);
+		background:
+			linear-gradient(
+				135deg,
+				color-mix(in srgb, var(--fc-secondary) 18%, transparent),
+				color-mix(in srgb, var(--fc-secondary) 10%, transparent)
+			),
+			rgba(var(--fc-bg-elevated-rgb), 0.94);
+		color: var(--fc-secondary);
+
+		&:hover:not(:disabled),
+		&:focus-visible {
+			background:
+				linear-gradient(
+					135deg,
+					color-mix(in srgb, var(--fc-secondary) 28%, transparent),
+					color-mix(in srgb, var(--fc-secondary) 16%, transparent)
+				),
+				rgba(var(--fc-bg-elevated-rgb), 0.94);
+		}
+	}
+
+	&-purple {
+		border-color: rgba(var(--fc-violet-rgb), 0.46);
+		background: var(--fc-surface-section);
+		color: var(--fc-text);
+		box-shadow: none;
+	}
+
+	&-orange {
+		border-color: rgba(var(--fc-orange-rgb), 0.5);
+		background: var(--fc-surface-section);
+		color: var(--fc-text);
+		box-shadow: none;
+	}
+
+	&-red {
+		border-color: rgba(var(--fc-red-rgb), 0.5);
+		background: var(--fc-surface-section);
+		color: var(--fc-text);
+		box-shadow: none;
+	}
+
+	&-gray {
+		border-color: var(--fc-line);
+		background: var(--fc-surface-control);
+		color: var(--fc-text);
+		box-shadow: none;
+	}
+}
+
+// ── Obsidian 宿主特化与无障碍层级 ────────────────────────────────────────────
+.flashcard-root {
+	button.flashcard-btn,
+	.flashcard-btn {
+		background-color: var(--fc-control-bg);
+		color: var(--fc-text);
+
+		&:hover:not(:disabled),
+		&:focus-visible {
+			background: var(--fc-control-bg-hover);
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--interactive-accent);
+			outline-offset: 2px;
+		}
+
+		&.flashcard-btn-primary {
+			border-color: var(--interactive-accent);
+			background: var(--interactive-accent);
+			color: var(--text-on-accent);
+
+			&:hover:not(:disabled),
+			&:focus-visible {
+				border-color: var(--interactive-accent-hover);
+				background: var(--interactive-accent-hover);
+			}
+		}
+
+		&.flashcard-btn-icon {
+			border: none;
+			background: var(--fc-surface-control);
+			box-shadow: none;
+
+			&:focus-visible {
+				border-color: transparent;
+				box-shadow: 0 0 0 2px rgba(var(--fc-cyan-rgb), 0.24);
+			}
+		}
+
+		&.flashcard-btn-prev {
+			width: var(--fc-control-touch);
+			height: var(--fc-control-touch);
+			min-width: var(--fc-control-touch);
+			min-height: var(--fc-control-touch);
+			border-color: transparent;
+			background: transparent;
+			color: var(--fc-muted);
+			box-shadow: none;
+
+			&:hover:not(:disabled),
+			&:focus-visible {
+				border-color: var(--fc-line);
+				background: var(--fc-surface-hover);
+				color: var(--fc-text);
+				box-shadow: none;
+			}
+		}
+	}
+
+	button:is(.flashcard-btn-prev, .flashcard-menu-trigger, .flashcard-deck-action-more) {
+		border: 1px solid var(--fc-compact-control-border);
+		background: color-mix(in srgb, var(--fc-surface-control) 34%, transparent);
+		box-shadow: none;
+
+		&:hover:not(:disabled),
+		&:focus-visible {
+			border-color: var(--interactive-accent);
+			background: var(--fc-surface-hover);
+		}
+	}
+}
+
+// 快捷键提示
+.flashcard-shortcut,
+.flashcard-rating-interval {
+	color: inherit;
+	opacity: 0.5;
+	font-size: var(--fc-font-xs);
+	font-family: var(--fc-font-data);
+}
