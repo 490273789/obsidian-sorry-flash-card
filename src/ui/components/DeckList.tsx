@@ -100,26 +100,6 @@ const DeckCard = memo(function DeckCard({
 	const [showMoreActions, setShowMoreActions] = useState(false);
 	const spellingReady = deck.spelling.ready;
 	const moreActions: FlashcardMenuItem[] = [
-		...(deck.spelling.enabled
-			? [
-					{
-						key: "spelling",
-						label: t("home.spelling"),
-						icon: Keyboard,
-						onSelect: () => onStartSpelling(deck.id),
-						disabled: !spellingReady,
-						title: spellingReady
-							? deck.spelling.ignoredCardCount > 0
-								? t("home.spellingModeIgnoredTitle", {
-										count: deck.spelling.ignoredCardCount,
-									})
-								: t("home.spellingModeTitle")
-							: t("home.spellingUnavailableTitle", {
-									count: deck.spelling.issueCount,
-								}),
-					},
-				]
-			: []),
 		{
 			key: "export",
 			label: t("home.exportPdfTitle"),
@@ -207,7 +187,11 @@ const DeckCard = memo(function DeckCard({
 				onMouseDown={(event) => event.stopPropagation()}
 				onTouchStart={(event) => event.stopPropagation()}
 			>
-				<div className="flashcard-deck-actions2">
+				<div
+					className={`flashcard-deck-actions2${
+						deck.spelling.enabled ? " has-spelling" : ""
+					}`}
+				>
 					<FlashcardButton
 						variant="green"
 						className="flashcard-deck-action-study"
@@ -232,6 +216,31 @@ const DeckCard = memo(function DeckCard({
 					>
 						<span>{t("home.practice")}</span>
 					</FlashcardButton>
+					{deck.spelling.enabled && (
+						<FlashcardButton
+							variant="purple"
+							className="flashcard-deck-action-spelling"
+							icon={Keyboard}
+							onClick={(event) => {
+								event.stopPropagation();
+								onStartSpelling(deck.id);
+							}}
+							disabled={!spellingReady}
+							title={
+								spellingReady
+									? deck.spelling.ignoredCardCount > 0
+										? t("home.spellingModeIgnoredTitle", {
+												count: deck.spelling.ignoredCardCount,
+											})
+										: t("home.spellingModeTitle")
+									: t("home.spellingUnavailableTitle", {
+											count: deck.spelling.issueCount,
+										})
+							}
+						>
+							<span>{t("home.spelling")}</span>
+						</FlashcardButton>
+					)}
 					<FlashcardMenu
 						items={moreActions}
 						triggerTitle={

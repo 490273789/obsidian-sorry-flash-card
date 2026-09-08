@@ -1,5 +1,5 @@
 .flashcard-deck-actions2.has-spelling {
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
 }
 
 .flashcard-word-learning-badge {
@@ -314,10 +314,6 @@
 }
 
 @media (max-width: 640px) {
-	.flashcard-deck-actions2.has-spelling {
-		grid-template-columns: 1fr;
-	}
-
 	.flashcard-deck-settings-purpose-heading,
 	.flashcard-deck-settings-warning {
 		flex-direction: column;

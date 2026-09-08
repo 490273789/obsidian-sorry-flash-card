@@ -183,6 +183,10 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
 	}
 
+	.flashcard-deck-actions2.has-spelling {
+		grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+	}
+
 	/* On mobile the last deck card sits at the end of the scrollable list,
 	   so its more-actions menu opens upward instead of clipping below the
 	   fold. Desktop keeps every menu opening downward. */
@@ -382,8 +386,8 @@
 	}
 
 	.flashcard-study .flashcard-session-timer {
-		min-height: var(--fc-control-sm);
-		min-width: 88px;
+		min-height: var(--fc-control-touch);
+		min-width: 68px;
 		padding-top: var(--fc-space-1);
 		padding-bottom: var(--fc-space-1);
 	}
@@ -591,6 +595,10 @@
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--fc-control-touch);
 	}
 
+	.flashcard-deck-item .flashcard-deck-actions2.has-spelling {
+		grid-template-columns: repeat(3, minmax(0, 1fr)) var(--fc-control-touch);
+	}
+
 	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
 		height: var(--fc-control-touch);
 		min-height: var(--fc-control-touch);
@@ -618,6 +626,10 @@
 @media (pointer: coarse) {
 	.flashcard-deck-item .flashcard-deck-actions2 {
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--fc-control-touch);
+	}
+
+	.flashcard-deck-item .flashcard-deck-actions2.has-spelling {
+		grid-template-columns: repeat(3, minmax(0, 1fr)) var(--fc-control-touch);
 	}
 
 	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
