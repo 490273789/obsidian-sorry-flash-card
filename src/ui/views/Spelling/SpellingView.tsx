@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Check, CornerDownLeft, Keyboard, Lightbulb, X } from "lucide-react";
+import { Check, CornerDownLeft, Lightbulb, X } from "lucide-react";
 import { Notice } from "obsidian";
 import type {
 	ActiveSpellingSnapshot,
@@ -143,8 +143,6 @@ export const SpellingView = React.memo(function SpellingView({
 		<div ref={viewRef} className="flashcard-study flashcard-spelling-view">
 			<SessionToolbar
 				deckName={session.originDeck.name}
-				statusIcon={Keyboard}
-				statusLabel={isCorrection ? t("spelling.correcting") : t("spelling.spelling")}
 				progress={`${completed}/${total}`}
 				progressPercent={progressPercent}
 				startTime={session.startTime}

@@ -3,20 +3,24 @@
 // =============================================================================
 
 .flashcard-session-shell {
+	position: sticky;
+	top: 0;
+	z-index: 24;
 	display: flex;
 	flex-direction: column;
 }
 
 .flashcard-session-identity,
 .flashcard-session-metrics,
-.flashcard-session-actions {
+.flashcard-session-actions,
+.flashcard-session-header-tools {
 	display: flex;
 	align-items: center;
 	min-width: 0;
 }
 
 .flashcard-session-identity {
-	gap: var(--fc-space-2);
+	min-width: 0;
 
 	.flashcard-deck-title {
 		overflow: hidden;
@@ -28,32 +32,29 @@
 		font-size: var(--fc-font-md);
 		letter-spacing: -0.01em;
 	}
+}
 
-	.flashcard-badge {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--fc-space-1);
-		padding: 1px var(--fc-space-2);
-		border-radius: var(--fc-radius-xs);
-		border: 1px solid color-mix(in srgb, var(--fc-cyan) 25%, transparent);
-		color: var(--fc-cyan);
-		background: color-mix(in srgb, var(--fc-cyan) 10%, transparent);
-		font-size: var(--fc-font-xs);
-		font-weight: var(--fc-weight-medium);
+.flashcard-session-header {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-2) var(--fc-space-4);
+	border-bottom: 1px solid var(--fc-line-soft);
+	background: color-mix(in srgb, var(--background-primary) 90%, transparent);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+
+	.flashcard-session-close {
+		flex: 0 0 auto;
 	}
 }
 
-.flashcard-session-toolbar {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--fc-space-3);
-	padding: var(--fc-space-1) var(--fc-space-4);
-	border-top: 1px solid var(--fc-line-soft);
-	border-bottom: 1px solid var(--fc-line-soft);
-	background: color-mix(in srgb, var(--background-secondary) 84%, var(--background-primary) 16%);
-	box-shadow: var(--fc-shadow-inset);
-	min-height: 38px;
+.flashcard-session-header-tools {
+	justify-content: flex-end;
+	gap: var(--fc-space-2);
+	margin-left: auto;
+	min-width: 0;
 }
 
 .flashcard-session-progress {
@@ -153,14 +154,6 @@
 		display: none;
 	}
 
-	.flashcard-session-actions-toggle-icon {
-		transition: transform var(--fc-transition-fast);
-	}
-
-	&.is-open .flashcard-session-actions-toggle-icon {
-		transform: rotate(180deg);
-	}
-
 	.flashcard-session-action-item {
 		display: inline-flex;
 		width: 30px;
@@ -178,5 +171,61 @@
 			color: var(--fc-text);
 			border-color: var(--fc-line-glow);
 		}
+	}
+}
+
+@media (max-width: 640px) {
+	.flashcard-session-header {
+		gap: var(--fc-space-2);
+		padding: var(--fc-space-2);
+
+		.flashcard-session-close {
+			width: var(--fc-control-touch);
+			height: var(--fc-control-touch);
+			min-width: var(--fc-control-touch);
+			min-height: var(--fc-control-touch);
+		}
+	}
+
+	.flashcard-session-identity .flashcard-deck-title {
+		max-width: none;
+		font-size: var(--fc-font-sm);
+	}
+
+	.flashcard-session-header-tools {
+		gap: var(--fc-space-1);
+	}
+
+	.flashcard-session-progress {
+		gap: var(--fc-space-1);
+		padding: var(--fc-space-1) var(--fc-space-2);
+
+		&-track {
+			display: none;
+		}
+	}
+
+	.flashcard-session-actions {
+		.flashcard-session-actions-toggle {
+			display: inline-flex;
+			width: var(--fc-control-touch);
+			height: var(--fc-control-touch);
+			min-width: var(--fc-control-touch);
+			min-height: var(--fc-control-touch);
+		}
+
+		.flashcard-session-action-item {
+			display: none;
+		}
+
+		.flashcard-session-actions-menu .flashcard-menu-item {
+			min-height: var(--fc-control-touch);
+		}
+	}
+
+	.flashcard-session-timer {
+		min-width: 52px;
+		padding-left: calc(var(--fc-space-3) + var(--fc-space-1));
+		font-size: var(--fc-font-xs);
 	}
 }

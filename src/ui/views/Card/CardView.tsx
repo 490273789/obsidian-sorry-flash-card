@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Brain, PartyPopper, RotateCcw } from "lucide-react";
+import { PartyPopper, RotateCcw } from "lucide-react";
 import { Notice } from "obsidian";
 import { StudyRating } from "../../../shared/types";
 import { getRatingButtons } from "../../../sessions/scheduler";
@@ -181,16 +181,11 @@ export const CardView = React.memo(function CardView({
 	}
 
 	const progress = session.progress;
-	const directionLabel =
-		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
-
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
 			<SessionToolbar
 				deckName={session.originDeck.name}
-				statusIcon={Brain}
-				statusLabel={`${t("study.studying")} · ${directionLabel}`}
 				progress={progress.label}
 				progressPercent={progress.percent}
 				startTime={session.startTime}

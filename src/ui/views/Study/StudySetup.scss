@@ -187,7 +187,7 @@
 	position: sticky;
 	bottom: 0;
 	z-index: 15;
-	padding: var(--fc-space-3) 0 var(--fc-space-4);
+	// padding: var(--fc-space-3) 0 var(--fc-space-4);
 	margin-top: auto;
 	background: linear-gradient(to top, var(--background-primary) 80%, transparent);
 	backdrop-filter: blur(8px);

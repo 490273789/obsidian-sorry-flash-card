@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { RotateCcw, Target, X, Check } from "lucide-react";
+import { RotateCcw, X, Check } from "lucide-react";
 import { Notice } from "obsidian";
 import { getDisplayCardContent } from "../../../cards/cardDisplay";
 import type { ActivePracticeSnapshot } from "../../../sessions/sessionLifecycle";
@@ -149,16 +149,11 @@ export const PracticeView = React.memo(function PracticeView({
 
 	const progress = session.progress.label;
 	const progressPercent = session.progress.percent;
-	const directionLabel =
-		session.direction === "normal" ? t("mode.normalShort") : t("mode.reversedShort");
-
 	return (
 		<div className="flashcard-study">
 			{/* Header */}
 			<SessionToolbar
 				deckName={session.originDeck.name}
-				statusIcon={Target}
-				statusLabel={`${t("practice.practicing")} · ${directionLabel}`}
 				progress={progress}
 				progressPercent={progressPercent}
 				startTime={session.startTime}

@@ -1,5 +1,4 @@
 import React from "react";
-import { Brain } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../../../context/I18nContext";
@@ -12,8 +11,6 @@ function renderToolbar(
 		<I18nProvider language="zh">
 			<SessionToolbar
 				deckName="测试牌组"
-				statusIcon={Brain}
-				statusLabel="学习中"
 				progress="1/10"
 				progressPercent={10}
 				startTime={Date.now()}
@@ -30,6 +27,15 @@ function renderToolbar(
 }
 
 describe("SessionToolbar", () => {
+	it("uses a single header without the session status badge", () => {
+		const html = renderToolbar();
+
+		expect(html).toContain("flashcard-session-header");
+		expect(html).not.toContain("flashcard-session-toolbar");
+		expect(html).not.toContain("学习中");
+		expect(html).toContain("flashcard-menu-trigger");
+	});
+
 	it("places the disabled auto-pronunciation toggle before edit", () => {
 		const html = renderToolbar({
 			enabled: false,

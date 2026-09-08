@@ -123,6 +123,7 @@
 	bottom: 0;
 	z-index: 12;
 	border-radius: 0;
+	padding: var(--fc-space-1);
 	width: min(760px, 100%);
 	margin-inline: auto;
 	display: flex;
