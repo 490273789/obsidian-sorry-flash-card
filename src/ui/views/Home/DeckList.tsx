@@ -51,6 +51,7 @@ import { useI18n } from "../../context/I18nContext";
 interface DeckCardProps {
 	deck: DeckHomeDeckSnapshot;
 	isReorderDisabled: boolean;
+	isRecentlyDropped: boolean;
 	onSelectDeck: (deckId: string) => void;
 	onOpenWordList: (deckId: string) => void;
 	onStartPractice: (deckId: string) => void;
@@ -66,6 +67,7 @@ interface DeckCardProps {
 const DeckCard = memo(function DeckCard({
 	deck,
 	isReorderDisabled,
+	isRecentlyDropped,
 	onSelectDeck,
 	onOpenWordList,
 	onStartPractice,
@@ -136,7 +138,7 @@ const DeckCard = memo(function DeckCard({
 			data-deck-id={deck.id}
 			style={{
 				transform: CSS.Transform.toString(transform),
-				transition,
+				transition: getDeckCardTransition(isDragging, isRecentlyDropped, transition),
 			}}
 			aria-label={t("home.reorderDeck", { deckName: deck.name })}
 			{...attributes}
@@ -256,6 +258,14 @@ const DeckCard = memo(function DeckCard({
 	);
 });
 
+export function getDeckCardTransition(
+	isDragging: boolean,
+	isRecentlyDropped: boolean,
+	transition: string | undefined,
+): string | undefined {
+	return isDragging || isRecentlyDropped ? "none" : transition;
+}
+
 // ── DeckList ─────────────────────────────────────────────────────────────────
 
 interface DeckListProps {
@@ -291,6 +301,7 @@ export const DeckList = React.memo(function DeckList({
 	const draft = snapshot.settingsDraft?.ownerId === ownerId ? snapshot.settingsDraft : null;
 	const [previewDeckIds, setPreviewDeckIds] = useState<string[] | null>(null);
 	const [isOrderSaving, setIsOrderSaving] = useState(false);
+	const [recentlyDroppedDeckId, setRecentlyDroppedDeckId] = useState<string | null>(null);
 	const snapshotDeckIds = snapshot.decks.map((deck) => deck.id);
 	const visibleDeckIds = previewDeckIds ?? snapshotDeckIds;
 	const visibleDecks = orderDeckSnapshots(snapshot.decks, visibleDeckIds);
@@ -327,7 +338,9 @@ export const DeckList = React.memo(function DeckList({
 			const overIndex = visibleDeckIds.indexOf(String(over.id));
 			if (activeIndex < 0 || overIndex < 0) return;
 			const nextOrder = arrayMove(visibleDeckIds, activeIndex, overIndex);
+			setRecentlyDroppedDeckId(String(active.id));
 			setPreviewDeckIds(nextOrder);
+			requestAnimationFrame(() => setRecentlyDroppedDeckId(null));
 			void persistDeckOrder(nextOrder);
 		},
 		[persistDeckOrder, visibleDeckIds],
@@ -465,6 +478,9 @@ export const DeckList = React.memo(function DeckList({
 												key={deck.id}
 												deck={deck}
 												isReorderDisabled={isOrderSaving}
+												isRecentlyDropped={
+													recentlyDroppedDeckId === deck.id
+												}
 												onSelectDeck={(deckId) =>
 													onNavigate("study", deckId)
 												}

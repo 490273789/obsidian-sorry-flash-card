@@ -232,8 +232,7 @@
 
 /* Compact deck rows keep metadata and actions in one scan line. */
 .flashcard-deck-list .flashcard-deck-item {
-	content-visibility: auto;
-	contain-intrinsic-size: auto 64px;
+	content-visibility: visible;
 	box-sizing: border-box;
 	min-height: 64px;
 	position: relative;

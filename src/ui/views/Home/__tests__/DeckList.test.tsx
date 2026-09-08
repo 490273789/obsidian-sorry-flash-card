@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import type { DeckHome, DeckHomeDeckSnapshot, DeckHomeSnapshot } from "../../../../decks/deckHome";
 import { I18nProvider } from "../../../context/I18nContext";
-import { DeckList } from "../DeckList";
+import { DeckList, getDeckCardTransition } from "../DeckList";
 
 function makeDeckSnapshot(overrides: Partial<DeckHomeDeckSnapshot> = {}): DeckHomeDeckSnapshot {
 	return {
@@ -76,6 +76,14 @@ function renderDeckList(snapshot: DeckHomeSnapshot) {
 }
 
 describe("DeckList", () => {
+	it("disables the transform transition for the drag source until it reaches its new position", () => {
+		expect(getDeckCardTransition(true, false, "transform 200ms ease")).toBe("none");
+		expect(getDeckCardTransition(false, true, undefined)).toBe("none");
+		expect(getDeckCardTransition(false, false, "transform 200ms ease")).toBe(
+			"transform 200ms ease",
+		);
+	});
+
 	it("renders spelling button directly when spelling is enabled", () => {
 		const deck = makeDeckSnapshot({
 			spelling: {
