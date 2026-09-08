@@ -8,7 +8,7 @@
 	--fc-font-xs: 12px;
 	--fc-font-sm: 14px;
 	--fc-font-md: 16px;
-	--fc-font-lg: 18px;
+	--fc-font-lg: 17px;
 	--fc-font-xl: 22px;
 	--fc-font-display: 24px;
 	--fc-font-hero: 28px;
@@ -24,7 +24,7 @@
 	--fc-radius-xs: 4px;
 	--fc-radius-sm: 6px;
 	--fc-radius-md: 8px;
-	--fc-radius-lg: 12px;
+	--fc-radius-lg: 8px;
 	--fc-radius-pill: 999px;
 
 	--fc-space-half: 2px;
@@ -93,7 +93,7 @@
 	--fc-opacity-disabled: 0.45;
 
 	/* ── 边框与分隔线 ────────────────────────────────────────── */
-	--fc-line: color-mix(in srgb, var(--background-modifier-border) 70%, var(--text-muted) 30%);
+	--fc-line: var(--background-modifier-border);
 	--fc-line-strong: color-mix(
 		in srgb,
 		var(--background-modifier-border-focus) 60%,
@@ -106,22 +106,14 @@
 	/* ── 控件表面与边框 ──────────────────────────────────────── */
 	--fc-control-bg: var(--fc-surface-control);
 	--fc-control-bg-hover: var(--fc-surface-hover);
-	--fc-control-border: color-mix(
-		in srgb,
-		var(--background-modifier-border-hover) 72%,
-		var(--text-muted) 28%
-	);
+	--fc-control-border: var(--background-modifier-border);
 	--fc-control-border-hover: color-mix(in srgb, var(--interactive-accent) 30%, var(--fc-line));
 	--fc-control-border-selected: color-mix(
 		in srgb,
 		var(--interactive-accent) 78%,
 		var(--text-normal) 22%
 	);
-	--fc-compact-control-border: color-mix(
-		in srgb,
-		var(--text-muted) 68%,
-		var(--interactive-accent) 32%
-	);
+	--fc-compact-control-border: var(--background-modifier-border);
 
 	/* ── 输入框 ─────────────────────────────────────────────── */
 	--fc-input-bg: color-mix(

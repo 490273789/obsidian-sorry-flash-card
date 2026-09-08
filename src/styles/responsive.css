@@ -559,27 +559,32 @@
 	}
 }
 
-@container flashcard-page (max-width: 720px) {
+/* Respond to the Obsidian pane width, including desktop split panes. */
+@container flashcard-page (max-width: 520px) {
 	.flashcard-header-stats.columns-3,
 	.flashcard-header-stats.columns-4,
 	.flashcard-header-stats.columns-5 {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
-	.flashcard-deck-index .flashcard-deck-list {
+	.flashcard-header-stat {
+		justify-content: flex-start;
+		white-space: normal;
+	}
+
+	.flashcard-header-stat:nth-child(odd) {
+		border-left: 0;
+	}
+
+	.flashcard-deck-list .flashcard-deck-item {
 		grid-template-columns: minmax(0, 1fr);
+		min-height: 0;
 		gap: var(--fc-space-3);
+		padding: var(--fc-space-3);
 	}
 
-	.flashcard-deck-list .flashcard-deck-item,
-	.flashcard-deck-list .flashcard-deck-item:nth-last-child(1):nth-child(odd) {
-		grid-column: auto;
-		min-height: 145px;
-		padding: var(--fc-space-4) var(--fc-space-3) var(--fc-space-3);
-	}
-
-	.flashcard-deck-item .flashcard-deck-name {
-		font-size: var(--fc-font-lg);
+	.flashcard-deck-item .flashcard-deck-side {
+		width: 100%;
 	}
 
 	.flashcard-deck-item .flashcard-deck-actions2 {
@@ -595,6 +600,11 @@
 		width: var(--fc-control-touch);
 		min-width: var(--fc-control-touch);
 	}
+
+	.flashcard-deck-list .flashcard-deck-item:last-child .flashcard-deck-more-actions {
+		top: auto;
+		bottom: calc(100% + var(--fc-space-2));
+	}
 }
 @media (pointer: coarse) {
 	.flashcard-root button.flashcard-deck-action-more,
@@ -602,5 +612,20 @@
 	.flashcard-root .flashcard-session-actions .flashcard-btn {
 		min-width: var(--fc-control-touch);
 		min-height: var(--fc-control-touch);
+	}
+}
+
+@media (pointer: coarse) {
+	.flashcard-deck-item .flashcard-deck-actions2 {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--fc-control-touch);
+	}
+
+	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
+		min-height: var(--fc-control-touch);
+	}
+
+	.flashcard-root .flashcard-deck-item button.flashcard-deck-action-more {
+		width: var(--fc-control-touch);
+		min-width: var(--fc-control-touch);
 	}
 }
