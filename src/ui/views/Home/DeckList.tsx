@@ -26,7 +26,6 @@ import {
 	FileText,
 	Inbox,
 	Keyboard,
-	Layers3,
 	List,
 	LoaderCircle,
 	NotebookPen,
@@ -359,20 +358,6 @@ export const DeckList = React.memo(function DeckList({
 					icon={BookOpen}
 					title={t("home.title")}
 					stats={[
-						{
-							key: "decks",
-							icon: Layers3,
-							value: snapshot.decks.length,
-							label: t("home.decks"),
-							tone: "blue",
-						},
-						{
-							key: "new",
-							icon: Brain,
-							value: snapshot.totals.newCards,
-							label: t("home.newCards"),
-							tone: "green",
-						},
 						{
 							key: "total",
 							icon: Calculator,
