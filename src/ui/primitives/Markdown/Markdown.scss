@@ -21,6 +21,7 @@
 .flashcard-pronunciation-row {
 	display: flex;
 	align-items: flex-start;
+	flex-direction: column;
 	justify-content: space-between;
 	gap: var(--fc-space-3);
 	width: 100%;
@@ -28,5 +29,15 @@
 	> .flashcard-markdown {
 		flex: 1 1 auto;
 		min-width: 0;
+	}
+
+	// &.has-pronunciation {
+	// 	padding-top: calc(var(--fc-control-sm) + var(--fc-space-2));
+	// }
+}
+
+@media (max-width: 600px), (pointer: coarse) {
+	.flashcard-pronunciation-row.has-pronunciation {
+		padding-top: calc(var(--fc-control-touch) + var(--fc-space-2));
 	}
 }

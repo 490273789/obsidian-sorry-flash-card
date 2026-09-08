@@ -92,6 +92,35 @@
 				}
 			},
 			"updatedAt": "2026-09-08T05:59:41.692Z"
+		},
+		"/practice-setup": {
+			"targetKind": "existing-ui",
+			"projectId": "b1fa99c4-2ae1-48e7-8916-b626b0bfcead",
+			"baselineDraftId": "1c52aa05-bedb-464f-80ae-68cb029f5447",
+			"activeDraftId": "1c52aa05-bedb-464f-80ae-68cb029f5447",
+			"designSystemPath": ".superdesign/design-system.md",
+			"referenceIds": ["4d81c441-688b-4393-b961-8071f9486cff"],
+			"contextFiles": [
+				".superdesign/design-system.md",
+				"src/ui/views/Practice/PracticeSetup.tsx",
+				"src/ui/views/Practice/Practice.scss",
+				"src/ui/primitives/SetupSelector/SetupSelector.tsx",
+				"src/ui/primitives/SetupSelector/SetupSelector.scss"
+			],
+			"fingerprints": {
+				".superdesign/design-system.md": "e30b75a1e1deb2e36b972fd3ac68f18ab1b0abbe684d332b62ddaf2ba16c446e",
+				"src/ui/views/Practice/PracticeSetup.tsx": "413f1cf67ee8c1b87539fde5547026e65a4f08330fec9c34cbc8a5ab94b2b0ba",
+				"src/ui/views/Practice/Practice.scss": "52902f82896dd45bd0cf0cd1e08db766fb917905486ad4c3062243627900981a",
+				"src/ui/primitives/SetupSelector/SetupSelector.tsx": "549dd63e8353345c8724b9dd4f1f4ec1dc79964d0e181baedbf58b00d4fe8a56",
+				"src/ui/primitives/SetupSelector/SetupSelector.scss": "5746f71d186e22d9b2065762bb5892829bf2ff79d58290d7e50b71def62bc94b"
+			},
+			"drafts": {
+				"1c52aa05-bedb-464f-80ae-68cb029f5447": {
+					"title": "刷题设置：紧凑双栏布局",
+					"visualDirection": "compact two-column controls"
+				}
+			},
+			"updatedAt": "2026-09-08T08:02:33.396Z"
 		}
 	}
 }
