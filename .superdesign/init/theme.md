@@ -1,3 +1,64 @@
+# Design System Tokens & Theme
+
+## Part 1 — Compact Token Summary
+
+### Color Tokens (Semantic & Theming)
+
+- Primary Accent: var(--interactive-accent) (Obsidian theme accent, cyan/purple)
+- Text Normal: var(--text-normal) (high-contrast body text)
+- Text Muted: var(--text-muted) (secondary descriptions, meta info)
+- Text Faint: var(--text-faint) (placeholders, timestamps, borders)
+- Background Primary: var(--background-primary) (main view canvas)
+- Background Secondary: var(--background-secondary) (sidebar, grouped panels)
+- Card Surface: color-mix(in srgb, var(--background-primary) 96%, var(--text-normal) 4%)
+- Panel Surface: color-mix(in srgb, var(--background-secondary) 58%, var(--background-primary) 42%)
+- Border / Line: var(--background-modifier-border)
+- Border Soft: color-mix(in srgb, var(--background-modifier-border) 60%, transparent)
+- Hover Surface: color-mix(in srgb, var(--interactive-accent) 12%, var(--background-secondary) 88%)
+- Selected Surface: color-mix(in srgb, var(--interactive-accent) 22%, var(--background-primary) 78%)
+
+### Status Colors
+
+- Again / Danger: var(--color-red) (RGB: 235, 87, 87)
+- Hard / Warning: var(--color-orange) (RGB: 242, 153, 74)
+- Good / Success: var(--color-blue) / Accent (RGB: 47, 128, 237)
+- Easy / Optimal: var(--color-green) (RGB: 39, 174, 96)
+
+### Typography Scale
+
+- --fc-font-xs: 11px
+- --fc-font-sm: 13px
+- --fc-font-md: 14px
+- --fc-font-lg: 15px
+- --fc-font-xl: 18px
+- --fc-font-display: 20px
+- --fc-font-hero: 24px
+- --fc-font-focus: 32px
+
+### Spacing Scale
+
+- --fc-space-1: 4px
+- --fc-space-2: 6px
+- --fc-space-3: 8px
+- --fc-space-4: 12px
+- --fc-space-5: 14px
+- --fc-space-6: 16px
+- --fc-space-7: 20px
+- --fc-space-8: 24px
+
+### Border Radius Scale
+
+- --fc-radius-xs: 2px
+- --fc-radius-sm: 4px
+- --fc-radius-md: 6px
+- --fc-radius-lg: 8px
+- --fc-radius-pill: 999px
+
+## Part 2 — Raw Source Dumps
+
+### base.scss
+
+```scss
 /*
  * WSR Flash Card editorial UI foundations
  * Scope all styles to the plugin root/settings tab to avoid leaking into Obsidian.
@@ -171,12 +232,6 @@
 	--fc-font-reading: "Songti SC", STSong, "Noto Serif CJK SC", Georgia, serif;
 	--fc-font-data: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 	--fc-shadow-sm: 0 1px 2px rgba(var(--fc-black-rgb), 0.05);
-	--fc-shadow-card:
-		0 2px 8px rgba(var(--fc-black-rgb), 0.06), 0 1px 2px rgba(var(--fc-black-rgb), 0.04);
-	--fc-shadow-card-hover:
-		0 6px 16px rgba(var(--fc-black-rgb), 0.1), 0 2px 4px rgba(var(--fc-black-rgb), 0.06);
-	--fc-shadow-inset: inset 0 1px 3px rgba(var(--fc-black-rgb), 0.12);
-	--fc-line-glow: color-mix(in srgb, var(--text-normal) 8%, transparent);
 	--fc-shadow:
 		0 4px 12px rgba(var(--fc-black-rgb), 0.08), 0 1px 3px rgba(var(--fc-black-rgb), 0.04);
 	--fc-shadow-popover:
@@ -313,3 +368,336 @@
 	box-shadow: var(--fc-glow-cyan);
 	transform: none;
 }
+```
+
+### mixins.scss
+
+```scss
+// =============================================================================
+// WSR Flash Card SCSS Mixins
+// =============================================================================
+
+// 焦点环样式，对齐系统规范
+@mixin fc-focus-ring {
+	outline: none;
+	box-shadow: var(--fc-focus-ring);
+}
+
+// 弹性居中
+@mixin fc-flex-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+// 弹性行并垂直居中
+@mixin fc-flex-row-center {
+	display: flex;
+	align-items: center;
+}
+
+// 弹性两端对齐
+@mixin fc-flex-between {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+// 单行文本截断
+@mixin fc-truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+// 多行文本截断
+@mixin fc-line-clamp($lines: 2) {
+	display: -webkit-box;
+	-webkit-line-clamp: $lines;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+// 按钮原生重置
+@mixin fc-button-reset {
+	appearance: none;
+	background: transparent;
+	border: none;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+	text-align: inherit;
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: var(--fc-opacity-disabled);
+	}
+}
+
+// 自定义精细滚动条
+@mixin fc-scrollbar {
+	scrollbar-width: thin;
+	scrollbar-color: var(--fc-scrollbar-thumb) transparent;
+
+	&::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: var(--fc-scrollbar-thumb);
+		border-radius: var(--fc-radius-pill);
+
+		&:hover {
+			background: var(--fc-scrollbar-thumb-hover);
+		}
+	}
+}
+```
+
+### motion.scss
+
+```scss
+/* Form focus and scrollbars */
+.flashcard-root input:focus,
+.flashcard-root select:focus,
+.flashcard-root textarea:focus,
+.flashcard-settings-tab input:focus,
+.flashcard-settings-tab select:focus,
+.flashcard-root button:focus-visible,
+.flashcard-settings-tab button:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(var(--fc-cyan-rgb), 0.24);
+	border-color: rgba(var(--fc-cyan-rgb), 0.5);
+}
+
+.flashcard-root ::-webkit-scrollbar,
+.flashcard-settings-tab ::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+}
+
+.flashcard-root,
+.flashcard-settings-tab {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.spinning {
+	animation: var(--fc-motion-spin);
+}
+
+/* Motion */
+@keyframes fc-enter {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fc-rise-in {
+	from {
+		opacity: 0;
+		transform: translateY(18px) scale(0.976);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes fc-answer-reveal {
+	from {
+		opacity: 0;
+		transform: translateY(14px) scale(0.984);
+		filter: blur(1px) saturate(0.7);
+	}
+	62% {
+		opacity: 1;
+		transform: translateY(-2px) scale(1.004);
+		filter: blur(0) saturate(1.12);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		filter: saturate(1);
+	}
+}
+
+@keyframes fc-divider-scan {
+	from {
+		transform: translateX(-110%);
+	}
+	to {
+		transform: translateX(110%);
+	}
+}
+
+@keyframes fc-active-glow {
+	0% {
+		box-shadow: 0 0 0 rgba(var(--fc-magenta-rgb), 0);
+	}
+	70% {
+		box-shadow:
+			var(--fc-glow-magenta),
+			0 0 34px rgba(var(--fc-magenta-rgb), 0.28),
+			0 0 18px rgba(var(--fc-cyan-rgb), 0.14);
+	}
+	100% {
+		box-shadow: var(--fc-glow-magenta);
+	}
+}
+
+@keyframes fc-choice-pulse {
+	0% {
+		box-shadow: 0 0 0 rgba(var(--fc-cyan-rgb), 0);
+		transform: scale(0.965);
+	}
+	55% {
+		box-shadow:
+			0 0 0 2px rgba(var(--fc-cyan-rgb), 0.42),
+			0 0 30px rgba(var(--fc-cyan-rgb), 0.26);
+		transform: scale(1.018);
+	}
+	100% {
+		box-shadow: 0 0 0 1px rgba(var(--fc-cyan-rgb), 0.18);
+		transform: scale(1);
+	}
+}
+
+@keyframes fc-soft-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+		box-shadow: none;
+	}
+	50% {
+		transform: scale(1.06);
+		box-shadow:
+			0 0 28px rgba(var(--fc-cyan-rgb), 0.22),
+			0 0 44px rgba(var(--fc-lime-rgb), 0.14);
+	}
+}
+
+@keyframes fc-current-day-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+		box-shadow: none;
+	}
+	50% {
+		transform: scale(1.005);
+		box-shadow:
+			0 0 7px rgba(var(--fc-cyan-rgb), 0.22),
+			0 0 10px rgba(var(--fc-lime-rgb), 0.14);
+	}
+}
+
+@keyframes fc-complete-pop {
+	from {
+		opacity: 0;
+		transform: translateY(18px) scale(0.94);
+	}
+	64% {
+		opacity: 1;
+		transform: translateY(-3px) scale(1.018);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes fc-fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fc-modal-in {
+	from {
+		opacity: 0;
+		transform: translateY(18px) scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes fc-sheen {
+	0%,
+	32% {
+		transform: translateX(-120%);
+	}
+	54%,
+	100% {
+		transform: translateX(120%);
+	}
+}
+
+@keyframes fc-progress-scan {
+	from {
+		transform: translateX(-110%);
+	}
+	to {
+		transform: translateX(110%);
+	}
+}
+
+@keyframes fc-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.flashcard-root *,
+	.flashcard-root *::before,
+	.flashcard-root *::after,
+	.flashcard-settings-tab *,
+	.flashcard-settings-tab *::before,
+	.flashcard-settings-tab *::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+
+	.flashcard-content.animating {
+		opacity: 1;
+		transform: none;
+		filter: none;
+		box-shadow: none;
+	}
+
+	.flashcard-study-day-item.current {
+		animation-iteration-count: 1 !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.flashcard-root *,
+	.flashcard-root *::before,
+	.flashcard-root *::after {
+		scroll-behavior: auto !important;
+		animation-duration: 1ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 1ms !important;
+	}
+}
+```

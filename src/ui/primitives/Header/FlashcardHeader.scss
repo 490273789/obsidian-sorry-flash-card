@@ -10,7 +10,8 @@
 	display: flex;
 	flex-direction: column;
 	gap: 0;
-	backdrop-filter: none;
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
 
 	.flashcard-common-header {
 		position: relative;
@@ -28,14 +29,13 @@
 	top: 0;
 	z-index: 18;
 	border: 0;
-	border-bottom: 1px solid var(--fc-line);
+	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0;
-	background: transparent;
-	box-shadow: none;
-	backdrop-filter: none;
+	background: color-mix(in srgb, var(--background-primary) 90%, transparent);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
 	min-height: var(--fc-control-touch);
 	padding-bottom: var(--fc-space-2);
-	border-bottom-color: var(--fc-line);
 
 	.flashcard-header-left,
 	.flashcard-header-right {
@@ -79,9 +79,11 @@
 
 .flashcard-header-overview {
 	width: 100%;
+	border-top: 1px solid var(--fc-line-soft);
 	border-bottom: 1px solid var(--fc-line-soft);
 	border-radius: 0 0 var(--fc-radius-sm) var(--fc-radius-sm);
-	background: transparent;
+	background: color-mix(in srgb, var(--background-secondary) 84%, var(--background-primary) 16%);
+	box-shadow: var(--fc-shadow-inset);
 
 	.flashcard-header-stats {
 		width: 100%;
@@ -129,15 +131,18 @@
 
 			> svg {
 				flex: 0 0 auto;
-				color: var(--fc-cyan);
-				display: none;
+				width: 13px;
+				height: 13px;
+				color: var(--fc-muted);
+				opacity: 0.85;
+				display: inline-block;
 			}
 
 			.flashcard-header-stat-value {
 				flex: 0 0 auto;
 				font-size: var(--fc-font-md);
 				line-height: 1;
-				font-family: var(--fc-font-ui);
+				font-family: var(--fc-font-data);
 				font-weight: var(--fc-weight-semibold);
 				color: var(--fc-text);
 			}

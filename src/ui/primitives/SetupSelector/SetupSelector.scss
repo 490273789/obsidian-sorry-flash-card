@@ -7,10 +7,10 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: var(--fc-space-4);
-	padding: var(--fc-space-4) 0;
+	padding: var(--fc-space-3) 0;
 
 	+ .flashcard-setup-control-group {
-		border-top: 1px solid var(--fc-line);
+		border-top: 1px solid var(--fc-line-soft);
 	}
 
 	.flashcard-setup-control-copy {
@@ -20,15 +20,15 @@
 		min-width: 0;
 
 		.flashcard-setup-control-icon {
-			width: var(--fc-control-sm);
-			height: var(--fc-control-sm);
-			flex: 0 0 var(--fc-control-sm);
+			width: 32px;
+			height: 32px;
+			flex: 0 0 32px;
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
 			border-radius: var(--fc-radius-sm);
-			border: 0;
-			background: transparent;
+			border: 1px solid color-mix(in srgb, var(--fc-cyan) 20%, transparent);
+			background: color-mix(in srgb, var(--fc-cyan) 10%, transparent);
 			color: var(--fc-cyan);
 		}
 
@@ -41,6 +41,7 @@
 		.flashcard-setup-control-note {
 			font-size: var(--fc-font-xs);
 			color: var(--fc-muted);
+			margin-top: 2px;
 		}
 	}
 
@@ -50,26 +51,25 @@
 }
 
 .flashcard-setup-segmented {
-	display: grid;
-	grid-auto-flow: column;
-	grid-auto-columns: 1fr;
-	gap: 4px;
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
 	min-inline-size: 0;
 	margin: 0;
-	padding: 4px;
+	padding: 3px;
 	border: 1px solid var(--fc-line-soft);
 	border-radius: var(--fc-radius-md);
-	background: color-mix(in srgb, var(--background-secondary) 75%, var(--background-primary) 25%);
-	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+	background: color-mix(in srgb, var(--background-secondary) 82%, var(--background-primary) 18%);
+	box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16);
 }
 
 .flashcard-root button.flashcard-setup-segment-btn {
 	justify-content: center;
 	align-items: center;
 	gap: var(--fc-space-2);
-	min-height: var(--fc-control-md);
-	padding: var(--fc-space-2) var(--fc-space-3);
-	border-radius: calc(var(--fc-radius-md) - 3px);
+	min-height: 32px;
+	padding: var(--fc-space-1) var(--fc-space-3);
+	border-radius: calc(var(--fc-radius-md) - 2px);
 	border: 1px solid transparent;
 	background: transparent;
 	color: var(--fc-muted);
@@ -85,7 +85,7 @@
 
 	&:hover:not(:disabled) {
 		color: var(--fc-text);
-		background: var(--fc-surface-hover);
+		background: color-mix(in srgb, var(--text-normal) 6%, transparent);
 		border-color: transparent;
 		box-shadow: none;
 	}
@@ -97,28 +97,21 @@
 
 	&.active {
 		animation: none;
-		background: color-mix(
-			in srgb,
-			var(--interactive-accent) 18%,
-			var(--background-primary) 82%
-		);
-		border-color: color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+		background: color-mix(in srgb, var(--fc-surface-card) 95%, var(--interactive-accent) 5%);
+		border-color: color-mix(in srgb, var(--interactive-accent) 35%, transparent);
 		color: var(--fc-text);
 		box-shadow:
-			0 1px 3px rgba(0, 0, 0, 0.22),
-			0 0 10px color-mix(in srgb, var(--interactive-accent) 14%, transparent);
+			0 1px 4px rgba(0, 0, 0, 0.18),
+			0 0 8px color-mix(in srgb, var(--interactive-accent) 12%, transparent);
 		font-weight: var(--fc-weight-semibold);
 
 		&:hover:not(:disabled) {
 			background: color-mix(
 				in srgb,
-				var(--interactive-accent) 24%,
-				var(--background-primary) 76%
+				var(--fc-surface-card) 90%,
+				var(--interactive-accent) 10%
 			);
-			border-color: color-mix(in srgb, var(--interactive-accent) 55%, transparent);
-			box-shadow:
-				0 2px 5px rgba(0, 0, 0, 0.26),
-				0 0 12px color-mix(in srgb, var(--interactive-accent) 20%, transparent);
+			border-color: color-mix(in srgb, var(--interactive-accent) 45%, transparent);
 		}
 	}
 }

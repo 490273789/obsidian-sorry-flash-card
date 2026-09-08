@@ -1,0 +1,97 @@
+{
+	"schemaVersion": 1,
+	"targets": {
+		"/": {
+			"targetKind": "existing-ui",
+			"projectId": "b1fa99c4-2ae1-48e7-8916-b626b0bfcead",
+			"baselineDraftId": "54addea0-4a0c-42df-97a6-0a1dc3faac8b",
+			"activeDraftId": "382197c8-5b99-4c1b-83fb-49a51b5e3c71",
+			"designSystemPath": ".superdesign/design-system.md",
+			"contextFiles": [
+				".superdesign/design-system.md",
+				"src/ui/views/Home/DeckList.tsx:67:258",
+				"src/ui/views/Home/DeckList.tsx:355:460",
+				"src/ui/views/Home/DeckList.scss:1:450"
+			],
+			"fingerprints": {
+				".superdesign/design-system.md": "2a72fd8ec403fa78da6a5c60f1edea1869e1cf75deac293be8ec7344e973af8b",
+				"src/ui/views/Home/DeckList.tsx": "3a280a7145f49ebffd23c2747d9311d964ae037cb6088feac6beb283f15206c3",
+				"src/ui/views/Home/DeckList.scss": "e965a00593f4b561d1153050373d0cda52b04cfd0b0c7deb85a771d266fdd85f"
+			},
+			"drafts": {
+				"54addea0-4a0c-42df-97a6-0a1dc3faac8b": {
+					"title": "Current Deck Home UI (Baseline)",
+					"visualDirection": "ground truth"
+				},
+				"382197c8-5b99-4c1b-83fb-49a51b5e3c71": {
+					"title": "WSR Flash Card Deck Home (方向 A)",
+					"visualDirection": "elevated layered cards",
+					"parentDraftId": "54addea0-4a0c-42df-97a6-0a1dc3faac8b"
+				},
+				"29d95f94-534f-4487-8c57-65a08c8a6373": {
+					"title": "Bento List Deck Home (方向 B)",
+					"visualDirection": "compact bento grid & structured borders",
+					"parentDraftId": "54addea0-4a0c-42df-97a6-0a1dc3faac8b"
+				}
+			},
+			"updatedAt": "2026-09-08T05:25:31.146Z"
+		},
+		"/study": {
+			"targetKind": "flow-page",
+			"sourceTarget": "/",
+			"sourceDraftId": "382197c8-5b99-4c1b-83fb-49a51b5e3c71",
+			"projectId": "b1fa99c4-2ae1-48e7-8916-b626b0bfcead",
+			"activeDraftId": "e6d8f498-07fe-495b-a95f-26ff436bed90",
+			"designSystemPath": ".superdesign/design-system.md",
+			"contextFiles": [
+				".superdesign/design-system.md",
+				"src/ui/views/Card/CardView.tsx",
+				"src/ui/primitives/SessionToolbar/SessionToolbar.tsx",
+				"src/ui/views/Card/Card.scss"
+			],
+			"fingerprints": {
+				".superdesign/design-system.md": "2a72fd8ec403fa78da6a5c60f1edea1869e1cf75deac293be8ec7344e973af8b",
+				"src/ui/views/Card/CardView.tsx": "d12cc7d740ce938f849f44ae78cd0a531db3b01d4ebd71bb4d1d5fd0ba8a685b",
+				"src/ui/primitives/SessionToolbar/SessionToolbar.tsx": "205900197551a7d51be8e23efe2f2c82a997cd11b61d9d53d3885ca53ac94dd4",
+				"src/ui/views/Card/Card.scss": "015b9e14c427d9c8febeaa8a295057e8e3174ac5a6150ee14cee6af3b7c246dd"
+			},
+			"drafts": {
+				"e6d8f498-07fe-495b-a95f-26ff436bed90": {
+					"title": "Card Review Session",
+					"visualDirection": "elevated layered cards",
+					"parentDraftId": "382197c8-5b99-4c1b-83fb-49a51b5e3c71"
+				}
+			},
+			"updatedAt": "2026-09-08T05:30:17.615Z"
+		},
+		"/study-setup": {
+			"targetKind": "flow-page",
+			"sourceTarget": "/",
+			"sourceDraftId": "382197c8-5b99-4c1b-83fb-49a51b5e3c71",
+			"projectId": "b1fa99c4-2ae1-48e7-8916-b626b0bfcead",
+			"activeDraftId": "dc0aa71d-dac6-42df-99ac-f12b839feb25",
+			"designSystemPath": ".superdesign/design-system.md",
+			"referenceIds": ["2c03e989-9bc1-48fa-a5e0-ea676293141f"],
+			"contextFiles": [
+				".superdesign/design-system.md",
+				"src/ui/views/Study/StudySetup.tsx",
+				"src/ui/primitives/SetupSelector/SetupSelector.tsx",
+				"src/ui/views/Study/StudySetup.scss"
+			],
+			"fingerprints": {
+				".superdesign/design-system.md": "2a72fd8ec403fa78da6a5c60f1edea1869e1cf75deac293be8ec7344e973af8b",
+				"src/ui/views/Study/StudySetup.tsx": "67417ce0b5b316f37417955878b843148331482fd82ca123ce94866c7723ade9",
+				"src/ui/primitives/SetupSelector/SetupSelector.tsx": "549dd63e8353345c8724b9dd4f1f4ec1dc79964d0e181baedbf58b00d4fe8a56",
+				"src/ui/views/Study/StudySetup.scss": "fddaa3a87d899b5a884d98e10b1ef8ea1ef0f2c3f424cd17d1ce5aef5f8d50a2"
+			},
+			"drafts": {
+				"dc0aa71d-dac6-42df-99ac-f12b839feb25": {
+					"title": "Study Setup and Planner",
+					"visualDirection": "elevated layered cards",
+					"parentDraftId": "382197c8-5b99-4c1b-83fb-49a51b5e3c71"
+				}
+			},
+			"updatedAt": "2026-09-08T05:59:41.692Z"
+		}
+	}
+}
