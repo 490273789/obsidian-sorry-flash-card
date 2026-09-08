@@ -5,16 +5,7 @@ import type { LucideIcon } from "lucide-react";
  * Visual variant for the button.
  * Maps directly to CSS classes: `flashcard-btn-{variant}`
  */
-export type ButtonVariant =
-	| "primary"
-	| "secondary"
-	| "danger"
-	| "green"
-	| "blue"
-	| "purple"
-	| "orange"
-	| "red"
-	| "gray";
+export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
 
 export type ButtonSize = "sm" | "md" | "lg";
 
@@ -78,7 +69,7 @@ export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLBut
  * Unified flashcard button.
  *
  * `preset` shapes the button, `variant` colors it, and the two compose:
- * `preset="show" variant="green"` renders `flashcard-btn-show flashcard-btn-green`.
+ * `preset="show" variant="primary"` renders `flashcard-btn-show flashcard-btn-primary`.
  *
  * The rendered element defaults to `type="button"` and marks its icon as
  * decorative (`aria-hidden`), so callers only need to provide an accessible
@@ -86,9 +77,9 @@ export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLBut
  *
  * Usage examples:
  * ```tsx
- * <FlashcardButton variant="green" onClick={handleSave}>Save</FlashcardButton>
+ * <FlashcardButton variant="primary" onClick={handleSave}>Save</FlashcardButton>
  * <FlashcardButton preset="icon" icon={X} onClick={onClose} title="Close" />
- * <FlashcardButton variant="blue" icon={Target} active={isActive}>Practice</FlashcardButton>
+ * <FlashcardButton variant="secondary" icon={Target} active={isActive}>Practice</FlashcardButton>
  * ```
  */
 export const FlashcardButton = React.forwardRef<HTMLButtonElement, FlashcardButtonProps>(

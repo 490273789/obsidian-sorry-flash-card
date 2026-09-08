@@ -35,9 +35,3 @@
 	// 	padding-top: calc(var(--fc-control-sm) + var(--fc-space-2));
 	// }
 }
-
-@media (max-width: 600px), (pointer: coarse) {
-	.flashcard-pronunciation-row.has-pronunciation {
-		padding-top: calc(var(--fc-control-touch) + var(--fc-space-2));
-	}
-}

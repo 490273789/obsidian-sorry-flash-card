@@ -104,16 +104,16 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 
 			<div className="flashcard-practice-summary-actions">
 				{incorrectCards.length > 0 && (
-					<FlashcardButton variant="red" icon={CircleX} onClick={onRetryIncorrect}>
+					<FlashcardButton variant="danger" icon={CircleX} onClick={onRetryIncorrect}>
 						{t("spelling.retryIncorrect", {
 							count: incorrectCards.length,
 						})}
 					</FlashcardButton>
 				)}
-				<FlashcardButton variant="green" icon={RotateCw} onClick={onRestart}>
+				<FlashcardButton variant="primary" icon={RotateCw} onClick={onRestart}>
 					{t("spelling.chooseAgain")}
 				</FlashcardButton>
-				<FlashcardButton variant="blue" icon={House} onClick={onHome}>
+				<FlashcardButton variant="secondary" icon={House} onClick={onHome}>
 					{t("practice.home")}
 				</FlashcardButton>
 			</div>

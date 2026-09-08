@@ -15,7 +15,7 @@ export interface WordColumnPresentation {
 	className: string;
 	textClassName: string;
 	buttonClassName: string;
-	variant: "blue" | "orange";
+	variant: "secondary";
 	labelKey: "wordList.firstColumn" | "wordList.secondColumn";
 	maskKey: "wordList.maskFirstColumn" | "wordList.maskSecondColumn";
 	unmaskKey: "wordList.unmaskFirstColumn" | "wordList.unmaskSecondColumn";
@@ -53,7 +53,7 @@ export const VISIBLE_WORD_COLUMNS: readonly WordColumnPresentation[] = [
 		className: "flashcard-word-cell-first",
 		textClassName: "flashcard-word-front",
 		buttonClassName: "word-column-front",
-		variant: "blue",
+		variant: "secondary",
 		labelKey: "wordList.firstColumn",
 		maskKey: "wordList.maskFirstColumn",
 		unmaskKey: "wordList.unmaskFirstColumn",
@@ -64,7 +64,7 @@ export const VISIBLE_WORD_COLUMNS: readonly WordColumnPresentation[] = [
 		className: "flashcard-word-cell-second",
 		textClassName: "flashcard-word-back",
 		buttonClassName: "word-column-back",
-		variant: "orange",
+		variant: "secondary",
 		labelKey: "wordList.secondColumn",
 		maskKey: "wordList.maskSecondColumn",
 		unmaskKey: "wordList.unmaskSecondColumn",

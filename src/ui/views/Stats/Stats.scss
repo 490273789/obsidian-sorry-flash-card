@@ -1,10 +1,14 @@
 /* Stats */
 .flashcard-stats-body {
-	flex: 1 1 auto;
+	width: min(850px, 100%);
+	margin: 0 auto;
 	min-height: 0;
 	overflow-y: auto;
+	overscroll-behavior: contain;
 	-webkit-overflow-scrolling: touch;
-	padding-top: var(--fc-space-1);
+	box-sizing: border-box;
+	padding: var(--fc-space-1) var(--fc-space-2) var(--fc-control-touch);
+	flex: 1 1 auto;
 }
 
 .flashcard-stats-day {

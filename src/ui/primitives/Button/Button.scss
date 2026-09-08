@@ -101,23 +101,29 @@
 
 	// ── 语义与颜色变体 (Color & Semantic Variants) ────────────────────────────
 	&-primary {
-		border-color: var(--interactive-accent);
-		background: var(--interactive-accent);
-		color: var(--text-on-accent);
+		border-color: var(--fc-primary);
+		background: var(--fc-primary);
+		color: var(--fc-primary-text);
 		box-shadow: none;
 
 		&:hover:not(:disabled),
 		&:focus-visible {
-			border-color: var(--interactive-accent-hover);
-			background: var(--interactive-accent-hover);
+			border-color: var(--fc-primary-hover);
+			background: var(--fc-primary-hover);
 		}
 	}
 
 	&-secondary {
-		border-color: var(--fc-control-border);
-		background: var(--fc-control-bg);
-		color: var(--fc-text);
+		border-color: color-mix(in srgb, var(--fc-primary) 60%, transparent);
+		background: transparent;
+		color: var(--fc-primary);
 		box-shadow: none;
+
+		&:hover:not(:disabled),
+		&:focus-visible {
+			background: color-mix(in srgb, var(--fc-primary) 10%, transparent);
+			border-color: var(--fc-primary);
+		}
 	}
 
 	&-danger {
@@ -127,63 +133,17 @@
 		box-shadow: none;
 	}
 
-	&-green {
-		border-color: rgba(var(--fc-lime-rgb), 0.42);
-		background:
-			linear-gradient(135deg, rgba(var(--fc-lime-rgb), 0.24), rgba(var(--fc-cyan-rgb), 0.14)),
-			rgba(var(--fc-bg-elevated-rgb), 0.94);
+	&-ghost {
+		border-color: transparent;
+		background: transparent;
 		color: var(--fc-text);
-	}
-
-	&-blue {
-		border-color: color-mix(in srgb, var(--fc-secondary) 55%, transparent);
-		background:
-			linear-gradient(
-				135deg,
-				color-mix(in srgb, var(--fc-secondary) 18%, transparent),
-				color-mix(in srgb, var(--fc-secondary) 10%, transparent)
-			),
-			rgba(var(--fc-bg-elevated-rgb), 0.94);
-		color: var(--fc-secondary);
+		box-shadow: none;
 
 		&:hover:not(:disabled),
 		&:focus-visible {
-			background:
-				linear-gradient(
-					135deg,
-					color-mix(in srgb, var(--fc-secondary) 28%, transparent),
-					color-mix(in srgb, var(--fc-secondary) 16%, transparent)
-				),
-				rgba(var(--fc-bg-elevated-rgb), 0.94);
+			background: var(--fc-surface-hover);
+			border-color: transparent;
 		}
-	}
-
-	&-purple {
-		border-color: rgba(var(--fc-violet-rgb), 0.46);
-		background: var(--fc-surface-section);
-		color: var(--fc-text);
-		box-shadow: none;
-	}
-
-	&-orange {
-		border-color: rgba(var(--fc-orange-rgb), 0.5);
-		background: var(--fc-surface-section);
-		color: var(--fc-text);
-		box-shadow: none;
-	}
-
-	&-red {
-		border-color: rgba(var(--fc-red-rgb), 0.5);
-		background: var(--fc-surface-section);
-		color: var(--fc-text);
-		box-shadow: none;
-	}
-
-	&-gray {
-		border-color: var(--fc-line);
-		background: var(--fc-surface-control);
-		color: var(--fc-text);
-		box-shadow: none;
 	}
 }
 
@@ -205,25 +165,52 @@
 		}
 
 		&.flashcard-btn-primary {
-			border-color: var(--interactive-accent);
-			background: var(--interactive-accent);
-			color: var(--text-on-accent);
+			border-color: var(--fc-primary);
+			background: var(--fc-primary);
+			color: var(--fc-primary-text);
 
 			&:hover:not(:disabled),
 			&:focus-visible {
-				border-color: var(--interactive-accent-hover);
-				background: var(--interactive-accent-hover);
+				border-color: var(--fc-primary-hover);
+				background: var(--fc-primary-hover);
+			}
+		}
+
+		&.flashcard-btn-secondary {
+			border-color: color-mix(in srgb, var(--fc-primary) 60%, transparent);
+			background: transparent;
+			color: var(--fc-primary);
+
+			&:hover:not(:disabled),
+			&:focus-visible {
+				background: color-mix(in srgb, var(--fc-primary) 10%, transparent);
+				border-color: var(--fc-primary);
+			}
+		}
+
+		&.flashcard-btn-ghost {
+			border-color: transparent;
+			background: transparent;
+
+			&:hover:not(:disabled),
+			&:focus-visible {
+				background: var(--fc-surface-hover);
+				border-color: transparent;
 			}
 		}
 
 		&.flashcard-btn-icon {
 			border: none;
-			background: var(--fc-surface-control);
+			background: transparent;
 			box-shadow: none;
 
 			&:focus-visible {
 				border-color: transparent;
 				box-shadow: 0 0 0 2px rgba(var(--fc-cyan-rgb), 0.24);
+			}
+
+			&:hover:not(:disabled) {
+				background: var(--fc-surface-hover);
 			}
 		}
 
@@ -249,7 +236,7 @@
 
 	button:is(.flashcard-btn-prev, .flashcard-menu-trigger, .flashcard-deck-action-more) {
 		border: 1px solid var(--fc-compact-control-border);
-		background: color-mix(in srgb, var(--fc-surface-control) 34%, transparent);
+		background: transparent;
 		box-shadow: none;
 
 		&:hover:not(:disabled),

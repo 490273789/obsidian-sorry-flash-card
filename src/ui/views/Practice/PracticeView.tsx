@@ -242,7 +242,7 @@ export const PracticeView = React.memo(function PracticeView({
 				{!showAnswer ? (
 					<FlashcardButton
 						preset="show"
-						variant="green"
+						variant="primary"
 						size="lg"
 						onClick={handleShowAnswer}
 					>

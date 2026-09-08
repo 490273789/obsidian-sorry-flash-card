@@ -35,12 +35,27 @@
 }
 
 // ── Practice & Spelling Setup Detail Controls ──────────────────────────────
+.flashcard-practice-setup .flashcard-setup-control-group {
+	display: grid;
+	grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+	align-items: start;
+	gap: var(--fc-space-5);
+
+	.flashcard-setup-control-copy {
+		padding-top: var(--fc-space-2);
+	}
+
+	.flashcard-setup-control-body {
+		width: 100%;
+	}
+}
+
 .flashcard-setup-control-detail {
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-3);
 	padding: var(--fc-space-3);
-	margin-bottom: var(--fc-space-3);
+	margin-bottom: 0;
 	border-radius: var(--fc-radius-md);
 	background: color-mix(in srgb, var(--background-secondary) 75%, var(--background-primary) 25%);
 	border: 1px solid var(--fc-line-soft);
@@ -48,9 +63,8 @@
 }
 
 .flashcard-practice-quick-buttons {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
 	gap: var(--fc-space-2);
 }
 
@@ -61,6 +75,7 @@
 	font-size: var(--fc-font-xs);
 	font-family: var(--fc-font-data);
 	font-weight: var(--fc-weight-medium);
+	justify-content: center;
 	color: var(--fc-muted);
 	background: color-mix(in srgb, var(--fc-surface-card) 90%, var(--text-normal) 10%);
 	border: 1px solid var(--fc-line-glow);

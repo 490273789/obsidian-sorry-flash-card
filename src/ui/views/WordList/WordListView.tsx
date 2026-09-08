@@ -434,7 +434,7 @@ export const WordListView = React.memo(function WordListView({
 
 			<div className="flashcard-word-list-toolbar">
 				<FlashcardButton
-					variant="green"
+					variant="primary"
 					className="shuffle"
 					active={isShuffled}
 					onClick={handleShuffleToggle}

@@ -26,6 +26,13 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 }: SpellingSetupProps) {
 	const { t } = useI18n();
 	const maxQuestions = plan.maxQuestions;
+	const quickCounts = Array.from(
+		new Set(
+			QUICK_COUNTS.map((count) => Math.min(count, maxQuestions)).filter(
+				(count) => count > 0 && count < maxQuestions,
+			),
+		),
+	);
 	const stats = plan.stats;
 	const [mode, setMode] = useState<"smart" | "range">(plan.initialSelectionMode);
 	const [questionCount, setQuestionCount] = useState(plan.initialQuestionCount);
@@ -114,14 +121,13 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 						<div className="flashcard-setup-control-detail">
 							{mode === "smart" ? (
 								<div className="flashcard-practice-quick-buttons">
-									{QUICK_COUNTS.map((count) => (
+									{quickCounts.map((count) => (
 										<FlashcardButton
 											key={count}
 											type="button"
 											className="flashcard-setup-chip"
 											active={questionCount === count}
 											onClick={() => setQuestionCount(count)}
-											disabled={count > maxQuestions}
 										>
 											{count}
 										</FlashcardButton>
@@ -191,8 +197,9 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 
 				<div className="flashcard-study-action-bar">
 					<FlashcardButton
-						variant="green"
+						variant="primary"
 						preset="show"
+						size="lg"
 						onClick={handleStart}
 						disabled={currentCount < 1}
 					>

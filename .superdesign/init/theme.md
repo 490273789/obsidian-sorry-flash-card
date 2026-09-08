@@ -102,7 +102,7 @@
 
 	--fc-control-sm: 28px;
 	--fc-control-md: 32px;
-	--fc-control-touch: 38px;
+	--fc-control-touch: 36px;
 	--fc-header-height: 44px;
 	--fc-home-header-max-width: 1280px;
 

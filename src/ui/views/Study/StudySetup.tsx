@@ -1,14 +1,5 @@
 import React, { memo, useCallback, useState } from "react";
-import {
-	CircleCheck,
-	Target,
-	Lock,
-	Brain,
-	Dices,
-	AudioWaveform,
-	Repeat2,
-	Keyboard,
-} from "lucide-react";
+import { CircleCheck, Target, Lock, Brain, Dices, AudioWaveform, Repeat2 } from "lucide-react";
 import type { CardDirection, Deck, StudyDayInfo } from "../../../shared/types";
 import type { SessionStartRequest } from "../../../sessions/sessionLifecycle";
 import type { StudySetupPlan } from "../../../sessions/sessionPlanner";
@@ -90,12 +81,10 @@ const StudyDayRow = memo(function StudyDayRow({
 				</span>
 			</div>
 			<div className="flashcard-study-day-progress">
-				<span className="flashcard-study-day-count">
-					{day.studiedCards}/{day.totalCards}
-				</span>
 				{day.isCompleted && (
 					<>
 						<FlashcardButton
+							variant="secondary"
 							className="flashcard-study-day-review-btn"
 							onClick={handleReview}
 						>
@@ -103,9 +92,7 @@ const StudyDayRow = memo(function StudyDayRow({
 						</FlashcardButton>
 						{spellingEnabled && (
 							<FlashcardButton
-								variant="green"
-								icon={Keyboard}
-								iconSize={14}
+								variant="secondary"
 								className="flashcard-study-day-review-btn"
 								onClick={handleSpelling}
 								title={t("home.spellingModeTitle")}
@@ -115,6 +102,9 @@ const StudyDayRow = memo(function StudyDayRow({
 						)}
 					</>
 				)}
+				<span className="flashcard-study-day-count">
+					{day.studiedCards}/{day.totalCards}
+				</span>
 			</div>
 		</div>
 	);
@@ -269,8 +259,9 @@ export const StudySetup = React.memo(function StudySetup({
 
 				<div className="flashcard-study-action-bar">
 					<FlashcardButton
-						variant="green"
+						variant="primary"
 						preset="show"
+						size="lg"
 						onClick={handleMainStart}
 						disabled={!hasAnythingToStudy && !allCompleted}
 					>

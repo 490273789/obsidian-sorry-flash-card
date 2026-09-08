@@ -185,6 +185,18 @@
 		padding: var(--fc-space-4);
 	}
 
+	.flashcard-practice-setup .flashcard-setup-control-group {
+		grid-template-columns: 1fr;
+		gap: var(--fc-space-3);
+		padding: var(--fc-space-4);
+
+		.flashcard-setup-control-copy {
+			padding: 0 0 var(--fc-space-3);
+			border-right: 0;
+			border-bottom: 1px solid var(--fc-line-faint);
+		}
+	}
+
 	.flashcard-setup-control-copy {
 		padding: 0 0 var(--fc-space-3);
 		border-right: 0;

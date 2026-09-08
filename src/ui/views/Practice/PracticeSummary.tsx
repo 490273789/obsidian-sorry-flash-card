@@ -137,12 +137,17 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 			</div>
 
 			<div className="flashcard-practice-summary-actions">
-				<FlashcardButton variant="green" icon={RotateCw} iconSize={14} onClick={onRestart}>
+				<FlashcardButton
+					variant="primary"
+					icon={RotateCw}
+					iconSize={14}
+					onClick={onRestart}
+				>
 					{t("practice.restart")}
 				</FlashcardButton>
 				{result.incorrectCount > 0 && (
 					<FlashcardButton
-						variant="red"
+						variant="danger"
 						icon={CircleX}
 						iconSize={14}
 						onClick={onPracticeIncorrect}
@@ -152,7 +157,7 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 						})}
 					</FlashcardButton>
 				)}
-				<FlashcardButton variant="blue" icon={House} iconSize={14} onClick={onHome}>
+				<FlashcardButton variant="secondary" icon={House} iconSize={14} onClick={onHome}>
 					{t("practice.home")}
 				</FlashcardButton>
 			</div>

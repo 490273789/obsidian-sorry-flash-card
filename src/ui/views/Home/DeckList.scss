@@ -31,20 +31,6 @@
 	gap: var(--fc-space-4);
 }
 
-.flashcard-stats-body,
-.flashcard-deck-list {
-	width: min(850px, 100%);
-	margin: 0 auto;
-	flex: 1;
-	min-height: 0;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-	-webkit-overflow-scrolling: touch;
-	box-sizing: border-box;
-	padding: var(--fc-space-1) var(--fc-space-2) var(--fc-control-touch);
-	padding-bottom: var(--fc-control-touch);
-}
-
 .flashcard-setup-content > *,
 .flashcard-stats-body > * {
 	flex: 0 0 auto;
@@ -465,117 +451,6 @@
 	padding-inline: 0;
 }
 
-/* Primary deck actions use a calm, distinct blue-green pair. */
-.flashcard-root button.flashcard-deck-action-study {
-	border-color: rgba(var(--fc-lime-rgb), 0.62);
-	background: linear-gradient(135deg, var(--fc-action-study-start), var(--fc-action-study-end));
-	color: var(--fc-action-study-text);
-	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.16);
-}
-
-.flashcard-root button.flashcard-deck-action-practice {
-	border-color: rgba(var(--fc-blue-rgb), 0.66);
-	background: linear-gradient(
-		135deg,
-		var(--fc-action-practice-start),
-		var(--fc-action-practice-end)
-	);
-	color: var(--fc-action-practice-text);
-	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.16);
-}
-
-.flashcard-root button.flashcard-deck-action-study:hover:not(:disabled) {
-	border-color: var(--fc-lime);
-}
-
-.flashcard-root button.flashcard-deck-action-study:focus-visible {
-	border-color: var(--fc-lime);
-	box-shadow:
-		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.24),
-		var(--fc-focus-ring),
-		0 8px 20px rgba(var(--fc-lime-rgb), 0.18);
-}
-
-.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled) {
-	border-color: var(--fc-blue);
-}
-
-.flashcard-root button.flashcard-deck-action-practice:focus-visible {
-	border-color: var(--fc-blue);
-	box-shadow:
-		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.24),
-		var(--fc-focus-ring),
-		0 8px 20px rgba(var(--fc-blue-rgb), 0.18);
-}
-
-.flashcard-root button.flashcard-deck-action-spelling {
-	border-color: rgba(var(--fc-violet-rgb), 0.5);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-violet-rgb), 0.24),
-			rgba(var(--fc-magenta-rgb), 0.12)
-		),
-		rgba(var(--fc-bg-elevated-rgb), 0.94);
-	color: var(--fc-text);
-	box-shadow: inset 0 1px 0 rgba(var(--fc-white-rgb), 0.16);
-}
-
-.flashcard-root button.flashcard-deck-action-spelling:hover:not(:disabled) {
-	border-color: var(--fc-violet);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-violet-rgb), 0.32),
-			rgba(var(--fc-magenta-rgb), 0.18)
-		),
-		rgba(var(--fc-bg-elevated-rgb), 0.94);
-}
-
-.flashcard-root button.flashcard-deck-action-spelling:focus-visible {
-	border-color: var(--fc-violet);
-	box-shadow:
-		inset 0 1px 0 rgba(var(--fc-white-rgb), 0.24),
-		var(--fc-focus-ring),
-		0 8px 20px rgba(var(--fc-violet-rgb), 0.18);
-}
-
-.flashcard-root button.flashcard-btn-green,
-.flashcard-root button.flashcard-deck-action-study {
-	border-color: var(--fc-action-study-start);
-	background: var(--fc-action-study-start);
-	color: var(--fc-action-study-text);
-	box-shadow: none;
-}
-
-.flashcard-root button.flashcard-btn-green:hover:not(:disabled),
-.flashcard-root button.flashcard-btn-green:focus-visible,
-.flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-action-study:focus-visible {
-	border-color: var(--fc-action-study-end);
-	background: var(--fc-action-study-end);
-}
-
-.flashcard-root button.flashcard-btn-blue,
-.flashcard-root button.flashcard-deck-action-practice {
-	border-color: color-mix(in srgb, var(--fc-secondary) 55%, transparent);
-	background: var(--fc-action-practice-start);
-	color: var(--fc-action-practice-text);
-	box-shadow: none;
-}
-
-.flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
-.flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled) {
-	background: var(--fc-action-practice-end);
-	box-shadow: none;
-}
-
-.flashcard-root button.flashcard-btn-blue:focus-visible,
-.flashcard-root button.flashcard-deck-action-practice:focus-visible {
-	background: var(--fc-action-practice-end);
-	box-shadow: 0 0 0 3px color-mix(in srgb, var(--fc-secondary) 26%, transparent);
-}
-
 .flashcard-common-header,
 .flashcard-page-header {
 	backdrop-filter: none;
@@ -685,76 +560,6 @@
 	box-shadow: var(--fc-shadow-popover);
 	border-color: var(--fc-line-strong);
 }
-.theme-light .flashcard-root button.flashcard-btn-green,
-.theme-light .flashcard-root button.flashcard-deck-action-study {
-	border-color: var(--fc-action-study-start);
-	background: var(--fc-action-study-start);
-	color: var(--fc-action-study-text);
-	box-shadow:
-		inset 0 1px 0 color-mix(in srgb, var(--text-on-accent) 18%, transparent),
-		var(--fc-shadow-sm);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-blue,
-.theme-light .flashcard-root button.flashcard-deck-action-practice {
-	border-color: rgba(var(--fc-blue-rgb), 0.55);
-	background: var(--fc-action-practice-start);
-	color: var(--fc-blue);
-	box-shadow:
-		inset 0 1px 0 color-mix(in srgb, var(--fc-blue) 14%, transparent),
-		var(--fc-shadow-sm);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-green:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-btn-green:focus-visible,
-.theme-light .flashcard-root button.flashcard-deck-action-study:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-action-study:focus-visible {
-	border-color: var(--fc-action-study-end);
-	background: var(--fc-action-study-end);
-}
-
-.theme-light .flashcard-root button.flashcard-btn-blue:hover:not(:disabled),
-.theme-light .flashcard-root button.flashcard-deck-action-practice:hover:not(:disabled) {
-	background: var(--fc-action-practice-end);
-	box-shadow: none;
-}
-
-.theme-light .flashcard-root button.flashcard-btn-blue:focus-visible,
-.theme-light .flashcard-root button.flashcard-deck-action-practice:focus-visible {
-	background: var(--fc-action-practice-end);
-	box-shadow: 0 0 0 3px rgba(var(--fc-blue-rgb), 0.24);
-}
-
-.theme-light .flashcard-root button.flashcard-deck-action-spelling {
-	border-color: rgba(var(--fc-violet-rgb), 0.45);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-violet-rgb), 0.12),
-			rgba(var(--fc-magenta-rgb), 0.08)
-		),
-		var(--fc-surface-card);
-	color: var(--fc-text);
-	box-shadow:
-		inset 0 1px 0 color-mix(in srgb, var(--fc-violet) 14%, transparent),
-		var(--fc-shadow-sm);
-}
-
-.theme-light .flashcard-root button.flashcard-deck-action-spelling:hover:not(:disabled) {
-	border-color: rgba(var(--fc-violet-rgb), 0.7);
-	background:
-		linear-gradient(
-			135deg,
-			rgba(var(--fc-violet-rgb), 0.18),
-			rgba(var(--fc-magenta-rgb), 0.12)
-		),
-		var(--fc-surface-card);
-}
-
-.theme-light .flashcard-root button.flashcard-deck-action-spelling:focus-visible {
-	background: var(--fc-surface-card);
-	box-shadow: 0 0 0 3px rgba(var(--fc-violet-rgb), 0.24);
-}
 
 .theme-light .flashcard-deck-index {
 	border-color: var(--fc-line);
@@ -778,15 +583,15 @@
 	.flashcard-home-workspace {
 		display: flex;
 		flex-direction: column;
-		overflow-y: auto;
+		overflow: hidden;
 		-webkit-overflow-scrolling: touch;
 		gap: var(--fc-space-3);
 	}
 
 	.flashcard-deck-index {
 		order: 2;
-		flex: 0 0 auto;
-		overflow: visible;
+		flex: 1 1 0;
+		overflow: hidden;
 	}
 
 	.flashcard-deck-index-heading {
@@ -802,7 +607,7 @@
 	}
 
 	.flashcard-deck-index .flashcard-deck-list {
-		overflow: visible;
+		overflow-y: auto;
 	}
 
 	.flashcard-deck-item {
@@ -892,7 +697,7 @@
 	display: flex;
 	gap: var(--fc-space-4);
 	flex-direction: column;
-	overflow-y: auto;
+	overflow: hidden;
 	-webkit-overflow-scrolling: touch;
 }
 
@@ -905,10 +710,10 @@
 	flex-direction: column;
 	border: 0;
 	background: transparent;
-	overflow: visible;
+	overflow: hidden;
 	order: initial;
 	width: 100%;
-	flex: 0 0 auto;
+	flex: 1 1 0;
 }
 
 .flashcard-deck-index-heading {
@@ -923,14 +728,19 @@
 }
 
 .flashcard-deck-index .flashcard-deck-list {
+	flex: 1;
+	min-height: 0;
+	overscroll-behavior: contain;
+	box-sizing: border-box;
+	padding: var(--fc-space-1) var(--fc-space-2) var(--fc-control-touch);
 	margin: 0;
-	padding: 0;
 	overflow-y: auto;
 	width: 100%;
 	gap: var(--fc-space-1);
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
-	overflow: visible;
+	align-content: start;
+	// overflow: visible;
 	-webkit-overflow-scrolling: touch;
 }
 
@@ -1016,55 +826,7 @@
 	min-height: var(--fc-control-md);
 	padding: 0 var(--fc-space-3);
 	border-radius: var(--fc-radius-sm);
-	border: 1px solid var(--fc-line-glow);
 	transition: all 0.18s ease;
-
-	&.flashcard-deck-action-study {
-		background: color-mix(in srgb, var(--fc-lime) 12%, transparent);
-		border-color: color-mix(in srgb, var(--fc-lime) 28%, transparent);
-		color: var(--fc-lime);
-		font-weight: var(--fc-weight-semibold);
-
-		&:hover {
-			background: color-mix(in srgb, var(--fc-lime) 22%, transparent);
-			border-color: color-mix(in srgb, var(--fc-lime) 45%, transparent);
-		}
-	}
-
-	&.flashcard-deck-action-practice {
-		background: color-mix(in srgb, var(--fc-blue) 10%, transparent);
-		border-color: color-mix(in srgb, var(--fc-blue) 25%, transparent);
-		color: var(--fc-blue);
-
-		&:hover {
-			background: color-mix(in srgb, var(--fc-blue) 18%, transparent);
-			border-color: color-mix(in srgb, var(--fc-blue) 40%, transparent);
-		}
-	}
-
-	&.flashcard-deck-action-spelling {
-		background: color-mix(in srgb, var(--fc-violet) 10%, transparent);
-		border-color: color-mix(in srgb, var(--fc-violet) 25%, transparent);
-		color: var(--fc-violet);
-
-		&:hover {
-			background: color-mix(in srgb, var(--fc-violet) 18%, transparent);
-			border-color: color-mix(in srgb, var(--fc-violet) 40%, transparent);
-		}
-	}
-}
-
-.flashcard-root .flashcard-deck-item button.flashcard-deck-action-more {
-	width: var(--fc-control-md);
-	min-width: var(--fc-control-md);
-	border-radius: var(--fc-radius-sm);
-	border: 1px solid var(--fc-line-glow);
-	background: transparent;
-
-	&:hover {
-		background: color-mix(in srgb, var(--text-normal) 8%, transparent);
-		border-color: var(--fc-line);
-	}
 }
 
 .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn > span {
@@ -1086,16 +848,4 @@
 	color: var(--fc-text) !important;
 	font-family: var(--fc-font-ui);
 	font-variant-numeric: tabular-nums;
-}
-
-.flashcard-root .flashcard-home button.flashcard-deck-action-practice {
-	border-color: var(--fc-line);
-	background: transparent;
-	color: var(--fc-text);
-	box-shadow: none;
-}
-
-.flashcard-root .flashcard-home button.flashcard-deck-action-practice:hover:not(:disabled),
-.flashcard-root .flashcard-home button.flashcard-deck-action-practice:focus-visible {
-	background: var(--fc-surface-hover);
 }

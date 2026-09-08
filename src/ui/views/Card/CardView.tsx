@@ -173,7 +173,7 @@ export const CardView = React.memo(function CardView({
 					{t("study.duration")}
 					<SessionTimer startTime={session.startTime} />
 				</p>
-				<FlashcardButton variant="green" onClick={onClose}>
+				<FlashcardButton variant="primary" onClick={onClose}>
 					{t("study.backToDeck")}
 				</FlashcardButton>
 			</div>
@@ -274,7 +274,7 @@ export const CardView = React.memo(function CardView({
 				{!showAnswer ? (
 					<FlashcardButton
 						preset="show"
-						variant="green"
+						variant="primary"
 						size="lg"
 						onClick={handleShowAnswer}
 					>

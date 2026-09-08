@@ -33,6 +33,13 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 	const { t } = useI18n();
 	const maxQuestions = plan.maxQuestions;
 	const maxRangeStart = plan.maxRangeStart;
+	const quickQuestionCounts = Array.from(
+		new Set(
+			QUICK_QUESTION_COUNTS.map((count) => Math.min(count, maxQuestions)).filter(
+				(count) => count > 0 && count < maxQuestions,
+			),
+		),
+	);
 	const [selectionMode, setSelectionMode] = useState<PracticeSelectionMode>(
 		plan.initialSelectionMode,
 	);
@@ -181,20 +188,15 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 							{selectionMode === "random" ? (
 								<>
 									<div className="flashcard-practice-quick-buttons">
-										{QUICK_QUESTION_COUNTS.map((count) => (
+										{quickQuestionCounts.map((count) => (
 											<FlashcardButton
 												key={count}
 												type="button"
 												className="flashcard-setup-chip"
-												active={
-													questionCount === Math.min(count, maxQuestions)
-												}
+												active={questionCount === count}
 												onClick={() => handleQuickSelect(count)}
-												disabled={
-													count > maxQuestions && count !== maxQuestions
-												}
 											>
-												{count > maxQuestions ? maxQuestions : count}
+												{count}
 											</FlashcardButton>
 										))}
 										<FlashcardButton
@@ -287,8 +289,9 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 
 				<div className="flashcard-study-action-bar">
 					<FlashcardButton
-						variant="green"
+						variant="primary"
 						preset="show"
+						size="lg"
 						onClick={handleStart}
 						disabled={maxQuestions === 0 || currentQuestionCount < 1}
 					>

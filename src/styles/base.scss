@@ -59,7 +59,9 @@
 	--fc-amber: var(--color-yellow);
 	--fc-red: var(--color-red);
 	--fc-orange: var(--color-orange);
-	--fc-primary: var(--fc-cyan);
+	--fc-primary: #00b8c4;
+	--fc-primary-hover: #00a0ab;
+	--fc-primary-text: #ffffff;
 	--fc-danger: var(--fc-red);
 
 	/* ── 表面层级（画布 → 区块 → 卡片 → 浮层 → 控件）───────────── */

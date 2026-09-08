@@ -30,12 +30,6 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 				onBack={onBack}
 				stats={[
 					{
-						key: "days",
-						value: dayGroups.length,
-						label: t("stats.daysStudied"),
-						tone: "blue",
-					},
-					{
 						key: "duration",
 						value: totals.durationLabel,
 						label: t("stats.totalDuration"),

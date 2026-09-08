@@ -38,13 +38,13 @@ describe("design primitives", () => {
 
 	it("combines preset shape classes with variant color classes", () => {
 		const html = renderToStaticMarkup(
-			<FlashcardButton preset="show" variant="green">
+			<FlashcardButton preset="show" variant="primary">
 				显示答案
 			</FlashcardButton>,
 		);
 
 		expect(html).toContain("flashcard-btn-show");
-		expect(html).toContain("flashcard-btn-green");
+		expect(html).toContain("flashcard-btn-primary");
 	});
 
 	it("adds a rating class from the rating prop", () => {

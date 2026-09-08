@@ -192,7 +192,7 @@ const DeckCard = memo(function DeckCard({
 					}`}
 				>
 					<FlashcardButton
-						variant="green"
+						variant="primary"
 						className="flashcard-deck-action-study"
 						icon={Brain}
 						onClick={(event) => {
@@ -204,7 +204,7 @@ const DeckCard = memo(function DeckCard({
 						<span>{t("home.study")}</span>
 					</FlashcardButton>
 					<FlashcardButton
-						variant="blue"
+						variant="secondary"
 						className="flashcard-deck-action-practice"
 						icon={Target}
 						onClick={(event) => {
@@ -217,7 +217,7 @@ const DeckCard = memo(function DeckCard({
 					</FlashcardButton>
 					{deck.spelling.enabled && (
 						<FlashcardButton
-							variant="purple"
+							variant="secondary"
 							className="flashcard-deck-action-spelling"
 							icon={Keyboard}
 							onClick={(event) => {
@@ -416,7 +416,7 @@ export const DeckList = React.memo(function DeckList({
 							</div>
 						</div>
 						<FlashcardButton
-							variant="green"
+							variant="primary"
 							icon={Sparkles}
 							onClick={() => void onRequestMigration()}
 							disabled={isMutationBusy}
@@ -435,7 +435,7 @@ export const DeckList = React.memo(function DeckList({
 						<p className="flashcard-empty-hint">
 							{t("home.emptyHint", { tag: "#wordTag" })}
 						</p>
-						<FlashcardButton variant="green" icon={Plus} onClick={onOpenAddCard}>
+						<FlashcardButton variant="primary" icon={Plus} onClick={onOpenAddCard}>
 							{t("cardEditor.addCardTitle")}
 						</FlashcardButton>
 					</div>
@@ -498,7 +498,7 @@ export const DeckList = React.memo(function DeckList({
 							</DndContext>
 						</section>
 						<FlashcardButton
-							variant="gray"
+							variant="secondary"
 							className="flashcard-home-add-card"
 							icon={Plus}
 							onClick={onOpenAddCard}

@@ -277,7 +277,7 @@ export const SpellingView = React.memo(function SpellingView({
 			<div className="flashcard-footer flashcard-spelling-actions">
 				{!isCorrection && (
 					<FlashcardButton
-						variant="gray"
+						variant="secondary"
 						size="lg"
 						icon={Lightbulb}
 						onClick={() => void submit("", true)}
@@ -287,7 +287,7 @@ export const SpellingView = React.memo(function SpellingView({
 					</FlashcardButton>
 				)}
 				<FlashcardButton
-					variant="green"
+					variant="primary"
 					size="lg"
 					icon={CornerDownLeft}
 					onClick={() => void submit(input)}

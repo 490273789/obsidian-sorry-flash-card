@@ -125,7 +125,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 									<TriangleAlert size={16} />
 									<span>{t("deckSettings.identityRequired")}</span>
 									<FlashcardButton
-										variant="purple"
+										variant="secondary"
 										onClick={() => void handleMigrateIdentity()}
 										disabled={isBusy}
 									>
@@ -178,7 +178,10 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 												</span>
 											)}
 										</div>
-										<FlashcardButton variant="blue" onClick={onOpenSourceFile}>
+										<FlashcardButton
+											variant="secondary"
+											onClick={onOpenSourceFile}
+										>
 											{t("home.openSourceTitle")}
 										</FlashcardButton>
 									</div>
@@ -351,7 +354,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 
 					<div className="flashcard-modal-footer">
 						<FlashcardButton
-							variant="green"
+							variant="primary"
 							onClick={() => void handleSave()}
 							disabled={spellingBlocked || isBusy}
 						>
