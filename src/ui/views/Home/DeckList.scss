@@ -609,39 +609,6 @@
 		overflow-y: auto;
 	}
 
-	.flashcard-deck-item {
-		grid-template-columns: minmax(0, 1fr) auto;
-		padding: var(--fc-space-3) var(--fc-space-2) var(--fc-space-3) var(--fc-space-8);
-	}
-
-	.flashcard-deck-item .flashcard-deck-headline {
-		display: block;
-	}
-
-	.flashcard-deck-item .flashcard-deck-name-wrapper {
-		margin-top: var(--fc-space-1);
-	}
-
-	.flashcard-deck-item .flashcard-deck-stats {
-		margin-top: var(--fc-space-1);
-	}
-
-	.flashcard-root .flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn {
-		width: var(--fc-control-touch);
-		height: var(--fc-control-touch);
-		min-width: var(--fc-control-touch);
-		min-height: var(--fc-control-touch);
-		padding: 0;
-	}
-
-	.flashcard-deck-item .flashcard-deck-actions2 {
-		flex-direction: column;
-	}
-
-	.flashcard-deck-item .flashcard-deck-actions2 .flashcard-btn > span {
-		display: none;
-	}
-
 	.flashcard-home-add-card {
 		order: 3;
 		min-height: var(--fc-control-touch);
