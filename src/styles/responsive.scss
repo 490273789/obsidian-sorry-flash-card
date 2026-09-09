@@ -2,7 +2,7 @@
 @media (max-width: 900px) {
 	.flashcard-root {
 		padding: var(--fc-space-3);
-		padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-header-height));
+		padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-mobile-bottom-padding));
 	}
 
 	.flashcard-root:focus-within {
@@ -31,7 +31,7 @@
 @media (max-width: 640px) {
 	.flashcard-root {
 		padding: var(--fc-space-2);
-		padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-header-height));
+		padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fc-mobile-bottom-padding));
 		border-radius: 0;
 	}
 
