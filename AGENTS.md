@@ -9,6 +9,8 @@ This repository is the `wsr-flash-card` Obsidian plugin for Chinese-first flashc
 - Main React adapter: `src/ui/components/FlashcardApp.tsx`.
 - Markdown source files are authoritative for card content; plugin data stores derived decks, learning state, settings, history, and continuity metadata.
 - Source code lives under `src/`. Root `main.js` and `styles.css` are generated Obsidian artifacts; never edit them by hand.
+- Modifying styles and pages does not require writing test cases: UI and styling changes do not require tests. Add or update
+  tests only for behavior changes and regressions.
 
 ## Working rules
 
