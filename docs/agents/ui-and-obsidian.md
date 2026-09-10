@@ -9,7 +9,7 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 - `DeckHome` provides read and recording facades (such as `getDeck`, `getStudyHistory`, and `recordWordListVisit`) to prevent UI components from piercing through to the low-level `DataStore`.
 - `DeckSettingsModal` is isolated from `DeckList` to manage deck-level configuration, reusing pure definitions from `src/settings/studySettingsMeta.ts`.
 - Render card Markdown with Obsidian `MarkdownRenderer`, never raw HTML injection.
-- Use the shared modal primitives under `src/ui/primitives/Modal/` and the existing confirmation/card-editor components before creating a new overlay system.
+- Use the shared modal primitives under `src/ui/primitives/Modal/` and the existing confirmation/card-editor components before creating a new overlay system. Imperative contexts that have no React host (the settings tab, command callbacks) use an Obsidian `Modal` subclass instead, as in `src/obsidian/cardIdentityContinuityModals.ts` and `src/obsidian/dictionaryModals.ts`.
 - Use `lucide-react` for new React icon buttons. Keep controls keyboard-friendly and preserve existing shortcuts.
 - Keep copy Chinese-first and route user-visible strings through `src/i18n/`.
 

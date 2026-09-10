@@ -1,0 +1,639 @@
+@use "../../../styles/mixins.scss" as *;
+
+.flashcard-dictionary-root {
+	box-sizing: border-box;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	.flashcard-dictionary,
+	.flashcard-dictionary-favorite {
+		display: flex;
+		box-sizing: border-box;
+		width: min(1280px, 100%);
+		min-width: 0;
+		flex-direction: column;
+		gap: var(--fc-space-4);
+		margin: 0 auto;
+		padding: var(--fc-space-3);
+		color: var(--fc-text);
+	}
+
+	// The lookup page owns the leaf height and never scrolls as a whole: only the
+	// active source panel scrolls, so a long entry cannot grow or squeeze the
+	// search chrome above it.
+	.flashcard-dictionary {
+		height: 100%;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	// The favorites sidebar is a form, so let the whole pane scroll instead.
+	.flashcard-dictionary-favorite {
+		min-height: 100%;
+	}
+
+	.flashcard-dictionary-disabled {
+		display: flex;
+		min-height: 100%;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: var(--fc-space-3);
+		padding: var(--fc-space-8);
+		color: var(--fc-muted);
+		text-align: center;
+	}
+
+	.flashcard-dictionary-visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		border: 0;
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	/* ---------------------------------------------------------------------- */
+	/* Search and history                                                     */
+	/* ---------------------------------------------------------------------- */
+
+	.flashcard-dictionary-chrome {
+		display: flex;
+		flex: 0 0 auto;
+		flex-direction: column;
+		gap: var(--fc-space-3);
+	}
+
+	.flashcard-dictionary-search-controls {
+		display: flex;
+		align-items: center;
+		gap: var(--fc-space-2);
+		min-width: 0;
+		margin: 0;
+		padding: 0;
+		border: 0;
+
+		.flashcard-input {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+	}
+
+	.flashcard-dictionary-saved-list {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--fc-space-1);
+
+		strong {
+			color: var(--fc-faint);
+			font-size: var(--fc-font-xs);
+			font-weight: var(--fc-weight-medium);
+		}
+
+		button {
+			@include fc-button-reset;
+			padding: 2px var(--fc-space-2);
+			border: 1px solid var(--fc-line-soft);
+			border-radius: var(--fc-radius-pill);
+			background: var(--fc-surface-control);
+			color: var(--fc-text);
+			font-size: var(--fc-font-sm);
+
+			&:hover {
+				background: var(--fc-surface-hover);
+			}
+
+			&:focus-visible {
+				@include fc-focus-ring;
+			}
+		}
+	}
+
+	.flashcard-dictionary-query-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fc-space-3);
+
+		h2 {
+			margin: 0;
+			font-size: var(--fc-font-xl);
+			font-weight: var(--fc-weight-semibold);
+			overflow-wrap: anywhere;
+		}
+
+		> div {
+			display: flex;
+			flex-wrap: wrap;
+			gap: var(--fc-space-1);
+		}
+	}
+
+	.flashcard-dictionary-copy-status,
+	.flashcard-dictionary-placeholder,
+	.flashcard-dictionary-loading,
+	.flashcard-dictionary-empty {
+		margin: 0;
+		font-size: var(--fc-font-sm);
+	}
+
+	.flashcard-dictionary-copy-status {
+		color: var(--fc-muted);
+
+		&.is-error {
+			color: var(--fc-danger);
+		}
+	}
+
+	.flashcard-dictionary-placeholder,
+	.flashcard-dictionary-empty {
+		color: var(--fc-faint);
+	}
+
+	.flashcard-dictionary-loading {
+		color: var(--fc-muted);
+	}
+
+	/* ---------------------------------------------------------------------- */
+	/* Source tabs                                                            */
+	/* ---------------------------------------------------------------------- */
+
+	.flashcard-dictionary-tabs {
+		display: flex;
+		flex: 0 0 auto;
+		flex-wrap: wrap;
+		gap: var(--fc-space-1);
+		padding: var(--fc-space-1);
+		overflow-x: auto;
+		border: 1px solid var(--fc-line);
+		border-radius: var(--fc-radius-sm);
+		background: var(--fc-surface-section);
+
+		@include fc-scrollbar;
+	}
+
+	.flashcard-dictionary-tab {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--fc-space-1);
+		min-height: var(--fc-control-md);
+		padding: 0 var(--fc-space-2);
+		border: 1px solid transparent;
+		border-radius: var(--fc-radius-sm);
+		background: transparent;
+		color: var(--fc-muted);
+		font-size: var(--fc-font-sm);
+		cursor: pointer;
+		transition:
+			background var(--fc-motion-quick) ease,
+			color var(--fc-motion-quick) ease;
+
+		&:hover {
+			background: var(--fc-surface-hover);
+			color: var(--fc-text);
+		}
+
+		&:focus-visible {
+			@include fc-focus-ring;
+		}
+
+		&.is-active {
+			border-color: var(--fc-control-border-selected);
+			background: var(--fc-surface-selected);
+			color: var(--fc-text);
+			font-weight: var(--fc-weight-medium);
+		}
+	}
+
+	.flashcard-dictionary-tab-status {
+		flex: 0 0 auto;
+		width: 8px;
+		height: 8px;
+		border-radius: var(--fc-radius-pill);
+		background: var(--fc-faint);
+	}
+
+	.flashcard-dictionary-tab.is-loading .flashcard-dictionary-tab-status {
+		background: var(--fc-amber);
+	}
+
+	.flashcard-dictionary-tab.is-success .flashcard-dictionary-tab-status {
+		background: var(--fc-primary);
+	}
+
+	.flashcard-dictionary-tab.is-empty .flashcard-dictionary-tab-status {
+		background: var(--fc-muted);
+	}
+
+	.flashcard-dictionary-tab.is-error .flashcard-dictionary-tab-status {
+		background: var(--fc-danger);
+	}
+
+	/* ---------------------------------------------------------------------- */
+	/* Source panels and sections                                             */
+	/* ---------------------------------------------------------------------- */
+
+	.flashcard-dictionary-results {
+		display: grid;
+		grid-template-rows: minmax(0, 1fr);
+		flex: 1 1 auto;
+		min-width: 0;
+		min-height: 0;
+		overflow: hidden;
+		gap: var(--fc-space-3);
+	}
+
+	.flashcard-dictionary-source {
+		display: flex;
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-width: 0;
+		min-height: 0;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-gutter: stable;
+		gap: var(--fc-space-3);
+		padding: var(--fc-space-3);
+		border: 1px solid var(--fc-line);
+		border-radius: var(--fc-radius-md);
+		background: var(--fc-surface-section);
+
+		@include fc-scrollbar;
+
+		&[hidden] {
+			display: none;
+		}
+	}
+
+	.flashcard-dictionary-ai-action {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--fc-space-2);
+		padding: var(--fc-space-3);
+		border: 1px solid var(--fc-line-soft);
+		border-radius: var(--fc-radius-sm);
+		background: var(--fc-surface-card);
+
+		p {
+			margin: 0;
+			color: var(--fc-muted);
+			font-size: var(--fc-font-sm);
+			line-height: var(--fc-line-body);
+		}
+	}
+
+	.flashcard-dictionary-ai-engine {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--fc-space-1);
+		color: var(--fc-faint) !important;
+		font-size: var(--fc-font-xs) !important;
+	}
+
+	.flashcard-dictionary-error {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fc-space-3);
+		padding: var(--fc-space-2) var(--fc-space-3);
+		border-left: 3px solid var(--fc-danger);
+		border-radius: var(--fc-radius-sm);
+		background: var(--fc-surface-card);
+
+		p {
+			margin: 0;
+			color: var(--fc-danger);
+			font-size: var(--fc-font-sm);
+		}
+	}
+
+	.flashcard-dictionary-pronunciations {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--fc-space-3);
+
+		> div {
+			display: inline-flex;
+			align-items: center;
+			gap: var(--fc-space-1);
+			color: var(--fc-muted);
+			font-size: var(--fc-font-sm);
+		}
+	}
+
+	.flashcard-dictionary-section {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		gap: var(--fc-space-2);
+
+		h4 {
+			margin: 0;
+			color: var(--fc-text);
+			font-size: var(--fc-font-md);
+			font-weight: var(--fc-weight-semibold);
+		}
+
+		&.is-document {
+			gap: var(--fc-space-1);
+		}
+	}
+
+	.flashcard-dictionary-sandbox {
+		width: 100%;
+		min-height: 320px;
+		border: 1px solid var(--fc-line-soft);
+		border-radius: var(--fc-radius-sm);
+		background: var(--fc-surface-card);
+	}
+
+	.flashcard-dictionary-list {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		gap: var(--fc-space-1);
+		margin: 0;
+		padding-left: var(--fc-space-5);
+		color: var(--fc-text);
+		font-size: var(--fc-font-md);
+		line-height: var(--fc-line-body);
+
+		li {
+			min-width: 0;
+			overflow-wrap: anywhere;
+		}
+	}
+
+	.flashcard-dictionary-ai-senses {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-3);
+	}
+
+	.flashcard-dictionary-ai-sense {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-2);
+		padding: var(--fc-space-3);
+		border: 1px solid var(--fc-line-soft);
+		border-radius: var(--fc-radius-sm);
+		background: var(--fc-surface-card);
+	}
+
+	.flashcard-dictionary-ai-sense-heading {
+		display: flex;
+		align-items: baseline;
+		gap: var(--fc-space-2);
+	}
+
+	.flashcard-dictionary-ai-sense-number {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: var(--fc-control-sm);
+		height: var(--fc-control-sm);
+		border-radius: var(--fc-radius-pill);
+		background: var(--fc-surface-control);
+		color: var(--fc-muted);
+		font-size: var(--fc-font-xs);
+	}
+
+	.flashcard-dictionary-ai-pos {
+		padding: 0 var(--fc-space-1);
+		border: 1px solid var(--fc-line-soft);
+		border-radius: var(--fc-radius-xs);
+		color: var(--fc-muted);
+		font-size: var(--fc-font-xs);
+	}
+
+	.flashcard-dictionary-ai-sense-details {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-2);
+		margin: 0;
+
+		dt {
+			color: var(--fc-faint);
+			font-size: var(--fc-font-xs);
+		}
+
+		dd {
+			margin: 0;
+			color: var(--fc-text);
+			font-size: var(--fc-font-sm);
+			line-height: var(--fc-line-body);
+		}
+	}
+
+	.flashcard-dictionary-ai-examples {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-2);
+
+		> div {
+			display: flex;
+			flex-direction: column;
+			gap: var(--fc-space-half);
+		}
+
+		p {
+			margin: 0;
+		}
+
+		p[lang="zh-CN"] {
+			color: var(--fc-muted);
+		}
+
+		mark {
+			padding: 0 2px;
+			border-radius: var(--fc-radius-xs);
+			background: var(--fc-surface-selected);
+			color: var(--fc-text);
+		}
+	}
+
+	.flashcard-dictionary-details {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-2);
+	}
+
+	.flashcard-dictionary-detail-tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--fc-space-1);
+
+		button {
+			min-height: var(--fc-control-sm);
+			padding: 0 var(--fc-space-2);
+			border: 1px solid var(--fc-line-soft);
+			border-radius: var(--fc-radius-sm);
+			background: transparent;
+			color: var(--fc-muted);
+			font-size: var(--fc-font-sm);
+			cursor: pointer;
+			transition:
+				background var(--fc-motion-quick) ease,
+				color var(--fc-motion-quick) ease;
+
+			&:hover {
+				background: var(--fc-surface-hover);
+				color: var(--fc-text);
+			}
+
+			&:focus-visible {
+				@include fc-focus-ring;
+			}
+
+			&.is-active {
+				border-color: var(--fc-control-border-selected);
+				background: var(--fc-surface-selected);
+				color: var(--fc-text);
+				font-weight: var(--fc-weight-medium);
+			}
+		}
+	}
+
+	.flashcard-dictionary-suggestions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--fc-space-1);
+
+		strong {
+			color: var(--fc-faint);
+			font-size: var(--fc-font-xs);
+			font-weight: var(--fc-weight-medium);
+		}
+
+		button {
+			@include fc-button-reset;
+			padding: 2px var(--fc-space-2);
+			border: 1px solid var(--fc-line-soft);
+			border-radius: var(--fc-radius-pill);
+			color: var(--fc-text);
+			font-size: var(--fc-font-sm);
+
+			&:hover {
+				background: var(--fc-surface-hover);
+			}
+
+			&:focus-visible {
+				@include fc-focus-ring;
+			}
+		}
+	}
+
+	.flashcard-dictionary-attribution {
+		flex: 0 0 auto;
+		color: var(--fc-faint);
+		font-size: var(--fc-font-xs);
+	}
+
+	/* ---------------------------------------------------------------------- */
+	/* Favourites                                                             */
+	/* ---------------------------------------------------------------------- */
+
+	.flashcard-dictionary-favorite-header {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-half);
+
+		h2 {
+			margin: 0;
+			font-size: var(--fc-font-lg);
+			font-weight: var(--fc-weight-semibold);
+		}
+	}
+
+	.flashcard-dictionary-favorite-destination {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--fc-space-1);
+		margin: 0;
+		color: var(--fc-faint);
+		font-size: var(--fc-font-xs);
+
+		span:last-child {
+			color: var(--fc-muted);
+			overflow-wrap: anywhere;
+		}
+	}
+
+	.flashcard-dictionary-favorite-form {
+		display: flex;
+		flex-direction: column;
+		gap: var(--fc-space-3);
+
+		label {
+			display: flex;
+			flex-direction: column;
+			gap: var(--fc-space-1);
+
+			> span {
+				color: var(--fc-muted);
+				font-size: var(--fc-font-sm);
+			}
+		}
+	}
+
+	.flashcard-dictionary-favorite-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--fc-space-2);
+	}
+
+	.flashcard-dictionary-favorite-message {
+		min-height: 1em;
+		margin: 0;
+		color: var(--fc-muted);
+		font-size: var(--fc-font-sm);
+
+		&.is-error {
+			color: var(--fc-danger);
+		}
+	}
+
+	@media (max-width: 720px) {
+		.flashcard-dictionary,
+		.flashcard-dictionary-favorite {
+			padding: var(--fc-space-2);
+		}
+
+		.flashcard-dictionary-search-controls {
+			flex-wrap: wrap;
+		}
+
+		.flashcard-dictionary-tabs,
+		.flashcard-dictionary-detail-tabs {
+			flex-wrap: nowrap;
+			overflow-x: auto;
+		}
+	}
+
+	@media (pointer: coarse) {
+		.flashcard-dictionary-tab,
+		.flashcard-dictionary-saved-list button,
+		.flashcard-dictionary-suggestions button,
+		.flashcard-dictionary-detail-tabs button {
+			min-height: var(--fc-control-touch);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.flashcard-dictionary-tab,
+		.flashcard-dictionary-detail-tabs button {
+			transition: none;
+		}
+	}
+}

@@ -1,0 +1,34 @@
+[package]
+name = 'dictionary-engine-fuzz'
+version = '0.0.0'
+edition = '2021'
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = '0.4'
+dictionary-engine = { path = '..' }
+
+[[bin]]
+name = 'header'
+path = 'fuzz_targets/header.rs'
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = 'key-blocks'
+path = 'fuzz_targets/key_blocks.rs'
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = 'record-blocks'
+path = 'fuzz_targets/record_blocks.rs'
+test = false
+doc = false
+bench = false
+

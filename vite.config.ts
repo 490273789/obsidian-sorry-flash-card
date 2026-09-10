@@ -42,11 +42,34 @@ function copyBundleToPluginRoot() {
 	};
 }
 
+/**
+ * Obsidian loads `main.js` as CommonJS. Rolldown keeps lazily imported Node
+ * built-ins (used by the dictionary's desktop-only importer) as `import(...)`
+ * expressions, so rewrite them to `require(...)` inside a resolved promise.
+ */
+function bundleDeferredNodeImports() {
+	return {
+		name: "bundle-deferred-node-imports",
+		enforce: "post" as const,
+		renderChunk(code: string) {
+			const bundled = code.replace(
+				/\bimport\((["'`])(node:[^"'`]+)\1\)/g,
+				(_match, quote: string, moduleId: string) =>
+					`Promise.resolve().then(() => require(${quote}${moduleId}${quote}))`,
+			);
+			return bundled === code ? null : { code: bundled, map: null };
+		},
+	};
+}
+
 export default defineConfig(({ mode }) => {
 	const isProduction = mode === "production";
 
 	return {
 		build: {
+			// The dictionary engine WASM (654 KiB) must stay inside main.js: the
+			// copy step below deletes dist/, so any emitted asset would be lost.
+			assetsInlineLimit: 1_048_576,
 			copyPublicDir: false,
 			lib: {
 				entry: resolve(projectRoot, "src/obsidian/main.ts"),
@@ -62,6 +85,7 @@ export default defineConfig(({ mode }) => {
 				external: isExternal,
 				output: {
 					banner,
+					codeSplitting: false,
 					entryFileNames: bundledFileName,
 					exports: "named",
 				},
@@ -75,6 +99,6 @@ export default defineConfig(({ mode }) => {
 		esbuild: {
 			jsx: "automatic",
 		},
-		plugins: [copyBundleToPluginRoot()],
+		plugins: [bundleDeferredNodeImports(), copyBundleToPluginRoot()],
 	};
 });

@@ -40,6 +40,8 @@ export interface AiGenerateRequest extends AiRequestOptions {
 	configId?: string;
 	/** Request provider-specific reasoning when the selected engine supports it. */
 	thinkingEnabled?: boolean;
+	/** Ask the provider for a JSON object response (`response_format`). */
+	jsonMode?: boolean;
 	messages: readonly AiMessage[];
 }
 

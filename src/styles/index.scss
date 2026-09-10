@@ -35,6 +35,7 @@
 @use "../ui/views/DeckSettings/DeckSettingsModal.scss";
 
 @use "../ui/views/Translator/Translator.scss";
+@use "../ui/views/Dictionary/Dictionary.scss";
 
 // 4. 全局动效与小屏/移动端响应式覆盖 (最后加载)
 @use "./motion.scss";

@@ -1,6 +1,8 @@
 import { translationSettingsStrings } from "../i18n/translationSettings";
 import { TranslationSettingsEditor } from "./translationSettingsEditor";
 import { AiSettingsEditor } from "./aiSettingsEditor";
+import { DictionarySettingsEditor } from "./dictionarySettingsEditor";
+import { dictionaryStrings } from "../i18n/dictionary";
 import { App, Notice, PluginSettingTab, SecretComponent, Setting } from "obsidian";
 import { createTranslator } from "../i18n";
 import type FlashcardPlugin from "./main";
@@ -17,6 +19,7 @@ import {
 	type SettingsTagButtonsControl,
 	type SettingsTextControl,
 	type SettingsToggleControl,
+	type SettingsReorderableListControl,
 	type SettingsViewModelActions,
 	type SettingsViewModelControl,
 	type SettingsViewModelDefinition,
@@ -46,7 +49,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	private didRetryFailedCacheUsage = false;
 	private aiEditor: AiSettingsEditor;
 	private translationEditor: TranslationSettingsEditor;
-	private activeTab: "flashcards" | "ai" | "translation" = "flashcards";
+	private dictionaryEditor: DictionarySettingsEditor;
+	private activeTab: "flashcards" | "ai" | "translation" | "dictionary" = "flashcards";
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
@@ -62,11 +66,21 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			() => this.getSelectedLanguage(),
 			() => this.refreshDefinitions(),
 		);
+		this.dictionaryEditor = new DictionarySettingsEditor(
+			plugin.dictionaryRuntime,
+			plugin.aiService,
+			() => this.getSelectedLanguage(),
+			() => this.refreshDefinitions(),
+		);
 		this.containerEl.addClass("flashcard-settings-tab");
 	}
 
 	selectTranslation(): void {
 		this.activeTab = "translation";
+	}
+
+	selectDictionary(): void {
+		this.activeTab = "dictionary";
 	}
 
 	display(): void {
@@ -77,6 +91,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	hide(): void {
 		this.aiEditor.hide();
 		this.translationEditor.hide();
+		this.dictionaryEditor.hide();
 		this.pronunciationUnsubscribe?.();
 		this.pronunciationUnsubscribe = null;
 		this.didRetryFailedCacheUsage = false;
@@ -99,7 +114,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 					)
 				: this.activeTab === "ai"
 					? [this.aiEditor.definitions()]
-					: [this.translationEditor.definitions()];
+					: this.activeTab === "translation"
+						? [this.translationEditor.definitions()]
+						: [this.dictionaryEditor.definitions()];
 
 		return rawDefinitions.map((definition) => this.toRenderableDefinition(definition));
 	}
@@ -325,12 +342,19 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 		const t = createTranslator(this.getSelectedLanguage());
 		const navEl = containerEl.createDiv({ cls: "fc-settings-tab-nav" });
-		const tabs: Array<{ id: "flashcards" | "ai" | "translation"; label: string }> = [
+		const tabs: Array<{
+			id: "flashcards" | "ai" | "translation" | "dictionary";
+			label: string;
+		}> = [
 			{ id: "flashcards", label: t("settings.tabFlashcards") },
 			{ id: "ai", label: t("settings.tabAi") },
 			{
 				id: "translation",
 				label: translationSettingsStrings(this.getSelectedLanguage()).heading,
+			},
+			{
+				id: "dictionary",
+				label: dictionaryStrings(this.getSelectedLanguage()).settingsHeading,
 			},
 		];
 
@@ -437,6 +461,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				break;
 			case "status":
 				this.renderStatusControl(setting, control);
+				break;
+			case "reorderableList":
+				this.renderReorderableListControl(setting, control);
 				break;
 		}
 	}
@@ -579,6 +606,111 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		setting.controlEl.createSpan({
 			text: control.text,
 			cls: "flashcard-settings-status",
+		});
+	}
+
+	/**
+	 * Renders an ordered source list with drag & drop plus keyboard-reachable
+	 * move up/down buttons, mirroring the source tool's reorderable list.
+	 */
+	private renderReorderableListControl(
+		setting: Setting,
+		control: SettingsReorderableListControl,
+	): void {
+		const container = setting.descEl.createDiv({
+			cls: "flashcard-dictionary-source-list",
+		});
+		if (control.items.length === 0) {
+			if (control.emptyText) {
+				container.createDiv({
+					text: control.emptyText,
+					cls: "flashcard-dictionary-source-empty",
+				});
+			}
+			return;
+		}
+
+		let draggedId: string | null = null;
+		const clearDragOver = (): void => {
+			for (const el of container.querySelectorAll(".is-drag-over")) {
+				el.removeClass("is-drag-over");
+			}
+		};
+
+		control.items.forEach((item, index) => {
+			const row = new Setting(container);
+			row.setClass("flashcard-dictionary-source-row");
+			row.setName(item.label);
+			if (item.description) row.setDesc(item.description);
+			row.nameEl.createSpan({
+				text: item.kindLabel,
+				cls: "flashcard-dictionary-source-kind",
+			});
+
+			if (control.allowDrag) {
+				row.addExtraButton((button) => {
+					button.setIcon("grip-vertical").setTooltip(control.tooltips.drag);
+					button.extraSettingsEl.draggable = true;
+					button.extraSettingsEl.addEventListener("dragstart", () => {
+						draggedId = item.id;
+						row.settingEl.addClass("is-dragging");
+					});
+					button.extraSettingsEl.addEventListener("dragend", () => {
+						draggedId = null;
+						row.settingEl.removeClass("is-dragging");
+						clearDragOver();
+					});
+				});
+				row.settingEl.addEventListener("dragover", (event) => {
+					if (!draggedId || draggedId === item.id) return;
+					event.preventDefault();
+					row.settingEl.addClass("is-drag-over");
+				});
+				row.settingEl.addEventListener("dragleave", () => {
+					row.settingEl.removeClass("is-drag-over");
+				});
+				row.settingEl.addEventListener("drop", (event) => {
+					event.preventDefault();
+					row.settingEl.removeClass("is-drag-over");
+					const sourceId = draggedId;
+					draggedId = null;
+					if (!sourceId || sourceId === item.id) return;
+					const fromIndex = control.items.findIndex(
+						(candidate) => candidate.id === sourceId,
+					);
+					if (fromIndex < 0) return;
+					control.onMove(fromIndex, index);
+				});
+			}
+
+			row.addExtraButton((button) => {
+				button
+					.setIcon("arrow-up")
+					.setTooltip(control.tooltips.moveUp)
+					.setDisabled(index === 0);
+				button.onClick(() => control.onMove(index, index - 1));
+			});
+			row.addExtraButton((button) => {
+				button
+					.setIcon("arrow-down")
+					.setTooltip(control.tooltips.moveDown)
+					.setDisabled(index === control.items.length - 1);
+				button.onClick(() => control.onMove(index, index + 1));
+			});
+			if (control.onRemove) {
+				const onRemove = control.onRemove;
+				row.addExtraButton((button) => {
+					button
+						.setIcon("trash-2")
+						.setTooltip(dictionaryStrings(this.getSelectedLanguage()).localDelete);
+					button.onClick(() => onRemove(item.id));
+				});
+			}
+			row.addToggle((toggle) => {
+				toggle.setValue(item.enabled).onChange((value) => {
+					item.onToggle(value);
+				});
+			});
 		});
 	}
 

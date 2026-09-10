@@ -76,7 +76,8 @@ export type SettingsViewModelControl =
 	| SettingsTextareaControl
 	| SettingsTextControl
 	| SettingsSecretControl
-	| SettingsStatusControl;
+	| SettingsStatusControl
+	| SettingsReorderableListControl;
 
 export interface SettingsButtonControl {
 	type: "button";
@@ -169,6 +170,25 @@ export interface SettingsSecretControl {
 export interface SettingsStatusControl {
 	type: "status";
 	text: string;
+}
+
+export interface SettingsReorderableItem {
+	description?: string;
+	enabled: boolean;
+	id: string;
+	kindLabel: string;
+	label: string;
+	onToggle: (enabled: boolean) => void;
+}
+
+export interface SettingsReorderableListControl {
+	type: "reorderableList";
+	allowDrag: boolean;
+	emptyText?: string;
+	items: SettingsReorderableItem[];
+	onMove: (fromIndex: number, toIndex: number) => void;
+	onRemove?: (id: string) => void;
+	tooltips: { drag: string; moveDown: string; moveUp: string };
 }
 
 export interface SettingsHelpModel {

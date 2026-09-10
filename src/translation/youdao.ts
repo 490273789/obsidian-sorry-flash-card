@@ -1,4 +1,5 @@
 import { AiError, type AiDependencies, type AiHttpResponse } from "../ai/types";
+import { buildYoudaoV3Body as buildYoudaoV3BodyFromSign, youdaoV3SignInput } from "./youdaoSign";
 
 export interface YoudaoConnection {
 	baseUrl: string;
@@ -6,17 +7,11 @@ export interface YoudaoConnection {
 	appSecretSecretId: string;
 }
 
-export function youdaoV3SignInput(query: string): string {
-	const characters = [...query];
-	return characters.length <= 20
-		? query
-		: `${characters.slice(0, 10).join("")}${characters.length}${characters.slice(-10).join("")}`;
-}
-
-async function sha256(value: string): Promise<string> {
-	const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-	return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
+/**
+ * The v3 signing algorithm is shared with the dictionary tool; only the form
+ * fields differ between translation and dictionary lookups.
+ */
+export { youdaoV3SignInput };
 
 export async function buildYoudaoV3Body(options: {
 	appKey: string;
@@ -25,21 +20,12 @@ export async function buildYoudaoV3Body(options: {
 	from: string;
 	to: string;
 }): Promise<string> {
-	const salt = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-	const curtime = Math.floor(Date.now() / 1000).toString();
-	const sign = await sha256(
-		`${options.appKey}${youdaoV3SignInput(options.query)}${salt}${curtime}${options.appSecret}`,
-	);
-	return new URLSearchParams({
+	return buildYoudaoV3BodyFromSign({
 		appKey: options.appKey,
-		curtime,
-		from: options.from,
-		q: options.query,
-		salt,
-		sign,
-		signType: "v3",
-		to: options.to,
-	}).toString();
+		appSecret: options.appSecret,
+		fields: { from: options.from, to: options.to },
+		query: options.query,
+	});
 }
 
 function validateConnection(connection: YoudaoConnection, text: string): string {

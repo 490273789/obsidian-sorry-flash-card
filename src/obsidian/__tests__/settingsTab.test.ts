@@ -133,6 +133,13 @@ vi.mock("obsidian", () => ({
 			return this;
 		}
 	},
+	Modal: class {
+		contentEl = new MockElement();
+		titleEl = new MockElement();
+		constructor(public app: unknown) {}
+		open() {}
+		close() {}
+	},
 	Notice: vi.fn(),
 }));
 
@@ -201,12 +208,13 @@ describe("FlashcardSettingTab", () => {
 		const tabButtons =
 			navEl?.children.filter((c: MockElement) => c.classList.has("fc-settings-tab-btn")) ??
 			[];
-		expect(tabButtons.length).toBe(3);
+		expect(tabButtons.length).toBe(4);
 		expect(tabButtons[0]?.text).toBe("闪卡设置");
 		expect(tabButtons[0]?.classList.has("is-active")).toBe(true);
 		expect(tabButtons[1]?.text).toBe("AI 引擎设置");
 		expect(tabButtons[1]?.classList.has("is-active")).toBe(false);
 		expect(tabButtons[2]?.text).toContain("翻译");
+		expect(tabButtons[3]?.text).toBe("英语字典");
 
 		const contentEl = container.children.find((c: MockElement) =>
 			c.classList.has("fc-settings-tab-content"),

@@ -1,5 +1,7 @@
 import { normalizeTranslationSettings } from "../translation/configuration";
 import type { TranslationSettings } from "../translation/types";
+import { DEFAULT_DICTIONARY_SETTINGS } from "../dictionary/configuration";
+import type { DictionarySettings } from "../dictionary/types";
 import type { AiSettings } from "../ai/types";
 import type { Card } from "ts-fsrs";
 import { DEFAULT_LANGUAGE, DEFAULT_PRACTICE_MESSAGES } from "../i18n";
@@ -58,6 +60,8 @@ export interface StudySettings {
 export interface FlashcardSettings extends StudySettings {
 	ai: AiSettings;
 	translation: TranslationSettings;
+	/** Migrated English dictionary tool settings. */
+	dictionary: DictionarySettings;
 	/** Interface language */
 	language: Language;
 	/** Tags to scan for flashcards (each tag represents a deck) */
@@ -84,6 +88,7 @@ export interface FlashcardSettings extends StudySettings {
 export const DEFAULT_SETTINGS: FlashcardSettings = {
 	ai: { configs: [], defaultConfigId: null },
 	translation: normalizeTranslationSettings(undefined),
+	dictionary: structuredClone(DEFAULT_DICTIONARY_SETTINGS),
 	language: DEFAULT_LANGUAGE,
 	flashcardTags: ["#wordTag"],
 	wordLearningDecks: {},

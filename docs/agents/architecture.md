@@ -29,6 +29,7 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 | Pronunciation       | `src/pronunciation/`                             | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                                                                                       |
 | Pure card logic     | `src/cards/`                                     | Parsing, formatting, source mutation, spelling extraction/comparison                                                                                                                                  |
 | Presentation models | `src/history/`, `src/wordList/`, `src/settings/` | Pure display definitions, derived presentation state, and history retention pruning                                                                                                                   |
+| Dictionary          | `src/dictionary/`                                | Dictionary lookup, local compiled dictionaries, sandbox rendering, and the compiled-v2 package authority                                                                                              |
 
 ## Boundary rules
 
@@ -53,5 +54,6 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0009: pronunciation runtime owns committed pronunciation configuration.
 - ADR-0010: one shared deep `DeckHome`.
 - ADR-0011: one answer-presentation transition per mounted React adapter.
+- ADR-0017: in-repo Rust/WASM dictionary engine, compiled-package authority, and dictionary source boundaries.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

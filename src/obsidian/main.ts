@@ -4,6 +4,17 @@ import { normalizeTranslationSettings } from "../translation/configuration";
 import { translateYoudao } from "../translation/youdao";
 import { TranslatorItemView, VIEW_TYPE_TRANSLATOR } from "./TranslatorView";
 import type { TranslationSettings } from "../translation/types";
+import { DictionaryRuntime } from "../dictionary/dictionaryRuntime";
+import { normalizeDictionarySettings } from "../dictionary/configuration";
+import type { DictionarySettings } from "../dictionary/types";
+import { dictionaryStrings } from "../i18n/dictionary";
+import {
+	DictionaryFavoriteItemView,
+	VIEW_TYPE_DICTIONARY_FAVORITE,
+} from "./DictionaryFavoriteView";
+import { DictionaryItemView, VIEW_TYPE_DICTIONARY } from "./DictionaryView";
+import { DictionaryLookupModal } from "./dictionaryModals";
+import { createDictionarySettingsStore } from "./dictionarySettingsStore";
 import { createObsidianAiService } from "./aiAdapter";
 import { normalizeAiSettings } from "../ai/configuration";
 import type { AiService, AiSettings } from "../ai";
@@ -40,6 +51,8 @@ const OPEN_COMMAND_ID = "open-flashcard-view";
 const SYNC_COMMAND_ID = "sync-flashcard-decks";
 const MIGRATE_IDENTITIES_COMMAND_ID = "migrate-card-identities";
 const REPAIR_IDENTITIES_COMMAND_ID = "repair-card-identities";
+const DICTIONARY_OPEN_COMMAND_ID = "open-dictionary";
+const DICTIONARY_LOOKUP_SELECTION_COMMAND_ID = "dictionary-lookup-selection";
 
 interface ObsidianSettingsManager {
 	open(): void;
@@ -54,7 +67,10 @@ export default class FlashcardPlugin extends Plugin {
 	pronunciationRuntime!: PronunciationRuntime;
 	aiService!: AiService;
 	translationRuntime!: TranslationRuntime;
+	dictionaryRuntime!: DictionaryRuntime;
 	private translationRibbon: HTMLElement | null = null;
+	private dictionaryRibbon: HTMLElement | null = null;
+	private dictionaryModal: DictionaryLookupModal | null = null;
 	private pluginSettingsTab: FlashcardSettingTab | null = null;
 	deckHome!: DeckHome;
 	private ribbonIconEl: HTMLElement | null = null;
@@ -101,6 +117,46 @@ export default class FlashcardPlugin extends Plugin {
 					this.translationRuntime,
 					() => this.settings.language,
 					this.openTranslationSettings,
+				),
+		);
+		const dictionaryStore = createDictionarySettingsStore({
+			readDictionarySettings: () => this.settings.dictionary,
+			commitDictionarySettings: this.persistDictionarySettings,
+		});
+		this.dictionaryRuntime = new DictionaryRuntime({
+			app: this.app,
+			plugin: this,
+			settings: dictionaryStore,
+			ai: this.aiService,
+			language: () => this.settings.language,
+			request: async (request) => requestUrl({ ...request, throw: false }),
+			openSettings: this.openDictionarySettings,
+			openFavoriteView: this.openDictionaryFavoriteView,
+			notify: (message) => new Notice(message),
+		});
+		this.dictionaryRuntime.applySettings();
+		this.registerView(
+			VIEW_TYPE_DICTIONARY,
+			(leaf) =>
+				new DictionaryItemView(
+					leaf,
+					this.dictionaryRuntime,
+					() => this.settings.language,
+					() => this.settings.dictionary.enabled,
+					this.openDictionarySettings,
+					this.handleDictionaryViewClosed,
+				),
+		);
+		this.registerView(
+			VIEW_TYPE_DICTIONARY_FAVORITE,
+			(leaf) =>
+				new DictionaryFavoriteItemView(
+					leaf,
+					this.dictionaryRuntime,
+					() => this.settings.language,
+					() => this.settings.dictionary.enabled,
+					this.openDictionarySettings,
+					this.handleDictionaryFavoriteViewClosed,
 				),
 		);
 		this.pronunciationRuntime = createPronunciationRuntime(
@@ -158,6 +214,7 @@ export default class FlashcardPlugin extends Plugin {
 
 		this.registerLocalizedControls();
 		this.updateTranslationControls();
+		this.updateDictionaryControls();
 
 		// Add settings tab
 		this.pluginSettingsTab = new FlashcardSettingTab(this.app, this);
@@ -169,6 +226,33 @@ export default class FlashcardPlugin extends Plugin {
 		this.openSettings();
 	};
 
+	private openDictionarySettings = (): void => {
+		this.pluginSettingsTab?.selectDictionary();
+		this.openSettings();
+	};
+
+	/** Opens the favorites sidebar, prefilled before the leaf mounts. */
+	private openDictionaryFavoriteView = async (word: string): Promise<void> => {
+		await this.dictionaryRuntime.favoriteController.prefill(word);
+		await this.activateDictionaryFavoriteView();
+	};
+
+	private handleDictionaryViewClosed = (): void => {
+		queueMicrotask(() => {
+			if (this.app.workspace.getLeavesOfType(VIEW_TYPE_DICTIONARY).length === 0) {
+				this.dictionaryRuntime.controller.resetSession();
+			}
+		});
+	};
+
+	private handleDictionaryFavoriteViewClosed = (): void => {
+		queueMicrotask(() => {
+			if (this.app.workspace.getLeavesOfType(VIEW_TYPE_DICTIONARY_FAVORITE).length === 0) {
+				this.dictionaryRuntime.favoriteController.resetSession();
+			}
+		});
+	};
+
 	private openSettings = (): void => {
 		const settingsManager = (this.app as typeof this.app & { setting: ObsidianSettingsManager })
 			.setting;
@@ -177,6 +261,11 @@ export default class FlashcardPlugin extends Plugin {
 	};
 
 	onunload() {
+		this.dictionaryModal?.close();
+		this.dictionaryModal = null;
+		this.dictionaryRibbon?.remove();
+		this.dictionaryRibbon = null;
+		this.dictionaryRuntime?.dispose();
 		this.translationRuntime?.dispose();
 		this.aiService?.dispose();
 		this.deckHome?.dispose();
@@ -374,6 +463,7 @@ export default class FlashcardPlugin extends Plugin {
 			pronunciation: { ...this.settings.pronunciation },
 			ai: normalizeAiSettings(this.settings.ai),
 			translation: normalizeTranslationSettings(this.settings.translation),
+			dictionary: normalizeDictionarySettings(this.settings.dictionary),
 		}));
 	}
 
@@ -428,6 +518,89 @@ export default class FlashcardPlugin extends Plugin {
 		}
 		await workspace.revealLeaf(leaf);
 	}
+
+	private updateDictionaryControls(): void {
+		this.dictionaryRibbon?.remove();
+		this.dictionaryRibbon = null;
+		this.removeCommand(DICTIONARY_OPEN_COMMAND_ID);
+		this.removeCommand(DICTIONARY_LOOKUP_SELECTION_COMMAND_ID);
+		if (!this.settings.dictionary.enabled) return;
+		const strings = dictionaryStrings(this.settings.language);
+		this.dictionaryRibbon = this.addRibbonIcon("book-open", strings.openCommand, () => {
+			this.openDictionaryPrompt();
+		});
+		this.addCommand({
+			id: DICTIONARY_OPEN_COMMAND_ID,
+			name: strings.openCommand,
+			hotkeys: [{ modifiers: ["Alt"], key: "W" }],
+			callback: () => {
+				this.openDictionaryPrompt();
+			},
+		});
+		this.addCommand({
+			id: DICTIONARY_LOOKUP_SELECTION_COMMAND_ID,
+			name: strings.selectionCommand,
+			editorCheckCallback: (checking, editor) => {
+				const text = editor.getSelection();
+				if (!text.trim()) return false;
+				if (!checking) void this.openDictionaryQuery(text);
+				return true;
+			},
+		});
+	}
+
+	/** The open command and ribbon prompt for a word first, matching the source tool. */
+	private openDictionaryPrompt(): void {
+		this.dictionaryModal?.close();
+		this.dictionaryModal = new DictionaryLookupModal(
+			this.app,
+			(query) => {
+				this.dictionaryModal = null;
+				void this.openDictionaryQuery(query);
+			},
+			dictionaryStrings(this.settings.language),
+		);
+		this.dictionaryModal.open();
+	}
+
+	private async openDictionaryQuery(query: string): Promise<void> {
+		const strings = dictionaryStrings(this.settings.language);
+		try {
+			this.dictionaryRuntime.controller.prefill(query);
+			await this.activateDictionaryView();
+			await this.dictionaryRuntime.controller.lookup();
+		} catch (error) {
+			console.error("Failed to open the dictionary view:", error);
+			new Notice(strings.openFailed);
+		}
+	}
+
+	async activateDictionaryView(): Promise<void> {
+		const workspace = this.app.workspace;
+		let leaf = workspace.getLeavesOfType(VIEW_TYPE_DICTIONARY)[0];
+		if (!leaf) {
+			leaf = workspace.getLeaf("tab");
+			await leaf.setViewState({ type: VIEW_TYPE_DICTIONARY, active: true });
+		}
+		await workspace.revealLeaf(leaf);
+	}
+
+	private async activateDictionaryFavoriteView(): Promise<void> {
+		const workspace = this.app.workspace;
+		let leaf = workspace.getLeavesOfType(VIEW_TYPE_DICTIONARY_FAVORITE)[0];
+		if (!leaf) {
+			leaf = workspace.getRightLeaf(false) ?? workspace.getLeaf("tab");
+			await leaf.setViewState({ type: VIEW_TYPE_DICTIONARY_FAVORITE, active: true });
+		}
+		await workspace.revealLeaf(leaf);
+	}
+
+	private persistDictionarySettings = async (dictionary: DictionarySettings): Promise<void> => {
+		await this.enqueueSettingsWrite(() => ({
+			...this.settings,
+			dictionary: normalizeDictionarySettings(dictionary),
+		}));
+	};
 
 	private persistAiSettings = async (ai: AiSettings): Promise<void> => {
 		await this.enqueueSettingsWrite(() => ({ ...this.settings, ai: normalizeAiSettings(ai) }));
@@ -573,8 +746,16 @@ export default class FlashcardPlugin extends Plugin {
 		this.t = createTranslator(settings.language);
 		try {
 			this.updateTranslationControls();
+			this.updateDictionaryControls();
+			this.dictionaryRuntime?.applySettings();
 			this.app.workspace.getLeavesOfType(VIEW_TYPE_TRANSLATOR).forEach((leaf) => {
 				if (leaf.view instanceof TranslatorItemView) leaf.view.updateSettings();
+			});
+			this.app.workspace.getLeavesOfType(VIEW_TYPE_DICTIONARY).forEach((leaf) => {
+				if (leaf.view instanceof DictionaryItemView) leaf.view.updateSettings();
+			});
+			this.app.workspace.getLeavesOfType(VIEW_TYPE_DICTIONARY_FAVORITE).forEach((leaf) => {
+				if (leaf.view instanceof DictionaryFavoriteItemView) leaf.view.updateSettings();
 			});
 			this.updateLocalizedControls();
 		} catch (error) {
@@ -632,6 +813,7 @@ function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings 
 		pronunciation: { ...settings.pronunciation },
 		ai: normalizeAiSettings(settings.ai),
 		translation: normalizeTranslationSettings(settings.translation),
+		dictionary: structuredClone(settings.dictionary),
 	};
 }
 

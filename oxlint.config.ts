@@ -13,6 +13,7 @@ export default defineConfig({
 		"vite.config.ts",
 		"scripts/version-bump.mjs",
 		"versions.json",
+		"src/dictionary/engine",
 	],
 	options: {
 		typeAware: true,

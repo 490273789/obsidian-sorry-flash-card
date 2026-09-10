@@ -97,6 +97,7 @@ export class AiService {
 					body.thinking = { type: request.thinkingEnabled ? "enabled" : "disabled" };
 				if (config.provider === "bailian") body.enable_thinking = request.thinkingEnabled;
 			}
+			if (request.jsonMode) body.response_format = { type: "json_object" };
 			const data = await callAiJson(
 				this.deps,
 				config,

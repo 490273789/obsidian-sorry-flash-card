@@ -25,7 +25,7 @@ jobs:
             - run: pnpm build
             - uses: actions/upload-artifact@v6
               with:
-                  name: wsr-flash-card-${{ github.sha }}
+                  name: obsidian-study-studio-${{ github.sha }}
                   path: |
                       main.js
                       manifest.json
