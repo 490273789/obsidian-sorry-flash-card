@@ -2,8 +2,8 @@
 
 Read this guide before changing deck PDF content, rendering, file naming, Electron integration, progress, or cleanup.
 
-- Keep row/content/file-name derivation in the pure `src/decks/deckPdfViewModel.ts`.
-- Keep Obsidian Markdown rendering, Electron window creation, print styling, save dialogs, progress reporting, and temporary-file cleanup in `src/decks/deckPdfExporter.ts`.
+- Keep printable-DOM assembly, print styling, and row/content/file-name derivation in `src/decks/deckPdfViewModel.ts`.
+- Keep Electron capability detection, background-window creation, save dialogs, and temp-directory plumbing in `src/decks/deckPdfDesktopRuntime.ts`. `src/decks/deckPdfExporter.ts` orchestrates through the injected `DesktopPdfRuntime` and keeps Obsidian Markdown rendering, progress reporting, and temporary-file cleanup.
 - PDF export is desktop-only even though the plugin itself supports mobile. Preserve runtime capability checks and user-facing rejection on mobile.
 - Avoid top-level Electron or Node imports that could break plugin loading on mobile.
 - Render card content with Obsidian `MarkdownRenderer`; do not inject raw card HTML.
@@ -11,4 +11,4 @@ Read this guide before changing deck PDF content, rendering, file naming, Electr
 - `DeckHome` owns single-flight export activity and captures an immutable deck snapshot at export start. Do not move export activity back into React-local state.
 - Preserve save cancellation semantics and cleanup for success, cancellation, and failure.
 
-Add or update focused tests under `src/decks/__tests__/`, especially for the pure view model and capability/error behavior. Run the relevant tests and `npm run build`, and state whether a real desktop PDF was manually exported and inspected.
+Add or update focused tests under `src/decks/__tests__/`, especially for the pure view model and capability/error behavior. Run the relevant tests and `pnpm run build`, and state whether a real desktop PDF was manually exported and inspected.

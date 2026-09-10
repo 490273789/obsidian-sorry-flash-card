@@ -32,14 +32,14 @@ const preCommitHookContent = `#!/bin/sh
 echo "\x1b[36m🔍 运行提交前代码检查 (format & lint)...\x1b[0m"
 
 # 1. 格式检查
-npm run format:check
+pnpm run format:check
 if [ $? -ne 0 ]; then
-  echo "\n\x1b[31m❌ 代码格式检查未通过！请先运行 'npm run format' 进行自动格式化后重试。\x1b[0m\n"
+  echo "\n\x1b[31m❌ 代码格式检查未通过！请先运行 'pnpm run format' 进行自动格式化后重试。\x1b[0m\n"
   exit 1
 fi
 
 # 2. 类型与 Lint 检查
-npm run lint
+pnpm run lint
 if [ $? -ne 0 ]; then
   echo "\n\x1b[31m❌ 代码 Lint / 类型检查未通过！请修复上述错误后重试。\x1b[0m\n"
   exit 1

@@ -50,12 +50,12 @@ n. 苹果
 
 | 快捷键 | 功能                    |
 | ------ | ----------------------- |
-| `空格` | 显示答案 / 选择"良好"   |
-| `1`    | 重来（1分钟后再次出现） |
+| `空格` | 显示答案 / 选择"记得"   |
+| `1`    | 忘记（1分钟后再次出现） |
 | `2`    | 困难（1天后复习）       |
-| `3`    | 良好（3天后复习）       |
-| `4`    | 简单（10天后复习）      |
-| `5`    | 辣鸡（21天后复习）      |
+| `3`    | 记得（3天后复习）       |
+| `4`    | 轻松（10天后复习）      |
+| `5`    | 熟练（21天后复习）      |
 | `6`    | 上一题                  |
 
 ## ⚙️ 设置选项
@@ -78,43 +78,15 @@ n. 苹果
 
 ```bash
 # 安装依赖
-npm install
+pnpm install
 
 # 开发模式（监听文件变化）
-npm run dev
+pnpm run dev
 
 # 构建生产版本
-npm run build
+pnpm run build
 ```
 
 ## 📄 许可证
 
 0-BSD
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-	"fundingUrl": "https://buymeacoffee.com"
-}
-```
-
-If you have multiple URLs, you can also do:
-
-```json
-{
-	"fundingUrl": {
-		"Buy Me a Coffee": "https://buymeacoffee.com",
-		"GitHub Sponsor": "https://github.com/sponsors",
-		"Patreon": "https://www.patreon.com/"
-	}
-}
-```
-
-## API Documentation
-
-See https://docs.obsidian.md

@@ -30,7 +30,7 @@ Pure engines and planners under `src/sessions/` are internal seams. Keep React, 
 `src/sessions/scheduler.ts` and `src/sessions/studySessionEngine.ts` own study semantics.
 
 - Ratings 1–4 map to FSRS Again, Hard, Good, and Easy.
-- Rating 5 is the custom “辣鸡” path and schedules 21 days later.
+- Rating 5 is the custom “熟练” path (`ratings.trash`, `scheduler.rateAsGarbage`) and schedules 21 days later.
 - Keep button labels, displayed intervals, and keyboard shortcuts aligned.
 - Undo restores the affected card's scheduling state before its most recent answer event; it is not queue-only navigation.
 - Be cautious with due-date math and serialized `ts-fsrs` fields.

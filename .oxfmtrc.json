@@ -6,13 +6,5 @@
 	"semi": true,
 	"singleQuote": false,
 	"trailingComma": "all",
-	"ignorePatterns": [
-		"node_modules",
-		"dist",
-		"main.js",
-		"styles.css",
-		"*.map",
-		"package-lock.json",
-		"pnpm-lock.yaml"
-	]
+	"ignorePatterns": ["node_modules", "dist", "main.js", "styles.css", "*.map", "pnpm-lock.yaml"]
 }

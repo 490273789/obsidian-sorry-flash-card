@@ -27,8 +27,8 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 `src/settings/settingsViewModel.ts` builds the pure definition tree; `src/obsidian/settingsTab.ts` renders it and owns Obsidian effects.
 
-- Keep both `getSettingDefinitions()` and the imperative `display()` fallback working. The fallback prevents blank settings panes in environments where declarative definitions fail.
-- `refreshDefinitions()` must call `update()` when available and render manually otherwise.
+- The tab renders the definition tree through the imperative `display()` → `renderSettings()` path only; keep that single path working.
+- `refreshDefinitions()` always re-renders through `renderSettings()`, so every control must read live view-model state on each render.
 - Narrow unknown/union definition shapes with runtime guards before calling `render` in the manual path.
 - Preserve async tag discovery/refresh and runtime subscription cleanup.
 - Pronunciation controls derive values and busy/cache state from `PronunciationRuntime`; do not duplicate transient state in the settings adapter.
@@ -41,6 +41,6 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 - Reuse existing `--fc-*` tokens and Obsidian theme tokens. Avoid inline-style proliferation, new parallel token systems, or fixed light/dark palettes.
 - Keep touch targets, keyboard focus, reduced-motion behavior, responsive layouts, and light/dark contrast intact.
 - For a visible regression, make the smallest effective repair before considering broader redesign.
-- Style-only changes need no new unit tests, but require `npm run build` and visual inspection in Obsidian when feasible.
+- Style-only changes need no new unit tests, but require `pnpm run build` and visual inspection in Obsidian when feasible.
 
 Component or Obsidian API tests need explicit mocks/setup; do not rely accidentally on browser globals in the Vitest environment.

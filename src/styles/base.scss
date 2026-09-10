@@ -239,8 +239,8 @@
 
 /*
  * Root frame: layout skeleton plus the neutral canvas surface.
- * This is the only static .flashcard-root definition; editorial.css only
- * adjusts it responsively via @container queries.
+ * This is the only static .flashcard-root definition; responsive.scss and the
+ * deck-list @container rule adjust it at narrow widths.
  */
 .flashcard-root {
 	position: relative;

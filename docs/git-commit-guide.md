@@ -88,7 +88,7 @@ flowchart TD
     B --> C[3. 提交前质量检查]
     C -->|通过| D[4. 规范提交: git commit]
     C -->|失败| A
-    D --> E[5. 构建验证: npm run build]
+    D --> E[5. 构建验证: pnpm run build]
     E --> F[6. 推送至远端: git push]
 ```
 
@@ -103,16 +103,16 @@ flowchart TD
 
 ```bash
 # 格式检查
-npm run format:check
+pnpm run format:check
 
 # 类型检查与 Lint 检查
-npm run lint
+pnpm run lint
 
 # 单元测试（涉及逻辑变更时）
-npm run test
+pnpm run test
 
 # 综合一键检查
-npm run check:all
+pnpm run check:all
 ```
 
 > **注意**：项目已配置 Git Hooks，每次 `git commit` 时会自动触发 `pre-commit`（代码格式 & lint 检查）与 `commit-msg`（规范校验）。
@@ -125,15 +125,18 @@ npm run check:all
 
 ```bash
 # 1. 运行全量测试与构建检查
-npm run check:all
-npm run build
+pnpm run check:all
+pnpm run build
 
-# 2. 更新版本号（会自动更新 package.json、锁文件、manifest.json、versions.json，
-#    并创建 release commit 与 tag；除非显式使用 --no-git-tag-version）
-npm version patch -m "chore(release): bump version to %s"   # 小修补 4.5.0 -> 4.5.1
-# 或 npm version minor -m "chore(release): bump version to %s" # 新功能 4.5.0 -> 4.6.0
-# 或 npm version major -m "chore(release): bump version to %s" # 主版本 4.5.0 -> 5.0.0
+# 2. 更新版本号
+#    pnpm release:* 会 bump package.json，运行 scripts/version-bump.mjs 同步
+#    manifest.json 与 versions.json，并创建 release commit 与不带 v 前缀的 tag
+pnpm release:patch   # 小修补 4.5.0 -> 4.5.1
+# 或 pnpm release:minor # 新功能 4.5.0 -> 4.6.0
+# 或 pnpm release:major # 主版本 4.5.0 -> 5.0.0
 
-# 3. 检查 npm 自动创建的 release commit 与 tag，然后推送
+# 3. 检查自动创建的 release commit 与 tag，然后推送
 git push origin main --tags
 ```
+
+> **注意**：不要用 `npm version` 代替 `pnpm release`。`release` 脚本带有 `--tag-version-prefix ""`，产出的 tag 与 `package.json` 版本一致；`npm version` 默认加 `v` 前缀，会被 `.github/workflows/release.yml` 的版本校验拦下。
