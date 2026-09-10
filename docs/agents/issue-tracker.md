@@ -2,7 +2,7 @@
 
 Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
-Repository: `490273789/obsidian-sorry-flash-card`
+Repository: `490273789/obsidian-study-studio`
 
 ## Pull requests as a triage surface
 
