@@ -3,10 +3,11 @@ import { AiError, type AiEngineConfig, type AiModel, type AiService } from "../a
 import { AI_PRESETS } from "../ai/configuration";
 import { aiErrorText, aiStrings } from "../i18n/ai";
 import type { Language } from "../shared/types";
-import { buildAiSettingsViewModel } from "../settings/aiSettingsViewModel";
+import { buildAiSettingsViewModel, type AiViewMode } from "../settings/aiSettingsViewModel";
 
 /** Only unsaved form drafts live here. Committed state and requests belong to AiService. */
 export class AiSettingsEditor {
+	private view: AiViewMode = "list";
 	private draft: AiEngineConfig;
 	private draftIsNew: boolean;
 	private models: AiModel[] = [];
@@ -18,9 +19,8 @@ export class AiSettingsEditor {
 		private language: () => Language,
 		private refresh: () => void,
 	) {
-		const initial = service.getSnapshot().settings.configs[0];
-		this.draftIsNew = !initial;
-		this.draft = { ...(initial ?? this.newDraft()) };
+		this.draftIsNew = true;
+		this.draft = this.newDraft();
 	}
 	activate(): void {
 		this.unsubscribe ??= this.service.subscribe(this.refresh);
@@ -28,16 +28,46 @@ export class AiSettingsEditor {
 	hide(): void {
 		this.unsubscribe?.();
 		this.unsubscribe = null;
+		this.view = "list";
 	}
 	definitions() {
 		return buildAiSettingsViewModel(
 			{
 				snapshot: this.service.getSnapshot(),
 				draft: this.draft,
+				draftIsNew: this.draftIsNew,
+				view: this.view,
 				models: this.models,
 				saving: this.saving,
 			},
 			{
+				toAdd: () => {
+					this.draft = this.newDraft();
+					this.draftIsNew = true;
+					this.models = [];
+					this.revision++;
+					this.view = "form";
+					this.refresh();
+				},
+				toEdit: (id) => {
+					const config = this.service
+						.getSnapshot()
+						.settings.configs.find((item) => item.id === id);
+					if (config) {
+						this.draft = { ...config };
+						this.draftIsNew = false;
+						this.models = [];
+						this.revision++;
+						this.view = "form";
+						this.refresh();
+					}
+				},
+				back: () => {
+					this.view = "list";
+					this.models = [];
+					this.revision++;
+					this.refresh();
+				},
 				select: (id) => {
 					const config = this.service
 						.getSnapshot()
@@ -55,6 +85,7 @@ export class AiSettingsEditor {
 					this.draftIsNew = true;
 					this.models = [];
 					this.revision++;
+					this.view = "form";
 					this.refresh();
 				},
 				selectModel: (model) => {
@@ -87,15 +118,20 @@ export class AiSettingsEditor {
 								.settings.configs.find((config) => config.id === id)!,
 						};
 						this.draftIsNew = false;
+						this.view = "list";
+						this.models = [];
+						this.revision++;
 						new Notice(aiStrings(this.language()).saved);
 					}),
-				remove: () =>
+				remove: (id) =>
 					this.perform(async () => {
-						await this.service.deleteConfig(this.draft.id);
-						this.draftIsNew = this.service.getSnapshot().settings.configs.length === 0;
-						this.draft = {
-							...(this.service.getSnapshot().settings.configs[0] ?? this.newDraft()),
-						};
+						const targetId = id ?? this.draft.id;
+						await this.service.deleteConfig(targetId);
+						if (this.draft.id === targetId) {
+							this.draft = this.newDraft();
+							this.draftIsNew = true;
+						}
+						this.view = "list";
 						this.models = [];
 						this.revision++;
 						new Notice(aiStrings(this.language()).deleted);
@@ -113,7 +149,7 @@ export class AiSettingsEditor {
 				},
 				test: async () => {
 					try {
-						await this.service.testConnection(this.draft.id);
+						await this.service.testConnection(this.draft);
 						new Notice(aiStrings(this.language()).success);
 					} catch (error) {
 						this.report(error);

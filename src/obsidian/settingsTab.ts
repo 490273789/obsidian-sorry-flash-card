@@ -417,6 +417,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				.onClick(() => {
 					void control.onClick();
 				});
+			if (control.variant === "warning") {
+				button.setWarning();
+			}
 		});
 	}
 

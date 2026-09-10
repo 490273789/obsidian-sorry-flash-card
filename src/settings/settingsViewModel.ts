@@ -82,6 +82,7 @@ export interface SettingsButtonControl {
 	label: string;
 	disabled: boolean;
 	onClick: () => SettingsActionResult;
+	variant?: "default" | "warning";
 }
 
 export interface SettingsEditableTextListControl {

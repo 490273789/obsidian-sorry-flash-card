@@ -97,19 +97,33 @@ export class AiService {
 		});
 	}
 
-	async testConnection(id: string, options: AiRequestOptions = {}): Promise<void> {
+	async testConnection(
+		target: string | AiEngineConfig,
+		options: AiRequestOptions = {},
+	): Promise<void> {
 		this.assertActive();
-		if (this.testing.has(id)) throw new AiError("busy");
-		this.testing.add(id);
+		const config =
+			typeof target === "string"
+				? this.resolve(target)
+				: cleanAiConfig({ ...target, name: target.name.trim() || "Test" });
+		const testingKey = typeof target === "string" ? config.id : target.id;
+		if (this.testing.has(testingKey)) throw new AiError("busy");
+		this.testing.add(testingKey);
 		this.publish();
 		try {
-			await this.generate({
-				...options,
-				configId: id,
-				messages: [{ role: "user", text: "Reply with OK." }],
+			await this.run(options, async (check) => {
+				const messages = encodeMessages([{ role: "user", text: "Reply with OK." }]);
+				const data = await callAiJson(
+					this.deps,
+					config,
+					`${config.baseUrl}/chat/completions`,
+					{ model: config.model, messages, stream: false },
+					check,
+				);
+				readTextResponse(data);
 			});
 		} finally {
-			this.testing.delete(id);
+			this.testing.delete(testingKey);
 			this.publish();
 		}
 	}

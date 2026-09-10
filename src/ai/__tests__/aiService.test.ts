@@ -361,3 +361,43 @@ describe("model discovery", () => {
 		expect(service.getSnapshot().loadingModels).toEqual([]);
 	});
 });
+
+describe("connection test", () => {
+	it("tests connection using a saved configuration ID", async () => {
+		const { service, request } = setup();
+		request.mockResolvedValueOnce(response("OK"));
+		await expect(service.testConnection(config.id)).resolves.toBeUndefined();
+		expect(request).toHaveBeenCalledOnce();
+	});
+
+	it("tests connection using an unsaved draft AiEngineConfig", async () => {
+		const { service, request } = setup();
+		request.mockResolvedValueOnce(response("OK"));
+		const draft: AiEngineConfig = {
+			id: "draft-123",
+			name: "",
+			provider: "deepseek",
+			baseUrl: "https://api.deepseek.com",
+			secretId: "ai-key",
+			model: "deepseek-v4-flash",
+		};
+		await expect(service.testConnection(draft)).resolves.toBeUndefined();
+		expect(request).toHaveBeenCalledOnce();
+	});
+
+	it("rejects invalid draft configuration without sending a request", async () => {
+		const { service, request } = setup();
+		const invalidDraft: AiEngineConfig = {
+			id: "draft-invalid",
+			name: "",
+			provider: "deepseek",
+			baseUrl: "",
+			secretId: "",
+			model: "",
+		};
+		await expect(service.testConnection(invalidDraft)).rejects.toMatchObject({
+			code: "invalid-config",
+		});
+		expect(request).not.toHaveBeenCalled();
+	});
+});

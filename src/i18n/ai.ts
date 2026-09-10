@@ -30,7 +30,7 @@ const zh = {
 	remove: "删除配置",
 	test: "测试连接",
 	testing: "测试中…",
-	testHelp: "测试已保存的配置，会发送简短文本请求，可能产生费用；成功不代表支持图片。",
+	testHelp: "测试当前连接配置，会发送简短文本请求，可能产生费用；成功不代表支持图片。",
 	draftHelp:
 		"编辑后点击保存。切换配置或新增配置会放弃未保存的修改。删除配置不会删除密钥存储中的密钥。",
 	saved: "AI 引擎配置已保存",
@@ -42,6 +42,19 @@ const zh = {
 	supported: "支持图片",
 	unsupported: "仅文本",
 	unknown: "图片能力未知",
+	engineList: "已配置引擎",
+	engineListDesc: "管理所有已配置的 AI 引擎。",
+	addEngine: "新增引擎",
+	noConfigs: "暂无已配置的引擎",
+	noConfigsDesc: "点击“新增引擎”添加你的第一个 AI 引擎配置。",
+	edit: "编辑",
+	delete: "删除",
+	back: "返回列表",
+	backDesc: "返回已配置的引擎列表，未保存的修改将被放弃。",
+	addEngineHeading: "新增 AI 引擎",
+	editEngineHeading: "编辑 AI 引擎",
+	defaultBadge: "（默认）",
+	cancel: "取消",
 };
 const en: typeof zh = {
 	heading: "AI engines",
@@ -76,7 +89,7 @@ const en: typeof zh = {
 	test: "Test connection",
 	testing: "Testing…",
 	testHelp:
-		"Tests the saved configuration with a short text request. Charges may apply. Success does not verify image support.",
+		"Tests the current connection configuration with a short text request. Charges may apply. Success does not verify image support.",
 	draftHelp:
 		"Click Save after editing. Switching or adding configurations discards unsaved edits. Deleting a configuration keeps its stored secret.",
 	saved: "AI engine configuration saved",
@@ -88,6 +101,19 @@ const en: typeof zh = {
 	supported: "Image input",
 	unsupported: "Text only",
 	unknown: "Image support unknown",
+	engineList: "Configured engines",
+	engineListDesc: "Manage all configured AI engines.",
+	addEngine: "Add engine",
+	noConfigs: "No configured engines",
+	noConfigsDesc: 'Click "Add engine" to configure your first AI engine.',
+	edit: "Edit",
+	delete: "Delete",
+	back: "Back to list",
+	backDesc: "Return to configured engines list. Unsaved changes will be discarded.",
+	addEngineHeading: "Add AI engine",
+	editEngineHeading: "Edit AI engine",
+	defaultBadge: "(Default)",
+	cancel: "Cancel",
 };
 export function aiStrings(language: Language): typeof zh {
 	return language === "en" ? en : zh;

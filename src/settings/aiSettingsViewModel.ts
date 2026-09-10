@@ -8,21 +8,28 @@ import type {
 	SettingsActionResult,
 } from "./settingsViewModel";
 
+export type AiViewMode = "list" | "form";
+
 export interface AiEditorState {
 	snapshot: AiSnapshot;
 	draft: AiEngineConfig;
 	models: readonly AiModel[];
 	saving: boolean;
+	view?: AiViewMode;
+	draftIsNew?: boolean;
 }
 export interface AiEditorActions {
-	select: (id: string) => SettingsActionResult;
-	add: () => SettingsActionResult;
+	select?: (id: string) => SettingsActionResult;
+	add?: () => SettingsActionResult;
+	toAdd?: () => SettingsActionResult;
+	toEdit?: (id: string) => SettingsActionResult;
+	back?: () => SettingsActionResult;
 	selectModel: (model: string) => SettingsActionResult;
 	patch: (patch: Partial<AiEngineConfig>) => SettingsActionResult;
 	provider: (provider: AiProvider) => SettingsActionResult;
 	setDefault: (id: string) => SettingsActionResult;
 	save: () => SettingsActionResult;
-	remove: () => SettingsActionResult;
+	remove: (id?: string) => SettingsActionResult;
 	loadModels: () => SettingsActionResult;
 	test: () => SettingsActionResult;
 }
@@ -33,10 +40,10 @@ export function buildAiSettingsViewModel(
 	language: Language,
 ): SettingsViewModelDefinition {
 	const t = aiStrings(language);
-	const { draft, snapshot, saving } = state;
-	const saved = snapshot.settings.configs.find((config) => config.id === draft.id);
+	const { draft, snapshot, saving, view = "list", draftIsNew = false } = state;
 	const loading = snapshot.loadingModels.includes(draft.id);
 	const testing = snapshot.testing.includes(draft.id);
+
 	const row = (
 		name: string,
 		controls: SettingsViewModelControl[],
@@ -56,11 +63,11 @@ export function buildAiSettingsViewModel(
 		label: string,
 		onClick: () => SettingsActionResult,
 		disabled = saving,
-	): SettingsViewModelControl => ({ type: "button", label, onClick, disabled });
-	return {
-		type: "group",
-		heading: t.heading,
-		items: [
+		variant?: "default" | "warning",
+	): SettingsViewModelControl => ({ type: "button", label, onClick, disabled, variant });
+
+	if (view === "list") {
+		const items: SettingsViewModelSetting[] = [
 			row(
 				t.defaultConfig,
 				[
@@ -81,25 +88,49 @@ export function buildAiSettingsViewModel(
 				t.defaultHelp,
 			),
 			row(
-				t.configuration,
-				[
-					{
-						type: "select",
-						value: draft.id,
-						disabled: saving,
-						options: [
-							...(!saved ? [{ value: draft.id, label: t.newDraft }] : []),
-							...snapshot.settings.configs.map((config) => ({
-								value: config.id,
-								label: config.name,
-							})),
-						],
-						onChange: actions.select,
-					},
-					button(t.newConfig, actions.add),
-				],
-				t.draftHelp,
+				t.engineList,
+				[button(t.addEngine, () => (actions.toAdd ? actions.toAdd() : actions.add?.()))],
+				t.engineListDesc,
 			),
+		];
+
+		if (snapshot.settings.configs.length === 0) {
+			items.push(row(t.noConfigs, [], t.noConfigsDesc));
+		} else {
+			for (const config of snapshot.settings.configs) {
+				const isDefault = config.id === snapshot.settings.defaultConfigId;
+				const name = isDefault ? `${config.name} ${t.defaultBadge}` : config.name;
+				const providerLabel = t[config.provider] ?? config.provider;
+				const desc = `${providerLabel} · ${config.model || t.none}`;
+				items.push(
+					row(
+						name,
+						[
+							button(t.edit, () =>
+								actions.toEdit
+									? actions.toEdit(config.id)
+									: actions.select?.(config.id),
+							),
+							button(t.delete, () => actions.remove(config.id), saving, "warning"),
+						],
+						desc,
+					),
+				);
+			}
+		}
+
+		return {
+			type: "group",
+			heading: t.heading,
+			items,
+		};
+	}
+
+	return {
+		type: "group",
+		heading: `${t.heading} - ${draftIsNew ? t.addEngineHeading : t.editEngineHeading}`,
+		items: [
+			row(t.back, [button(t.back, () => actions.back?.())], t.backDesc),
 			row(t.name, [text("name", t.namePlaceholder)]),
 			row(t.provider, [
 				{
@@ -152,15 +183,18 @@ export function buildAiSettingsViewModel(
 						]
 					: []),
 			]),
-			row(t.configuration, [
-				button(t.save, actions.save),
-				button(t.remove, actions.remove, saving || !saved),
-			]),
 			row(
 				t.test,
-				[button(testing ? t.testing : t.test, actions.test, saving || testing || !saved)],
+				[button(testing ? t.testing : t.test, actions.test, saving || testing)],
 				t.testHelp,
 			),
+			row(t.configuration, [
+				button(t.save, actions.save),
+				button(t.cancel, () => actions.back?.()),
+				...(!draftIsNew
+					? [button(t.remove, () => actions.remove(draft.id), saving, "warning" as const)]
+					: []),
+			]),
 		],
 	};
 }
