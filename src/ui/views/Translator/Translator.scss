@@ -1,0 +1,208 @@
+.flashcard-translator {
+	display: flex;
+	min-height: 100%;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+	max-width: 1280px;
+	margin: 0 auto;
+	padding: var(--fc-space-3);
+	color: var(--fc-text);
+}
+
+.flashcard-translator-direction {
+	align-self: center;
+	display: grid;
+	grid-template-columns: auto auto auto;
+	align-items: center;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-1);
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-section);
+	text-align: center;
+
+	strong {
+		min-width: 3em;
+	}
+}
+
+.flashcard-translator-model-count {
+	padding: var(--fc-space-1) var(--fc-space-2);
+	border: 1px solid var(--fc-line-soft);
+	border-radius: var(--fc-radius-pill);
+	background: var(--fc-surface-section);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-xs);
+	white-space: nowrap;
+}
+
+.flashcard-translator-notice {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-3);
+	border: 1px solid var(--fc-line);
+	border-left: 3px solid var(--fc-orange);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-section);
+	color: var(--fc-muted);
+}
+
+.flashcard-translator-workspace {
+	display: grid;
+	min-height: 410px;
+	flex: 1 1 410px;
+	grid-template-columns: repeat(2, minmax(280px, 1fr));
+	gap: var(--fc-space-3);
+}
+
+.flashcard-translator-results {
+	display: grid;
+	min-width: 0;
+	min-height: 0;
+	grid-auto-rows: minmax(0, 1fr);
+	gap: var(--fc-space-3);
+}
+
+.flashcard-translator-panel {
+	display: grid;
+	min-width: 0;
+	min-height: 0;
+	grid-template-rows: auto minmax(0, 1fr) auto;
+	overflow: hidden;
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-sm);
+	background: var(--fc-surface-section);
+	transition: border-color var(--fc-motion-quick) ease;
+
+	&:focus-within {
+		border-color: var(--fc-input-border-focus);
+	}
+
+	> header,
+	> footer {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--fc-space-3);
+		padding: var(--fc-space-2) var(--fc-space-3);
+	}
+
+	> header {
+		min-height: var(--fc-control-touch);
+		border-bottom: 1px solid var(--fc-line-soft);
+
+		label,
+		strong {
+			font-weight: var(--fc-weight-semibold);
+		}
+
+		> span {
+			color: var(--fc-faint);
+			font-size: var(--fc-font-xs);
+		}
+	}
+
+	> .flashcard-textarea {
+		min-height: 0;
+		height: 100%;
+		padding: var(--fc-space-4);
+		border: 0;
+		border-radius: 0;
+		background: transparent;
+		line-height: var(--fc-line-body);
+		resize: none;
+
+		&:focus,
+		&:focus-visible {
+			box-shadow: none;
+		}
+	}
+
+	> footer {
+		align-items: flex-start;
+		min-height: var(--fc-control-md);
+		border-top: 1px solid var(--fc-line-soft);
+		color: var(--fc-muted);
+		font-size: var(--fc-font-xs);
+
+		p {
+			margin: 0;
+		}
+		.is-error {
+			color: var(--fc-danger);
+		}
+	}
+}
+
+.flashcard-translator-result-title {
+	display: grid;
+	min-width: 0;
+	gap: var(--fc-space-1);
+
+	strong,
+	span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	span {
+		color: var(--fc-muted);
+		font-size: var(--fc-font-xs);
+	}
+}
+
+.flashcard-translator-usage {
+	margin-left: auto !important;
+	color: var(--fc-faint);
+}
+
+.flashcard-translator-footer,
+.flashcard-translator-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--fc-space-3);
+}
+
+.flashcard-translator-footer {
+	align-items: flex-start;
+}
+
+.flashcard-translator-actions {
+	justify-content: flex-start;
+	flex-wrap: wrap;
+
+	> span {
+		color: var(--fc-faint);
+		font-size: var(--fc-font-xs);
+	}
+}
+
+.flashcard-translator-status {
+	margin: 0;
+	color: var(--fc-muted);
+	font-size: var(--fc-font-sm);
+}
+.flashcard-translator-status.is-error {
+	color: var(--fc-danger);
+}
+
+@media (max-width: 720px) {
+	.flashcard-translator {
+		padding: var(--fc-space-2);
+	}
+	.flashcard-translator-workspace {
+		min-height: 0;
+		grid-template-columns: 1fr;
+	}
+	.flashcard-translator-panel > .flashcard-textarea {
+		min-height: 240px;
+	}
+	.flashcard-translator-footer {
+		align-items: stretch;
+		flex-direction: column;
+	}
+}

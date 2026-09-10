@@ -38,6 +38,8 @@ export interface AiRequestOptions {
 export interface AiGenerateRequest extends AiRequestOptions {
 	/** Omit to use the global default. Explicit missing IDs never fall back. */
 	configId?: string;
+	/** Request provider-specific reasoning when the selected engine supports it. */
+	thinkingEnabled?: boolean;
 	messages: readonly AiMessage[];
 }
 
@@ -45,6 +47,7 @@ export interface AiTextResult {
 	text: string;
 	configId: string;
 	model: string;
+	usage?: { inputTokens: number | null; outputTokens: number | null } | null;
 }
 
 export type AiErrorCode =

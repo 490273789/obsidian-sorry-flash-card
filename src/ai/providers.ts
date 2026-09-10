@@ -107,6 +107,26 @@ export function readTextResponse(data: unknown): string {
 	return choice.message.content;
 }
 
+function usageInteger(value: unknown): number | null {
+	return typeof value === "number" &&
+		Number.isFinite(value) &&
+		Number.isInteger(value) &&
+		value >= 0
+		? value
+		: null;
+}
+
+/** Return undefined when the provider did not report usage, preserving legacy result shape. */
+export function readUsage(
+	data: unknown,
+): { inputTokens: number | null; outputTokens: number | null } | undefined {
+	if (!isRecord(data) || !isRecord(data.usage)) return undefined;
+	return {
+		inputTokens: usageInteger(data.usage.prompt_tokens ?? data.usage.input_tokens),
+		outputTokens: usageInteger(data.usage.completion_tokens ?? data.usage.output_tokens),
+	};
+}
+
 export async function fetchAiModels(
 	deps: AiDependencies,
 	config: AiEngineConfig,

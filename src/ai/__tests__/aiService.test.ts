@@ -122,6 +122,36 @@ describe("AI text and image requests", () => {
 		await expect(service.generate({ messages })).rejects.toMatchObject({ code: "no-default" });
 		expect(request).toHaveBeenCalledTimes(1);
 	});
+	it("sends provider-specific thinking controls only when explicitly requested", async () => {
+		const { service, request } = setup();
+		await service.generate({ messages, thinkingEnabled: true });
+		expect(JSON.parse((request.mock.calls[0]![0] as { body: string }).body)).toMatchObject({
+			thinking: { type: "enabled" },
+		});
+		await service.saveConfig({ ...config, provider: "bailian" });
+		await service.generate({ messages, thinkingEnabled: false });
+		expect(JSON.parse((request.mock.calls[1]![0] as { body: string }).body)).toMatchObject({
+			enable_thinking: false,
+		});
+		await service.generate({ messages });
+		expect(JSON.parse((request.mock.calls[2]![0] as { body: string }).body)).not.toHaveProperty(
+			"enable_thinking",
+		);
+	});
+
+	it("returns only valid finite integer token usage", async () => {
+		const { service, request } = setup();
+		request.mockResolvedValueOnce({
+			status: 200,
+			text: JSON.stringify({
+				choices: [{ finish_reason: "stop", message: { content: "Hello" } }],
+				usage: { prompt_tokens: 4, completion_tokens: "not-a-number" },
+			}),
+		});
+		await expect(service.generate({ messages })).resolves.toMatchObject({
+			usage: { inputTokens: 4, outputTokens: null },
+		});
+	});
 	it("retains in-flight config and message content across edits and deletions", async () => {
 		const { service, request, readSecret } = setup();
 		const gate = deferred<string | null>();

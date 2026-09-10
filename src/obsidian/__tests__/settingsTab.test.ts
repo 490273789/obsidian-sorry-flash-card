@@ -8,6 +8,20 @@ class MockElement {
 	listeners: Record<string, ((...args: unknown[]) => void)[]> = {};
 	attributes: Record<string, string> = {};
 	text = "";
+	inputEl = this;
+
+	setPlaceholder() {
+		return this;
+	}
+	setValue() {
+		return this;
+	}
+	setDisabled() {
+		return this;
+	}
+	getValue() {
+		return "";
+	}
 
 	addClass(cls: string) {
 		this.classList.add(cls);
@@ -74,7 +88,9 @@ vi.mock("obsidian", () => ({
 	Setting: class {
 		descEl = new MockElement();
 		controlEl = new MockElement();
-		constructor(public parent: MockElement) {}
+		constructor(public parent: MockElement) {
+			parent.children.push(this as unknown as MockElement);
+		}
 		setName() {
 			return this;
 		}
@@ -94,6 +110,11 @@ vi.mock("obsidian", () => ({
 			return this;
 		}
 		addText() {
+			return this;
+		}
+
+		addTextArea(cb?: (text: MockElement) => void) {
+			cb?.(new MockElement());
 			return this;
 		}
 		addToggle() {
@@ -151,11 +172,22 @@ describe("FlashcardSettingTab", () => {
 					testing: [],
 				}),
 			},
+			translationRuntime: {
+				subscribe: vi.fn(() => () => {}),
+				getSnapshot: () => ({
+					settings: { ...DEFAULT_SETTINGS.translation },
+					input: "",
+					results: [],
+					status: "idle",
+					saving: false,
+					testing: false,
+				}),
+			},
 			saveSettings: vi.fn().mockResolvedValue(undefined),
 		};
 	}
 
-	it("renders navigation bar with Flashcard and AI tabs and defaults to Flashcard settings", () => {
+	it("renders navigation bar with Flashcard, AI, and Translation tabs and defaults to Flashcard settings", () => {
 		const plugin = createMockPlugin();
 		const tab = new FlashcardSettingTab({} as never, plugin as never);
 		tab.display();
@@ -169,16 +201,31 @@ describe("FlashcardSettingTab", () => {
 		const tabButtons =
 			navEl?.children.filter((c: MockElement) => c.classList.has("fc-settings-tab-btn")) ??
 			[];
-		expect(tabButtons.length).toBe(2);
+		expect(tabButtons.length).toBe(3);
 		expect(tabButtons[0]?.text).toBe("闪卡设置");
 		expect(tabButtons[0]?.classList.has("is-active")).toBe(true);
 		expect(tabButtons[1]?.text).toBe("AI 引擎设置");
 		expect(tabButtons[1]?.classList.has("is-active")).toBe(false);
+		expect(tabButtons[2]?.text).toContain("翻译");
 
 		const contentEl = container.children.find((c: MockElement) =>
 			c.classList.has("fc-settings-tab-content"),
 		);
 		expect(contentEl).toBeDefined();
+	});
+
+	it("renders translation settings without an empty content pane", () => {
+		const plugin = createMockPlugin();
+		const tab = new FlashcardSettingTab({} as never, plugin as never);
+		tab.display();
+		const container = tab.containerEl as unknown as MockElement;
+		const navEl = container.children.find((c) => c.classList.has("fc-settings-tab-nav"));
+		navEl?.children[2]?.click();
+		const contentEl = (tab.containerEl as unknown as MockElement).children.find((c) =>
+			c.classList.has("fc-settings-tab-content"),
+		);
+		expect(contentEl).toBeDefined();
+		expect(contentEl?.children.length).toBeGreaterThan(0);
 	});
 
 	it("switches to AI settings tab when clicked", () => {

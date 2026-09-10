@@ -1,241 +1,25 @@
 # Study Studio Agent Guide
 
-## Project Agent Rules
+## What this repository is
 
-The primary agent is responsible for:
+`wsr-flash-card` — an Obsidian flashcard plugin for Chinese-first learning.
 
-- understanding the user's goal
-- task decomposition
-- architecture decisions
-- complex reasoning
-- coordinating subagents
-- integrating results
-- final verification
+- Stack: TypeScript, React, Obsidian API, Vite, Vitest, `ts-fsrs`.
+- Composition root: `src/obsidian/main.ts`; React adapter: `src/ui/FlashcardApp.tsx`.
+- Hand-written source lives under `src/`. Root `main.js` and `styles.css` are generated from it — edit the source, never the artifact.
+- Markdown notes are the authority for card content. Plugin data holds derived decks, learning state, settings, history, and continuity metadata.
 
-Use subagents selectively.
-
-Do not spawn a subagent when the task can be completed directly with only a few simple tool calls.
-
----
-
-## Subagent Routing
-
-Use the existing global subagents according to task type.
-
-### explorer
-
-Use for:
-
-- locating files
-- repository exploration
-- symbol search
-- grep / rg
-- tracing references
-- identifying relevant implementations
-- understanding project structure
-
-Prefer `explorer` when investigation would otherwise require reading many files in the primary agent context.
-
----
-
-### tester
-
-Use for:
-
-- running tests
-- running builds
-- linting
-- type checking
-- reproducing bugs
-- executing commands
-- collecting relevant logs
-
-Do not return large raw logs unless necessary.
-
-Return concise failure causes and relevant files.
-
----
-
-### worker
-
-Use for:
-
-- routine feature implementation
-- ordinary business logic
-- small bug fixes
-- straightforward refactoring
-- localized code changes
-
-Prefer minimal changes and follow existing project conventions.
-
----
-
-### solver
-
-Use for:
-
-- difficult bugs
-- complex implementation
-- cross-module changes
-- asynchronous or state-related issues
-- performance problems
-- architecture-sensitive refactoring
-
-Use `solver` only when the task genuinely requires deeper reasoning.
-
----
-
-### reviewer
-
-Use after meaningful changes when independent verification is useful.
-
-Focus on:
-
-- correctness
-- regressions
-- edge cases
-- missing tests
-- security risks
-- maintainability problems
-
-Do not use reviewer for trivial changes unless necessary.
-
----
-
-## Escalation Strategy
-
-Always prefer the cheapest agent that can reliably complete the task.
-
-Default escalation path:
-
-```text
-explorer / tester
-        ↓
-      worker
-        ↓
-      solver
-        ↓
- primary agent
-```
-
-Do not escalate only because a task is large.
-
-Escalate when the current agent lacks the reasoning capability required to complete it reliably.
-
----
-
-## Context Efficiency
-
-Keep noisy work inside subagents whenever practical.
-
-Examples:
-
-- large repository searches
-- test logs
-- build output
-- dependency inspection
-- repetitive file reads
-- broad implementation discovery
-
-Subagents should return concise summaries instead of raw intermediate output.
-
-Prefer returning:
-
-- conclusion
-- relevant files
-- relevant symbols
-- root cause
-- important constraints
-- recommended next action
-
-Avoid returning:
-
-- full file contents
-- complete logs
-- large command outputs
-- unrelated findings
-
----
-
-## Parallelism
-
-Run independent tasks in parallel when doing so clearly improves efficiency.
-
-Good examples:
-
-```text
-explorer → inspect frontend flow
-
-explorer → inspect backend API
-
-tester → reproduce existing failure
-```
-
-Avoid assigning multiple agents to perform the same investigation without a specific reason.
-
-Do not create unnecessary subagents merely to increase parallelism.
-
----
-
-## Code Changes
-
-Before modifying code:
-
-1. identify the relevant implementation
-2. understand existing conventions
-3. determine the smallest reasonable change
-
-During implementation:
-
-- avoid unrelated refactoring
-- avoid unnecessary dependencies
-- preserve existing behavior unless the task requires changing it
-- follow existing naming and architectural patterns
-
-After implementation:
-
-- verify affected behavior
-- run relevant tests when available
-- check for obvious regressions
-
----
-
-## Project-Specific Rules
-
-### Always know
-
-This repository is the `wsr-flash-card` Obsidian plugin for Chinese-first flashcard learning.
-
-- Stack: TypeScript, React, Obsidian API, Vite, Vitest, and `ts-fsrs`.
-- Plugin entry point: `src/obsidian/main.ts`.
-- Main React adapter: `src/ui/components/FlashcardApp.tsx`.
-- Markdown source files are authoritative for card content; plugin data stores derived decks, learning state, settings, history, and continuity metadata.
-- Source code lives under `src/`. Root `main.js` and `styles.css` are generated Obsidian artifacts; never edit them by hand.
-- Modifying styles and pages does not require writing test cases: UI and styling changes do not require tests. Add or update
-  tests only for behavior changes and regressions.
-
-### Working rules
+## Working rules
 
 - Reply in Chinese unless the user requests another language.
-- Use Obsidian APIs for vault, view, settings, notices, secrets, requests, and Markdown rendering. Do not replace them with browser-only assumptions.
-- Preserve established module boundaries and domain invariants. Read the relevant guide below before changing behavior in that area.
-- Update focused tests beside the affected module when changing testable logic.
-- After code changes(except UI change), run `npm run build` at minimum. Run the additional checks required by `docs/agents/testing-and-workflow.md`, and report any check or manual verification that was not run.
+- Use Obsidian APIs for vault, view, settings, notices, secrets, requests, and Markdown rendering; do not replace them with browser-only assumptions.
+- Preserve module boundaries and domain invariants. Read the guide for the area before changing behavior in it.
+- After any code change, run `pnpm run build` at minimum, and report every check and manual verification you did not run. UI and styling changes need no new tests; behavior changes need focused tests beside the affected module.
+- Never whole-read the generated and data artifacts: `data.json` (1.7 MB) and `main.js` (586 KB) will consume the context in one call. Grep them or read bounded ranges instead.
 
-### Current documentation lookup
+## Progressive disclosure
 
-For questions about a library, framework, SDK, API, CLI, or cloud service, use Context7 even if the API seems familiar. Do not use it for ordinary refactors, local business-logic debugging, code review, or scripts written from scratch.
-
-1. Resolve the library ID with the library name and the user's full question, unless an exact `/org/project` ID was supplied.
-2. Select the closest reputable match, including the requested version when applicable.
-3. Query that library ID with the user's full question.
-4. Base the answer or implementation on the returned current documentation.
-
-### Progressive disclosure
-
-Read only the guides relevant to the current task. If a task crosses multiple areas, read each applicable guide before editing.
-
-Do not preload every guide. Follow links from a selected guide only when the task needs that detail.
+Read only the guides relevant to the current task; a task crossing several areas reads each applicable guide. Follow a selected guide's links further only when the task needs that detail.
 
 | Task area                                                                       | Read before changing                                                                |
 | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -249,16 +33,23 @@ Do not preload every guide. Follow links from a selected guide only when the tas
 | Domain terminology, architecture/debugging/TDD context, or an ADR decision      | `docs/agents/domain.md`, then `CONTEXT.md` and only the relevant `docs/adr/` files  |
 | GitHub issue operations                                                         | `docs/agents/issue-tracker.md`; for triage also read `docs/agents/triage-labels.md` |
 
-## Final Ownership
+## Subagent roles
 
-The primary agent owns the final result.
+Dispatch a role by naming it and its contract in a `subagent` prompt; the same five exist as native agents under `~/.codex/agents/`.
 
-Subagent output should be treated as evidence and implementation assistance, not automatically accepted as correct.
+| Role       | Use for                                                                                           | Return                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `explorer` | locating files, symbol and reference search, understanding structure                              | relevant files, symbols, findings, recommended next step                 |
+| `tester`   | builds, tests, lint, typecheck, reproducing a failure, collecting logs                            | command, pass/fail, root error, relevant file                            |
+| `worker`   | routine features, business logic, small fixes, localized refactors                                | changed files, implementation decisions, regressions checked             |
+| `solver`   | difficult bugs, cross-module or async/state work, performance, architecture-sensitive refactoring | root cause, implementation performed, risks, validation performed        |
+| `reviewer` | independent verification after meaningful changes                                                 | findings by severity, each with affected file, impact, reproduction, fix |
 
-Before completing the task, the primary agent should ensure:
+- Delegate when the work would otherwise flood your context with searches, logs, or file reads; a few tool calls are cheaper done directly.
+- Prefer the cheapest role that can finish reliably, and escalate on missing reasoning capability, not on task size.
+- Keep the noise in the child: logs, full file contents, and broad search results stay in its context.
+- Treat every child's output as evidence, never as automatically correct — you own the final result.
 
-- the user's requirement is satisfied
-- changes are consistent with project architecture
-- important subagent findings are reconciled
-- relevant validation has been performed
-- unrelated changes have not been introduced
+## Reference lookup
+
+For questions about a library, framework, SDK, API, CLI, or cloud service, use Context7 even when the API looks familiar. Skip it for ordinary refactors, local business-logic debugging, code review, and scripts written from scratch.

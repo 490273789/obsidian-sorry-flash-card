@@ -116,11 +116,43 @@ describe("DataStore settings", () => {
 			apiKey: "DO-NOT-SAVE",
 		};
 		const plugin = makePlugin({
-			settings: { ...makeSettings(), ai: { configs: [engine], defaultConfigId: "ai-1" } },
+			settings: {
+				...makeSettings(),
+				ai: { configs: [engine], defaultConfigId: "ai-1" },
+				translation: {
+					enabled: true,
+					direction: "en-zh",
+					profiles: [
+						{
+							id: "p1",
+							name: "Engine",
+							enabled: true,
+							kind: "engine",
+							configId: "ai-1",
+							injected: "drop",
+						},
+					],
+					promptTemplate: "Translate precisely",
+					thinkingEnabled: true,
+					youdao: {
+						baseUrl: "https://openapi.youdao.com",
+						appKeySecretId: "key",
+						appSecretSecretId: "secret",
+						leaked: "drop",
+					},
+					unexpected: "drop",
+				},
+			},
 		});
 		const store = new DataStore(plugin as never);
 		const editable = await store.loadSettings();
 		expect(JSON.stringify(editable.ai)).not.toContain("DO-NOT-SAVE");
+		expect(editable.translation.profiles[0]?.name).toBe("Engine");
+		expect(editable.translation).not.toHaveProperty("unexpected");
+		expect(editable.translation.profiles[0]).not.toHaveProperty("injected");
+		expect(editable.translation.youdao).not.toHaveProperty("leaked");
+		editable.translation.profiles[0]!.name = "Edited translation";
+		expect(store.getSettings().translation.profiles[0]?.name).toBe("Engine");
 		editable.ai.configs[0]!.name = "Edited";
 		expect(store.getSettings().ai.configs[0]?.name).toBe("Translate");
 		await store.saveSettings(editable);
@@ -130,6 +162,8 @@ describe("DataStore settings", () => {
 		const restored = await new DataStore(makePlugin(saved) as never).loadSettings();
 		expect(restored.ai.configs[0]?.name).toBe("Edited");
 		expect(restored.ai.defaultConfigId).toBe("ai-1");
+		expect(restored.translation.profiles[0]?.name).toBe("Edited translation");
+		expect(restored.translation.direction).toBe("en-zh");
 	});
 
 	it("migrates legacy flashcardTag and normalizes language/default messages", async () => {

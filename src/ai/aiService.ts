@@ -4,6 +4,7 @@ import {
 	encodeMessages,
 	fetchAiModels,
 	knownImageInput,
+	readUsage,
 	readTextResponse,
 } from "./providers";
 import {
@@ -86,14 +87,30 @@ export class AiService {
 		)
 			throw new AiError("unsupported-image");
 		return this.run(request, async (check) => {
+			const body: Record<string, unknown> = {
+				model: config.model,
+				messages,
+				stream: false,
+			};
+			if (request.thinkingEnabled !== undefined) {
+				if (config.provider === "deepseek")
+					body.thinking = { type: request.thinkingEnabled ? "enabled" : "disabled" };
+				if (config.provider === "bailian") body.enable_thinking = request.thinkingEnabled;
+			}
 			const data = await callAiJson(
 				this.deps,
 				config,
 				`${config.baseUrl}/chat/completions`,
-				{ model: config.model, messages, stream: false },
+				body,
 				check,
 			);
-			return { text: readTextResponse(data), configId: config.id, model: config.model };
+			const usage = readUsage(data);
+			return {
+				text: readTextResponse(data),
+				configId: config.id,
+				model: config.model,
+				...(usage === undefined ? {} : { usage }),
+			};
 		});
 	}
 

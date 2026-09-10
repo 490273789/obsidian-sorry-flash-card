@@ -1,3 +1,5 @@
+import { translationSettingsStrings } from "../i18n/translationSettings";
+import { TranslationSettingsEditor } from "./translationSettingsEditor";
 import { AiSettingsEditor } from "./aiSettingsEditor";
 import { App, Notice, PluginSettingTab, SecretComponent, Setting } from "obsidian";
 import { createTranslator } from "../i18n";
@@ -43,7 +45,8 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	private pronunciationUnsubscribe: (() => void) | null = null;
 	private didRetryFailedCacheUsage = false;
 	private aiEditor: AiSettingsEditor;
-	private activeTab: "flashcards" | "ai" = "flashcards";
+	private translationEditor: TranslationSettingsEditor;
+	private activeTab: "flashcards" | "ai" | "translation" = "flashcards";
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
@@ -53,7 +56,17 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			() => this.getSelectedLanguage(),
 			() => this.refreshDefinitions(),
 		);
+		this.translationEditor = new TranslationSettingsEditor(
+			plugin.translationRuntime,
+			plugin.aiService,
+			() => this.getSelectedLanguage(),
+			() => this.refreshDefinitions(),
+		);
 		this.containerEl.addClass("flashcard-settings-tab");
+	}
+
+	selectTranslation(): void {
+		this.activeTab = "translation";
 	}
 
 	display(): void {
@@ -63,6 +76,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	hide(): void {
 		this.aiEditor.hide();
+		this.translationEditor.hide();
 		this.pronunciationUnsubscribe?.();
 		this.pronunciationUnsubscribe = null;
 		this.didRetryFailedCacheUsage = false;
@@ -83,7 +97,9 @@ export class FlashcardSettingTab extends PluginSettingTab {
 						},
 						this.createSettingsActions(),
 					)
-				: [this.aiEditor.definitions()];
+				: this.activeTab === "ai"
+					? [this.aiEditor.definitions()]
+					: [this.translationEditor.definitions()];
 
 		return rawDefinitions.map((definition) => this.toRenderableDefinition(definition));
 	}
@@ -171,6 +187,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	private activatePronunciationState(): void {
 		this.aiEditor.activate();
+		this.translationEditor.activate();
 		if (!this.pronunciationUnsubscribe) {
 			this.pronunciationUnsubscribe = this.plugin.pronunciationRuntime.subscribe(() =>
 				this.refreshDefinitions(),
@@ -308,9 +325,13 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 		const t = createTranslator(this.getSelectedLanguage());
 		const navEl = containerEl.createDiv({ cls: "fc-settings-tab-nav" });
-		const tabs: Array<{ id: "flashcards" | "ai"; label: string }> = [
+		const tabs: Array<{ id: "flashcards" | "ai" | "translation"; label: string }> = [
 			{ id: "flashcards", label: t("settings.tabFlashcards") },
 			{ id: "ai", label: t("settings.tabAi") },
+			{
+				id: "translation",
+				label: translationSettingsStrings(this.getSelectedLanguage()).heading,
+			},
 		];
 
 		for (const tab of tabs) {
@@ -396,6 +417,17 @@ export class FlashcardSettingTab extends PluginSettingTab {
 				break;
 			case "toggle":
 				this.renderToggleControl(setting, control);
+				break;
+			case "textarea":
+				setting.addTextArea((text) => {
+					text.setPlaceholder(control.placeholder)
+						.setValue(control.value)
+						.setDisabled(control.disabled ?? false);
+					text.inputEl.rows = 5;
+					text.inputEl.addEventListener("change", () => {
+						void control.onChange(text.getValue());
+					});
+				});
 				break;
 			case "text":
 				this.renderTextControl(setting, control);

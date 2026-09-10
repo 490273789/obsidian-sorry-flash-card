@@ -73,6 +73,7 @@ export type SettingsViewModelControl =
 	| SettingsSliderControl
 	| SettingsIntegerTextControl
 	| SettingsToggleControl
+	| SettingsTextareaControl
 	| SettingsTextControl
 	| SettingsSecretControl
 	| SettingsStatusControl;
@@ -144,6 +145,14 @@ export interface SettingsToggleControl {
 
 export interface SettingsTextControl {
 	type: "text";
+	value: string;
+	placeholder: string;
+	disabled?: boolean;
+	onChange: (value: string) => SettingsActionResult;
+}
+
+export interface SettingsTextareaControl {
+	type: "textarea";
 	value: string;
 	placeholder: string;
 	disabled?: boolean;

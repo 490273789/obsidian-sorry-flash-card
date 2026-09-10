@@ -1,7 +1,13 @@
+import { translationStrings } from "../i18n/translation";
+import { TranslationRuntime } from "../translation/translationRuntime";
+import { normalizeTranslationSettings } from "../translation/configuration";
+import { translateYoudao } from "../translation/youdao";
+import { TranslatorItemView, VIEW_TYPE_TRANSLATOR } from "./TranslatorView";
+import type { TranslationSettings } from "../translation/types";
 import { createObsidianAiService } from "./aiAdapter";
 import { normalizeAiSettings } from "../ai/configuration";
 import type { AiService, AiSettings } from "../ai";
-import { Notice, Platform, Plugin, WorkspaceLeaf } from "obsidian";
+import { Notice, Platform, Plugin, WorkspaceLeaf, requestUrl } from "obsidian";
 import "../styles/index.scss";
 import { FlashcardSettings, DEFAULT_SETTINGS } from "../shared/types";
 import { DataStore } from "../storage/dataStore";
@@ -47,6 +53,9 @@ export default class FlashcardPlugin extends Plugin {
 	sessionLifecycle!: SessionLifecycle;
 	pronunciationRuntime!: PronunciationRuntime;
 	aiService!: AiService;
+	translationRuntime!: TranslationRuntime;
+	private translationRibbon: HTMLElement | null = null;
+	private pluginSettingsTab: FlashcardSettingTab | null = null;
 	deckHome!: DeckHome;
 	private ribbonIconEl: HTMLElement | null = null;
 	private settingsWriteQueue: Promise<void> = Promise.resolve();
@@ -62,6 +71,37 @@ export default class FlashcardPlugin extends Plugin {
 			this.app,
 			this.settings.ai,
 			this.persistAiSettings,
+		);
+		this.translationRuntime = new TranslationRuntime(
+			this.settings.translation,
+			this.aiService,
+			{
+				persist: this.persistTranslationSettings,
+				youdao: (connection, text, direction, signal) =>
+					translateYoudao(
+						connection,
+						text,
+						direction,
+						{
+							readSecret: (id) => this.app.secretStorage.getSecret(id),
+							request: async (request) => {
+								const response = await requestUrl({ ...request, throw: false });
+								return { status: response.status, text: response.text };
+							},
+						},
+						signal,
+					),
+			},
+		);
+		this.registerView(
+			VIEW_TYPE_TRANSLATOR,
+			(leaf) =>
+				new TranslatorItemView(
+					leaf,
+					this.translationRuntime,
+					() => this.settings.language,
+					this.openTranslationSettings,
+				),
 		);
 		this.pronunciationRuntime = createPronunciationRuntime(
 			this.app,
@@ -117,10 +157,17 @@ export default class FlashcardPlugin extends Plugin {
 		);
 
 		this.registerLocalizedControls();
+		this.updateTranslationControls();
 
 		// Add settings tab
-		this.addSettingTab(new FlashcardSettingTab(this.app, this));
+		this.pluginSettingsTab = new FlashcardSettingTab(this.app, this);
+		this.addSettingTab(this.pluginSettingsTab);
 	}
+
+	private openTranslationSettings = (): void => {
+		this.pluginSettingsTab?.selectTranslation();
+		this.openSettings();
+	};
 
 	private openSettings = (): void => {
 		const settingsManager = (this.app as typeof this.app & { setting: ObsidianSettingsManager })
@@ -130,6 +177,7 @@ export default class FlashcardPlugin extends Plugin {
 	};
 
 	onunload() {
+		this.translationRuntime?.dispose();
 		this.aiService?.dispose();
 		this.deckHome?.dispose();
 		this.deckExportProgressNotice?.hide();
@@ -325,7 +373,60 @@ export default class FlashcardPlugin extends Plugin {
 			deckOrder: [...this.settings.deckOrder],
 			pronunciation: { ...this.settings.pronunciation },
 			ai: normalizeAiSettings(this.settings.ai),
+			translation: normalizeTranslationSettings(this.settings.translation),
 		}));
+	}
+
+	private persistTranslationSettings = async (
+		translation: TranslationSettings,
+	): Promise<void> => {
+		await this.enqueueSettingsWrite(() => ({
+			...this.settings,
+			translation: normalizeTranslationSettings(translation),
+		}));
+	};
+
+	private updateTranslationControls(): void {
+		this.translationRibbon?.remove();
+		this.translationRibbon = null;
+		this.removeCommand("open-ai-translator");
+		this.removeCommand("translate-selection");
+		if (!this.settings.translation.enabled) return;
+		const strings = translationStrings(this.settings.language);
+		const title = strings.title;
+		this.translationRibbon = this.addRibbonIcon("languages", title, () => {
+			void this.activateTranslationView();
+		});
+		this.addCommand({
+			id: "open-ai-translator",
+			name: title,
+			callback: () => {
+				void this.activateTranslationView();
+			},
+		});
+		this.addCommand({
+			id: "translate-selection",
+			name: strings.selectionCommand,
+			editorCheckCallback: (checking, editor) => {
+				const text = editor.getSelection();
+				if (!text.trim()) return false;
+				if (!checking) {
+					this.translationRuntime.prefill(text);
+					void this.activateTranslationView();
+				}
+				return true;
+			},
+		});
+	}
+
+	async activateTranslationView(): Promise<void> {
+		const workspace = this.app.workspace;
+		let leaf = workspace.getLeavesOfType(VIEW_TYPE_TRANSLATOR)[0];
+		if (!leaf) {
+			leaf = workspace.getLeaf("tab");
+			await leaf.setViewState({ type: VIEW_TYPE_TRANSLATOR, active: true });
+		}
+		await workspace.revealLeaf(leaf);
 	}
 
 	private persistAiSettings = async (ai: AiSettings): Promise<void> => {
@@ -471,6 +572,10 @@ export default class FlashcardPlugin extends Plugin {
 		this.settings = settings;
 		this.t = createTranslator(settings.language);
 		try {
+			this.updateTranslationControls();
+			this.app.workspace.getLeavesOfType(VIEW_TYPE_TRANSLATOR).forEach((leaf) => {
+				if (leaf.view instanceof TranslatorItemView) leaf.view.updateSettings();
+			});
 			this.updateLocalizedControls();
 		} catch (error) {
 			console.error("Failed to refresh localized plugin controls:", error);
@@ -526,6 +631,7 @@ function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings 
 		deckStudySettings: cloneDeckStudySettings(settings.deckStudySettings),
 		pronunciation: { ...settings.pronunciation },
 		ai: normalizeAiSettings(settings.ai),
+		translation: normalizeTranslationSettings(settings.translation),
 	};
 }
 

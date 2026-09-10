@@ -1,3 +1,4 @@
+import { normalizeTranslationSettings } from "../translation/configuration";
 import { normalizeAiSettings } from "../ai/configuration";
 import { Plugin } from "obsidian";
 import { Card, State } from "ts-fsrs";
@@ -241,6 +242,7 @@ export class DataStore {
 			},
 			pronunciation: normalizePronunciationSettings(settings.pronunciation),
 			ai: normalizeAiSettings(settings.ai),
+			translation: normalizeTranslationSettings(settings.translation),
 			practiceMessagesCustomized: messagesCustomized,
 			practicePerfectMessages: messagesCustomized
 				? [...(settings.practicePerfectMessages ?? defaultMessages.perfect)]
@@ -822,6 +824,7 @@ function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings 
 		),
 		pronunciation: { ...settings.pronunciation },
 		ai: normalizeAiSettings(settings.ai),
+		translation: normalizeTranslationSettings(settings.translation),
 	};
 }
 

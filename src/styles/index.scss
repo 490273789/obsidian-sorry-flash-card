@@ -34,6 +34,8 @@
 @use "../ui/views/Stats/Stats.scss";
 @use "../ui/views/DeckSettings/DeckSettingsModal.scss";
 
+@use "../ui/views/Translator/Translator.scss";
+
 // 4. 全局动效与小屏/移动端响应式覆盖 (最后加载)
 @use "./motion.scss";
 @use "./responsive.scss";
