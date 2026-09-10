@@ -161,11 +161,14 @@ describe("FlashcardSettingTab", () => {
 		tab.display();
 
 		const container = tab.containerEl as unknown as MockElement;
-		const navEl = container.children.find((c: MockElement) => c.classList.has("fc-settings-tab-nav"));
+		const navEl = container.children.find((c: MockElement) =>
+			c.classList.has("fc-settings-tab-nav"),
+		);
 		expect(navEl).toBeDefined();
 
 		const tabButtons =
-			navEl?.children.filter((c: MockElement) => c.classList.has("fc-settings-tab-btn")) ?? [];
+			navEl?.children.filter((c: MockElement) => c.classList.has("fc-settings-tab-btn")) ??
+			[];
 		expect(tabButtons.length).toBe(2);
 		expect(tabButtons[0]?.text).toBe("闪卡设置");
 		expect(tabButtons[0]?.classList.has("is-active")).toBe(true);
@@ -184,7 +187,9 @@ describe("FlashcardSettingTab", () => {
 		tab.display();
 
 		const container = tab.containerEl as unknown as MockElement;
-		const navEl = container.children.find((c: MockElement) => c.classList.has("fc-settings-tab-nav"));
+		const navEl = container.children.find((c: MockElement) =>
+			c.classList.has("fc-settings-tab-nav"),
+		);
 		const aiTabBtn = navEl?.children[1];
 		expect(aiTabBtn?.text).toBe("AI 引擎设置");
 

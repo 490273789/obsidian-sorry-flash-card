@@ -1,11 +1,5 @@
 import { AiSettingsEditor } from "./aiSettingsEditor";
-import {
-	App,
-	Notice,
-	PluginSettingTab,
-	SecretComponent,
-	Setting,
-} from "obsidian";
+import { App, Notice, PluginSettingTab, SecretComponent, Setting } from "obsidian";
 import { createTranslator } from "../i18n";
 import type FlashcardPlugin from "./main";
 import {
