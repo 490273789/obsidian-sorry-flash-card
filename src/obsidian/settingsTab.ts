@@ -1,3 +1,4 @@
+import { AiSettingsEditor } from "./aiSettingsEditor";
 import {
 	App,
 	Notice,
@@ -48,10 +49,16 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	private hasLoadedTags = false;
 	private pronunciationUnsubscribe: (() => void) | null = null;
 	private didRetryFailedCacheUsage = false;
+	private aiEditor: AiSettingsEditor;
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+		this.aiEditor = new AiSettingsEditor(
+			plugin.aiService,
+			() => this.getSelectedLanguage(),
+			() => this.refreshDefinitions(),
+		);
 		this.containerEl.addClass("flashcard-settings-tab");
 	}
 
@@ -61,6 +68,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	hide(): void {
+		this.aiEditor.hide();
 		this.pronunciationUnsubscribe?.();
 		this.pronunciationUnsubscribe = null;
 		this.didRetryFailedCacheUsage = false;
@@ -76,17 +84,20 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	private getRenderableDefinitions(): FlashcardSettingItem[] {
-		return buildSettingsViewModel(
-			{
-				settings: this.plugin.settings,
-				availableTags: this.availableTags,
-				isLoadingTags: this.isLoadingTags,
-				hasLoadedTags: this.hasLoadedTags,
-				language: this.getSelectedLanguage(),
-				pronunciation: this.plugin.pronunciationRuntime.getSnapshot(),
-			},
-			this.createSettingsActions(),
-		).map((definition) => this.toRenderableDefinition(definition));
+		return [
+			...buildSettingsViewModel(
+				{
+					settings: this.plugin.settings,
+					availableTags: this.availableTags,
+					isLoadingTags: this.isLoadingTags,
+					hasLoadedTags: this.hasLoadedTags,
+					language: this.getSelectedLanguage(),
+					pronunciation: this.plugin.pronunciationRuntime.getSnapshot(),
+				},
+				this.createSettingsActions(),
+			),
+			this.aiEditor.definitions(),
+		].map((definition) => this.toRenderableDefinition(definition));
 	}
 
 	private createSettingsActions(): SettingsViewModelActions {
@@ -171,6 +182,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	private activatePronunciationState(): void {
+		this.aiEditor.activate();
 		if (!this.pronunciationUnsubscribe) {
 			this.pronunciationUnsubscribe = this.plugin.pronunciationRuntime.subscribe(() =>
 				this.refreshDefinitions(),

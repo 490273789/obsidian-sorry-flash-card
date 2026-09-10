@@ -1,3 +1,6 @@
+import { createObsidianAiService } from "./aiAdapter";
+import { normalizeAiSettings } from "../ai/configuration";
+import type { AiService, AiSettings } from "../ai";
 import { Notice, Platform, Plugin, WorkspaceLeaf } from "obsidian";
 import "../styles/index.scss";
 import { FlashcardSettings, DEFAULT_SETTINGS } from "../shared/types";
@@ -43,6 +46,7 @@ export default class FlashcardPlugin extends Plugin {
 	cardIdentityContinuity!: CardIdentityContinuity;
 	sessionLifecycle!: SessionLifecycle;
 	pronunciationRuntime!: PronunciationRuntime;
+	aiService!: AiService;
 	deckHome!: DeckHome;
 	private ribbonIconEl: HTMLElement | null = null;
 	private settingsWriteQueue: Promise<void> = Promise.resolve();
@@ -54,6 +58,11 @@ export default class FlashcardPlugin extends Plugin {
 		// load() is a no-op when called right after (data already in memory).
 		this.settings = await this.dataStore.loadSettings();
 		this.t = createTranslator(this.settings.language);
+		this.aiService = createObsidianAiService(
+			this.app,
+			this.settings.ai,
+			this.persistAiSettings,
+		);
 		this.pronunciationRuntime = createPronunciationRuntime(
 			this.app,
 			this.settings.pronunciation,
@@ -121,6 +130,7 @@ export default class FlashcardPlugin extends Plugin {
 	};
 
 	onunload() {
+		this.aiService?.dispose();
 		this.deckHome?.dispose();
 		this.deckExportProgressNotice?.hide();
 		this.pronunciationRuntime?.dispose();
@@ -314,8 +324,13 @@ export default class FlashcardPlugin extends Plugin {
 			wordLearningDecks: { ...this.settings.wordLearningDecks },
 			deckOrder: [...this.settings.deckOrder],
 			pronunciation: { ...this.settings.pronunciation },
+			ai: normalizeAiSettings(this.settings.ai),
 		}));
 	}
+
+	private persistAiSettings = async (ai: AiSettings): Promise<void> => {
+		await this.enqueueSettingsWrite(() => ({ ...this.settings, ai: normalizeAiSettings(ai) }));
+	};
 
 	private persistPronunciationSettings = async (
 		pronunciation: FlashcardSettings["pronunciation"],
@@ -510,6 +525,7 @@ function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings 
 		fsrsParameters: { ...settings.fsrsParameters },
 		deckStudySettings: cloneDeckStudySettings(settings.deckStudySettings),
 		pronunciation: { ...settings.pronunciation },
+		ai: normalizeAiSettings(settings.ai),
 	};
 }
 

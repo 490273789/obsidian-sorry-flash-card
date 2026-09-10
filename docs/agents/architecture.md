@@ -7,13 +7,13 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 `src/obsidian/main.ts` is the composition root. `FlashcardPlugin.onload()`:
 
 1. Creates `DataStore` and loads persisted settings/data.
-2. Creates the plugin-lifetime `PronunciationRuntime`.
+2. Creates the plugin-lifetime `AiService` and `PronunciationRuntime`.
 3. Creates `SessionLifecycle` and its narrow continuity adapter.
 4. Creates `CardIdentityContinuity` with Obsidian source and persisted-state adapters.
 5. Creates the shared plugin-lifetime `DeckHome`.
 6. Registers the view, commands, ribbon icon, and settings tab.
 
-`src/obsidian/FlashcardView.tsx` mounts React and injects these shared services into `FlashcardApp`. Closing a view unmounts its React adapter and stops current pronunciation, but it does not itself end an active session. Plugin unload disposes deck-home timers and pronunciation resources.
+`src/obsidian/FlashcardView.tsx` mounts React and injects these shared services into `FlashcardApp`. Closing a view unmounts its React adapter and stops current pronunciation, but it does not itself end an active session. Plugin unload cancels pending AI requests and disposes deck-home timers and pronunciation resources.
 
 ## Module ownership
 
@@ -25,6 +25,7 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 | Sessions            | `src/sessions/sessionLifecycle.ts`               | The single idle/active/result lifecycle and durable transitions for study/practice/spelling                                                                                                           |
 | Card continuity     | `src/identity/cardIdentityContinuity.ts`         | Synchronization, migration, repair, source changes, stable card identity continuity                                                                                                                   |
 | Persistence         | `src/storage/dataStore.ts`                       | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                                                                                  |
+| AI engines          | `src/ai/`                                        | Named provider/model configurations, model discovery, text/image requests, credentials through an injected reader, and per-request timeout/cancellation                                               |
 | Pronunciation       | `src/pronunciation/`                             | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                                                                                       |
 | Pure card logic     | `src/cards/`                                     | Parsing, formatting, source mutation, spelling extraction/comparison                                                                                                                                  |
 | Presentation models | `src/history/`, `src/wordList/`, `src/settings/` | Pure display definitions, derived presentation state, and history retention pruning                                                                                                                   |
@@ -37,6 +38,8 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 - Pure engines, planners, builders, and presentation models must not import React or perform Obsidian I/O.
 - `DataStore` publishes a monotonic revision after committed changes. Consumers subscribe rather than inventing manual refresh counters.
 - Use `import type` for Obsidian-only or boundary-only types in pure modules and tests whenever runtime loading is unnecessary.
+
+For new features that call AI, read [the internal AI service guide](../design/ai-engine-usage.md) for configuration selection, image input, and cancellation semantics.
 
 ## Architecture records
 

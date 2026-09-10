@@ -105,6 +105,33 @@ function serializeDeck(deck: Deck): StoredData["decks"][string] {
 }
 
 describe("DataStore settings", () => {
+	it("keeps AI configurations detached, persists only whitelisted fields and restores them", async () => {
+		const engine = {
+			id: "ai-1",
+			name: "Translate",
+			provider: "deepseek" as const,
+			baseUrl: "https://api.deepseek.com",
+			secretId: "shared-secret",
+			model: "deepseek-v4-flash",
+			apiKey: "DO-NOT-SAVE",
+		};
+		const plugin = makePlugin({
+			settings: { ...makeSettings(), ai: { configs: [engine], defaultConfigId: "ai-1" } },
+		});
+		const store = new DataStore(plugin as never);
+		const editable = await store.loadSettings();
+		expect(JSON.stringify(editable.ai)).not.toContain("DO-NOT-SAVE");
+		editable.ai.configs[0]!.name = "Edited";
+		expect(store.getSettings().ai.configs[0]?.name).toBe("Translate");
+		await store.saveSettings(editable);
+		const saved: unknown =
+			plugin.saveData.mock.calls[plugin.saveData.mock.calls.length - 1]?.[0];
+		expect(JSON.stringify(saved)).not.toContain("DO-NOT-SAVE");
+		const restored = await new DataStore(makePlugin(saved) as never).loadSettings();
+		expect(restored.ai.configs[0]?.name).toBe("Edited");
+		expect(restored.ai.defaultConfigId).toBe("ai-1");
+	});
+
 	it("migrates legacy flashcardTag and normalizes language/default messages", async () => {
 		const plugin = makePlugin({
 			flashcardTag: "#旧标签",
