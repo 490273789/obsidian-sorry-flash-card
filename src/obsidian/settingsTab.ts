@@ -5,7 +5,6 @@ import {
 	PluginSettingTab,
 	SecretComponent,
 	Setting,
-	type SettingDefinitionItem,
 } from "obsidian";
 import { createTranslator } from "../i18n";
 import type FlashcardPlugin from "./main";
@@ -50,6 +49,7 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	private pronunciationUnsubscribe: (() => void) | null = null;
 	private didRetryFailedCacheUsage = false;
 	private aiEditor: AiSettingsEditor;
+	private activeTab: "flashcards" | "ai" = "flashcards";
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
@@ -75,29 +75,23 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		super.hide();
 	}
 
-	getSettingDefinitions(): SettingDefinitionItem[] {
-		if (this.containerEl.isShown()) {
-			this.activatePronunciationState();
-		}
-		this.ensureAvailableTagsLoaded();
-		return this.getRenderableDefinitions() as SettingDefinitionItem[];
-	}
-
 	private getRenderableDefinitions(): FlashcardSettingItem[] {
-		return [
-			...buildSettingsViewModel(
-				{
-					settings: this.plugin.settings,
-					availableTags: this.availableTags,
-					isLoadingTags: this.isLoadingTags,
-					hasLoadedTags: this.hasLoadedTags,
-					language: this.getSelectedLanguage(),
-					pronunciation: this.plugin.pronunciationRuntime.getSnapshot(),
-				},
-				this.createSettingsActions(),
-			),
-			this.aiEditor.definitions(),
-		].map((definition) => this.toRenderableDefinition(definition));
+		const rawDefinitions =
+			this.activeTab === "flashcards"
+				? buildSettingsViewModel(
+						{
+							settings: this.plugin.settings,
+							availableTags: this.availableTags,
+							isLoadingTags: this.isLoadingTags,
+							hasLoadedTags: this.hasLoadedTags,
+							language: this.getSelectedLanguage(),
+							pronunciation: this.plugin.pronunciationRuntime.getSnapshot(),
+						},
+						this.createSettingsActions(),
+					)
+				: [this.aiEditor.definitions()];
+
+		return rawDefinitions.map((definition) => this.toRenderableDefinition(definition));
 	}
 
 	private createSettingsActions(): SettingsViewModelActions {
@@ -309,12 +303,6 @@ export class FlashcardSettingTab extends PluginSettingTab {
 	}
 
 	private refreshDefinitions(): void {
-		const tab = this as PluginSettingTab & { update?: () => void };
-		if (typeof tab.update === "function") {
-			tab.update();
-			return;
-		}
-
 		this.renderSettings();
 	}
 
@@ -324,6 +312,29 @@ export class FlashcardSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		containerEl.addClass("flashcard-settings-tab");
 
+		const t = createTranslator(this.getSelectedLanguage());
+		const navEl = containerEl.createDiv({ cls: "fc-settings-tab-nav" });
+		const tabs: Array<{ id: "flashcards" | "ai"; label: string }> = [
+			{ id: "flashcards", label: t("settings.tabFlashcards") },
+			{ id: "ai", label: t("settings.tabAi") },
+		];
+
+		for (const tab of tabs) {
+			const tabBtn = navEl.createEl("button", {
+				type: "button",
+				text: tab.label,
+				cls: `fc-settings-tab-btn ${this.activeTab === tab.id ? "is-active" : ""}`,
+			});
+			tabBtn.addEventListener("click", () => {
+				if (this.activeTab !== tab.id) {
+					this.activeTab = tab.id;
+					this.refreshDefinitions();
+				}
+			});
+		}
+
+		const contentEl = containerEl.createDiv({ cls: "fc-settings-tab-content" });
+
 		for (const definition of this.getRenderableDefinitions()) {
 			if (!this.isVisible(definition.visible)) {
 				continue;
@@ -331,16 +342,16 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 			if (this.isGroupDefinition(definition)) {
 				if (definition.heading) {
-					new Setting(containerEl).setName(definition.heading).setHeading();
+					new Setting(contentEl).setName(definition.heading).setHeading();
 				}
 
 				for (const item of definition.items ?? []) {
-					this.renderSettingDefinition(containerEl, item);
+					this.renderSettingDefinition(contentEl, item);
 				}
 				continue;
 			}
 
-			this.renderSettingDefinition(containerEl, definition);
+			this.renderSettingDefinition(contentEl, definition);
 		}
 	}
 

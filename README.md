@@ -1,4 +1,4 @@
-# WSR 闪卡学习 (WSR Flash Card)
+# StudyStudio
 
 一个基于 FSRS 算法的 Obsidian 闪卡学习插件，帮助你高效学习和复习知识点。
 

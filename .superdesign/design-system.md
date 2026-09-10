@@ -1,4 +1,4 @@
-# WSR Flash Card UI Design System & Redesign Specification
+# StudyStudio UI Design System & Redesign Specification
 
 ## 1. Product Context & Goals
 
