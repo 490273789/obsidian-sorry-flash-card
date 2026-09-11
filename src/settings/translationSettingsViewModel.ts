@@ -188,7 +188,7 @@ function profileSettings(
 					],
 					onChange: (kind) => {
 						if (kind === "engine" || kind === "youdao")
-							actions.patchProfile(profile.id, { kind });
+							return actions.patchProfile(profile.id, { kind });
 					},
 				},
 			],

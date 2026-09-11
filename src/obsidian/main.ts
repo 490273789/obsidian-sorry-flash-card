@@ -510,13 +510,17 @@ export default class FlashcardPlugin extends Plugin {
 	}
 
 	async activateTranslationView(): Promise<void> {
-		const workspace = this.app.workspace;
-		let leaf = workspace.getLeavesOfType(VIEW_TYPE_TRANSLATOR)[0];
-		if (!leaf) {
-			leaf = workspace.getLeaf("tab");
-			await leaf.setViewState({ type: VIEW_TYPE_TRANSLATOR, active: true });
+		try {
+			const workspace = this.app.workspace;
+			let leaf = workspace.getLeavesOfType(VIEW_TYPE_TRANSLATOR)[0];
+			if (!leaf) {
+				leaf = workspace.getLeaf("tab");
+				await leaf.setViewState({ type: VIEW_TYPE_TRANSLATOR, active: true });
+			}
+			await workspace.revealLeaf(leaf);
+		} catch {
+			new Notice(translationStrings(this.settings.language).openFailed);
 		}
-		await workspace.revealLeaf(leaf);
 	}
 
 	private updateDictionaryControls(): void {

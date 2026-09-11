@@ -106,7 +106,7 @@ describe("TranslationSettingsEditor", () => {
 		const editor = new TranslationSettingsEditor(runtime, createAi(), () => "en", vi.fn());
 		const definition = editor.definitions();
 		const remove = definition.items
-			.find((item) => item.name === "Profile 1")
+			.find((item) => item.name === "Order and removal")
 			?.controls?.find((control) => control.type === "button" && control.label === "Delete");
 		expect(remove).toMatchObject({ disabled: true });
 		const test = definition.items.find((item) => item.name === "Test Youdao connection")

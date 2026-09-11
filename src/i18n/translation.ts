@@ -3,6 +3,7 @@ import type { Language } from "../shared/types";
 const zh = {
 	title: "AI 翻译",
 	selectionCommand: "翻译选区",
+	openFailed: "无法打开翻译视图，请重试。",
 	modelCount: "已启用 {count} 个方案",
 	openSettings: "打开翻译设置",
 	direction: "翻译方向",
@@ -38,6 +39,7 @@ const zh = {
 const en: typeof zh = {
 	title: "AI translation",
 	selectionCommand: "Translate selection",
+	openFailed: "Unable to open the translation view. Please try again.",
 	modelCount: "{count} enabled",
 	openSettings: "Open translation settings",
 	direction: "Translation direction",

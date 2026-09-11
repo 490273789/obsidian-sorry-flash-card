@@ -149,7 +149,7 @@ export const TranslatorView = React.memo(function TranslatorView({
 			<section className="flashcard-translator-workspace">
 				<article className="flashcard-translator-panel flashcard-translator-source">
 					<header>
-						<label htmlFor="translator-input">{strings.inputLabel}</label>
+						<label htmlFor={`${viewId}-translator-input`}>{strings.inputLabel}</label>
 						<span>
 							{formatTranslationString(strings.characterCount, {
 								count: snapshot.input.length,

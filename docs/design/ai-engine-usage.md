@@ -68,7 +68,7 @@ const result = await ai.generate({
 
 ## 结果与错误
 
-`generate()` 返回 `{ text, configId, model }`，失败时抛出 `AiError`。`code` 区分缺少默认配置、无效配置、密钥缺失、图片不支持、鉴权失败、限流、厂商错误、网络错误、响应无效、生成不完整、超时、取消等情况；HTTP 失败附带 `httpStatus`。错误不暴露原始响应、提示词或凭据。
+`generate()` 返回 `{ text, configId, model, usage? }`，失败时抛出 `AiError`。`code` 区分缺少默认配置、无效配置、密钥缺失、图片不支持、鉴权失败、限流、厂商错误、网络错误、响应无效、生成不完整、超时、取消等情况；HTTP 失败附带 `httpStatus`。错误不暴露原始响应、提示词或凭据。
 
 请求互相独立，默认超时 120 秒；调用方可提供 `timeoutMs` 和 `AbortSignal`。取消等待或超时会丢弃迟到结果，不保证厂商停止生成或计费。插件卸载会取消未完成请求。服务不自动重试，也不自动切换配置。
 
@@ -80,3 +80,9 @@ const result = await ai.generate({
 - [百炼模型目录与分页格式](https://help.aliyun.com/zh/model-studio/list-models)
 - [百炼兼容调用](https://help.aliyun.com/zh/model-studio/qwen-api-via-openai-chat-completions)
 - [有道大模型网关](https://ai.youdao.com/DOCSIRMA/html/thinkflow/api/guide/index.html)
+
+## 翻译使用的可选能力
+
+文本请求可设置 `thinkingEnabled: true | false`，分别映射为 DeepSeek 的 `thinking.type` 和百炼的 `enable_thinking`。省略时不发送该参数，保持原有调用行为。支持程度由所选模型决定；此参数不改变有道网关请求。
+
+厂商返回用量时，结果包含 `usage: { inputTokens, outputTokens }`；缺失或不合法的计数为 `null`，整个用量对象缺失时不返回该属性。翻译业务使用独立的 `TranslationRuntime` 组织多个请求及会话缓存，有道专用翻译不经过 Chat Completions 网关。

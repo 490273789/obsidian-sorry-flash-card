@@ -12,7 +12,7 @@ import {
 	normalizeTranslationSettings,
 } from "../translation/configuration";
 import type { TranslationRuntime } from "../translation/translationRuntime";
-import type { TranslationProfile, TranslationSettings } from "../translation/types";
+import type { TranslationSettings } from "../translation/types";
 import type { SettingsViewModelDefinition } from "../settings/settingsViewModel";
 
 export type TranslationSettingsRuntime = Pick<

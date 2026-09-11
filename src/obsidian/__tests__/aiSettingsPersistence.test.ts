@@ -1,3 +1,4 @@
+import { Notice, type Command } from "obsidian";
 import { expect, it, vi } from "vitest";
 import FlashcardPlugin from "../main";
 import { DEFAULT_SETTINGS } from "../../shared/types";
@@ -105,4 +106,46 @@ it("keeps newer translation settings and AI settings when a stale whole-settings
 	expect(plugin.settings.translation).toEqual(translation);
 	expect(plugin.dataStore.getSettings().translation).toEqual(translation);
 	expect(plugin.settings.ai).toEqual(ai);
+});
+
+it("reports translation view open failures without rejecting or exposing internal errors", async () => {
+	const app = {
+		workspace: {
+			getLeavesOfType: () => [],
+			getLeaf: () => ({
+				setViewState: vi.fn().mockRejectedValue(new Error("private diagnostic")),
+			}),
+		},
+	};
+	const plugin = new FlashcardPlugin(app as never, {} as never);
+	plugin.app = app as never;
+	await expect(plugin.activateTranslationView()).resolves.toBeUndefined();
+	expect(Notice).toHaveBeenLastCalledWith("无法打开翻译视图，请重试。");
+});
+
+it("only prefills the selection after command execution, without translating or changing the note", () => {
+	const plugin = new FlashcardPlugin({} as never, {} as never);
+	plugin.settings = {
+		...DEFAULT_SETTINGS,
+		translation: { ...DEFAULT_SETTINGS.translation, enabled: true },
+	};
+	const commands: Command[] = [];
+	vi.spyOn(plugin, "addCommand").mockImplementation((command) => {
+		commands.push(command);
+		return command;
+	});
+	const open = vi.spyOn(plugin, "activateTranslationView").mockResolvedValue(undefined);
+	const runtime = { prefill: vi.fn(), translate: vi.fn() };
+	Reflect.set(plugin, "translationRuntime", runtime);
+	const register: () => void = Reflect.get(plugin, "updateTranslationControls");
+	register.call(plugin);
+	const command = commands.find((command) => command.id === "translate-selection");
+	const editor = { getSelection: () => "selected text", replaceSelection: vi.fn() };
+	expect(command?.editorCheckCallback?.(true, editor as never, {} as never)).toBe(true);
+	expect(runtime.prefill).not.toHaveBeenCalled();
+	expect(command?.editorCheckCallback?.(false, editor as never, {} as never)).toBe(true);
+	expect(runtime.prefill).toHaveBeenCalledWith("selected text");
+	expect(open).toHaveBeenCalledOnce();
+	expect(runtime.translate).not.toHaveBeenCalled();
+	expect(editor.replaceSelection).not.toHaveBeenCalled();
 });
