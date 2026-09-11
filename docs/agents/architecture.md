@@ -82,6 +82,7 @@ Read the layering inside a slice the same way as before: `domain/` and `settings
 | Presentation models | `src/features/flashcards/domain/history/`, `src/features/flashcards/domain/wordList/`, `src/features/flashcards/settings/` | Pure display definitions, derived presentation state, and history retention pruning                                                                                                                   |
 | Flashcard strings   | `src/features/flashcards/strings/`                                                                                         | The 闪卡 dictionary (shared workbench strings merged with its own), the practice-message defaults, and the duration/rating formatters                                                                 |
 | Dictionary          | `src/features/dictionary/domain/`                                                                                          | Dictionary lookup, local compiled dictionaries, sandbox rendering, and the compiled-v2 package authority                                                                                              |
+| Dictionary query    | `src/features/dictionary/domain/querySession.ts`                                                                           | Independent query input/state, history ordering, source concurrency, superseded-work cancellation, retries, explicit AI definitions, and immutable presentation snapshots                             |
 
 ## Boundary rules
 
@@ -125,5 +126,6 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0023: one layout module (`.fc-page*` / `.fc-panel*`) owns every view's page shell and panels.
 - ADR-0024: one outbound port (`src/core/net/`) owns requests, credentials, and transport error classification.
 - ADR-0025: the 选区助手 is a 工作台-owned interaction module with feature-owned dictionary and translation adapters and an independent inline query session.
+- ADR-0026: each 词典查询会话 exposes immutable snapshots and one intent interface; presentation and Obsidian side effects stay outside it.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

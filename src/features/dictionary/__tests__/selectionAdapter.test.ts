@@ -1,10 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_DICTIONARY_SETTINGS } from "../domain/configuration";
+import type { DictionaryQuerySession } from "../domain/querySession";
 import type { DictionaryViewState } from "../domain/types";
-import {
-	createDictionarySelectionAdapter,
-	type DictionarySelectionController,
-} from "../selectionAdapter";
+import { createDictionarySelectionAdapter } from "../selectionAdapter";
 
 describe("dictionary selection adapter", () => {
 	it("reports enabled sources in 词典目录 order", () => {
@@ -61,7 +59,7 @@ describe("dictionary selection adapter", () => {
 		});
 	});
 
-	it("forwards semantic actions and disposes the isolated controller", async () => {
+	it("forwards semantic actions and disposes the isolated query session", async () => {
 		const { adapter, spies } = setup(emptyDictionarySnapshot());
 		const session = adapter.startLookup("science", ["youdao"])!;
 
@@ -70,26 +68,28 @@ describe("dictionary selection adapter", () => {
 		await session.generateAi();
 		session.dispose();
 
-		expect(spies.selectSource).toHaveBeenCalledWith("youdao");
-		expect(spies.retry).toHaveBeenCalledWith("youdao");
-		expect(spies.loadAi).toHaveBeenCalledOnce();
+		expect(spies.send).toHaveBeenNthCalledWith(1, {
+			type: "select-source",
+			sourceId: "youdao",
+		});
+		expect(spies.send).toHaveBeenNthCalledWith(2, {
+			type: "retry-source",
+			sourceId: "youdao",
+		});
+		expect(spies.send).toHaveBeenNthCalledWith(3, { type: "generate-ai" });
 		expect(spies.dispose).toHaveBeenCalledOnce();
 	});
 });
 
 function setup(state: DictionaryViewState) {
 	const spies = {
-		selectSource: vi.fn(),
-		retry: vi.fn().mockResolvedValue(undefined),
-		loadAi: vi.fn().mockResolvedValue(undefined),
+		send: vi.fn().mockResolvedValue(undefined),
 		dispose: vi.fn(),
 	};
-	const controller: DictionarySelectionController = {
+	const session: DictionaryQuerySession = {
 		getSnapshot: () => state,
 		subscribe: () => () => {},
-		selectSource: spies.selectSource,
-		retry: spies.retry,
-		loadAi: spies.loadAi,
+		send: spies.send,
 		dispose: spies.dispose,
 	};
 	const runtime = {
@@ -103,7 +103,7 @@ function setup(state: DictionaryViewState) {
 				],
 			}),
 		},
-		createSelectionLookupSession: vi.fn(() => controller),
+		createSelectionLookupSession: vi.fn(() => session),
 	};
 	return {
 		spies,

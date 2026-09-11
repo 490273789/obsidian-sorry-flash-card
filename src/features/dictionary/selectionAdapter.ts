@@ -5,22 +5,14 @@ import type {
 	SelectionLookupSnapshot,
 } from "../../core/selectionHelper/domain/types";
 import type { DictionarySettings, DictionaryViewState } from "./domain/types";
-
-export interface DictionarySelectionController {
-	getSnapshot(): DictionaryViewState;
-	subscribe(listener: () => void): () => void;
-	selectSource(sourceId: string): void;
-	retry(sourceId: string): Promise<void>;
-	loadAi(): Promise<void>;
-	dispose(): void;
-}
+import type { DictionaryQuerySession } from "./domain/querySession";
 
 export interface DictionarySelectionRuntime {
 	readonly settings: { getDictionarySettings(): Readonly<DictionarySettings> };
 	createSelectionLookupSession(
 		query: string,
 		sourceIds: readonly string[],
-	): DictionarySelectionController | null;
+	): DictionaryQuerySession | null;
 }
 
 export interface DictionarySelectionAdapterOptions {
@@ -45,8 +37,8 @@ export function createDictionarySelectionAdapter(
 		},
 
 		startLookup: (query, sourceIds) => {
-			const controller = options.runtime()?.createSelectionLookupSession(query, sourceIds);
-			return controller ? new DictionarySelectionLookupSession(controller) : null;
+			const session = options.runtime()?.createSelectionLookupSession(query, sourceIds);
+			return session ? new DictionarySelectionLookupSession(session) : null;
 		},
 
 		openInMainTab: (query) => options.openInMainTab(query),
@@ -54,30 +46,30 @@ export function createDictionarySelectionAdapter(
 }
 
 class DictionarySelectionLookupSession implements SelectionLookupSession {
-	constructor(private readonly controller: DictionarySelectionController) {}
+	constructor(private readonly session: DictionaryQuerySession) {}
 
 	getSnapshot(): SelectionLookupSnapshot {
-		return toSelectionSnapshot(this.controller.getSnapshot());
+		return toSelectionSnapshot(this.session.getSnapshot());
 	}
 
 	subscribe(listener: () => void): () => void {
-		return this.controller.subscribe(listener);
+		return this.session.subscribe(listener);
 	}
 
 	selectSource(sourceId: string): void {
-		this.controller.selectSource(sourceId);
+		void this.session.send({ type: "select-source", sourceId });
 	}
 
 	retry(sourceId: string): Promise<void> {
-		return this.controller.retry(sourceId);
+		return this.session.send({ type: "retry-source", sourceId });
 	}
 
 	generateAi(): Promise<void> {
-		return this.controller.loadAi();
+		return this.session.send({ type: "generate-ai" });
 	}
 
 	dispose(): void {
-		this.controller.dispose();
+		this.session.dispose();
 	}
 }
 

@@ -248,23 +248,6 @@ export interface DictionaryViewState {
 	status: "idle" | "loading" | "ready" | "error";
 }
 
-export interface DictionaryViewModel {
-	clear(): void;
-	copyQuery(): Promise<void>;
-	getSnapshot(): DictionaryViewState;
-	loadAi(): Promise<void>;
-	lookup(): Promise<void>;
-	lookupWord(word: string): Promise<void>;
-	openFavorite(): Promise<void>;
-	openSettings(): void;
-	playAudio(url: string): Promise<void>;
-	retry(sourceId: string): Promise<void>;
-	selectSection(sourceId: string, sectionIndex: number): void;
-	selectSource(sourceId: string): void;
-	setInput(value: string): void;
-	subscribe(listener: () => void): () => void;
-}
-
 export interface DictionaryFavoriteViewState {
 	meaning: string;
 	message: string;

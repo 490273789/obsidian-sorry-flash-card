@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { Bookmark, Copy, Play, RotateCcw, Search, Settings2, Sparkles, Trash2 } from "lucide-react";
-import type { DictionaryController } from "../domain/controller";
+import type { DictionaryQuerySession } from "../domain/querySession";
 import type {
 	AiDictionaryDefinition,
 	DictionarySection,
@@ -17,8 +17,11 @@ import { cls } from "../../../core/shared/classNames";
 import styles from "./Dictionary.module.scss";
 
 export interface DictionaryViewProps {
-	controller: DictionaryController;
+	query: DictionaryQuerySession;
 	language: Language;
+	onOpenFavorite: (word: string) => Promise<void>;
+	onOpenSettings: () => void;
+	onPlayAudio: (url: string) => Promise<void>;
 	/** Obsidian theme, seeded before the sandbox document loads. */
 	theme: "dark" | "light";
 }
@@ -236,15 +239,15 @@ function SectionContent({
 }
 
 export function DictionaryView({
-	controller,
+	query,
 	language,
+	onOpenFavorite,
+	onOpenSettings,
+	onPlayAudio,
 	theme,
 }: DictionaryViewProps): React.ReactElement {
-	const subscribe = useCallback(
-		(listener: () => void) => controller.subscribe(listener),
-		[controller],
-	);
-	const getSnapshot = useCallback(() => controller.getSnapshot(), [controller]);
+	const subscribe = useCallback((listener: () => void) => query.subscribe(listener), [query]);
+	const getSnapshot = useCallback(() => query.getSnapshot(), [query]);
 	const state = useSyncExternalStore(subscribe, getSnapshot);
 	const strings = dictionaryStrings(language);
 	const [copyStatus, setCopyStatus] = useState<ExampleCopyStatus | null>(null);
@@ -257,7 +260,7 @@ export function DictionaryView({
 
 	const copyQuery = async (): Promise<void> => {
 		try {
-			await controller.copyQuery();
+			await navigator.clipboard.writeText(state.query);
 			setCopyStatus({ isError: false, message: strings.copied });
 		} catch {
 			setCopyStatus({ isError: true, message: strings.errors.request });
@@ -266,7 +269,7 @@ export function DictionaryView({
 
 	const lookupWord = (word: string): void => {
 		setCopyStatus(null);
-		void controller.lookupWord(word);
+		void query.send({ type: "lookup", query: word });
 	};
 
 	return (
@@ -284,7 +287,7 @@ export function DictionaryView({
 						className="flashcard-dictionary-search-form"
 						onSubmit={(event) => {
 							event.preventDefault();
-							if (canLookup) void controller.lookup();
+							if (canLookup) void query.send({ type: "lookup" });
 						}}
 					>
 						<fieldset
@@ -309,13 +312,18 @@ export function DictionaryView({
 								spellCheck={false}
 								aria-label={strings.inputLabel}
 								placeholder={strings.inputPlaceholder}
-								onChange={(event) => controller.setInput(event.target.value)}
+								onChange={(event) =>
+									void query.send({
+										type: "change-input",
+										value: event.target.value,
+									})
+								}
 							/>
 							<FlashcardButton
 								icon={Settings2}
 								title={strings.openSettings}
 								aria-label={strings.openSettings}
-								onClick={() => controller.openSettings()}
+								onClick={onOpenSettings}
 							/>
 							<FlashcardButton
 								icon={Trash2}
@@ -324,7 +332,7 @@ export function DictionaryView({
 								disabled={!state.input && !state.query}
 								onClick={() => {
 									setCopyStatus(null);
-									controller.clear();
+									void query.send({ type: "clear" });
 								}}
 							/>
 							<FlashcardButton
@@ -368,7 +376,7 @@ export function DictionaryView({
 							<FlashcardButton
 								size="sm"
 								icon={Bookmark}
-								onClick={() => void controller.openFavorite()}
+								onClick={() => void onOpenFavorite(state.query)}
 							></FlashcardButton>
 							<FlashcardButton
 								size="sm"
@@ -432,7 +440,9 @@ export function DictionaryView({
 								aria-label={`${source.label} · ${sourceStatusLabel(source, strings)}`}
 								aria-selected={selected}
 								tabIndex={selected ? 0 : -1}
-								onClick={() => controller.selectSource(source.id)}
+								onClick={() =>
+									void query.send({ type: "select-source", sourceId: source.id })
+								}
 								onKeyDown={(event) =>
 									moveTabFocus(
 										event,
@@ -441,7 +451,11 @@ export function DictionaryView({
 										state.sources.length,
 										(nextIndex) => {
 											const next = state.sources[nextIndex];
-											if (next) controller.selectSource(next.id);
+											if (next)
+												void query.send({
+													type: "select-source",
+													sourceId: next.id,
+												});
 										},
 									)
 								}
@@ -504,7 +518,7 @@ export function DictionaryView({
 									<FlashcardButton
 										variant="primary"
 										icon={Sparkles}
-										onClick={() => void controller.loadAi()}
+										onClick={() => void query.send({ type: "generate-ai" })}
 									>
 										{strings.aiGenerate}
 									</FlashcardButton>
@@ -528,7 +542,12 @@ export function DictionaryView({
 									<FlashcardButton
 										size="sm"
 										icon={RotateCcw}
-										onClick={() => void controller.retry(source.id)}
+										onClick={() =>
+											void query.send({
+												type: "retry-source",
+												sourceId: source.id,
+											})
+										}
 									>
 										{strings.retry}
 									</FlashcardButton>
@@ -570,9 +589,7 @@ export function DictionaryView({
 																	pronunciation.label,
 																)}
 																onClick={() =>
-																	void controller.playAudio(
-																		audioUrl,
-																	)
+																	void onPlayAudio(audioUrl)
 																}
 															/>
 														)}
@@ -647,10 +664,11 @@ export function DictionaryView({
 															aria-selected={active}
 															tabIndex={active ? 0 : -1}
 															onClick={() =>
-																controller.selectSection(
-																	source.id,
-																	item.index,
-																)
+																void query.send({
+																	type: "select-section",
+																	sourceId: source.id,
+																	sectionIndex: item.index,
+																})
 															}
 															onKeyDown={(event) =>
 																moveTabFocus(
@@ -662,10 +680,12 @@ export function DictionaryView({
 																		const next =
 																			sections[nextIndex];
 																		if (next)
-																			controller.selectSection(
-																				source.id,
-																				next.index,
-																			);
+																			void query.send({
+																				type: "select-section",
+																				sourceId: source.id,
+																				sectionIndex:
+																					next.index,
+																			});
 																	},
 																)
 															}

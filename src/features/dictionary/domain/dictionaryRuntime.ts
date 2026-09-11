@@ -4,7 +4,7 @@ import type { Language } from "../../../core/shared/types";
 import { AiDictionarySource } from "./ai";
 import { CambridgeDictionarySource } from "./cambridge";
 import { CompiledDictionarySource } from "./compiled-source";
-import { DictionaryController } from "./controller";
+import { createDictionaryQuerySession, type DictionaryQuerySession } from "./querySession";
 import { DictionaryFavoriteController } from "./favorite-controller";
 import { DictionaryFavoriteFile } from "./favorite-file";
 import { HujiangDictionarySource } from "./hujiang";
@@ -28,8 +28,6 @@ export interface DictionaryRuntimeOptions {
 	app: App;
 	language: () => Language;
 	notify: (message: string) => void;
-	openFavoriteView: (word: string) => Promise<void>;
-	openSettings: () => void;
 	plugin: Plugin;
 	readSecret: (id: string) => string | null;
 	request: (request: RequestUrlParam) => Promise<RequestUrlResponse>;
@@ -37,14 +35,14 @@ export interface DictionaryRuntimeOptions {
 }
 
 /**
- * Shared dictionary session for the whole plugin. Owns source construction,
+ * Dictionary feature runtime for the whole plugin. Owns source construction,
  * local-dictionary storage, and the settings-driven lifecycle; the Obsidian
  * boundary owns views, commands, and persistence ordering.
  */
 export class DictionaryRuntime {
 	readonly app: App;
 	readonly settings: DictionarySettingsStore;
-	readonly controller: DictionaryController;
+	readonly query: DictionaryQuerySession;
 	readonly favoriteController: DictionaryFavoriteController;
 	readonly administration: LocalDictionaryAdministrationModule;
 	/** Plugin-relative root that holds every compiled dictionary package. */
@@ -64,14 +62,12 @@ export class DictionaryRuntime {
 			new DictionaryFavoriteFile(options.app),
 			options.notify,
 		);
-		this.controller = new DictionaryController(
-			options.settings,
-			(source) => this.resolveSource(source),
-			(word) => options.openFavoriteView(word),
-			() => options.openSettings(),
-			options.notify,
-			() => this.aiEngineInfo(),
-		);
+		this.query = createDictionaryQuerySession({
+			settings: options.settings,
+			resolveSource: (source) => this.resolveSource(source),
+			notify: options.notify,
+			aiEngineInfo: () => this.aiEngineInfo(),
+		});
 		this.administration = new LocalDictionaryAdministrationModule(
 			options.settings,
 			new LocalDictionaryImporter(options.app, options.plugin),
@@ -80,11 +76,11 @@ export class DictionaryRuntime {
 		this.applySettings();
 	}
 
-	/** Re-reads committed settings and re-applies them to both controllers. */
+	/** Re-reads committed settings and re-applies them to both stateful modules. */
 	applySettings(): void {
 		if (this.disposed) return;
 		this.dropRemovedLocalSources();
-		this.controller.refreshSettings();
+		void this.query.send({ type: "settings-changed" });
 		this.favoriteController.refreshSettings();
 	}
 
@@ -92,13 +88,13 @@ export class DictionaryRuntime {
 	handleLocalDictionariesChanged(): void {
 		if (this.disposed) return;
 		this.closeLocalSources();
-		this.controller.refreshSettings();
+		void this.query.send({ type: "settings-changed" });
 	}
 
-	/** Cancels in-flight lookups and resets both controller sessions. */
+	/** Cancels in-flight lookups and resets the query and favorite sessions. */
 	resetSession(): void {
 		this.closeLocalSources();
-		this.controller.resetSession();
+		void this.query.send({ type: "clear" });
 		this.favoriteController.resetSession();
 	}
 
@@ -106,7 +102,7 @@ export class DictionaryRuntime {
 	createSelectionLookupSession(
 		query: string,
 		sourceIds: readonly string[],
-	): DictionaryController | null {
+	): DictionaryQuerySession | null {
 		if (this.disposed) return null;
 		const selected = new Set(sourceIds);
 		const currentDictionary = this.settings.getDictionarySettings();
@@ -131,17 +127,14 @@ export class DictionaryRuntime {
 				this.settings.setLocalDictionaryAdministrationState(state),
 			save: () => this.settings.save(),
 		};
-		const controller = new DictionaryController(
-			scopedSettings,
-			(source) => this.resolveSource(source, frozenDictionary),
-			async () => {},
-			() => {},
-			this.options.notify,
-			() => this.aiEngineInfo(),
-		);
-		controller.prefill(query);
-		void controller.lookup();
-		return controller;
+		const session = createDictionaryQuerySession({
+			settings: scopedSettings,
+			resolveSource: (source) => this.resolveSource(source, frozenDictionary),
+			notify: this.options.notify,
+			aiEngineInfo: () => this.aiEngineInfo(),
+		});
+		void session.send({ type: "lookup", query });
+		return session;
 	}
 
 	closeLocalSources(): void {
@@ -182,7 +175,7 @@ export class DictionaryRuntime {
 		this.disposed = true;
 		this.closeLocalSources();
 		this.administration.cancelActiveOperations();
-		this.controller.dispose();
+		this.query.dispose();
 		this.favoriteController.dispose();
 	}
 

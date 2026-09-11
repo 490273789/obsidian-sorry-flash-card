@@ -15,10 +15,11 @@ const runtimeSpies = vi.hoisted(() => ({ instances: [] as unknown[] }));
 
 vi.mock("../domain/dictionaryRuntime", () => ({
 	DictionaryRuntime: class {
-		readonly controller = {
-			prefill: vi.fn(),
-			lookup: vi.fn(),
-			resetSession: vi.fn(),
+		readonly query = {
+			getSnapshot: vi.fn(),
+			subscribe: vi.fn(() => () => {}),
+			send: vi.fn().mockResolvedValue(undefined),
+			dispose: vi.fn(),
 		};
 		readonly favoriteController = { prefill: vi.fn(), resetSession: vi.fn() };
 		readonly dispose = vi.fn();

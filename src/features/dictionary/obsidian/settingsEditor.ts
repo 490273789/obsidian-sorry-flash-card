@@ -69,7 +69,7 @@ export class DictionarySettingsEditor {
 
 	activate(): void {
 		this.visible = true;
-		this.unsubscribeRuntime ??= this.runtime.controller.subscribe(this.refresh);
+		this.unsubscribeRuntime ??= this.runtime.query.subscribe(this.refresh);
 		this.unsubscribeAi ??= this.ai.subscribe(this.refresh);
 		this.probeCompiledPackages();
 	}

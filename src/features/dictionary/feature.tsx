@@ -8,6 +8,7 @@ import { dictionaryStrings } from "./strings/dictionary";
 import type { Language } from "../../core/shared/types";
 import { FlashcardButton } from "../../core/ui/primitives/Button";
 import { DictionaryFavoriteView, DictionaryView } from "./ui";
+import { playDictionaryAudio, stopDictionaryAudio } from "./ui/audio";
 import { DictionaryLookupModal } from "./obsidian/modals";
 import { DictionarySettingsEditor } from "./obsidian/settingsEditor";
 import { createDictionarySettingsStore } from "./obsidian/settingsStore";
@@ -123,11 +124,6 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 					throw error;
 				}
 			},
-			openSettings: () => openSettings(host),
-			openFavoriteView: async (word) => {
-				await runtime?.favoriteController.prefill(word);
-				await host.activateView(VIEW_TYPE_DICTIONARY_FAVORITE, { rightSidebar: true });
-			},
 			notify: (message) => new Notice(message),
 		});
 		return runtime;
@@ -155,9 +151,9 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 		const strings = dictionaryStrings(host.settings().language);
 		try {
 			const dictionary = ensureRuntime(host);
-			dictionary.controller.prefill(query);
+			const lookup = dictionary.query.send({ type: "lookup", query });
 			await host.activateView(VIEW_TYPE_DICTIONARY, mainTab ? { mainTab: true } : undefined);
-			await dictionary.controller.lookup();
+			await lookup;
 		} catch (error) {
 			console.error("Failed to open the dictionary view:", error);
 			new Notice(strings.openFailed);
@@ -231,14 +227,28 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 					readSettings: () => host.settings(),
 					renderErrorMessage: (language) => dictionaryStrings(language).openFailed,
 					onClose: () =>
-						resetWhenClosed(host, VIEW_TYPE_DICTIONARY, () =>
-							dictionary.controller.resetSession(),
+						resetWhenClosed(
+							host,
+							VIEW_TYPE_DICTIONARY,
+							() => void dictionary.query.send({ type: "clear" }),
 						),
 					render: ({ language, theme }) =>
 						renderDictionaryBody(host, language, () => (
 							<DictionaryView
-								controller={dictionary.controller}
+								query={dictionary.query}
 								language={language}
+								onOpenFavorite={async (word) => {
+									await dictionary.favoriteController.prefill(word);
+									await host.activateView(VIEW_TYPE_DICTIONARY_FAVORITE, {
+										rightSidebar: true,
+									});
+								}}
+								onOpenSettings={() => openSettings(host)}
+								onPlayAudio={async (url) => {
+									if (!(await playDictionaryAudio(url))) {
+										new Notice(dictionaryStrings(language).errors.network);
+									}
+								}}
 								theme={theme}
 							/>
 						)),
@@ -297,6 +307,7 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 			activeHost = null;
 			modal?.close();
 			modal = null;
+			stopDictionaryAudio();
 			runtime?.dispose();
 			runtime = null;
 		},

@@ -18,20 +18,36 @@ export type DictionarySourceResolver = (
 	settings: Readonly<DictionarySourceSettings>,
 ) => DictionarySource;
 
-const DICTIONARY_AUDIO_HOSTS = new Set(["dict.youdao.com", "dictionary.cambridge.org"]);
+export type DictionaryQueryIntent =
+	| { readonly type: "change-input"; readonly value: string }
+	| { readonly type: "lookup"; readonly query?: string }
+	| { readonly type: "retry-source"; readonly sourceId: string }
+	| { readonly type: "generate-ai" }
+	| { readonly type: "select-source"; readonly sourceId: string }
+	| {
+			readonly type: "select-section";
+			readonly sourceId: string;
+			readonly sectionIndex: number;
+	  }
+	| { readonly type: "clear" }
+	| { readonly type: "settings-changed" };
 
-/**
- * Whether a pronunciation URL may be played by the dictionary view. Only HTTPS
- * audio hosted by a supported dictionary source is accepted.
- */
-export function canPlayDictionaryAudio(url: string): boolean {
-	let parsed: URL;
-	try {
-		parsed = new URL(url);
-	} catch {
-		return false;
-	}
-	return parsed.protocol === "https:" && DICTIONARY_AUDIO_HOSTS.has(parsed.hostname);
+/** The stable seam for one independent 词典查询会话. */
+export interface DictionaryQuerySession {
+	getSnapshot(): DictionaryViewState;
+	subscribe(listener: () => void): () => void;
+	send(intent: DictionaryQueryIntent): Promise<void>;
+	dispose(): void;
+}
+
+export interface DictionaryQuerySessionOptions {
+	readonly settings: DictionarySettingsStore;
+	readonly resolveSource: DictionarySourceResolver;
+	readonly notify: (message: string) => void;
+	readonly aiEngineInfo: () => {
+		readonly configId: string | null;
+		readonly name: string | null;
+	};
 }
 
 /** Prepends `query` to the recent-search history, deduplicating case-insensitively. */
@@ -82,29 +98,23 @@ function freezeDictionaryResult(result: DictionaryResult): DictionaryResult {
 }
 
 /**
- * Shared dictionary query session consumed by every dictionary view. Owns no
- * Obsidian I/O: sources, view opening, notices, and AI engine facts are injected.
+ * Creates a query-session module whose interface is also its test surface.
  */
-export class DictionaryController {
+export function createDictionaryQuerySession(
+	options: DictionaryQuerySessionOptions,
+): DictionaryQuerySession {
+	return new DictionaryQuerySessionModule(options);
+}
+
+class DictionaryQuerySessionModule implements DictionaryQuerySession {
 	private requestGeneration = 0;
-	private audio: HTMLAudioElement | null = null;
 	private state: DictionaryViewState;
 	private snapshot: DictionaryViewState;
 	private readonly listeners = new Set<() => void>();
 	private disposed = false;
 
-	constructor(
-		private readonly settings: DictionarySettingsStore,
-		private readonly resolveSource: DictionarySourceResolver,
-		private readonly openFavoriteView: (word: string) => Promise<void>,
-		private readonly openSettingsCallback: () => void,
-		private readonly notify: (message: string) => void,
-		private readonly aiEngineInfo: () => {
-			readonly configId: string | null;
-			readonly name: string | null;
-		},
-	) {
-		const dictionary = settings.getDictionarySettings();
+	constructor(private readonly options: DictionaryQuerySessionOptions) {
+		const dictionary = options.settings.getDictionarySettings();
 		this.state = {
 			activeSourceId: null,
 			aiEngineName: "",
@@ -119,6 +129,32 @@ export class DictionaryController {
 		this.snapshot = this.buildSnapshot();
 	}
 
+	async send(intent: DictionaryQueryIntent): Promise<void> {
+		switch (intent.type) {
+			case "change-input":
+				this.setInput(intent.value);
+				return;
+			case "lookup":
+				if (intent.query !== undefined) this.setInput(intent.query);
+				return this.lookup();
+			case "retry-source":
+				return this.retry(intent.sourceId);
+			case "generate-ai":
+				return this.loadAi();
+			case "select-source":
+				this.selectSource(intent.sourceId);
+				return;
+			case "select-section":
+				this.selectSection(intent.sourceId, intent.sectionIndex);
+				return;
+			case "clear":
+				this.reset();
+				return;
+			case "settings-changed":
+				this.refreshSettings();
+		}
+	}
+
 	getSnapshot(): DictionaryViewState {
 		return this.snapshot;
 	}
@@ -130,22 +166,17 @@ export class DictionaryController {
 		};
 	}
 
-	setInput(value: string): void {
+	private setInput(value: string): void {
 		if (this.disposed) return;
 		this.state.input = value.slice(0, DICTIONARY_QUERY_MAX_LENGTH);
 		this.publish();
 	}
 
-	prefill(value: string): void {
-		this.setInput(value);
-	}
-
-	async lookup(): Promise<void> {
+	private async lookup(): Promise<void> {
 		if (this.disposed) return;
 		const query = normalizeDictionaryQuery(this.state.input);
 		if (!query) return;
 		const generation = ++this.requestGeneration;
-		this.stopAudio();
 		this.state.input = query;
 		this.state.query = query;
 		this.state.status = "loading";
@@ -153,7 +184,7 @@ export class DictionaryController {
 
 		let saved = false;
 		try {
-			saved = await this.settings.updateDictionarySettings((draft) => {
+			saved = await this.options.settings.updateDictionarySettings((draft) => {
 				draft.history = recordDictionarySearchHistory(draft.history, query);
 			});
 		} catch {
@@ -161,9 +192,9 @@ export class DictionaryController {
 		}
 		if (generation !== this.requestGeneration || this.disposed) return;
 		if (saved) this.refreshSettings();
-		else this.notify(dictionaryText().saveFailed);
+		else this.options.notify(dictionaryText().saveFailed);
 
-		const configuredSources = this.settings
+		const configuredSources = this.options.settings
 			.getDictionarySettings()
 			.sources.filter((source) => source.enabled);
 		this.state.sources = configuredSources.map(createSourceState);
@@ -186,13 +217,7 @@ export class DictionaryController {
 		this.publish();
 	}
 
-	async lookupWord(word: string): Promise<void> {
-		if (this.disposed) return;
-		this.state.input = word;
-		await this.lookup();
-	}
-
-	async retry(sourceId: string): Promise<void> {
+	private async retry(sourceId: string): Promise<void> {
 		if (this.disposed || !this.state.query) return;
 		await this.runSource(sourceId, this.requestGeneration);
 		if (this.disposed) return;
@@ -201,19 +226,19 @@ export class DictionaryController {
 		this.publish();
 	}
 
-	async loadAi(): Promise<void> {
+	private async loadAi(): Promise<void> {
 		if (this.disposed || !this.state.query) return;
 		await this.runSource("ai", this.requestGeneration);
 	}
 
-	selectSource(sourceId: string): void {
+	private selectSource(sourceId: string): void {
 		if (this.disposed) return;
 		if (!this.state.sources.some((source) => source.id === sourceId)) return;
 		this.state.activeSourceId = sourceId;
 		this.publish();
 	}
 
-	selectSection(sourceId: string, sectionIndex: number): void {
+	private selectSection(sourceId: string, sectionIndex: number): void {
 		if (this.disposed) return;
 		const source = this.state.sources.find((candidate) => candidate.id === sourceId);
 		if (source?.result?.sections[sectionIndex]?.presentation !== "tab") return;
@@ -221,46 +246,9 @@ export class DictionaryController {
 		this.publish();
 	}
 
-	clear(): void {
-		this.resetSession();
-	}
-
-	async copyQuery(): Promise<void> {
-		if (this.disposed || !this.state.query) return;
-		await this.writeClipboard(this.state.query);
-	}
-
-	async openFavorite(): Promise<void> {
-		if (this.disposed || !this.state.query) return;
-		await this.openFavoriteView(this.state.query);
-	}
-
-	openSettings(): void {
+	private refreshSettings(): void {
 		if (this.disposed) return;
-		this.openSettingsCallback();
-	}
-
-	async playAudio(value: string): Promise<void> {
-		if (this.disposed || !canPlayDictionaryAudio(value)) return;
-		this.stopAudio();
-		let audio: HTMLAudioElement;
-		try {
-			audio = new Audio(value);
-		} catch {
-			return;
-		}
-		this.audio = audio;
-		try {
-			await audio.play();
-		} catch {
-			if (this.audio === audio) this.audio = null;
-			this.notify(dictionaryText().errors.network);
-		}
-	}
-
-	refreshSettings(): void {
-		if (this.disposed) return;
-		const dictionary = this.settings.getDictionarySettings();
+		const dictionary = this.options.settings.getDictionarySettings();
 		this.state.history = [...dictionary.history];
 		this.applyAiEngineInfo();
 		if (this.state.sources.length > 0) {
@@ -275,9 +263,8 @@ export class DictionaryController {
 		this.publish();
 	}
 
-	resetSession(): void {
+	private reset(): void {
 		this.requestGeneration += 1;
-		this.stopAudio();
 		this.state.activeSourceId = null;
 		this.state.input = "";
 		this.state.query = "";
@@ -290,12 +277,11 @@ export class DictionaryController {
 		if (this.disposed) return;
 		this.disposed = true;
 		this.requestGeneration += 1;
-		this.stopAudio();
 		this.listeners.clear();
 	}
 
 	private async runSource(sourceId: string, generation: number): Promise<void> {
-		const sourceSettings = this.settings
+		const sourceSettings = this.options.settings
 			.getDictionarySettings()
 			.sources.find((candidate) => candidate.id === sourceId && candidate.enabled);
 		const sourceState = this.state.sources.find((candidate) => candidate.id === sourceId);
@@ -306,7 +292,7 @@ export class DictionaryController {
 		sourceState.status = "loading";
 		this.publish();
 		try {
-			const result = await this.resolveSource(sourceSettings).lookup({
+			const result = await this.options.resolveSource(sourceSettings).lookup({
 				text: this.state.query,
 			});
 			if (generation !== this.requestGeneration || this.disposed) return;
@@ -326,22 +312,8 @@ export class DictionaryController {
 		this.publish();
 	}
 
-	private async writeClipboard(value: string): Promise<void> {
-		try {
-			await navigator.clipboard.writeText(value);
-			this.notify(dictionaryText().copied);
-		} catch {
-			this.notify(dictionaryText().errors.request);
-		}
-	}
-
-	private stopAudio(): void {
-		this.audio?.pause();
-		this.audio = null;
-	}
-
 	private applyAiEngineInfo(): void {
-		const info = this.aiEngineInfo();
+		const info = this.options.aiEngineInfo();
 		this.state.aiEngineName = info.name ?? "";
 		this.state.aiReady = info.configId !== null && info.name !== null;
 	}
@@ -382,7 +354,7 @@ export class DictionaryController {
 			try {
 				listener();
 			} catch {
-				// Presentation listeners must never invalidate controller state.
+				// Presentation listeners must never invalidate query-session state.
 			}
 		}
 	}
