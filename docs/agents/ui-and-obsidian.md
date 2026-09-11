@@ -4,7 +4,7 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 ## React and Obsidian boundaries
 
-- Keep React components functional and organized by layer: UI primitives live under `src/ui/primitives/` (with colocated `.scss` styles), business feature views live under `src/ui/views/` (with colocated `.scss` styles), and `src/ui/components/index.ts` provides backward-compatible re-exports.
+- Keep React components functional and organized by layer: UI primitives live under `src/ui/primitives/` (with colocated `.scss` styles), business feature views live under `src/ui/views/` (with colocated `.scss` styles). There is no barrel: import the leaf module (`../../primitives/Button`), because a maintained re-export list drifts as soon as a feature is added.
 - `FlashcardApp` (`src/ui/FlashcardApp.tsx`) owns navigation/setup drafts and adapts shared service snapshots. It carries initial setup options directly in `ViewState` instead of managing separate `useState` default buckets. It must not become a second authority for deck, session, identity, or pronunciation state.
 - `DeckHome` provides read and recording facades (such as `getDeck`, `getStudyHistory`, and `recordWordListVisit`) to prevent UI components from piercing through to the low-level `DataStore`.
 - `DeckSettingsModal` is isolated from `DeckList` to manage deck-level configuration, reusing pure definitions from `src/settings/studySettingsMeta.ts`.
@@ -25,12 +25,12 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 ## Settings compatibility
 
-`src/settings/settingsViewModel.ts` builds the pure definition tree; `src/obsidian/settingsTab.ts` renders it and owns Obsidian effects.
+`src/settings/settingsViewModel.ts` builds the pure definition tree; `src/obsidian/settingsTab.ts` renders it and owns Obsidian effects. The tab is a shell: it renders the sections registered through the workbench (`WorkbenchSettingsSection`), and each feature builds its own section's definitions.
 
 - The tab renders the definition tree through the imperative `display()` → `renderSettings()` path only; keep that single path working.
 - `refreshDefinitions()` always re-renders through `renderSettings()`, so every control must read live view-model state on each render.
 - Narrow unknown/union definition shapes with runtime guards before calling `render` in the manual path.
-- Preserve async tag discovery/refresh and runtime subscription cleanup.
+- Preserve async tag discovery/refresh and runtime subscription cleanup; both now live in `src/obsidian/features/flashcards.ts`, reached through that feature's settings section.
 - Pronunciation controls derive values and busy/cache state from `PronunciationRuntime`; do not duplicate transient state in the settings adapter.
 - After settings changes, explicitly verify that the settings tab is not blank when manual Obsidian testing is feasible.
 

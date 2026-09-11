@@ -188,7 +188,8 @@ export interface SettingsReorderableListControl {
 	items: SettingsReorderableItem[];
 	onMove: (fromIndex: number, toIndex: number) => void;
 	onRemove?: (id: string) => void;
-	tooltips: { drag: string; moveDown: string; moveUp: string };
+	/** Tooltip for the remove button; required whenever `onRemove` is provided. */
+	tooltips: { drag: string; moveDown: string; moveUp: string; remove?: string };
 }
 
 export interface SettingsHelpModel {

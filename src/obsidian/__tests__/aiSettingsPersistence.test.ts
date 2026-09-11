@@ -1,4 +1,3 @@
-import { Notice, type Command } from "obsidian";
 import { expect, it, vi } from "vitest";
 import FlashcardPlugin from "../main";
 import { DEFAULT_SETTINGS } from "../../shared/types";
@@ -34,7 +33,12 @@ vi.mock("../aiAdapter", () => ({ createObsidianAiService: vi.fn() }));
 vi.mock("../../pronunciation", () => ({ createPronunciationRuntime: vi.fn() }));
 vi.mock("../../decks/deckPdfExporter", () => ({ exportDeckToPdf: vi.fn() }));
 
-it("keeps newer AI settings when a stale whole-settings save is queued", async () => {
+/**
+ * The composition root's settings writer is the only path a feature may use, so
+ * these tests guard that a queued patch is applied to the settings committed at
+ * write time, and that it never resurrects a slice another feature changed.
+ */
+async function createPlugin() {
 	const app = { workspace: { getLeavesOfType: () => [] }, vault: { getMarkdownFiles: () => [] } };
 	const host = {
 		app,
@@ -45,12 +49,16 @@ it("keeps newer AI settings when a stale whole-settings save is queued", async (
 	plugin.app = app as never;
 	plugin.dataStore = new DataStore(host as never);
 	plugin.settings = await plugin.dataStore.loadSettings();
-	// Exercise the composition root's persistence callback without registering UI commands.
-	Reflect.set(plugin, "updateLocalizedControls", () => {});
-	const persist: (settings: AiSettings) => Promise<void> = Reflect.get(
+	const commit: (patch: Partial<typeof plugin.settings>) => Promise<void> = Reflect.get(
 		plugin,
-		"persistAiSettings",
+		"commitSettings",
 	);
+	return { plugin, commit };
+}
+
+it("applies concurrent feature patches to the settings committed at write time", async () => {
+	const { plugin, commit } = await createPlugin();
+	const persistAi: (ai: AiSettings) => Promise<void> = Reflect.get(plugin, "persistAiSettings");
 	const ai: AiSettings = {
 		configs: [
 			{
@@ -64,31 +72,25 @@ it("keeps newer AI settings when a stale whole-settings save is queued", async (
 		],
 		defaultConfigId: "engine",
 	};
-	const stale = { ...plugin.settings, dailyNewCards: 42, ai: DEFAULT_SETTINGS.ai };
-	const saveAi = persist(ai);
-	const saveOrdinary = plugin.saveSettings(stale);
-	await Promise.all([saveAi, saveOrdinary]);
+
+	await Promise.all([
+		persistAi(ai),
+		commit({ dailyNewCards: 42 }),
+		commit({ studyOrder: "sequential" }),
+	]);
+
+	// Every patch survives; none of them overwrote a slice it did not mention.
 	expect(plugin.settings.ai).toEqual(ai);
-	expect(plugin.dataStore.getSettings().ai).toEqual(ai);
 	expect(plugin.settings.dailyNewCards).toBe(42);
+	expect(plugin.settings.studyOrder).toBe("sequential");
+	const stored = plugin.dataStore.getSettings();
+	expect(stored.ai).toEqual(ai);
+	expect(stored.dailyNewCards).toBe(42);
+	expect(stored.studyOrder).toBe("sequential");
 });
 
-it("keeps newer translation settings and AI settings when a stale whole-settings save is queued", async () => {
-	const app = { workspace: { getLeavesOfType: () => [] }, vault: { getMarkdownFiles: () => [] } };
-	const host = {
-		app,
-		loadData: vi.fn().mockResolvedValue(null),
-		saveData: vi.fn().mockResolvedValue(undefined),
-	};
-	const plugin = new FlashcardPlugin(app as never, {} as never);
-	plugin.app = app as never;
-	plugin.dataStore = new DataStore(host as never);
-	plugin.settings = await plugin.dataStore.loadSettings();
-	Reflect.set(plugin, "updateLocalizedControls", () => {});
-	const persist: (settings: TranslationSettings) => Promise<void> = Reflect.get(
-		plugin,
-		"persistTranslationSettings",
-	);
+it("keeps feature slices independent of each other", async () => {
+	const { plugin, commit } = await createPlugin();
 	const translation: TranslationSettings = {
 		...plugin.settings.translation,
 		enabled: true,
@@ -96,56 +98,25 @@ it("keeps newer translation settings and AI settings when a stale whole-settings
 		promptTemplate: "Translate with context",
 	};
 	const ai = plugin.settings.ai;
-	const stale = {
-		...plugin.settings,
-		dailyNewCards: 7,
-		translation: plugin.settings.translation,
-	};
-	await Promise.all([persist(translation), plugin.saveSettings(stale)]);
+
+	await commit({ translation });
+	await commit({ dailyReviewCards: 7 });
 
 	expect(plugin.settings.translation).toEqual(translation);
-	expect(plugin.dataStore.getSettings().translation).toEqual(translation);
 	expect(plugin.settings.ai).toEqual(ai);
+	expect(plugin.settings.dailyReviewCards).toBe(7);
+	const stored = plugin.dataStore.getSettings();
+	expect(stored.translation).toEqual(translation);
+	expect(stored.dailyReviewCards).toBe(7);
 });
 
-it("reports translation view open failures without rejecting or exposing internal errors", async () => {
-	const app = {
-		workspace: {
-			getLeavesOfType: () => [],
-			getLeaf: () => ({
-				setViewState: vi.fn().mockRejectedValue(new Error("private diagnostic")),
-			}),
-		},
-	};
-	const plugin = new FlashcardPlugin(app as never, {} as never);
-	plugin.app = app as never;
-	await expect(plugin.activateTranslationView()).resolves.toBeUndefined();
-	expect(Notice).toHaveBeenLastCalledWith("无法打开翻译视图，请重试。");
-});
+it("publishes settings that still contain every slice the host owns", async () => {
+	const { plugin, commit } = await createPlugin();
 
-it("only prefills the selection after command execution, without translating or changing the note", () => {
-	const plugin = new FlashcardPlugin({} as never, {} as never);
-	plugin.settings = {
-		...DEFAULT_SETTINGS,
-		translation: { ...DEFAULT_SETTINGS.translation, enabled: true },
-	};
-	const commands: Command[] = [];
-	vi.spyOn(plugin, "addCommand").mockImplementation((command) => {
-		commands.push(command);
-		return command;
-	});
-	const open = vi.spyOn(plugin, "activateTranslationView").mockResolvedValue(undefined);
-	const runtime = { prefill: vi.fn(), translate: vi.fn() };
-	Reflect.set(plugin, "translationRuntime", runtime);
-	const register: () => void = Reflect.get(plugin, "updateTranslationControls");
-	register.call(plugin);
-	const command = commands.find((command) => command.id === "translate-selection");
-	const editor = { getSelection: () => "selected text", replaceSelection: vi.fn() };
-	expect(command?.editorCheckCallback?.(true, editor as never, {} as never)).toBe(true);
-	expect(runtime.prefill).not.toHaveBeenCalled();
-	expect(command?.editorCheckCallback?.(false, editor as never, {} as never)).toBe(true);
-	expect(runtime.prefill).toHaveBeenCalledWith("selected text");
-	expect(open).toHaveBeenCalledOnce();
-	expect(runtime.translate).not.toHaveBeenCalled();
-	expect(editor.replaceSelection).not.toHaveBeenCalled();
+	await commit({ language: "en" });
+
+	expect(plugin.settings.language).toBe("en");
+	expect(plugin.settings.flashcardTags).toEqual(DEFAULT_SETTINGS.flashcardTags);
+	expect(plugin.settings.pronunciation).toEqual(DEFAULT_SETTINGS.pronunciation);
+	expect(plugin.settings.dictionary).toEqual(DEFAULT_SETTINGS.dictionary);
 });

@@ -24,7 +24,7 @@ Read this guide before changing anything under `src/dictionary/**`, the dictiona
 ## Layering rules
 
 - Domain code under `src/dictionary/**` may depend on Obsidian APIs only where the boundary requires it. Pure parsing, normalization, and planning helpers must stay free of React and vault I/O.
-- The Obsidian boundary (`src/obsidian/DictionaryView.tsx`, `DictionaryFavoriteView.tsx`, `dictionaryModals.ts`, `dictionarySettingsEditor.ts`, `main.ts`) owns views, commands, notices, secrets, and persistence ordering. React renders snapshots and calls semantic actions; it must not coordinate persistence or reach into raw engine state.
+- The Obsidian boundary for this feature is `src/obsidian/features/dictionary.ts` (workbench registration, runtime, chrome, settings section) together with `DictionaryView.tsx`, `DictionaryFavoriteView.tsx`, `dictionaryModals.ts`, and `dictionarySettingsEditor.ts`. It owns views, commands, notices, secrets, and persistence ordering, and writes its settings slice only through `host.updateSettings({ dictionary })`. React renders snapshots and calls semantic actions; it must not coordinate persistence or reach into raw engine state.
 - Settings flow through `src/settings/dictionarySettingsViewModel.ts` and the `reorderableList` control; the domain reads a settings store interface instead of `DataStore`.
 - Secret values live only in Obsidian `SecretStorage`. Persist `appKeySecretId`/`appSecretSecretId` only; never put secret values in data, logs, notices, fixtures, or source.
 - UI copy comes from `src/i18n/dictionary.ts` (`dictionaryStrings(language)`, Chinese-first with English overrides). Add keys there, not as literals in components.

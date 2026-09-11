@@ -4,22 +4,34 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 
 ## Runtime composition
 
-`src/obsidian/main.ts` is the composition root. `FlashcardPlugin.onload()`:
+`src/obsidian/main.ts` is the composition root and nothing else. `FlashcardPlugin.onload()`:
 
 1. Creates `DataStore` and loads persisted settings/data.
-2. Creates the plugin-lifetime `AiService` and `PronunciationRuntime`.
-3. Creates `SessionLifecycle` and its narrow continuity adapter.
-4. Creates `CardIdentityContinuity` with Obsidian source and persisted-state adapters.
-5. Creates the shared plugin-lifetime `DeckHome`.
-6. Registers the view, commands, ribbon icon, and settings tab.
+2. Creates the plugin-lifetime `AiService`.
+3. Creates the `Workbench` (`src/obsidian/workbench.ts`) with the feature list from
+   `src/obsidian/features/index.ts`, adds the host-owned AI engine settings section, registers
+   the settings tab, and calls `workbench.refresh()`.
 
-`src/obsidian/FlashcardView.tsx` mounts React and injects these shared services into `FlashcardApp`. Closing a view unmounts its React adapter and stops current pronunciation, but it does not itself end an active session. Plugin unload cancels pending AI requests and disposes deck-home timers and pronunciation resources.
+`Workbench.refresh()` calls `render(host)` on every 工作台功能, then pushes committed settings
+into every open view the workbench registered. The composition root owns only the settings
+document, its write queue (`commitSettings(patch)`), the shared `AiService` and `DataStore`, and
+the plugin lifecycle; it never names a feature's views, chrome, commands, or settings slice.
+
+Each feature owns everything else it needs. `src/obsidian/features/flashcards.ts` constructs
+`SessionLifecycle`, `CardIdentityContinuity`, `DeckHome`, and `PronunciationRuntime` on first
+render and disposes them in `stop()`, because no other feature uses them; `AI 翻译` and `词典`
+own their runtimes the same way. Shared services reach a feature through its factory in
+`features/index.ts`, never through the host.
+
+`src/obsidian/FlashcardView.tsx` mounts React and injects those services into `FlashcardApp`. Closing a view unmounts its React adapter and stops current pronunciation, but it does not itself end an active session. Plugin unload calls `workbench.dispose()`, which stops every feature before the shared `AiService` is disposed.
 
 ## Module ownership
 
 | Area                | Primary modules                                  | Owns                                                                                                                                                                                                  |
 | ------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Obsidian boundary   | `src/obsidian/`                                  | Plugin/view lifecycle, vault adapters, commands, notices, settings rendering, identity modals                                                                                                         |
+| Workbench host      | `src/obsidian/workbench.ts`                      | Feature registration, view registration and settings push, chrome lifetime, view activation, settings-patch commits, the settings-section registry                                                       |
+| Workbench features  | `src/obsidian/features/`                         | Per-feature runtime construction and disposal, views, ribbon/commands, settings sections, and feature-owned settings patches                                                                          |
+| Obsidian boundary   | `src/obsidian/`                                  | Plugin/view lifecycle, vault adapters, notices, settings rendering, identity modals                                                                                                                   |
 | UI                  | `src/ui/`                                        | Navigation drafts, rendering, keyboard events, modals, presentation timing adapters                                                                                                                   |
 | Deck home           | `src/decks/deckHome.ts`                          | Shared home snapshot, deck readiness, settings draft, refresh/migration/save/export activity, navigation revalidation, reorder persistence, word list visit recording, and read facades for deck data |
 | Sessions            | `src/sessions/sessionLifecycle.ts`               | The single idle/active/result lifecycle and durable transitions for study/practice/spelling                                                                                                           |
@@ -34,6 +46,9 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 ## Boundary rules
 
 - Register Obsidian-facing commands and services in `src/obsidian/main.ts`; keep feature behavior in its domain module.
+- 工作台功能 register through the workbench seam (`WorkbenchFeature.render(host)`) and reach Obsidian chrome only through `WorkbenchHost`. `main.ts` and `settingsTab.ts` must not name a feature's views, ribbon, commands, or settings slice: add a feature to `src/obsidian/features/index.ts` instead.
+- A feature writes settings only through `host.updateSettings(patch)`. The host applies the patch to the settings committed at write time, so a queued write never resurrects a stale slice.
+- 工作台功能 must not import one another. A primitive shared by two features belongs in a feature-independent location, not inside one feature's directory.
 - React renders immutable snapshots and calls semantic actions. It must not coordinate persistence ordering or reach into raw engine state.
 - `DeckHome`, `SessionLifecycle`, `CardIdentityContinuity`, and `PronunciationRuntime` are deep shared interfaces. Extend their semantic actions/snapshots instead of adding parallel state managers or pass-through wrappers.
 - Pure engines, planners, builders, and presentation models must not import React or perform Obsidian I/O.
@@ -55,5 +70,6 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0010: one shared deep `DeckHome`.
 - ADR-0011: one answer-presentation transition per mounted React adapter.
 - ADR-0017: in-repo Rust/WASM dictionary engine, compiled-package authority, and dictionary source boundaries.
+- ADR-0018: one workbench seam registers every 工作台功能; features never import one another.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

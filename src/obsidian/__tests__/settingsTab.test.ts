@@ -75,6 +75,7 @@ class MockElement {
 }
 
 vi.mock("obsidian", () => ({
+	Platform: { isDesktopApp: false },
 	PluginSettingTab: class {
 		containerEl = new MockElement();
 		app: unknown;
@@ -148,8 +149,55 @@ vi.mock("obsidian", () => ({
 };
 
 describe("FlashcardSettingTab", () => {
+	/**
+	 * The settings tab renders whatever sections are registered. The AI and
+	 * dictionary sections here stand in for the ones the composition root and the
+	 * dictionary feature contribute in production.
+	 */
 	function createMockPlugin() {
+		const flashcardsSection = {
+			id: "flashcards",
+			order: 0,
+			label: () => "闪卡设置",
+			definitions: () => [
+				{ type: "group", heading: "闪卡设置", items: [{ type: "setting", name: "每日新卡" }] },
+			],
+			activate: vi.fn(),
+			hide: vi.fn(),
+		};
+		const aiSection = {
+			id: "ai",
+			order: 1,
+			label: () => "AI 引擎设置",
+			definitions: () => [],
+			activate: vi.fn(),
+			hide: vi.fn(),
+		};
+		const translationSection = {
+			id: "translation",
+			order: 2,
+			label: () => "AI 翻译",
+			// One group with one row is enough to prove the pane is not blank.
+			definitions: () => [
+				{
+					type: "group",
+					heading: "AI 翻译",
+					items: [{ type: "setting", name: "翻译方向" }],
+				},
+			],
+			activate: vi.fn(),
+			hide: vi.fn(),
+		};
+		const dictionarySection = {
+			id: "dictionary",
+			order: 3,
+			label: () => "英语字典",
+			definitions: () => [],
+			activate: vi.fn(),
+			hide: vi.fn(),
+		};
 		return {
+			manifest: { id: "obsidian-study-studio" },
 			settings: { ...DEFAULT_SETTINGS },
 			dataStore: {
 				hasAvailableTagsSnapshot: () => true,
@@ -190,6 +238,18 @@ describe("FlashcardSettingTab", () => {
 					testing: false,
 				}),
 			},
+			workbench: {
+				settingsSections: () => [
+					flashcardsSection,
+					aiSection,
+					translationSection,
+					dictionarySection,
+				],
+			},
+			flashcardsSection,
+			aiSection,
+			translationSection,
+			dictionarySection,
 			saveSettings: vi.fn().mockResolvedValue(undefined),
 		};
 	}
@@ -262,5 +322,47 @@ describe("FlashcardSettingTab", () => {
 			c.classList.has("fc-settings-tab-content"),
 		);
 		expect(contentEl).toBeDefined();
+	});
+
+	it("activates every registered section on display and hides them again", () => {
+		const plugin = createMockPlugin();
+		const tab = new FlashcardSettingTab({} as never, plugin as never);
+		tab.display();
+
+		// Regression: an editor that owns live-refresh subscriptions is useless
+		// unless the tab activates its section; the tab must treat every registered
+		// section the same instead of naming editors one by one.
+		expect(plugin.flashcardsSection.activate).toHaveBeenCalledTimes(1);
+		expect(plugin.aiSection.activate).toHaveBeenCalledTimes(1);
+		expect(plugin.dictionarySection.activate).toHaveBeenCalledTimes(1);
+
+		tab.hide();
+		expect(plugin.flashcardsSection.hide).toHaveBeenCalledTimes(1);
+		expect(plugin.aiSection.hide).toHaveBeenCalledTimes(1);
+		expect(plugin.dictionarySection.hide).toHaveBeenCalledTimes(1);
+	});
+
+	it("opens the plugin settings at a requested section", () => {
+		const plugin = createMockPlugin();
+		const open = vi.fn();
+		const openTabById = vi.fn();
+		const tab = new FlashcardSettingTab(
+			{ setting: { open, openTabById } } as never,
+			plugin as never,
+		);
+
+		tab.open("dictionary");
+		expect(open).toHaveBeenCalledTimes(1);
+		expect(openTabById).toHaveBeenCalledWith("obsidian-study-studio");
+
+		tab.display();
+		const container = tab.containerEl as unknown as MockElement;
+		const navEl = container.children.find((c: MockElement) =>
+			c.classList.has("fc-settings-tab-nav"),
+		);
+		const tabButtons =
+			navEl?.children.filter((c: MockElement) => c.classList.has("fc-settings-tab-btn")) ??
+			[];
+		expect(tabButtons[3]?.classList.has("is-active")).toBe(true);
 	});
 });

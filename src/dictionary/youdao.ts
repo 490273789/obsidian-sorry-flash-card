@@ -1,6 +1,6 @@
 import { requestUrl } from "obsidian";
 import { dictionaryText } from "./messages";
-import { buildYoudaoV3Body } from "../translation/youdaoSign";
+import { buildYoudaoV3Body } from "../shared/youdaoSign";
 import type { YoudaoDictionarySettings } from "./types";
 import {
 	DictionaryError,

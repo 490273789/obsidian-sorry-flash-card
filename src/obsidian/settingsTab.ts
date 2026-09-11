@@ -1,13 +1,7 @@
-import { translationSettingsStrings } from "../i18n/translationSettings";
-import { TranslationSettingsEditor } from "./translationSettingsEditor";
-import { AiSettingsEditor } from "./aiSettingsEditor";
-import { DictionarySettingsEditor } from "./dictionarySettingsEditor";
-import { dictionaryStrings } from "../i18n/dictionary";
-import { App, Notice, PluginSettingTab, SecretComponent, Setting } from "obsidian";
-import { createTranslator } from "../i18n";
+import { App, PluginSettingTab, SecretComponent, Setting } from "obsidian";
 import type FlashcardPlugin from "./main";
+import type { WorkbenchSettingsSection, WorkbenchSettingsTab } from "./workbench";
 import {
-	buildSettingsViewModel,
 	type SettingsButtonControl,
 	type SettingsEditableTextListControl,
 	type SettingsHelpModel,
@@ -20,12 +14,11 @@ import {
 	type SettingsTextControl,
 	type SettingsToggleControl,
 	type SettingsReorderableListControl,
-	type SettingsViewModelActions,
 	type SettingsViewModelControl,
 	type SettingsViewModelDefinition,
 	type SettingsViewModelSetting,
 } from "../settings/settingsViewModel";
-import type { Language, PronunciationSettings } from "../shared/types";
+import type { Language } from "../shared/types";
 
 type VisibleDefinition = { visible?: boolean | (() => boolean) };
 type FlashcardSettingDefinition = VisibleDefinition & {
@@ -40,294 +33,69 @@ type FlashcardSettingGroup = VisibleDefinition & {
 };
 type FlashcardSettingItem = FlashcardSettingDefinition | FlashcardSettingGroup;
 
-export class FlashcardSettingTab extends PluginSettingTab {
+interface ObsidianSettingsManager {
+	open(): void;
+	openTabById(id: string): void;
+}
+
+export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSettingsTab {
 	plugin: FlashcardPlugin;
-	private availableTags: string[] = [];
-	private isLoadingTags = false;
-	private hasLoadedTags = false;
-	private pronunciationUnsubscribe: (() => void) | null = null;
-	private didRetryFailedCacheUsage = false;
-	private aiEditor: AiSettingsEditor;
-	private translationEditor: TranslationSettingsEditor;
-	private dictionaryEditor: DictionarySettingsEditor;
-	private activeTab: "flashcards" | "ai" | "translation" | "dictionary" = "flashcards";
+	private activeSectionId = "";
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
-		this.aiEditor = new AiSettingsEditor(
-			plugin.aiService,
-			() => this.getSelectedLanguage(),
-			() => this.refreshDefinitions(),
-		);
-		this.translationEditor = new TranslationSettingsEditor(
-			plugin.translationRuntime,
-			plugin.aiService,
-			() => this.getSelectedLanguage(),
-			() => this.refreshDefinitions(),
-		);
-		this.dictionaryEditor = new DictionarySettingsEditor(
-			plugin.dictionaryRuntime,
-			plugin.aiService,
-			() => this.getSelectedLanguage(),
-			() => this.refreshDefinitions(),
-		);
 		this.containerEl.addClass("flashcard-settings-tab");
 	}
 
-	selectTranslation(): void {
-		this.activeTab = "translation";
+	select(sectionId: string): void {
+		this.activeSectionId = sectionId;
 	}
 
-	selectDictionary(): void {
-		this.activeTab = "dictionary";
+	open(sectionId?: string): void {
+		if (sectionId) this.select(sectionId);
+		const settingsManager = (this.app as typeof this.app & { setting: ObsidianSettingsManager })
+			.setting;
+		settingsManager.open();
+		settingsManager.openTabById(this.plugin.manifest.id);
+	}
+
+	refresh(): void {
+		this.refreshDefinitions();
 	}
 
 	display(): void {
-		this.activatePronunciationState();
+		for (const section of this.sections()) section.activate?.();
 		this.renderSettings();
 	}
 
 	hide(): void {
-		this.aiEditor.hide();
-		this.translationEditor.hide();
-		this.dictionaryEditor.hide();
-		this.pronunciationUnsubscribe?.();
-		this.pronunciationUnsubscribe = null;
-		this.didRetryFailedCacheUsage = false;
+		for (const section of this.sections()) section.hide?.();
 		super.hide();
 	}
 
-	private getRenderableDefinitions(): FlashcardSettingItem[] {
-		const rawDefinitions =
-			this.activeTab === "flashcards"
-				? buildSettingsViewModel(
-						{
-							settings: this.plugin.settings,
-							availableTags: this.availableTags,
-							isLoadingTags: this.isLoadingTags,
-							hasLoadedTags: this.hasLoadedTags,
-							language: this.getSelectedLanguage(),
-							pronunciation: this.plugin.pronunciationRuntime.getSnapshot(),
-						},
-						this.createSettingsActions(),
-					)
-				: this.activeTab === "ai"
-					? [this.aiEditor.definitions()]
-					: this.activeTab === "translation"
-						? [this.translationEditor.definitions()]
-						: [this.dictionaryEditor.definitions()];
-
-		return rawDefinitions.map((definition) => this.toRenderableDefinition(definition));
-	}
-
-	private createSettingsActions(): SettingsViewModelActions {
-		return {
-			refreshTags: (options) => this.refreshAvailableTags(options),
-			updateFlashcardTag: (index, value) => {
-				this.plugin.settings.flashcardTags[index] = value;
-				return this.saveSettings(true);
-			},
-			addFlashcardTag: () => {
-				this.plugin.settings.flashcardTags.push("");
-				return this.saveSettings(true);
-			},
-			removeFlashcardTag: (index) => {
-				this.plugin.settings.flashcardTags.splice(index, 1);
-				return this.saveSettings(true);
-			},
-			addDiscoveredTag: (tag) => {
-				this.plugin.settings.flashcardTags.push(tag);
-				return this.saveSettings(true);
-			},
-			setLanguage: (language) => {
-				this.plugin.settings.language = language;
-				return this.saveSettings(true);
-			},
-			setDailyNewCards: (value) => {
-				this.plugin.settings.dailyNewCards = value;
-				return this.saveSettings();
-			},
-			setDailyReviewCards: (value) => {
-				this.plugin.settings.dailyReviewCards = value;
-				return this.saveSettings();
-			},
-			setStudyOrder: (value) => {
-				this.plugin.settings.studyOrder = value;
-				return this.saveSettings();
-			},
-			setRequestRetention: (value) => {
-				this.plugin.settings.fsrsParameters.requestRetention = value;
-				return this.saveSettings();
-			},
-			setMaximumInterval: (value) => {
-				this.plugin.settings.fsrsParameters.maximumInterval = value;
-				return this.saveSettings();
-			},
-			setPronunciationAutoPlay: (value) =>
-				this.configurePronunciation({ spellingAutoPlay: value }),
-			setPronunciationAccent: (value) => this.configurePronunciation({ accent: value }),
-			setPronunciationRate: (value) => this.configurePronunciation({ rate: value }),
-			setOnlinePronunciationProvider: (value) =>
-				this.configurePronunciation({ onlineProvider: value }),
-			setAzureCloud: (value) => this.configurePronunciation({ azureCloud: value }),
-			setAzureRegion: (value) => this.configurePronunciation({ azureRegion: value }),
-			setAzureSecretId: (value) => this.configurePronunciation({ azureSecretId: value }),
-			setOpenAiSecretId: (value) => this.configurePronunciation({ openaiSecretId: value }),
-			testOnlinePronunciation: () => this.testOnlinePronunciation(),
-			clearPronunciationCache: () => this.clearPronunciationCache(),
-		};
-	}
-
-	private getSelectedLanguage(): Language {
-		return this.parseLanguage(this.plugin.settings.language);
-	}
-
-	private parseLanguage(value: unknown): Language {
-		return value === "en" ? "en" : "zh";
-	}
-
-	private ensureAvailableTagsLoaded(): void {
-		if (this.hasLoadedTags || this.isLoadingTags) {
-			return;
-		}
-
-		// Opening settings must stay cheap. A full vault scan is reserved for the
-		// explicit refresh action; otherwise large vaults make the first render wait.
-		if (!this.plugin.dataStore.hasAvailableTagsSnapshot()) {
-			return;
-		}
-
-		this.availableTags = this.plugin.dataStore.getAvailableTags();
-		this.hasLoadedTags = true;
-	}
-
-	private activatePronunciationState(): void {
-		this.aiEditor.activate();
-		this.translationEditor.activate();
-		if (!this.pronunciationUnsubscribe) {
-			this.pronunciationUnsubscribe = this.plugin.pronunciationRuntime.subscribe(() =>
-				this.refreshDefinitions(),
-			);
-		}
-		if (
-			!this.didRetryFailedCacheUsage &&
-			this.plugin.pronunciationRuntime.getSnapshot().cacheUsage.status === "failed"
-		) {
-			this.didRetryFailedCacheUsage = true;
-			void this.plugin.pronunciationRuntime.refreshCacheUsage();
-		}
-	}
-
-	private async configurePronunciation(patch: Partial<PronunciationSettings>): Promise<void> {
-		const outcome = await this.plugin.pronunciationRuntime.configure(patch);
-		if (outcome.status === "applied") return;
-		const t = createTranslator(this.getSelectedLanguage());
-		new Notice(
-			outcome.status === "busy"
-				? t("settings.pronunciationBusy")
-				: t("settings.pronunciationSaveFailed"),
+	/** The settings tab is a host-owned shell: it renders whatever sections are registered. */
+	private sections(): WorkbenchSettingsSection[] {
+		return (this.plugin.workbench?.settingsSections() ?? []).sort(
+			(a, b) => a.order - b.order,
 		);
 	}
 
-	private async testOnlinePronunciation(): Promise<void> {
-		const t = createTranslator(this.getSelectedLanguage());
-		try {
-			const outcome = await this.plugin.pronunciationRuntime.testOnlineProvider("hello");
-			if (outcome.status === "success") {
-				new Notice(t("settings.pronunciationTestSuccess"));
-				return;
-			}
-			if (outcome.status === "cancelled") return;
-			if (outcome.status === "busy") {
-				new Notice(t("settings.pronunciationBusy"));
-				return;
-			}
-			const key =
-				outcome.reason === "offline"
-					? "settings.pronunciationTestOffline"
-					: outcome.reason === "not-configured"
-						? "settings.pronunciationTestNotConfigured"
-						: outcome.reason === "unauthorized"
-							? "settings.pronunciationTestUnauthorized"
-							: outcome.reason === "quota"
-								? "settings.pronunciationTestQuota"
-								: "settings.pronunciationTestFailed";
-			new Notice(t(key));
-		} catch {
-			new Notice(t("settings.pronunciationTestFailed"));
-		}
+	private activeSection(): WorkbenchSettingsSection | undefined {
+		const sections = this.sections();
+		return sections.find((section) => section.id === this.activeSectionId) ?? sections[0];
 	}
 
-	private async clearPronunciationCache(): Promise<void> {
-		const t = createTranslator(this.getSelectedLanguage());
-		try {
-			const outcome = await this.plugin.pronunciationRuntime.clearCache();
-			new Notice(
-				outcome.status === "cleared"
-					? t("settings.pronunciationCacheCleared")
-					: outcome.status === "busy"
-						? t("settings.pronunciationBusy")
-						: t("settings.pronunciationCacheClearFailed"),
-			);
-		} catch {
-			new Notice(t("settings.pronunciationCacheClearFailed"));
-		}
+	private getRenderableDefinitions(): FlashcardSettingItem[] {
+		const section = this.activeSection();
+		if (!section) return [];
+		return section
+			.definitions(this.getSelectedLanguage())
+			.map((definition) => this.toRenderableDefinition(definition));
 	}
 
-	private async refreshAvailableTags(options: { cleanConfiguredTags: boolean }): Promise<void> {
-		if (this.isLoadingTags) {
-			return;
-		}
-
-		const t = createTranslator(this.getSelectedLanguage());
-		this.isLoadingTags = true;
-		this.refreshDefinitions();
-
-		try {
-			await this.plugin.cardIdentityContinuity.synchronize();
-			this.availableTags = this.plugin.dataStore.getAvailableTags();
-			this.hasLoadedTags = true;
-
-			let removedCount = 0;
-			if (options.cleanConfiguredTags) {
-				removedCount = this.removeMissingConfiguredTags(this.availableTags);
-				await this.plugin.saveSettings();
-			}
-
-			new Notice(
-				options.cleanConfiguredTags
-					? t("settings.tagsRefreshedAndCleaned", {
-							count: String(removedCount),
-						})
-					: t("settings.tagsRefreshed"),
-			);
-		} catch (error) {
-			console.error("Failed to refresh flashcard tags:", error);
-			new Notice(t("settings.tagsRefreshFailed"));
-		} finally {
-			this.isLoadingTags = false;
-			this.refreshDefinitions();
-		}
-	}
-
-	private removeMissingConfiguredTags(availableTags: string[]): number {
-		const availableTagSet = new Set(availableTags.map((tag) => tag.trim().toLowerCase()));
-		const originalTags = this.plugin.settings.flashcardTags;
-		const cleanedTags = originalTags.filter((tag) => {
-			const normalizedTag = tag.trim();
-			return normalizedTag.length === 0 || availableTagSet.has(normalizedTag.toLowerCase());
-		});
-
-		this.plugin.settings.flashcardTags = cleanedTags;
-		return originalTags.length - cleanedTags.length;
-	}
-
-	private async saveSettings(refreshDefinitions = false): Promise<void> {
-		await this.plugin.saveSettings();
-		if (refreshDefinitions) {
-			this.refreshDefinitions();
-		}
+	private getSelectedLanguage(): Language {
+		return this.plugin.settings.language === "en" ? "en" : "zh";
 	}
 
 	private refreshDefinitions(): void {
@@ -336,37 +104,23 @@ export class FlashcardSettingTab extends PluginSettingTab {
 
 	private renderSettings(): void {
 		const { containerEl } = this;
-		this.ensureAvailableTagsLoaded();
 		containerEl.empty();
 		containerEl.addClass("flashcard-settings-tab");
 
-		const t = createTranslator(this.getSelectedLanguage());
+		const language = this.getSelectedLanguage();
+		const sections = this.sections();
+		const activeSection = this.activeSection();
 		const navEl = containerEl.createDiv({ cls: "fc-settings-tab-nav" });
-		const tabs: Array<{
-			id: "flashcards" | "ai" | "translation" | "dictionary";
-			label: string;
-		}> = [
-			{ id: "flashcards", label: t("settings.tabFlashcards") },
-			{ id: "ai", label: t("settings.tabAi") },
-			{
-				id: "translation",
-				label: translationSettingsStrings(this.getSelectedLanguage()).heading,
-			},
-			{
-				id: "dictionary",
-				label: dictionaryStrings(this.getSelectedLanguage()).settingsHeading,
-			},
-		];
 
-		for (const tab of tabs) {
+		for (const section of sections) {
 			const tabBtn = navEl.createEl("button", {
 				type: "button",
-				text: tab.label,
-				cls: `fc-settings-tab-btn ${this.activeTab === tab.id ? "is-active" : ""}`,
+				text: section.label(language),
+				cls: `fc-settings-tab-btn ${activeSection?.id === section.id ? "is-active" : ""}`,
 			});
 			tabBtn.addEventListener("click", () => {
-				if (this.activeTab !== tab.id) {
-					this.activeTab = tab.id;
+				if (this.activeSectionId !== section.id) {
+					this.activeSectionId = section.id;
 					this.refreshDefinitions();
 				}
 			});
@@ -699,10 +453,10 @@ export class FlashcardSettingTab extends PluginSettingTab {
 			});
 			if (control.onRemove) {
 				const onRemove = control.onRemove;
+				const removeTooltip = control.tooltips.remove;
 				row.addExtraButton((button) => {
-					button
-						.setIcon("trash-2")
-						.setTooltip(dictionaryStrings(this.getSelectedLanguage()).localDelete);
+					button.setIcon("trash-2");
+					if (removeTooltip) button.setTooltip(removeTooltip);
 					button.onClick(() => onRemove(item.id));
 				});
 			}

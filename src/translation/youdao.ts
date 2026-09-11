@@ -1,5 +1,5 @@
 import { AiError, type AiDependencies, type AiHttpResponse } from "../ai/types";
-import { buildYoudaoV3Body as buildYoudaoV3BodyFromSign, youdaoV3SignInput } from "./youdaoSign";
+import { buildYoudaoV3Body as buildYoudaoV3BodyFromSign, youdaoV3SignInput } from "../shared/youdaoSign";
 
 export interface YoudaoConnection {
 	baseUrl: string;

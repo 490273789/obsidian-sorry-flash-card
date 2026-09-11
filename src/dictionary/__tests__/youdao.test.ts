@@ -1,6 +1,6 @@
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
-import { buildYoudaoV3Body, youdaoV3SignInput } from "../../translation/youdaoSign";
+import { buildYoudaoV3Body, youdaoV3SignInput } from "../../shared/youdaoSign";
 import type { YoudaoDictionarySettings } from "../types";
 import {
 	parseYoudaoFreeResponse,

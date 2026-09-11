@@ -4,11 +4,11 @@ Read this guide before changing pronunciation settings, playback, spelling autop
 
 ## Runtime authority
 
-`src/pronunciation/pronunciationRuntime.ts` is a shared plugin-lifetime service injected from the plugin/view boundary.
+`src/pronunciation/pronunciationRuntime.ts` is a plugin-lifetime service owned by the 闪卡 feature (`src/obsidian/features/flashcards.ts`), which constructs and disposes it. It is shared with the view boundary by injection.
 
 - Its immutable snapshot is the in-process authority for committed pronunciation settings, management activity, cache usage, voice capability, and playback state.
 - Settings adapters call semantic methods such as `configure()`, `testOnlineProvider()`, and `clearCache()`; they must not mirror or directly mutate pronunciation settings/activity.
-- Configuration is persisted before the committed snapshot is published. Whole-settings writes in `src/obsidian/main.ts` are serialized so stale settings cannot overwrite a newer pronunciation configuration.
+- Configuration is persisted before the committed snapshot is published. The write goes through `host.updateSettings({ pronunciation })`, and the composition root serializes settings commits so a stale write cannot overwrite a newer pronunciation configuration.
 - UI components consume the runtime interface. They must not create a second runtime or read provider credentials directly.
 
 ## Fallback and security rules

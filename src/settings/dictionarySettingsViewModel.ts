@@ -220,6 +220,7 @@ export function buildDictionarySettingsViewModel(
 					drag: t.orderDescription,
 					moveUp: t.sourceMoveUp,
 					moveDown: t.sourceMoveDown,
+					remove: t.localDelete,
 				},
 			},
 		]),
