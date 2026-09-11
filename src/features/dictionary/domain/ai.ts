@@ -1,5 +1,6 @@
 import { AiError, type AiErrorCode, type AiService } from "../../../core/ai";
 import { dictionaryText } from "./messages";
+import { isRecord } from "../../../core/shared/isRecord";
 import {
 	DictionaryError,
 	dictionaryErrorCodeMessage,
@@ -34,10 +35,6 @@ const SYSTEM_PROMPT = `你是一部面向中文母语学习者的英汉学习词
 }
 
 要求：definitions 给出 2 至 5 个最常用且确有区别的词义，每个词义给 1 至 2 个自然例句。meaning、explanation、例句翻译以及相关词说明必须使用简体中文，不能用英文释义代替。英文单词、短语和例句保留英文。没有可靠内容的数组返回空数组，不要猜测。`;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function clean(value: unknown, limit = 600): string {
 	return typeof value === "string"

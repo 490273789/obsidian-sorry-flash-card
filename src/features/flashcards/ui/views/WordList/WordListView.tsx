@@ -414,7 +414,7 @@ export const WordListView = React.memo(function WordListView({
 	}, []);
 
 	return (
-		<div className="flashcard-word-list-view">
+		<div className="flashcard-word-list-view fc-page fc-page--fill">
 			<FlashcardHeader
 				className="flashcard-word-list-header"
 				icon={BookOpenText}

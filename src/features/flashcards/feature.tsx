@@ -585,7 +585,6 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 					type: VIEW_TYPE_FLASHCARD,
 					icon: "layers",
 					title: (language) => createTranslator(language)("main.viewTitle"),
-					containerClass: "flashcard-container",
 					readSettings: () => host.settings(),
 					renderErrorMessage: (language) =>
 						createTranslator(language)("notice.viewRenderFailed"),

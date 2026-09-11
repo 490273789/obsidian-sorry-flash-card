@@ -160,8 +160,6 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 					type: VIEW_TYPE_DICTIONARY,
 					icon: "book-open",
 					title: (language) => dictionaryStrings(language).displayName,
-					containerClass: "flashcard-dictionary-container",
-					rootClass: "flashcard-dictionary-root",
 					// The sandbox document follows Obsidian's theme independently of CSS.
 					trackTheme: true,
 					readSettings: () => host.settings(),
@@ -186,8 +184,6 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 					type: VIEW_TYPE_DICTIONARY_FAVORITE,
 					icon: "bookmark",
 					title: (language) => dictionaryStrings(language).favoriteSidebarTitle,
-					containerClass: "flashcard-dictionary-container",
-					rootClass: "flashcard-dictionary-root",
 					readSettings: () => host.settings(),
 					renderErrorMessage: (language) =>
 						dictionaryStrings(language).favoriteRenderFailed,

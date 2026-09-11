@@ -149,10 +149,10 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 	};
 
 	return (
-		<div className="flashcard-practice-setup">
+		<div className="flashcard-practice-setup fc-page fc-page--fill">
 			<FlashcardHeader icon={Target} title={t("practice.title")} onBack={onBack} />
 
-			<div className="flashcard-setup-content">
+			<div className="flashcard-setup-content fc-page__body fc-page__body--narrow">
 				<div className="flashcard-study-hero flashcard-practice-hero">
 					<div className="flashcard-deck-name-wrapper">
 						<div className="flashcard-deck-name">{deck.name}</div>

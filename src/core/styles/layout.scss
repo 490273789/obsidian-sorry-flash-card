@@ -1,0 +1,167 @@
+@use "./mixins.scss" as *;
+
+/*
+ * Layout module: the workbench page shell, its panels, and the view container.
+ *
+ * Every feature used to restate the same page recipe (centred max-width column,
+ * spacing, scroll behaviour) and the same panel recipe (bordered surface with
+ * header/body/footer), which is how the two newest features ended up outside the
+ * responsive and motion layers with containers that had no styles at all.
+ *
+ * A view opts in by adding these classes next to its own; the feature stylesheet
+ * keeps only what is specific to that view.
+ */
+
+/* A workbench page. */
+.fc-page {
+	display: flex;
+	box-sizing: border-box;
+	min-width: 0;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+	color: var(--fc-text);
+}
+
+/* A page that centres a max-width column; the view decides its own scrolling. */
+.fc-page--column {
+	width: min(1280px, 100%);
+	min-height: 100%;
+	margin: 0 auto;
+	padding: var(--fc-space-3);
+}
+
+/* A page that fills its leaf and scrolls inside its own body. */
+.fc-page--fill {
+	flex: 1 1 100%;
+	height: 100%;
+	min-height: 0;
+	max-height: 100%;
+	overflow: hidden;
+	animation: var(--fc-motion-page-enter);
+}
+
+/* The scrollable region of a fill page. */
+.fc-page__body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: var(--fc-space-4);
+	min-height: 0;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* A narrower reading column for setup and result pages. */
+.fc-page__body--narrow {
+	width: min(850px, 100%);
+	margin: 0 auto;
+	padding: var(--fc-space-2);
+}
+
+/* A bordered surface holding one part of a page. */
+.fc-panel {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	border: 1px solid var(--fc-line);
+	border-radius: var(--fc-radius-md);
+	background: var(--fc-surface-section);
+	transition: border-color var(--fc-motion-quick) ease;
+
+	&:focus-within {
+		border-color: var(--fc-input-border-focus);
+	}
+}
+
+/* Header and footer semantics for any semantic child element. */
+.fc-panel > header,
+.fc-panel > footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-2) var(--fc-space-3);
+}
+
+.fc-panel > header {
+	min-height: var(--fc-header-height);
+	border-bottom: 1px solid var(--fc-line-soft);
+}
+
+.fc-panel > footer {
+	min-height: var(--fc-control-md);
+	border-top: 1px solid var(--fc-line-soft);
+	color: var(--fc-muted);
+	font-size: var(--fc-font-xs);
+}
+
+/* The scrolling body of a panel. */
+.fc-panel__body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+	min-height: 0;
+	padding: var(--fc-space-3);
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+
+	@include fc-scrollbar;
+}
+
+/* A panel that scrolls as a whole instead of owning an inner body. */
+.fc-panel--scroll {
+	flex: 1 1 auto;
+	gap: var(--fc-space-3);
+	padding: var(--fc-space-3);
+	overflow-x: hidden;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-gutter: stable;
+
+	@include fc-scrollbar;
+}
+
+/* The container the mount seam adds for every workbench view. */
+.workspace-leaf-content .flashcard-container {
+	height: 100%;
+	overflow: hidden;
+	overscroll-behavior: contain;
+	padding: 0;
+}
+
+/* Narrow panes tighten the shell without changing hierarchy or type scale. */
+@media (max-width: 720px) {
+	.fc-page--column {
+		padding: var(--fc-space-2);
+	}
+
+	.fc-panel > header,
+	.fc-panel > footer {
+		padding-inline: var(--fc-space-2);
+	}
+
+	.fc-panel__body,
+	.fc-panel--scroll {
+		padding: var(--fc-space-2);
+	}
+}
+
+@media (max-width: 640px) {
+	.fc-page,
+	.fc-page__body {
+		gap: var(--fc-space-3);
+	}
+}
+
+@media (pointer: coarse) {
+	.fc-panel > header,
+	.fc-panel > footer {
+		min-height: var(--fc-control-touch);
+	}
+}

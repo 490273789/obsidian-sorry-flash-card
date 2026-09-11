@@ -72,6 +72,7 @@ Read the layering inside a slice the same way as before: `domain/` and `settings
 | Card continuity     | `src/features/flashcards/domain/identity/cardIdentityContinuity.ts`                                                        | Synchronization, migration, repair, source changes, stable card identity continuity                                                                                                                   |
 | Persistence         | `src/core/storage/dataStore.ts`                                                                                            | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                                                                                  |
 | Settings document   | `src/core/host/settingsSlices.ts`, `src/core/settings/slice.ts`                                                            | The slice registry and the composed settings document: defaults, normalization, and cloning for every owner                                                                                           |
+| Outbound port       | `src/core/net/`                                                                                                            | Request execution, status classification, deadline and cancellation, credential reads, and the single host-pinned exception (ADR-0024)                                                                |
 | AI engines          | `src/core/ai/`                                                                                                             | Named provider/model configurations, model discovery, text/image requests, credentials through an injected reader, and per-request timeout/cancellation                                               |
 | Pronunciation       | `src/features/flashcards/domain/pronunciation/`                                                                            | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                                                                                       |
 | Pure card logic     | `src/features/flashcards/domain/cards/`                                                                                    | Parsing, formatting, source mutation, spelling extraction/comparison                                                                                                                                  |
@@ -94,6 +95,7 @@ Read the layering inside a slice the same way as before: `domain/` and `settings
 - `DeckHome`, `SessionLifecycle`, `CardIdentityContinuity`, and `PronunciationRuntime` are deep shared interfaces. Extend their semantic actions/snapshots instead of adding parallel state managers or pass-through wrappers.
 - Pure engines, planners, builders, and presentation models must not import React or perform Obsidian I/O.
 - `DataStore` publishes a monotonic revision after committed changes. Consumers subscribe rather than inventing manual refresh counters.
+- Outbound work goes through the outbound port: do not call `requestUrl`, `fetch`, or `secretStorage.getSecret` from a feature. A raw host-pinned fetch is the single sanctioned exception and lives behind `requestHostPinned` (ADR-0024).
 - Use `import type` for Obsidian-only or boundary-only types in pure modules and tests whenever runtime loading is unnecessary.
 
 For new features that call AI, read [the internal AI service guide](../design/ai-engine-usage.md) for configuration selection, image input, and cancellation semantics.
@@ -116,5 +118,7 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0020: one React mount seam (`createReactItemView`) builds every workbench view.
 - ADR-0021: the source tree is sliced by 工作台功能; `src/core/` holds everything that is not one feature.
 - ADR-0022: the workbench owns the single entry point (ribbon + 工作台首页); features declare identity through the catalog.
+- ADR-0023: one layout module (`.fc-page*` / `.fc-panel*`) owns every view's page shell and panels.
+- ADR-0024: one outbound port (`src/core/net/`) owns requests, credentials, and transport error classification.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

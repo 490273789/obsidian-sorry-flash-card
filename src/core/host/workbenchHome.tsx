@@ -35,7 +35,6 @@ export function attachWorkbenchHome(options: WorkbenchHomeOptions): void {
 			type: VIEW_TYPE_WORKBENCH_HOME,
 			icon: HOME_ICON,
 			title: (language) => createSharedTranslator(language)("workbench.title"),
-			containerClass: "flashcard-container",
 			readSettings: () => options.readSettings(),
 			renderErrorMessage: (language) =>
 				createSharedTranslator(language)("notice.viewRenderFailed"),

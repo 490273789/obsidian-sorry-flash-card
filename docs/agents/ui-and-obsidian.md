@@ -40,6 +40,7 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 - Edit SCSS under `src/core/styles/` (for globals) and beside components under `src/core/ui/primitives/` and `src/core/ui/views/`. `src/core/styles/index.scss` is the sole entry imported by `src/core/host/main.ts`; Vite generates root `styles.css`.
 - Preserve the cascade import order in `src/core/styles/index.scss`: base tokens & mixins, settings, primitives, views, motion, and responsive.
+- Take the page shell, panel surface, and header/footer semantics from the layout module (`src/core/styles/layout.scss`, classes `fc-page*` / `fc-panel*`); add the classes next to the view's own and keep only view-specific rules in its stylesheet. Do not restate the page recipe or the panel recipe.
 - Reuse existing `--fc-*` tokens and Obsidian theme tokens. Avoid inline-style proliferation, new parallel token systems, or fixed light/dark palettes.
 - Keep touch targets, keyboard focus, reduced-motion behavior, responsive layouts, and light/dark contrast intact.
 - For a visible regression, make the smallest effective repair before considering broader redesign.

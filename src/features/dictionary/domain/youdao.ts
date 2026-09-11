@@ -11,16 +11,13 @@ import {
 	type Pronunciation,
 } from "./types";
 import { requestOnlineResponse, type OnlineRequestExecutor } from "./online";
+import { isRecord } from "../../../core/shared/isRecord";
 
 export const YOUDAO_FREE_ENDPOINT = "https://dict.youdao.com/jsonapi";
 export const YOUDAO_OFFICIAL_ENDPOINT = "https://openapi.youdao.com/v2/dict";
 
 const MAX_ITEMS_PER_SECTION = 20;
 const MAX_TEXT_LENGTH = 500;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function cleanText(value: string): string {
 	return value

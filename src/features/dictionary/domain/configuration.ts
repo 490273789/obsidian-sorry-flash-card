@@ -1,4 +1,5 @@
 import { settingsRecord, type SettingsSlice } from "../../../core/settings/slice";
+import { isRecord } from "../../../core/shared/isRecord";
 import {
 	type CompiledDictionarySettings,
 	type DictionarySettings,
@@ -15,10 +16,6 @@ export const DICTIONARY_QUERY_MAX_LENGTH = 128;
 export const DICTIONARY_HISTORY_LIMIT = 50;
 export const DEFAULT_DICTIONARY_FAVORITE_PATH = "word.md";
 export const DEFAULT_YOUDAO_DICTIONARIES = ["ec", "ce"] as const;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 export function normalizeDictionaryQuery(value: unknown): string {
 	return typeof value === "string"

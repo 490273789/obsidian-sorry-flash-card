@@ -142,7 +142,7 @@ export const StudySetup = React.memo(function StudySetup({
 	}, [allCompleted, deck.id, direction, onStartSession, studyOrder]);
 
 	return (
-		<div className="flashcard-practice-setup">
+		<div className="flashcard-practice-setup fc-page fc-page--fill">
 			<FlashcardHeader
 				icon={Brain}
 				title={t("study.title")}
@@ -163,7 +163,7 @@ export const StudySetup = React.memo(function StudySetup({
 				]}
 			/>
 
-			<div className="flashcard-setup-content">
+			<div className="flashcard-setup-content fc-page__body fc-page__body--narrow">
 				<div className="flashcard-study-hero">
 					<div className="flashcard-deck-name-wrapper">
 						<div className="flashcard-deck-name">{deck.name}</div>

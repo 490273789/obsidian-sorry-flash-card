@@ -1,3 +1,4 @@
+import { isRecord } from "../shared/isRecord";
 import { settingsRecord, type SettingsSlice } from "../settings/slice";
 import { AiError, type AiEngineConfig, type AiProvider, type AiSettings } from "./types";
 
@@ -9,9 +10,7 @@ export const AI_PRESETS: Record<AiProvider, { baseUrl: string; model: string }> 
 	youdao: { baseUrl: "https://openapi.youdao.com/llmgateway/api/v1", model: "deepseek-v4-pro" },
 };
 
-export function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+export { isRecord };
 
 /** Whitelist fields so accidental API keys never survive normalization. */
 export function normalizeAiSettings(value: unknown): AiSettings {

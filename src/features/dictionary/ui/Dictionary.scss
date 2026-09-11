@@ -1,25 +1,11 @@
 @use "../../../core/styles/mixins.scss" as *;
 
-.flashcard-dictionary-root {
-	box-sizing: border-box;
-	height: 100%;
-	min-width: 0;
-	min-height: 0;
-	overflow-y: auto;
-	overflow-x: hidden;
-
-	.flashcard-dictionary,
-	.flashcard-dictionary-favorite {
-		display: flex;
-		box-sizing: border-box;
-		width: min(1280px, 100%);
-		min-width: 0;
-		flex-direction: column;
-		gap: var(--fc-space-4);
-		margin: 0 auto;
-		padding: var(--fc-space-3);
-		color: var(--fc-text);
-	}
+/*
+ * Page shell, panel surface, and their header/footer semantics live in
+ * core/styles/layout.scss; only dictionary-specific rules stay here.
+ */
+.flashcard-dictionary-page {
+	@include fc-scrollbar;
 
 	// The lookup page owns the leaf height and never scrolls as a whole: only the
 	// active source panel scrolls, so a long entry cannot grow or squeeze the
@@ -30,9 +16,11 @@
 		overflow: hidden;
 	}
 
-	// The favorites sidebar is a form, so let the whole pane scroll instead.
+	// The favorites sidebar is a form, so the whole pane scrolls instead.
 	.flashcard-dictionary-favorite {
 		min-height: 100%;
+		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	.flashcard-dictionary-disabled {
@@ -295,27 +283,9 @@
 		gap: var(--fc-space-3);
 	}
 
-	.flashcard-dictionary-source {
-		display: flex;
-		flex: 1 1 auto;
-		flex-direction: column;
-		min-width: 0;
-		min-height: 0;
-		overflow-x: hidden;
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		scrollbar-gutter: stable;
-		gap: var(--fc-space-3);
-		padding: var(--fc-space-3);
-		border: 1px solid var(--fc-line);
-		border-radius: var(--fc-radius-md);
-		background: var(--fc-surface-section);
-
-		@include fc-scrollbar;
-
-		&[hidden] {
-			display: none;
-		}
+	// Panel surface and scrolling come from .fc-panel--scroll.
+	.flashcard-dictionary-source[hidden] {
+		display: none;
 	}
 
 	.flashcard-dictionary-ai-action {

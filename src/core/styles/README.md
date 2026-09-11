@@ -2,22 +2,23 @@
 
 插件保留当前低饱和、舒适紧凑的风格。界面直接继承 Obsidian 的系统主题与强调色；颜色用于表达操作层级和状态，不用于装饰无语义的数据。普通层级依靠背景、边框和留白建立，阴影只用于菜单、弹窗等真正离开文档流的浮层。
 
-`index.scss` 是 `src/obsidian/main.ts` 引入的唯一样式入口。Vite 会跟随它的导入并通过 Sass 预处理器编译生成 Obsidian 使用的根目录 `styles.css`。不要手工编辑根目录 `styles.css`，应运行 `pnpm run build` 重新生成。
+`index.scss` 是 `src/core/host/main.ts` 引入的唯一样式入口。Vite 会跟随它的导入并通过 Sass 预处理器编译生成 Obsidian 使用的根目录 `styles.css`。不要手工编辑根目录 `styles.css`，应运行 `pnpm run build` 重新生成。
 
 ## 文件结构与组件就近样式（Colocation）
 
 项目样式采用“**全局基础令牌 + 基础组件就近样式 + 业务视图就近样式**”的清晰分层架构：
 
-### 1. 全局样式体系 (`src/styles/`)
+### 1. 全局样式体系 (`src/core/styles/`)
 
 - `mixins.scss`：高频 SCSS 混入（如 `fc-focus-ring`、`fc-flex-center`、`fc-truncate`、`fc-scrollbar` 等）。
+- `layout.scss`：**布局模块**，页面外壳、面板与视图容器的唯一实现（见下）。
 - `base.scss`：设计 token（唯一来源，`--fc-*`）、根容器框架（`.flashcard-root` 的定义与表面归一）。
 - `settings.scss`：Obsidian 设置面板与设置弹窗相关的样式。
 - `motion.scss`：全局动画与关键帧（尊重 `prefers-reduced-motion`）。
 - `responsive.scss`：全局小屏幕和移动端粗指针媒体查询适配。
 - `index.scss`：主样式入口，负责按序汇入全局层、基础组件层及业务视图层。
 
-### 2. 基础 UI 组件样式 (`src/ui/primitives/**/`)
+### 2. 基础 UI 组件样式 (`src/core/ui/primitives/**/`)
 
 每个基础控件拥有独立目录，TSX 与对应 SCSS 样式同目录存放并导出：
 
@@ -26,24 +27,36 @@
 - `Header/` (`FlashcardHeader.scss`)、`SessionTimer/` (`SessionTimer.scss`)、`SessionToolbar/` (`SessionToolbar.scss`)、`SetupSelector/` (`SetupSelector.scss`)
 - `Markdown/` (`Markdown.scss`)、`PronunciationButton/` (`PronunciationButton.scss`)
 
-### 3. 业务视图组件样式 (`src/ui/views/**/`)
+只被闪卡使用的基元（`SessionToolbar`、`PronunciationButton`、`Markdown`）随功能放在 `src/features/flashcards/ui/primitives/`，规则同上。
+
+### 3. 业务视图组件样式（按功能切片）
 
 每个独立视图模块同样遵循 Colocation 模式，将页面结构与专属样式内聚管理：
 
-- `Home/` (`DeckList.scss`)
-- `Study/` (`StudySetup.scss`)
-- `Card/` (`Card.scss`)
-- `Practice/` (`Practice.scss`)
-- `Spelling/` (`Spelling.scss`)
-- `WordList/` (`WordList.scss`)
-- `Stats/` (`Stats.scss`)
-- `DeckSettings/` (`DeckSettingsModal.scss`)
+- `src/features/flashcards/ui/views/**`：`Home/`、`Study/`、`Card/`、`Practice/`、`Spelling/`、`WordList/`、`Stats/`、`DeckSettings/`
+- `src/features/translation/ui/`：`Translator.scss`
+- `src/features/dictionary/ui/`：`Dictionary.scss`
+
+视图样式只写该视图特有的规则；页面外壳、面板与 header/footer 语义一律来自布局模块。
 
 ### Token 唯一来源
 
 - `--fc-*` 设计 token（含阴影、焦点环、辉光与动效的最终值）只能在 `base.scss` 的 `.flashcard-root, .flashcard-settings-tab` 中定义一次；其他文件禁止再定义或覆盖同名单词。本文件只说明用法与取值口径，具体数值一律以 `base.scss` 为准。
 - 不再维护独立的亮色主题文件。`.theme-light` 前缀仅用于极少量光学修正（见 `Home/DeckList.scss`、`Spelling/Spelling.scss`、`Stats/Stats.scss`），所有配色都从 Obsidian token 派生。
 - 组件作用域内的临时变量（如 `--fc-rating-color`、`--fc-confirm-rgb`）允许就地定义，但不得以 `--fc-` 前缀模仿全局设计 token 的命名体系。
+
+## 布局模块 (`layout.scss`)
+
+页面外壳、面板与视图容器只在这里实现一次。视图在自己的类名旁叠加布局类，不重写配方：
+
+- `.fc-page`：页面根（flex 纵向、区块间距、`--fc-text`）。
+- `.fc-page--column`：居中限宽（`min(1280px, 100%)`）并带页面内边距，滚动由视图自己决定。
+- `.fc-page--fill`：填满 leaf、内部滚动、带 `--fc-motion-page-enter` 进入动效。
+- `.fc-page__body` / `.fc-page__body--narrow`：可滚动正文区；`--narrow` 为 850px 阅读列。
+- `.fc-panel` + `.fc-panel > header|footer` + `.fc-panel__body` / `.fc-panel--scroll`：带边框的面板与其头/尾/正文语义。
+- `.workspace-leaf-content .flashcard-container`：挂载接缝为每个视图添加的唯一容器类。
+
+布局模块自带 720px / 640px / `pointer: coarse` 三组媒体查询，因此新视图无需再写外壳级响应式。功能样式在布局层之后加载，可以覆盖个别数值（例如统计页保留自己的内边距）。
 
 ## Token 使用规则
 

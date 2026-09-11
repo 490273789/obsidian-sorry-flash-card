@@ -23,7 +23,7 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 	const { dayGroups, totals } = presentation;
 
 	return (
-		<div className="flashcard-stats-view">
+		<div className="flashcard-stats-view fc-page fc-page--fill">
 			<FlashcardHeader
 				icon={ChartBar}
 				title={t("stats.title")}
@@ -45,7 +45,7 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 			/>
 
 			{/* Day list */}
-			<div className="flashcard-stats-body">
+			<div className="flashcard-stats-body fc-page__body">
 				{dayGroups.length === 0 ? (
 					<div className="flashcard-empty">
 						<div className="flashcard-empty-icon">

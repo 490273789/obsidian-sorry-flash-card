@@ -1,36 +1,5 @@
-/* Page shells and headers */
-.flashcard-home,
-.flashcard-study,
-.flashcard-practice-setup,
-.flashcard-practice-summary,
-.flashcard-stats-view,
-.flashcard-word-list-view {
-	height: 100%;
-	flex: 1 1 100%;
-	min-height: 0;
-	max-height: 100%;
-	display: flex;
-	flex-direction: column;
-	gap: var(--fc-space-4);
-	overflow: hidden;
-	animation: var(--fc-motion-page-enter);
-}
-
-.flashcard-setup-content {
-	width: min(850px, 100%);
-	margin: 0 auto;
-	flex: 1;
-	min-height: 0;
-	overflow-y: auto;
-	overscroll-behavior: contain;
-	-webkit-overflow-scrolling: touch;
-	box-sizing: border-box;
-	padding: var(--fc-space-2);
-	display: flex;
-	flex-direction: column;
-	gap: var(--fc-space-4);
-}
-
+/* Page shells, scrolling bodies, and the sticky header come from the layout module
+ * and the header primitive; the deck list keeps only its own rules. */
 .flashcard-setup-content > *,
 .flashcard-stats-body > * {
 	flex: 0 0 auto;

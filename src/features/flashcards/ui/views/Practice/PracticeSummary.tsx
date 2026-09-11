@@ -45,7 +45,7 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 	const incorrectCards = result.incorrectCards;
 
 	return (
-		<div className="flashcard-practice-summary">
+		<div className="flashcard-practice-summary fc-page fc-page--fill">
 			<FlashcardHeader icon={CircleCheck} title={t("practice.title")} onBack={onHome} />
 
 			<div className="flashcard-practice-summary-scroll">

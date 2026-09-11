@@ -11,6 +11,7 @@ import {
 } from "./internal";
 import type { CompiledPackageQueryPlan } from "./types";
 import { CompiledPackageError } from "./types";
+import { isRecord } from "../../../../core/shared/isRecord";
 
 export const MAX_COMPILED_MANIFEST_BYTES = 2_000_000;
 export const MAX_COMPILED_PACKAGE_FILE_BYTES = 2 * 1_048_576;
@@ -264,10 +265,6 @@ function validSource(value: unknown): boolean {
 		Number.isSafeInteger(value.size) &&
 		Number(value.size) >= 0
 	);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function corrupt(): CompiledPackageError {

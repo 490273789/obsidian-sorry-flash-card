@@ -29,7 +29,7 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 	const incorrectCards = result.incorrectCards;
 
 	return (
-		<div className="flashcard-practice-summary flashcard-spelling-summary">
+		<div className="flashcard-practice-summary flashcard-spelling-summary fc-page fc-page--fill">
 			<FlashcardHeader icon={Keyboard} title={t("spelling.title")} onBack={onHome} />
 			<div className="flashcard-practice-summary-scroll">
 				<div className="flashcard-practice-summary-header">

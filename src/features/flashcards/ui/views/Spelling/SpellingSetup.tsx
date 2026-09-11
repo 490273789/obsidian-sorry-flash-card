@@ -65,7 +65,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 	};
 
 	return (
-		<div className="flashcard-practice-setup flashcard-spelling-setup">
+		<div className="flashcard-practice-setup flashcard-spelling-setup fc-page fc-page--fill">
 			<FlashcardHeader
 				icon={Keyboard}
 				title={t("spelling.title")}
@@ -86,7 +86,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 				]}
 			/>
 
-			<div className="flashcard-setup-content">
+			<div className="flashcard-setup-content fc-page__body fc-page__body--narrow">
 				<div className="flashcard-study-hero flashcard-spelling-hero">
 					<div className="flashcard-deck-name-wrapper">
 						<div className="flashcard-deck-name">{deck.name}</div>

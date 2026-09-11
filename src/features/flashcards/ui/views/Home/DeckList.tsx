@@ -366,7 +366,7 @@ export const DeckList = React.memo(function DeckList({
 
 	return (
 		<>
-			<div className="flashcard-home">
+			<div className="flashcard-home fc-page fc-page--fill">
 				<FlashcardHeader
 					icon={BookOpen}
 					title={t("home.title")}

@@ -37,10 +37,6 @@ export interface ReactViewOptions {
 	 */
 	translator?(language: Language): Translator;
 	render(context: ReactViewContext): React.ReactNode;
-	/** Extra class for Obsidian's content container. */
-	containerClass?: string;
-	/** Extra class for the React root element; `flashcard-root` is always applied. */
-	rootClass?: string;
 	/**
 	 * Re-render on Obsidian theme changes. Only views that render their own theme
 	 * state (such as the dictionary's sandbox document) need this.
@@ -109,7 +105,7 @@ export function createReactItemView(
 			if (!container) return;
 
 			container.empty();
-			if (options.containerClass) container.addClass(options.containerClass);
+			container.addClass("flashcard-container");
 
 			this.theme = this.currentTheme();
 			if (options.trackTheme) {
@@ -123,8 +119,7 @@ export function createReactItemView(
 				);
 			}
 
-			const rootClass = ["flashcard-root", options.rootClass].filter(Boolean).join(" ");
-			this.rootEl = container.createDiv({ cls: rootClass });
+			this.rootEl = container.createDiv({ cls: "flashcard-root" });
 			this.root = createRoot(this.rootEl);
 			this.renderReact();
 			options.onOpen?.(this.context());

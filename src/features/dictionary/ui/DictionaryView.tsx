@@ -263,7 +263,10 @@ export function DictionaryView({
 	};
 
 	return (
-		<main className="flashcard-dictionary" aria-busy={isLoading}>
+		<main
+			className="flashcard-dictionary flashcard-dictionary-page fc-page fc-page--column"
+			aria-busy={isLoading}
+		>
 			<div className="flashcard-dictionary-chrome">
 				<search className="flashcard-dictionary-search">
 					<form
@@ -424,7 +427,7 @@ export function DictionaryView({
 						<article
 							key={source.id}
 							id={sourcePanelId(source.id)}
-							className="flashcard-dictionary-source"
+							className="flashcard-dictionary-source fc-panel fc-panel--scroll"
 							role="tabpanel"
 							aria-labelledby={sourceTabId(source.id)}
 							tabIndex={0}

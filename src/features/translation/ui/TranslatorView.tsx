@@ -93,7 +93,7 @@ export const TranslatorView = React.memo(function TranslatorView({
 	};
 
 	return (
-		<main className="flashcard-translator" aria-busy={isLoading}>
+		<main className="flashcard-translator fc-page fc-page--column" aria-busy={isLoading}>
 			<FlashcardHeader
 				icon={Languages}
 				title={strings.title}
@@ -147,7 +147,7 @@ export const TranslatorView = React.memo(function TranslatorView({
 			) : null}
 
 			<section className="flashcard-translator-workspace">
-				<article className="flashcard-translator-panel flashcard-translator-source">
+				<article className="flashcard-translator-panel fc-panel flashcard-translator-source">
 					<header>
 						<label htmlFor={`${viewId}-translator-input`}>{strings.inputLabel}</label>
 						<span>
@@ -184,7 +184,7 @@ export const TranslatorView = React.memo(function TranslatorView({
 						return (
 							<article
 								key={result.id}
-								className="flashcard-translator-panel flashcard-translator-result"
+								className="flashcard-translator-panel fc-panel flashcard-translator-result"
 								aria-busy={result.status === "loading"}
 							>
 								<header>

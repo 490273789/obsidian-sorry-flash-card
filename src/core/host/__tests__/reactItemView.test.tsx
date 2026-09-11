@@ -99,8 +99,6 @@ function buildView(options: {
 		type: "test-view",
 		icon: "layers",
 		title: (language) => (language === "en" ? "Test view" : "测试视图"),
-		containerClass: "test-container",
-		rootClass: "test-root",
 		trackTheme: options.trackTheme,
 		readSettings: options.settings,
 		renderErrorMessage: () => "渲染失败",
@@ -162,13 +160,11 @@ describe("react item view seam", () => {
 
 		await view.onOpen();
 
-		expect(env.content.classes.has("test-container")).toBe(true);
+		// The seam owns one container class for every workbench view.
+		expect(env.content.classes.has("flashcard-container")).toBe(true);
 		// The stale child is gone and exactly one root element was created.
 		expect(env.content.children).toHaveLength(1);
-		expect([...env.content.children[0]!.classes].sort()).toEqual([
-			"flashcard-root",
-			"test-root",
-		]);
+		expect([...env.content.children[0]!.classes]).toEqual(["flashcard-root"]);
 		expect(env.roots).toHaveLength(1);
 		expect(env.roots[0]!.render).toHaveBeenCalledTimes(1);
 		expect(onOpen).toHaveBeenCalledTimes(1);

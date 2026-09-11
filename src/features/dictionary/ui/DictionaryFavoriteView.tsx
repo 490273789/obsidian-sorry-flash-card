@@ -26,7 +26,10 @@ export function DictionaryFavoriteView({
 	const canSave = Boolean(state.word.trim() && state.path.trim()) && !saving;
 
 	return (
-		<main className="flashcard-dictionary-favorite" aria-busy={saving}>
+		<main
+			className="flashcard-dictionary-favorite flashcard-dictionary-page fc-page fc-page--column"
+			aria-busy={saving}
+		>
 			<header className="flashcard-dictionary-favorite-header">
 				<p className="fc-kicker">{strings.favoriteSidebarEyebrow}</p>
 				<h2>{strings.favoriteSidebarTitle}</h2>

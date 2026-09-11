@@ -105,8 +105,6 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Workbenc
 					type: VIEW_TYPE_TRANSLATOR,
 					icon: "languages",
 					title: (language) => translationStrings(language).title,
-					containerClass: "flashcard-translator-container",
-					rootClass: "flashcard-translator-root",
 					readSettings: () => host.settings(),
 					renderErrorMessage: (language) =>
 						createSharedTranslator(language)("notice.viewRenderFailed"),
