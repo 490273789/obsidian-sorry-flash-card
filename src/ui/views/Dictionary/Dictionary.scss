@@ -76,12 +76,52 @@
 		gap: var(--fc-space-2);
 		min-width: 0;
 		margin: 0;
-		padding: 0;
-		border: 0;
+		padding: var(--fc-space-1);
+		padding-left: var(--fc-space-2);
+		border: 1px solid var(--fc-line);
+		border-radius: var(--fc-radius-lg);
+		background: var(--fc-input-bg);
+		box-sizing: border-box;
+		transition:
+			border-color var(--fc-motion-quick) ease,
+			background var(--fc-motion-quick) ease,
+			box-shadow var(--fc-motion-quick) ease;
+
+		&:hover {
+			border-color: var(--fc-line-strong);
+			background: var(--fc-input-bg-hover);
+		}
+
+		&:focus-within {
+			border-color: var(--fc-input-border-focus);
+			background: var(--fc-input-bg);
+		}
 
 		.flashcard-input {
 			flex: 1 1 auto;
 			min-width: 0;
+			height: var(--fc-control-md);
+			min-height: var(--fc-control-md);
+			margin: 0;
+			padding: 0 var(--fc-space-2);
+			border: none;
+			border-radius: 0;
+			background: transparent;
+			box-shadow: none;
+			color: var(--fc-text);
+
+			&:hover:not(:disabled):not([readonly]) {
+				border-color: transparent;
+				background: transparent;
+			}
+
+			&:focus,
+			&:focus-visible {
+				border-color: transparent;
+				background: transparent;
+				outline: none;
+				box-shadow: none;
+			}
 		}
 
 		.flashcard-btn {
@@ -612,10 +652,6 @@
 		.flashcard-dictionary,
 		.flashcard-dictionary-favorite {
 			padding: var(--fc-space-2);
-		}
-
-		.flashcard-dictionary-search-controls {
-			flex-wrap: wrap;
 		}
 
 		.flashcard-dictionary-tabs,

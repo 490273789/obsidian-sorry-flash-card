@@ -288,7 +288,6 @@ export function DictionaryView({
 								onChange={(event) => controller.setInput(event.target.value)}
 							/>
 							<FlashcardButton
-								preset="icon"
 								icon={Settings2}
 								title={strings.openSettings}
 								aria-label={strings.openSettings}
@@ -296,15 +295,14 @@ export function DictionaryView({
 							/>
 							<FlashcardButton
 								icon={Trash2}
-								variant="secondary"
+								title={strings.clear}
+								aria-label={strings.clear}
 								disabled={!state.input && !state.query}
 								onClick={() => {
 									setCopyStatus(null);
 									controller.clear();
 								}}
-							>
-								{strings.clear}
-							</FlashcardButton>
+							/>
 							<FlashcardButton
 								type="submit"
 								variant="primary"
