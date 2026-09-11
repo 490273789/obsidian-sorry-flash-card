@@ -35,6 +35,7 @@ describe("settings slices registry", () => {
 			"practiceMessagesCustomized",
 			"practicePerfectMessages",
 			"pronunciation",
+			"selectionPopup",
 			"studyOrder",
 			"translation",
 			"wordLearningDecks",

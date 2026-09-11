@@ -30,11 +30,15 @@ export interface TranslationFeatureDeps {
 	net: OutboundPort;
 }
 
+export interface TranslationFeature extends WorkbenchFeature {
+	runtime(): TranslationRuntime | null;
+}
+
 /**
  * The AI 翻译 workbench feature: the translator view and its settings section.
  * Owns its runtime, its chrome, and its persisted settings slice.
  */
-export function createTranslationFeature(deps: TranslationFeatureDeps): WorkbenchFeature {
+export function createTranslationFeature(deps: TranslationFeatureDeps): TranslationFeature {
 	let runtime: TranslationRuntime | null = null;
 	let editor: TranslationSettingsEditor | null = null;
 	/** Open-view lease handed to the runtime; the last view closing clears the session. */
@@ -181,5 +185,7 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Workbenc
 			runtime?.dispose();
 			runtime = null;
 		},
+
+		runtime: () => runtime,
 	};
 }

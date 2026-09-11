@@ -40,6 +40,7 @@
 
 @use "../../features/translation/ui/Translator.scss";
 @use "../../features/dictionary/ui/Dictionary.scss";
+@use "../../features/selectionPopup/ui/SelectionPopup.scss";
 
 // 4. 全局动效与小屏/移动端响应式覆盖 (最后加载)
 @use "./motion.scss";

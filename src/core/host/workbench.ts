@@ -110,7 +110,10 @@ export interface WorkbenchHost {
 	/** Rebuilds this feature's chrome; the previous ribbon and commands are removed first. */
 	chrome(build: (chrome: WorkbenchChromeScope) => void): void;
 	/** Opens or focuses one of this feature's views. */
-	activateView(type: string, options?: { rightSidebar?: boolean }): Promise<void>;
+	activateView(
+		type: string,
+		options?: { rightSidebar?: boolean; mainTab?: boolean },
+	): Promise<void>;
 	/** Commits a patch of this feature's own settings slices in one durable write. */
 	updateSettings(patch: Partial<FlashcardSettings>): Promise<void>;
 	/** Contributes a settings section for this feature. Same id replaces the previous one. */
@@ -220,7 +223,7 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 			},
 
 			activateView: (type, activateOptions) =>
-				activateView(options.app, type, activateOptions?.rightSidebar === true),
+				activateView(options.app, type, activateOptions),
 
 			updateSettings: async (patch) => {
 				await options.commitSettings(patch);
@@ -341,14 +344,33 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 	};
 }
 
-async function activateView(app: App, type: string, rightSidebar: boolean): Promise<void> {
+async function activateView(
+	app: App,
+	type: string,
+	options?: { rightSidebar?: boolean; mainTab?: boolean },
+): Promise<void> {
 	const workspace = app.workspace;
-	let leaf = workspace.getLeavesOfType(type)[0];
-	if (!leaf) {
-		leaf = rightSidebar
-			? (workspace.getRightLeaf(false) ?? workspace.getLeaf("tab"))
-			: workspace.getLeaf("tab");
-		await leaf.setViewState({ type, active: true });
+	let leaf: WorkspaceLeaf | undefined;
+	if (options?.mainTab) {
+		const rootSplit = workspace.rootSplit;
+		const mainLeaves = rootSplit
+			? workspace
+					.getLeavesOfType(type)
+					.filter((l) => typeof l.getRoot === "function" && l.getRoot() === rootSplit)
+			: [];
+		leaf = mainLeaves[0];
+		if (!leaf) {
+			leaf = workspace.getLeaf("tab");
+			await leaf.setViewState({ type, active: true });
+		}
+	} else {
+		leaf = workspace.getLeavesOfType(type)[0];
+		if (!leaf) {
+			leaf = options?.rightSidebar
+				? (workspace.getRightLeaf(false) ?? workspace.getLeaf("tab"))
+				: workspace.getLeaf("tab");
+			await leaf.setViewState({ type, active: true });
+		}
 	}
 	await workspace.revealLeaf(leaf);
 }

@@ -34,12 +34,16 @@ export interface DictionaryFeatureDeps {
 	plugin: Plugin;
 }
 
+export interface DictionaryFeature extends WorkbenchFeature {
+	runtime(): DictionaryRuntime | null;
+}
+
 /**
  * The 词典 workbench feature: dictionary lookup, the favorites sidebar, and the
  * dictionary settings section. Owns its runtime, its views, its chrome, and its
  * persisted settings slice.
  */
-export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchFeature {
+export function createDictionaryFeature(deps: DictionaryFeatureDeps): DictionaryFeature {
 	let runtime: DictionaryRuntime | null = null;
 	let editor: DictionarySettingsEditor | null = null;
 	let modal: DictionaryLookupModal | null = null;
@@ -261,5 +265,7 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 			runtime?.dispose();
 			runtime = null;
 		},
+
+		runtime: () => runtime,
 	};
 }

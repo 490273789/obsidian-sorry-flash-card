@@ -5,6 +5,7 @@ import type { FlashcardSettings } from "../shared/types";
 import { translationSettingsSlice } from "../../features/translation/domain/configuration";
 import { flashcardSettingsSlice } from "../../features/flashcards/settings/slice";
 import { hostSettingsSlice } from "../settings/hostSlice";
+import { selectionPopupSettingsSlice } from "../settings/selectionPopupSlice";
 
 /**
  * Every slice of the persisted settings document, in normalization order.
@@ -25,6 +26,7 @@ export const SETTINGS_SLICES = [
 	aiSettingsSlice,
 	translationSettingsSlice,
 	dictionarySettingsSlice,
+	selectionPopupSettingsSlice,
 ] as const;
 
 /**
@@ -38,6 +40,7 @@ export const DEFAULT_SETTINGS: FlashcardSettings = {
 	...aiSettingsSlice.defaults(),
 	...translationSettingsSlice.defaults(),
 	...dictionarySettingsSlice.defaults(),
+	...selectionPopupSettingsSlice.defaults(),
 };
 
 /**
@@ -53,6 +56,7 @@ export function normalizeSettingsDocument(raw: unknown): FlashcardSettings {
 		...aiSettingsSlice.normalize(raw),
 		...translationSettingsSlice.normalize(raw),
 		...dictionarySettingsSlice.normalize(raw),
+		...selectionPopupSettingsSlice.normalize(raw),
 	};
 }
 
@@ -68,5 +72,6 @@ export function cloneSettingsDocument(settings: FlashcardSettings): FlashcardSet
 		...aiSettingsSlice.clone(settings),
 		...translationSettingsSlice.clone(settings),
 		...dictionarySettingsSlice.clone(settings),
+		...selectionPopupSettingsSlice.clone(settings),
 	};
 }
