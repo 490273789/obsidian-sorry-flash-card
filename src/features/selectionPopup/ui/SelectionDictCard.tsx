@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useSyncExternalStore } from "react";
+import React, { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import type { DictionaryController } from "../../dictionary/domain/controller";
 import type { DictionarySectionContent } from "../../dictionary/domain/types";
 import type { SelectionPopupStrings } from "../strings/selectionPopup";
@@ -6,6 +6,7 @@ import type { SelectionPopupStrings } from "../strings/selectionPopup";
 export interface SelectionDictCardProps {
 	query: string;
 	controller: DictionaryController;
+	selectedDictionaries?: readonly string[];
 	strings: SelectionPopupStrings;
 	onOpenInMainTab: (word: string) => void;
 	onClose: () => void;
@@ -50,6 +51,7 @@ function renderSection(content: DictionarySectionContent, word: string): React.R
 export const SelectionDictCard = React.memo(function SelectionDictCard({
 	query,
 	controller,
+	selectedDictionaries,
 	strings,
 	onOpenInMainTab,
 	onClose,
@@ -62,7 +64,15 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 	const state = useSyncExternalStore(subscribe, getSnapshot);
 
 	const activeWord = state.query || query;
-	const sources = state.sources;
+	const sources = useMemo(() => {
+		if (!selectedDictionaries || selectedDictionaries.length === 0) {
+			return state.sources;
+		}
+		const allowed = new Set(selectedDictionaries);
+		const filtered = state.sources.filter((s) => allowed.has(s.id));
+		return filtered.length > 0 ? filtered : state.sources;
+	}, [state.sources, selectedDictionaries]);
+
 	const activeSource = sources.find((s) => s.id === state.activeSourceId) ?? sources[0];
 
 	useEffect(() => {

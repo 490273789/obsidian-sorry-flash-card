@@ -18,10 +18,12 @@ describe("selectionPopupSettingsSlice", () => {
 			normalizeSelectionPopupSettings({
 				enabled: false,
 				modifier: "alt",
+				selectedDictionaries: ["youdao"],
 			}),
 		).toEqual({
 			enabled: false,
 			modifier: "alt",
+			selectedDictionaries: ["youdao"],
 		});
 	});
 
@@ -33,6 +35,7 @@ describe("selectionPopupSettingsSlice", () => {
 		expect(normalizeSelectionPopupSettings({ enabled: "yes", modifier: "invalid" })).toEqual({
 			enabled: true,
 			modifier: "none",
+			selectedDictionaries: [],
 		});
 	});
 
@@ -45,10 +48,26 @@ describe("selectionPopupSettingsSlice", () => {
 	});
 
 	it("clones settings without mutating original", () => {
-		const original = { selectionPopup: { enabled: true, modifier: "alt" as const } };
+		const original = {
+			selectionPopup: {
+				enabled: true,
+				modifier: "alt" as const,
+				selectedDictionaries: ["youdao"],
+			},
+		};
 		const cloned = selectionPopupSettingsSlice.clone(original);
 		expect(cloned).toEqual(original);
 		cloned.selectionPopup.enabled = false;
+		cloned.selectionPopup.selectedDictionaries.push("cambridge");
 		expect(original.selectionPopup.enabled).toBe(true);
+		expect(original.selectionPopup.selectedDictionaries).toEqual(["youdao"]);
+	});
+
+	it("normalizes selectedDictionaries correctly", () => {
+		expect(
+			normalizeSelectionPopupSettings({
+				selectedDictionaries: ["youdao", 123, "cambridge"],
+			}).selectedDictionaries,
+		).toEqual(["youdao", "cambridge"]);
 	});
 });

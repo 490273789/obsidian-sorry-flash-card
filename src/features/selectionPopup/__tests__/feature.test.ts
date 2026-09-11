@@ -24,7 +24,9 @@ describe("selectionPopup feature", () => {
 		expect(defs).toHaveLength(1);
 		expect(defs?.[0]?.type).toBe("group");
 		expect(defs?.[0]?.heading).toBe("划词助手");
-		expect(defs?.[0]?.items).toHaveLength(2);
+		expect(defs?.[0]?.items.length).toBeGreaterThanOrEqual(2);
+		expect(defs?.[0]?.items.some((item) => item.name === "启用划词快捷浮窗")).toBe(true);
+		expect(defs?.[0]?.items.some((item) => item.name === "触发修饰键")).toBe(true);
 	});
 
 	it("stops cleanly without errors", () => {

@@ -28,7 +28,7 @@ describe("SelectionListener", () => {
 	it("registers mouseup, mousedown, and scroll listeners on start", () => {
 		const listener = new SelectionListener({
 			plugin: {} as never,
-			getSettings: () => ({ enabled: true, modifier: "none" }),
+			getSettings: () => ({ enabled: true, modifier: "none", selectedDictionaries: [] }),
 			getLanguage: () => "zh",
 			getDictionaryController: () => null,
 			isDictionaryAvailable: () => true,

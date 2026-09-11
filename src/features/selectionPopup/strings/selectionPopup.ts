@@ -17,6 +17,9 @@ export interface SelectionPopupStrings {
 	modifierCtrl: string;
 	dictionaryDisabled: string;
 	translationDisabled: string;
+	dictSelectionHeading: string;
+	dictSelectionDesc: string;
+	noDictionariesAvailable: string;
 }
 
 const ZH_STRINGS: SelectionPopupStrings = {
@@ -36,6 +39,10 @@ const ZH_STRINGS: SelectionPopupStrings = {
 	modifierCtrl: "Ctrl / Command",
 	dictionaryDisabled: "词典功能未开启，请先在词典设置中启用",
 	translationDisabled: "AI 翻译未开启，请先在翻译设置中启用",
+	dictSelectionHeading: "划词展示字典",
+	dictSelectionDesc:
+		"选择在划词浮窗中展示哪些字典。若全部勾选或全部未选，则默认展示所有已启用的字典。",
+	noDictionariesAvailable: "暂无可用的字典源，请先在「词典」设置中启用至少一个字典。",
 };
 
 const EN_OVERRIDES: Partial<SelectionPopupStrings> = {
@@ -57,6 +64,11 @@ const EN_OVERRIDES: Partial<SelectionPopupStrings> = {
 	modifierCtrl: "Ctrl / Command",
 	dictionaryDisabled: "Dictionary is disabled in settings",
 	translationDisabled: "Translation is disabled in settings",
+	dictSelectionHeading: "Popup Dictionaries",
+	dictSelectionDesc:
+		"Select which dictionaries to display in the selection popup. If none are explicitly selected, all enabled dictionaries will be shown.",
+	noDictionariesAvailable:
+		"No dictionary sources available. Please enable at least one dictionary in Dictionary settings.",
 };
 
 export function selectionPopupStrings(language: Language): SelectionPopupStrings {

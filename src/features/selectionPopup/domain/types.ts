@@ -5,6 +5,8 @@ export interface SelectionPopupSettings {
 	enabled: boolean;
 	/** Modifier key required to trigger the popup on selection mouseup. */
 	modifier: SelectionPopupModifier;
+	/** IDs of dictionary sources to display in the selection popup. */
+	selectedDictionaries: string[];
 }
 
 export interface SelectionTarget {

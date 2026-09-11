@@ -25,32 +25,57 @@ export function createSelectionPopupFeature(deps: SelectionPopupFeatureDeps): Wo
 		id: SELECTION_POPUP_SECTION_ID,
 		order: 4,
 		label: (language) => selectionPopupStrings(language).settingsHeading,
-		definitions: (language) => [
-			buildSelectionPopupSettingsViewModel(
-				host.settings().selectionPopup,
-				{
-					setEnabled: async (enabled) => {
-						await host.updateSettings({
-							selectionPopup: {
-								...host.settings().selectionPopup,
-								enabled,
-							},
-						});
-						host.settingsTab.refresh();
+		definitions: (language) => {
+			const dictionarySettings = host.settings().dictionary;
+			const availableDictionaries = dictionarySettings.sources
+				.filter((s) => s.enabled)
+				.map((s) => ({ id: s.id, label: s.label }));
+
+			return [
+				buildSelectionPopupSettingsViewModel(
+					host.settings().selectionPopup,
+					availableDictionaries,
+					{
+						setEnabled: async (enabled) => {
+							await host.updateSettings({
+								selectionPopup: {
+									...host.settings().selectionPopup,
+									enabled,
+								},
+							});
+							host.settingsTab.refresh();
+						},
+						setModifier: async (modifier) => {
+							await host.updateSettings({
+								selectionPopup: {
+									...host.settings().selectionPopup,
+									modifier,
+								},
+							});
+							host.settingsTab.refresh();
+						},
+						toggleDictionary: async (id, enabled) => {
+							const current = host.settings().selectionPopup.selectedDictionaries;
+							const base =
+								current.length > 0
+									? current
+									: availableDictionaries.map((d) => d.id);
+							const next = enabled
+								? Array.from(new Set([...base, id]))
+								: base.filter((item) => item !== id);
+							await host.updateSettings({
+								selectionPopup: {
+									...host.settings().selectionPopup,
+									selectedDictionaries: next,
+								},
+							});
+							host.settingsTab.refresh();
+						},
 					},
-					setModifier: async (modifier) => {
-						await host.updateSettings({
-							selectionPopup: {
-								...host.settings().selectionPopup,
-								modifier,
-							},
-						});
-						host.settingsTab.refresh();
-					},
-				},
-				language,
-			),
-		],
+					language,
+				),
+			];
+		},
 	});
 
 	return {

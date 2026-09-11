@@ -123,12 +123,14 @@ export class SelectionListener {
 
 		const strings = selectionPopupStrings(this.deps.getLanguage());
 		const controller = this.deps.getDictionaryController();
+		const settings = this.deps.getSettings();
 
 		this.root?.render(
 			<SelectionPopupHost
 				target={target}
 				strings={strings}
 				dictionaryController={controller}
+				selectedDictionaries={settings.selectedDictionaries}
 				onLookupStart={(word) => this.deps.onLookupStart(word)}
 				onTranslate={(text) => {
 					this.destroyPopup();

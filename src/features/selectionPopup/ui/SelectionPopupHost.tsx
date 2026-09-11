@@ -9,6 +9,7 @@ export interface SelectionPopupHostProps {
 	target: SelectionTarget;
 	strings: SelectionPopupStrings;
 	dictionaryController: DictionaryController | null;
+	selectedDictionaries?: readonly string[];
 	onLookupStart: (word: string) => void;
 	onTranslate: (text: string) => void;
 	onOpenDictionaryInMainTab: (word: string) => void;
@@ -19,6 +20,7 @@ export const SelectionPopupHost: React.FC<SelectionPopupHostProps> = ({
 	target,
 	strings,
 	dictionaryController,
+	selectedDictionaries,
 	onLookupStart,
 	onTranslate,
 	onOpenDictionaryInMainTab,
@@ -74,6 +76,7 @@ export const SelectionPopupHost: React.FC<SelectionPopupHostProps> = ({
 				<SelectionDictCard
 					query={target.text}
 					controller={dictionaryController}
+					selectedDictionaries={selectedDictionaries}
 					strings={strings}
 					onOpenInMainTab={(word) => onOpenDictionaryInMainTab(word)}
 					onClose={onClose}
