@@ -41,6 +41,7 @@ interface ObsidianSettingsManager {
 export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSettingsTab {
 	plugin: FlashcardPlugin;
 	private activeSectionId = "";
+	private sectionScrollPositions = new Map<string, number>();
 
 	constructor(app: App, plugin: FlashcardPlugin) {
 		super(app, plugin);
@@ -53,7 +54,10 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 	}
 
 	open(sectionId?: string): void {
-		if (sectionId) this.select(sectionId);
+		if (sectionId) {
+			this.select(sectionId);
+			this.sectionScrollPositions.set(sectionId, 0);
+		}
 		const settingsManager = (this.app as typeof this.app & { setting: ObsidianSettingsManager })
 			.setting;
 		settingsManager.open();
@@ -66,7 +70,7 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 
 	display(): void {
 		for (const section of this.sections()) section.activate?.();
-		this.renderSettings();
+		this.renderSettings({ preserveScroll: false });
 	}
 
 	hide(): void {
@@ -96,18 +100,94 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 		return this.plugin.settings.language === "en" ? "en" : "zh";
 	}
 
-	private refreshDefinitions(): void {
-		this.renderSettings();
+	private getScrollContainer(): HTMLElement {
+		let current: HTMLElement | null = this.containerEl;
+		while (current) {
+			if (typeof current.scrollTop === "number" && current.scrollTop > 0) {
+				return current;
+			}
+			current = current.parentElement;
+		}
+		const doc =
+			this.containerEl.ownerDocument ?? (typeof document !== "undefined" ? document : null);
+		current = this.containerEl;
+		while (current && current !== doc?.body) {
+			try {
+				const style =
+					current.style?.overflowY ||
+					(typeof window !== "undefined" && window.getComputedStyle
+						? window.getComputedStyle(current)?.overflowY
+						: "");
+				if (style === "auto" || style === "scroll") {
+					return current;
+				}
+			} catch {
+				// Ignore environments where window or getComputedStyle is unsupported
+			}
+			current = current.parentElement;
+		}
+		return this.containerEl;
 	}
 
-	private renderSettings(): void {
+	private restoreScroll(targetScrollTop: number): void {
+		const container = this.getScrollContainer();
+		container.scrollTop = targetScrollTop;
+		if (this.containerEl !== container && typeof this.containerEl.scrollTop === "number") {
+			this.containerEl.scrollTop = targetScrollTop;
+		}
+
+		const win =
+			this.containerEl.ownerDocument?.defaultView ??
+			(typeof window !== "undefined" ? window : null);
+		if (win && typeof win.requestAnimationFrame === "function") {
+			win.requestAnimationFrame(() => {
+				container.scrollTop = targetScrollTop;
+				if (
+					this.containerEl !== container &&
+					typeof this.containerEl.scrollTop === "number"
+				) {
+					this.containerEl.scrollTop = targetScrollTop;
+				}
+			});
+		}
+	}
+
+	private refreshDefinitions(): void {
+		this.renderSettings({ preserveScroll: true });
+	}
+
+	private renderSettings(options: { preserveScroll?: boolean } = { preserveScroll: true }): void {
 		const { containerEl } = this;
+		const activeSection = this.activeSection();
+		const activeSectionId = activeSection?.id ?? "";
+		const scrollContainer = this.getScrollContainer();
+
+		const shouldPreserve = options.preserveScroll !== false;
+		const targetScrollTop = shouldPreserve
+			? typeof scrollContainer.scrollTop === "number" && scrollContainer.scrollTop > 0
+				? scrollContainer.scrollTop
+				: (this.sectionScrollPositions.get(activeSectionId) ?? 0)
+			: (this.sectionScrollPositions.get(activeSectionId) ?? 0);
+
+		if (activeSectionId) {
+			this.sectionScrollPositions.set(activeSectionId, targetScrollTop);
+		}
+
+		const prevScrollHeight = containerEl.scrollHeight;
+		if (
+			shouldPreserve &&
+			containerEl.style &&
+			typeof prevScrollHeight === "number" &&
+			prevScrollHeight > 0
+		) {
+			containerEl.style.minHeight = `${prevScrollHeight}px`;
+		}
+
 		containerEl.empty();
 		containerEl.addClass("flashcard-settings-tab");
 
 		const language = this.getSelectedLanguage();
 		const sections = this.sections();
-		const activeSection = this.activeSection();
 		const navEl = containerEl.createDiv({ cls: "fc-settings-tab-nav" });
 
 		for (const section of sections) {
@@ -118,8 +198,15 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 			});
 			tabBtn.addEventListener("click", () => {
 				if (this.activeSectionId !== section.id) {
+					if (activeSectionId) {
+						const currentScroll = this.getScrollContainer().scrollTop;
+						this.sectionScrollPositions.set(
+							activeSectionId,
+							typeof currentScroll === "number" ? currentScroll : 0,
+						);
+					}
 					this.activeSectionId = section.id;
-					this.refreshDefinitions();
+					this.renderSettings({ preserveScroll: false });
 				}
 			});
 		}
@@ -143,6 +230,12 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 			}
 
 			this.renderSettingDefinition(contentEl, definition);
+		}
+
+		this.restoreScroll(targetScrollTop);
+
+		if (shouldPreserve && containerEl.style) {
+			containerEl.style.minHeight = "";
 		}
 	}
 

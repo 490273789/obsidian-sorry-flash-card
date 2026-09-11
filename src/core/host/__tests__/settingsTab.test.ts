@@ -9,6 +9,10 @@ class MockElement {
 	attributes: Record<string, string> = {};
 	text = "";
 	inputEl = this;
+	scrollTop = 0;
+	scrollHeight = 1000;
+	clientHeight = 500;
+	style: Record<string, string> = {};
 
 	setPlaceholder() {
 		return this;
@@ -368,5 +372,51 @@ describe("FlashcardSettingTab", () => {
 			navEl?.children.filter((c: MockElement) => c.classList.has("fc-settings-tab-btn")) ??
 			[];
 		expect(tabButtons[3]?.classList.has("is-active")).toBe(true);
+	});
+
+	it("preserves scroll position when settings change/refresh instead of auto-scrolling to top", () => {
+		const plugin = createMockPlugin();
+		const tab = new FlashcardSettingTab({} as never, plugin as never);
+		tab.display();
+
+		const container = tab.containerEl as unknown as MockElement;
+		// Simulate user scrolling down 300px
+		container.scrollTop = 300;
+
+		// Trigger settings tab refresh (as happens when any setting changes)
+		tab.refresh();
+
+		// The scroll position must be preserved rather than reset to 0
+		expect(container.scrollTop).toBe(300);
+	});
+
+	it("isolates scroll position across different sections and restores previous section scroll", () => {
+		const plugin = createMockPlugin();
+		const tab = new FlashcardSettingTab({} as never, plugin as never);
+		tab.display();
+
+		const container = tab.containerEl as unknown as MockElement;
+		container.scrollTop = 400;
+
+		// Switch to AI tab
+		const navEl = container.children.find((c) => c.classList.has("fc-settings-tab-nav"));
+		const aiTabBtn = navEl?.children[1];
+		aiTabBtn?.click();
+
+		// New section should start at top
+		expect(container.scrollTop).toBe(0);
+
+		// Scroll in AI tab and refresh
+		container.scrollTop = 150;
+		tab.refresh();
+		expect(container.scrollTop).toBe(150);
+
+		// Switch back to flashcards tab
+		const updatedNavEl = container.children.find((c) => c.classList.has("fc-settings-tab-nav"));
+		const flashcardTabBtn = updatedNavEl?.children[0];
+		flashcardTabBtn?.click();
+
+		// Should restore the previously recorded 400px scroll for flashcards
+		expect(container.scrollTop).toBe(400);
 	});
 });
