@@ -1,23 +1,27 @@
+import React from "react";
 import { Notice, requestUrl, type Plugin } from "obsidian";
 import type { AiService } from "../../ai";
 import { normalizeDictionarySettings } from "../../dictionary/configuration";
 import { DictionaryRuntime } from "../../dictionary/dictionaryRuntime";
 import { dictionaryStrings } from "../../i18n/dictionary";
-import type { WorkbenchFeature, WorkbenchHost, WorkbenchSettingsSection } from "../workbench";
-import {
-	DictionaryFavoriteItemView,
-	VIEW_TYPE_DICTIONARY_FAVORITE,
-} from "../DictionaryFavoriteView";
-import { DictionaryItemView, VIEW_TYPE_DICTIONARY } from "../DictionaryView";
+import type { Language } from "../../shared/types";
+import { FlashcardButton } from "../../ui/primitives/Button";
+import { DictionaryFavoriteView, DictionaryView } from "../../ui/views/Dictionary";
 import { DictionaryLookupModal } from "../dictionaryModals";
 import { DictionarySettingsEditor } from "../dictionarySettingsEditor";
 import { createDictionarySettingsStore } from "../dictionarySettingsStore";
+import { createReactItemView } from "../reactItemView";
+import type { WorkbenchFeature, WorkbenchHost, WorkbenchSettingsSection } from "../workbench";
 
 const OPEN_COMMAND_ID = "open-dictionary";
 const LOOKUP_SELECTION_COMMAND_ID = "dictionary-lookup-selection";
 
 /** Settings section id this feature contributes. */
 export const DICTIONARY_SECTION_ID = "dictionary";
+
+/** Obsidian view types of the dictionary lookup view and the favorites sidebar. */
+export const VIEW_TYPE_DICTIONARY = "flashcard-dictionary-view";
+export const VIEW_TYPE_DICTIONARY_FAVORITE = "flashcard-dictionary-favorite-view";
 
 export interface DictionaryFeatureDeps {
 	ai: AiService;
@@ -98,6 +102,27 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 		}
 	};
 
+	/**
+	 * The 词典 feature keeps both views registered while disabled: the previous
+	 * adapters rendered this placeholder instead of the lookup UI.
+	 */
+	const renderDictionaryBody = (
+		host: WorkbenchHost,
+		language: Language,
+		body: () => React.ReactNode,
+	): React.ReactNode => {
+		if (host.settings().dictionary.enabled) return body();
+		const strings = dictionaryStrings(language);
+		return (
+			<div className="flashcard-dictionary-disabled">
+				<p className="fc-kicker">{strings.disabled}</p>
+				<FlashcardButton variant="primary" onClick={() => openSettings(host)}>
+					{strings.openSettings}
+				</FlashcardButton>
+			</div>
+		);
+	};
+
 	const section = (
 		host: WorkbenchHost,
 		dictionary: DictionaryRuntime,
@@ -127,33 +152,53 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 
 			host.registerView(
 				VIEW_TYPE_DICTIONARY,
-				(leaf) =>
-					new DictionaryItemView(
-						leaf,
-						dictionary,
-						() => host.settings().language,
-						() => host.settings().dictionary.enabled,
-						() => openSettings(host),
-						() =>
-							resetWhenClosed(host, VIEW_TYPE_DICTIONARY, () =>
-								dictionary.controller.resetSession(),
-							),
-					),
+				createReactItemView({
+					type: VIEW_TYPE_DICTIONARY,
+					icon: "book-open",
+					title: (language) => dictionaryStrings(language).displayName,
+					containerClass: "flashcard-dictionary-container",
+					rootClass: "flashcard-dictionary-root",
+					// The sandbox document follows Obsidian's theme independently of CSS.
+					trackTheme: true,
+					readSettings: () => host.settings(),
+					renderErrorMessage: (language) => dictionaryStrings(language).openFailed,
+					onClose: () =>
+						resetWhenClosed(host, VIEW_TYPE_DICTIONARY, () =>
+							dictionary.controller.resetSession(),
+						),
+					render: ({ language, theme }) =>
+						renderDictionaryBody(host, language, () => (
+							<DictionaryView
+								controller={dictionary.controller}
+								language={language}
+								theme={theme}
+							/>
+						)),
+				}),
 			);
 			host.registerView(
 				VIEW_TYPE_DICTIONARY_FAVORITE,
-				(leaf) =>
-					new DictionaryFavoriteItemView(
-						leaf,
-						dictionary,
-						() => host.settings().language,
-						() => host.settings().dictionary.enabled,
-						() => openSettings(host),
-						() =>
-							resetWhenClosed(host, VIEW_TYPE_DICTIONARY_FAVORITE, () =>
-								dictionary.favoriteController.resetSession(),
-							),
-					),
+				createReactItemView({
+					type: VIEW_TYPE_DICTIONARY_FAVORITE,
+					icon: "bookmark",
+					title: (language) => dictionaryStrings(language).favoriteSidebarTitle,
+					containerClass: "flashcard-dictionary-container",
+					rootClass: "flashcard-dictionary-root",
+					readSettings: () => host.settings(),
+					renderErrorMessage: (language) =>
+						dictionaryStrings(language).favoriteRenderFailed,
+					onClose: () =>
+						resetWhenClosed(host, VIEW_TYPE_DICTIONARY_FAVORITE, () =>
+							dictionary.favoriteController.resetSession(),
+						),
+					render: ({ language }) =>
+						renderDictionaryBody(host, language, () => (
+							<DictionaryFavoriteView
+								controller={dictionary.favoriteController}
+								language={language}
+							/>
+						)),
+				}),
 			);
 
 			dictionary.applySettings();

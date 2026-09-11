@@ -114,6 +114,7 @@ const translations = {
 		"notice.pdfExportGenerating": "正在后台生成 PDF，可继续使用 Obsidian",
 		"notice.pdfExportFailed": "导出 PDF 失败：{message}",
 		"notice.pdfExportUnknownError": "未知错误",
+		"notice.viewRenderFailed": "界面渲染失败，请重新打开该视图；若仍失败请重载插件。",
 		"common.back": "返回",
 		"common.close": "关闭",
 		"common.save": "保存",
@@ -586,6 +587,8 @@ const translations = {
 			"Generating PDF in the background. You can keep using Obsidian.",
 		"notice.pdfExportFailed": "PDF export failed: {message}",
 		"notice.pdfExportUnknownError": "Unknown error",
+		"notice.viewRenderFailed":
+			"This view failed to render. Reopen it, and reload the plugin if it still fails.",
 		"common.back": "Back",
 		"common.close": "Close",
 		"common.save": "Save",

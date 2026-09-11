@@ -5,6 +5,7 @@ import { createDictionaryFeature } from "../features/dictionary";
 import { createFakeWorkbenchHost } from "./fakeWorkbenchHost";
 
 vi.mock("obsidian", () => ({
+	ItemView: class {},
 	Notice: class {},
 	Platform: { isDesktopApp: false },
 	requestUrl: vi.fn(),
@@ -26,16 +27,6 @@ vi.mock("../../dictionary/dictionaryRuntime", () => ({
 			runtimeSpies.instances.push(this);
 		}
 	},
-}));
-
-vi.mock("../DictionaryView", () => ({
-	DictionaryItemView: class {},
-	VIEW_TYPE_DICTIONARY: "flashcard-dictionary-view",
-}));
-
-vi.mock("../DictionaryFavoriteView", () => ({
-	DictionaryFavoriteItemView: class {},
-	VIEW_TYPE_DICTIONARY_FAVORITE: "flashcard-dictionary-favorite-view",
 }));
 
 vi.mock("../dictionaryModals", () => ({

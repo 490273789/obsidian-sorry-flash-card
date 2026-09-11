@@ -7,6 +7,7 @@ import { createTranslationFeature } from "../features/translation";
 import { createFakeWorkbenchHost } from "./fakeWorkbenchHost";
 
 vi.mock("obsidian", () => ({
+	ItemView: class {},
 	Notice: vi.fn(),
 	requestUrl: vi.fn(),
 }));
@@ -37,11 +38,6 @@ vi.mock("../../translation/translationRuntime", () => ({
 			runtimeSpies.instances.push(this);
 		}
 	},
-}));
-
-vi.mock("../TranslatorView", () => ({
-	TranslatorItemView: class {},
-	VIEW_TYPE_TRANSLATOR: "flashcard-translator-view",
 }));
 
 const enabledSettings = {

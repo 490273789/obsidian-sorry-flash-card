@@ -4,6 +4,7 @@ import { createFlashcardFeature } from "../features/flashcards";
 import { createFakeWorkbenchHost } from "./fakeWorkbenchHost";
 
 vi.mock("obsidian", () => ({
+	ItemView: class {},
 	Notice: vi.fn(),
 	Platform: { isDesktopApp: true },
 }));
@@ -92,11 +93,6 @@ vi.mock("../cardIdentityContinuityModals", () => ({
 	CardIdentityRepairModal: class {
 		open() {}
 	},
-}));
-
-vi.mock("../FlashcardView", () => ({
-	FlashcardView: class {},
-	VIEW_TYPE_FLASHCARD: "flashcard-view",
 }));
 
 function createDataStore() {

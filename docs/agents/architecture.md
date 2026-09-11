@@ -54,6 +54,7 @@ own their runtimes the same way. Shared services reach a feature through its fac
 - A feature writes settings only through `host.updateSettings(patch)`. The host applies the patch to the settings committed at write time, so a queued write never resurrects a stale slice.
 - A settings slice is the single authority for the keys it owns (ADR-0019). To add or change a slice, edit its owner's `SettingsSlice` descriptor and register it in `src/settings/settingsSlices.ts`; never add a branch to `DataStore`, and never read `DEFAULT_SETTINGS` from a normalizer. Slices must return exactly the keys they declare and must not overlap.
 - 工作台功能 must not import one another. A primitive shared by two features belongs in a feature-independent location, not inside one feature's directory.
+- Views are declared with `createReactItemView` (ADR-0020), never as hand-written `ItemView` subclasses: the seam owns the mount lifecycle and the error boundary, and always renders the committed settings. `updateSettings` is the host's push signal, not a settings source.
 - React renders immutable snapshots and calls semantic actions. It must not coordinate persistence ordering or reach into raw engine state.
 - `DeckHome`, `SessionLifecycle`, `CardIdentityContinuity`, and `PronunciationRuntime` are deep shared interfaces. Extend their semantic actions/snapshots instead of adding parallel state managers or pass-through wrappers.
 - Pure engines, planners, builders, and presentation models must not import React or perform Obsidian I/O.
@@ -77,5 +78,6 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0017: in-repo Rust/WASM dictionary engine, compiled-package authority, and dictionary source boundaries.
 - ADR-0018: one workbench seam registers every 工作台功能; features never import one another.
 - ADR-0019: the settings document is composed from feature-owned slices; each slice owns its defaults, normalization, and cloning.
+- ADR-0020: one React mount seam (`createReactItemView`) builds every workbench view.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

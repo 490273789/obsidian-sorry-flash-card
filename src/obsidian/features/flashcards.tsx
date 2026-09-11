@@ -32,11 +32,15 @@ import {
 	CardIdentityRepairModal,
 } from "../cardIdentityContinuityModals";
 import { createObsidianContinuitySourceStore } from "../cardIdentityContinuityAdapters";
-import { FlashcardView, VIEW_TYPE_FLASHCARD } from "../FlashcardView";
+import { FlashcardApp } from "../../ui/FlashcardApp";
+import { createReactItemView } from "../reactItemView";
 import type { WorkbenchFeature, WorkbenchHost, WorkbenchSettingsSection } from "../workbench";
 
 /** Settings section id this feature contributes. */
 export const FLASHCARD_SECTION_ID = "flashcards";
+
+/** Obsidian view type of the 闪卡 workbench view. */
+export const VIEW_TYPE_FLASHCARD = "flashcard-view";
 
 const OPEN_COMMAND_ID = "open-flashcard-view";
 const SYNC_COMMAND_ID = "sync-flashcard-decks";
@@ -579,16 +583,31 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 
 			host.registerView(
 				VIEW_TYPE_FLASHCARD,
-				(leaf) =>
-					new FlashcardView(
-						leaf,
-						cardIdentityContinuity,
-						sessionLifecycle,
-						pronunciationRuntime,
-						deckHome,
-						host.settings(),
-						() => host.settingsTab.open(),
+				createReactItemView({
+					type: VIEW_TYPE_FLASHCARD,
+					icon: "layers",
+					title: (language) => createTranslator(language)("main.viewTitle"),
+					containerClass: "flashcard-container",
+					readSettings: () => host.settings(),
+					renderErrorMessage: (language) =>
+						createTranslator(language)("notice.viewRenderFailed"),
+					onOpen: () => {
+						void deckHome.act({ kind: "refresh" });
+					},
+					onClose: () => pronunciationRuntime.stop(),
+					render: ({ app, settings, rootEl }) => (
+						<FlashcardApp
+							app={app}
+							modalHost={rootEl}
+							cardIdentityContinuity={cardIdentityContinuity}
+							sessionLifecycle={sessionLifecycle}
+							pronunciationRuntime={pronunciationRuntime}
+							deckHome={deckHome}
+							settings={settings}
+							onOpenSettings={() => host.settingsTab.open()}
+						/>
 					),
+				}),
 			);
 
 			// The ribbon joins the rebuildable chrome: every feature removes and

@@ -5,12 +5,17 @@ import { translationSettingsStrings } from "../../i18n/translationSettings";
 import { normalizeTranslationSettings } from "../../translation/configuration";
 import { TranslationRuntime } from "../../translation/translationRuntime";
 import { translateYoudao } from "../../translation/youdao";
-import { TranslatorItemView, VIEW_TYPE_TRANSLATOR } from "../TranslatorView";
+import { createTranslator } from "../../i18n";
+import { TranslatorView } from "../../ui/views/Translator";
+import { createReactItemView } from "../reactItemView";
 import { TranslationSettingsEditor } from "../translationSettingsEditor";
 import type { WorkbenchFeature, WorkbenchHost, WorkbenchSettingsSection } from "../workbench";
 
 /** Settings section id this feature contributes. */
 export const TRANSLATION_SECTION_ID = "translation";
+
+/** Obsidian view type of the translator view. */
+export const VIEW_TYPE_TRANSLATOR = "flashcard-translator-view";
 
 const OPEN_COMMAND_ID = "open-ai-translator";
 const SELECTION_COMMAND_ID = "translate-selection";
@@ -26,6 +31,8 @@ export interface TranslationFeatureDeps {
 export function createTranslationFeature(deps: TranslationFeatureDeps): WorkbenchFeature {
 	let runtime: TranslationRuntime | null = null;
 	let editor: TranslationSettingsEditor | null = null;
+	/** Open-view lease handed to the runtime; the last view closing clears the session. */
+	let detachOpenView: (() => void) | null = null;
 
 	const ensureRuntime = (host: WorkbenchHost): TranslationRuntime => {
 		if (runtime) return runtime;
@@ -90,13 +97,30 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Workbenc
 
 			host.registerView(
 				VIEW_TYPE_TRANSLATOR,
-				(leaf) =>
-					new TranslatorItemView(
-						leaf,
-						translation,
-						() => host.settings().language,
-						() => host.settingsTab.open(TRANSLATION_SECTION_ID),
+				createReactItemView({
+					type: VIEW_TYPE_TRANSLATOR,
+					icon: "languages",
+					title: (language) => translationStrings(language).title,
+					containerClass: "flashcard-translator-container",
+					rootClass: "flashcard-translator-root",
+					readSettings: () => host.settings(),
+					renderErrorMessage: (language) =>
+						createTranslator(language)("notice.viewRenderFailed"),
+					onOpen: () => {
+						detachOpenView = translation.attachView();
+					},
+					onClose: () => {
+						detachOpenView?.();
+						detachOpenView = null;
+					},
+					render: ({ language }) => (
+						<TranslatorView
+							runtime={translation}
+							language={language}
+							onOpenSettings={() => host.settingsTab.open(TRANSLATION_SECTION_ID)}
+						/>
 					),
+				}),
 			);
 
 			const strings = translationStrings(host.settings().language);

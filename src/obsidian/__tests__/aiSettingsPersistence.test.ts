@@ -23,11 +23,6 @@ vi.mock("obsidian", () => ({
 	Notice: vi.fn(),
 	Platform: { isDesktopApp: true },
 }));
-vi.mock("../FlashcardView", () => ({ FlashcardView: class {}, VIEW_TYPE_FLASHCARD: "flashcard" }));
-vi.mock("../TranslatorView", () => ({
-	TranslatorItemView: class {},
-	VIEW_TYPE_TRANSLATOR: "translator",
-}));
 vi.mock("../settingsTab", () => ({ FlashcardSettingTab: class {} }));
 vi.mock("../aiAdapter", () => ({ createObsidianAiService: vi.fn() }));
 vi.mock("../../pronunciation", () => ({ createPronunciationRuntime: vi.fn() }));
