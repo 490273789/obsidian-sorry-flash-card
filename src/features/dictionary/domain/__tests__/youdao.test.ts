@@ -218,6 +218,54 @@ describe("parseYoudaoFreeResponse", () => {
 		});
 	});
 
+	it("parses Chinese-to-English definitions from ce payload and ignores @ attributes", () => {
+		const result = parseYoudaoFreeResponse(
+			{
+				ce: {
+					word: [
+						{
+							phone: "nǐ hǎo",
+							"return-phrase": "你好",
+							trs: [
+								{
+									tr: [
+										{
+											l: {
+												i: [
+													"",
+													{
+														"#text": "hello",
+														"@action": "link",
+														"@href": "app:ds:hello",
+													},
+												],
+												"#tran": "喂，你好",
+											},
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				simple: {
+					word: [
+						{
+							phone: "nǐ hǎo",
+							"return-phrase": "你好",
+						},
+					],
+				},
+			},
+			"你好",
+		);
+		expect(result.word).toBe("你好");
+		expect(result.pronunciations).toEqual([
+			{ accent: "generic", audioUrl: null, label: "音标", phonetic: "nǐ hǎo" },
+		]);
+		expect(sectionItems(result, "释义")).toEqual(["hello", "喂，你好"]);
+	});
+
 	it("reports not-found when no section or pronunciation can be read", () => {
 		expect(thrown(() => parseYoudaoFreeResponse({}, "missing"))).toMatchObject({
 			code: "not-found",
@@ -379,6 +427,38 @@ describe("YoudaoDictionarySource never falls back between access modes", () => {
 			code: "configuration",
 		});
 		expect(execute).not.toHaveBeenCalled();
+	});
+
+	it("parses free-mode response when json is undefined on response", async () => {
+		const source = new YoudaoDictionarySource(
+			settings({ accessMode: "free" }),
+			async () =>
+				({
+					arrayBuffer: new ArrayBuffer(0),
+					headers: {},
+					status: 200,
+					text: JSON.stringify(FREE_FIXTURE),
+				}) as RequestUrlResponse,
+		);
+		const result = await source.lookup({ text: "test" });
+		expect(result.word).toBe("test");
+		expect(result.sections.length).toBeGreaterThan(0);
+	});
+
+	it("parses official-mode response when json is undefined on response", async () => {
+		const source = new YoudaoDictionarySource(
+			settings({ accessMode: "official" }),
+			async () =>
+				({
+					arrayBuffer: new ArrayBuffer(0),
+					headers: {},
+					status: 200,
+					text: JSON.stringify(OFFICIAL_FIXTURE),
+				}) as RequestUrlResponse,
+		);
+		const result = await source.lookup({ text: "test" });
+		expect(result.word).toBe("test");
+		expect(result.sections.length).toBeGreaterThan(0);
 	});
 });
 

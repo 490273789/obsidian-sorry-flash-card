@@ -49,7 +49,11 @@ function collectStrings(value: unknown, limit = MAX_ITEMS_PER_SECTION): string[]
 		}
 		if (!isRecord(candidate)) return;
 		for (const [key, item] of Object.entries(candidate)) {
-			if (/speech|audio|url|image|video|music|encrypted|cipher/i.test(key)) continue;
+			if (
+				key.startsWith("@") ||
+				/speech|audio|url|image|video|music|encrypted|cipher/i.test(key)
+			)
+				continue;
 			visit(item, depth + 1);
 		}
 	};
@@ -187,16 +191,20 @@ export function parseYoudaoFreeResponse(value: unknown, query: string): Dictiona
 	const simpleWord = firstRecord(simple.word);
 	const ec = firstRecord(value.ec);
 	const ecWord = firstRecord(ec.word);
+	const ce = firstRecord(value.ce);
+	const ceWord = firstRecord(ce.word);
+	const dictWord = Object.keys(ecWord).length > 0 ? ecWord : ceWord;
 	const word =
 		readString(simpleWord, "return-phrase", "word") ||
 		readString(ecWord, "return-phrase", "word") ||
+		readString(ceWord, "return-phrase", "word") ||
 		query;
 	const pronunciations = pronunciationsFromRecord(
-		Object.keys(simpleWord).length > 0 ? simpleWord : ecWord,
+		Object.keys(simpleWord).length > 0 ? simpleWord : dictWord,
 		word,
 	);
 	const sections = uniqueSections([
-		section(dictionaryText().sections.definitions, ecWord.trs),
+		section(dictionaryText().sections.definitions, dictWord.trs),
 		detailSection(dictionaryText().sections.englishDefinitions, firstRecord(value.ee).word),
 		detailSection(dictionaryText().sections.wordForms, ecWord.wfs),
 		section(dictionaryText().sections.etymology, firstRecord(value.etym).etym),
@@ -281,6 +289,18 @@ export function parseYoudaoOfficialResponse(value: unknown, query: string): Dict
 	};
 }
 
+function responseJson(response: { json?: unknown; text?: string }): unknown {
+	if (response.json !== undefined) return response.json;
+	if (typeof response.text === "string" && response.text.trim()) {
+		try {
+			return JSON.parse(response.text);
+		} catch {
+			return undefined;
+		}
+	}
+	return undefined;
+}
+
 export class YoudaoDictionarySource implements DictionarySource {
 	readonly id = "youdao";
 	readonly kind = "youdao" as const;
@@ -306,7 +326,7 @@ export class YoudaoDictionarySource implements DictionarySource {
 			this.execute,
 		);
 		try {
-			return parseYoudaoFreeResponse(response.json as unknown, query);
+			return parseYoudaoFreeResponse(responseJson(response), query);
 		} catch (error) {
 			if (error instanceof DictionaryError) throw error;
 			throw new DictionaryError("invalid-response", dictionaryText().freeUnavailable);
@@ -341,6 +361,6 @@ export class YoudaoDictionarySource implements DictionarySource {
 			},
 			this.execute,
 		);
-		return parseYoudaoOfficialResponse(response.json as unknown, query);
+		return parseYoudaoOfficialResponse(responseJson(response), query);
 	}
 }

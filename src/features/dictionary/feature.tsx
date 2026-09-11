@@ -85,16 +85,33 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 						body: typeof request.body === "string" ? request.body : undefined,
 						timeoutMs: 12_000,
 					});
+					let json: unknown;
+					try {
+						json = JSON.parse(response.text);
+					} catch {
+						json = undefined;
+					}
 					return {
 						status: response.status,
 						text: response.text,
-						arrayBuffer: new TextEncoder().encode(response.text).buffer,
+						json,
+						headers: response.headers ?? {},
+						arrayBuffer:
+							response.arrayBuffer ?? new TextEncoder().encode(response.text).buffer,
 					} as never;
 				} catch (error) {
 					if (error instanceof TransportError && error.httpStatus !== null) {
+						let json: unknown;
+						try {
+							json = JSON.parse(error.responseText ?? "");
+						} catch {
+							json = undefined;
+						}
 						return {
 							status: error.httpStatus,
 							text: error.responseText ?? "",
+							json,
+							headers: {},
 							arrayBuffer: new TextEncoder().encode(error.responseText ?? "").buffer,
 						} as never;
 					}
