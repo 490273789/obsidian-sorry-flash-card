@@ -386,4 +386,51 @@ describe("workbench", () => {
 		expect(ribbonEls[1]!.remove).toHaveBeenCalledTimes(1);
 		expect(commands.has("open-home")).toBe(false);
 	});
+
+	it("opens available feature directly or opens settings when unavailable via host.openFeature", () => {
+		const openAvailable = vi.fn();
+		const openUnavailable = vi.fn();
+		const mockSettingsTab = {
+			refresh: vi.fn(),
+			select: vi.fn(),
+			open: vi.fn(),
+		};
+
+		const { workbench, host } = setup([
+			feature("avail", (h) =>
+				h.catalog({
+					id: "avail",
+					icon: "a",
+					title: () => "Available",
+					openCommandId: "open-avail",
+					settingsSectionId: "sec-avail",
+					available: () => true,
+					open: openAvailable,
+				}),
+			),
+			feature("unavail", (h) =>
+				h.catalog({
+					id: "unavail",
+					icon: "u",
+					title: () => "Unavailable",
+					openCommandId: "open-unavail",
+					settingsSectionId: "sec-unavail",
+					available: () => false,
+					open: openUnavailable,
+				}),
+			),
+		]);
+
+		workbench.setSettingsTab(mockSettingsTab);
+		workbench.refresh();
+
+		const h = host("avail");
+		h.openFeature("avail");
+		expect(openAvailable).toHaveBeenCalledTimes(1);
+		expect(mockSettingsTab.open).not.toHaveBeenCalled();
+
+		h.openFeature("unavail");
+		expect(openUnavailable).not.toHaveBeenCalled();
+		expect(mockSettingsTab.open).toHaveBeenCalledWith("sec-unavail");
+	});
 });

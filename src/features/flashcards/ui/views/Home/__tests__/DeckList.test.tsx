@@ -56,7 +56,10 @@ function makeSnapshot(decks: DeckHomeDeckSnapshot[]): DeckHomeSnapshot {
 	};
 }
 
-function renderDeckList(snapshot: DeckHomeSnapshot) {
+function renderDeckList(
+	snapshot: DeckHomeSnapshot,
+	options: { onOpenTranslation?: () => void; onOpenDictionary?: () => void } = {},
+) {
 	const mockHome = {
 		act: vi.fn(),
 		getSnapshot: () => snapshot,
@@ -75,6 +78,8 @@ function renderDeckList(snapshot: DeckHomeSnapshot) {
 				onOpenStats={vi.fn()}
 				onOpenSettings={vi.fn()}
 				onOpenAddCard={vi.fn()}
+				onOpenTranslation={options.onOpenTranslation}
+				onOpenDictionary={options.onOpenDictionary}
 			/>
 		</I18nProvider>,
 	);
@@ -146,5 +151,15 @@ describe("DeckList", () => {
 		expect(html).toContain("flashcard-deck-action-practice");
 		expect(html).not.toContain("flashcard-deck-action-spelling");
 		expect(html).not.toContain("has-spelling");
+	});
+
+	it("renders AI translation and English dictionary buttons in header when callbacks are provided", () => {
+		const html = renderDeckList(makeSnapshot([]), {
+			onOpenTranslation: vi.fn(),
+			onOpenDictionary: vi.fn(),
+		});
+
+		expect(html).toContain('title="AI 翻译"');
+		expect(html).toContain('title="英语词典"');
 	});
 });

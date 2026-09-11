@@ -64,7 +64,7 @@ describe("dictionary feature", () => {
 		expect(entry.icon).toBe("book-open");
 		expect(entry.title("zh")).toBe(dictionaryStrings("zh").displayName);
 		expect(entry.openCommandId).toBe("open-dictionary");
-		expect(entry.openHotkeys).toEqual([{ modifiers: ["Alt"], key: "W" }]);
+		expect(entry.openHotkeys).toEqual([{ modifiers: ["Alt"], key: "2" }]);
 		expect(entry.settingsSectionId).toBe("dictionary");
 		expect(entry.available()).toBe(true);
 		expect(fake.commands.map((command) => command.id)).toEqual(["dictionary-lookup-selection"]);

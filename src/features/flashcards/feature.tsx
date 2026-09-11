@@ -608,6 +608,8 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 							deckHome={deckHome}
 							settings={settings}
 							onOpenSettings={() => host.settingsTab.open()}
+							onOpenTranslation={() => host.openFeature("translation")}
+							onOpenDictionary={() => host.openFeature("dictionary")}
 						/>
 					),
 				}),
@@ -620,6 +622,7 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 				icon: "layers",
 				title: (language) => createTranslator(language)("main.viewTitle"),
 				openCommandId: OPEN_COMMAND_ID,
+				openHotkeys: [{ modifiers: ["Alt"], key: "1" }],
 				settingsSectionId: FLASHCARD_SECTION_ID,
 				available: () => true,
 				open: () => {

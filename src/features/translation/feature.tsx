@@ -150,6 +150,7 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Workbenc
 				icon: "languages",
 				title: (language) => translationStrings(language).title,
 				openCommandId: OPEN_COMMAND_ID,
+				openHotkeys: [{ modifiers: ["Alt"], key: "3" }],
 				settingsSectionId: TRANSLATION_SECTION_ID,
 				available: () => host.settings().translation.enabled,
 				open: () => {

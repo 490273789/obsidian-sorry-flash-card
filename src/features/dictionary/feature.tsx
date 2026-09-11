@@ -236,7 +236,7 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 				icon: "book-open",
 				title: (language) => dictionaryStrings(language).displayName,
 				openCommandId: OPEN_COMMAND_ID,
-				openHotkeys: [{ modifiers: ["Alt"], key: "W" }],
+				openHotkeys: [{ modifiers: ["Alt"], key: "2" }],
 				settingsSectionId: DICTIONARY_SECTION_ID,
 				available: () => host.settings().dictionary.enabled,
 				open: () => openPrompt(host),

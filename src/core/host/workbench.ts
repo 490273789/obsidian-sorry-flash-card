@@ -117,6 +117,8 @@ export interface WorkbenchHost {
 	settingsSection(section: WorkbenchSettingsSection): void;
 	/** Contributes this feature's catalog entry. Same id replaces the previous one. */
 	catalog(entry: WorkbenchCatalogEntry): void;
+	/** Opens a feature by its catalog id, or opens its settings if unavailable. */
+	openFeature(featureId: string): void;
 }
 
 export interface Workbench {
@@ -230,6 +232,16 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 
 			catalog: (entry) => {
 				catalogById.set(entry.id, entry);
+			},
+
+			openFeature: (targetFeatureId) => {
+				const entry = catalogById.get(targetFeatureId);
+				if (!entry) return;
+				if (entry.available()) {
+					entry.open();
+				} else {
+					settingsTabCapability.open(entry.settingsSectionId);
+				}
 			},
 		};
 

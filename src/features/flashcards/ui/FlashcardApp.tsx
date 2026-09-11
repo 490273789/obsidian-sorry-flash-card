@@ -48,6 +48,8 @@ interface FlashcardAppProps {
 	deckHome: DeckHome;
 	settings: FlashcardSettings;
 	onOpenSettings: () => void;
+	onOpenTranslation?: () => void;
+	onOpenDictionary?: () => void;
 }
 
 type CardEditorState =
@@ -81,6 +83,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	deckHome,
 	settings,
 	onOpenSettings,
+	onOpenTranslation,
+	onOpenDictionary,
 }) => {
 	const deckHomeOwnerId = useId();
 	const t = useMemo(() => createTranslator(settings.language), [settings.language]);
@@ -623,6 +627,8 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 			onOpenStats={handleOpenStats}
 			onOpenSettings={onOpenSettings}
 			onOpenAddCard={handleOpenAddCard}
+			onOpenTranslation={onOpenTranslation}
+			onOpenDictionary={onOpenDictionary}
 		/>
 	);
 

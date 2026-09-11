@@ -22,6 +22,7 @@ export interface FakeWorkbenchHost {
 		select: ReturnType<typeof vi.fn>;
 		open: ReturnType<typeof vi.fn>;
 	};
+	openFeature: ReturnType<typeof vi.fn>;
 }
 
 /**
@@ -40,6 +41,14 @@ export function createFakeWorkbenchHost(
 	const activateView = vi.fn().mockResolvedValue(undefined);
 	const updateSettings = vi.fn().mockResolvedValue(undefined);
 	const settingsTab = { refresh: vi.fn(), select: vi.fn(), open: vi.fn() };
+	const openFeature = vi.fn((featureId: string) => {
+		const entry = catalog.get(featureId);
+		if (entry?.available()) {
+			entry.open();
+		} else if (entry) {
+			settingsTab.open(entry.settingsSectionId);
+		}
+	});
 
 	const host = {
 		app,
@@ -60,6 +69,7 @@ export function createFakeWorkbenchHost(
 		updateSettings,
 		settingsSection: (section: WorkbenchSettingsSection) => sections.set(section.id, section),
 		catalog: (entry: WorkbenchCatalogEntry) => catalog.set(entry.id, entry),
+		openFeature,
 	} as unknown as WorkbenchHost;
 
 	return {
@@ -72,5 +82,6 @@ export function createFakeWorkbenchHost(
 		activateView,
 		updateSettings,
 		settingsTab,
+		openFeature,
 	};
 }

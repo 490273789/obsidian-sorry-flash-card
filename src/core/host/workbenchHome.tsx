@@ -53,18 +53,33 @@ export function attachWorkbenchHome(options: WorkbenchHomeOptions): void {
 	// ribbon label follows the interface language with everything else.
 	workbench.ring((chrome) => {
 		const t = createSharedTranslator(options.readSettings().language);
-		const title = t("workbench.title");
-		chrome.ribbon(HOME_ICON, title, () => {
-			void activateHome(options);
+		const ribbonTitle = t("main.ribbonOpenFlashcards");
+		chrome.ribbon("layers", ribbonTitle, () => {
+			void activateFlashcards(options);
 		});
 		chrome.command({
 			id: OPEN_HOME_COMMAND_ID,
-			name: title,
+			name: t("workbench.title"),
 			run: () => {
 				void activateHome(options);
 			},
 		});
 	});
+}
+
+async function activateFlashcards(options: WorkbenchHomeOptions): Promise<void> {
+	const flashcardEntry = options.workbench.catalog().find((entry) => entry.id === "flashcards");
+	if (flashcardEntry && flashcardEntry.available()) {
+		flashcardEntry.open();
+		return;
+	}
+	const workspace = options.plugin.app.workspace;
+	let leaf = workspace.getLeavesOfType("flashcard-view")[0];
+	if (!leaf) {
+		leaf = workspace.getLeaf("tab");
+		await leaf.setViewState({ type: "flashcard-view", active: true });
+	}
+	await workspace.revealLeaf(leaf);
 }
 
 async function activateHome(options: WorkbenchHomeOptions): Promise<void> {

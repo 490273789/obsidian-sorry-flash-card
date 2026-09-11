@@ -18,6 +18,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+	BookA,
 	BookOpen,
 	Brain,
 	Calculator,
@@ -26,6 +27,7 @@ import {
 	FileText,
 	Inbox,
 	Keyboard,
+	Languages,
 	List,
 	LoaderCircle,
 	NotebookPen,
@@ -278,6 +280,8 @@ interface DeckListProps {
 	onOpenStats: () => void;
 	onOpenSettings: () => void;
 	onOpenAddCard: () => void;
+	onOpenTranslation?: () => void;
+	onOpenDictionary?: () => void;
 }
 
 export const DeckList = React.memo(function DeckList({
@@ -290,6 +294,8 @@ export const DeckList = React.memo(function DeckList({
 	onOpenStats,
 	onOpenSettings,
 	onOpenAddCard,
+	onOpenTranslation,
+	onOpenDictionary,
 }: DeckListProps) {
 	const { t } = useFlashcardI18n();
 	const isLoading = snapshot.mutation.kind === "refreshing";
@@ -388,6 +394,22 @@ export const DeckList = React.memo(function DeckList({
 					]}
 					right={
 						<div className="flashcard-header-actions">
+							{onOpenTranslation && (
+								<FlashcardButton
+									preset="icon"
+									icon={Languages}
+									onClick={onOpenTranslation}
+									title={t("home.aiTranslationTitle")}
+								/>
+							)}
+							{onOpenDictionary && (
+								<FlashcardButton
+									preset="icon"
+									icon={BookA}
+									onClick={onOpenDictionary}
+									title={t("home.dictionaryTitle")}
+								/>
+							)}
 							<FlashcardButton
 								preset="icon"
 								icon={ChartNoAxesColumn}
