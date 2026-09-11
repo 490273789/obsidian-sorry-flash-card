@@ -609,21 +609,22 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 				}),
 			);
 
-			// The ribbon joins the rebuildable chrome: every feature removes and
-			// re-adds its own ribbon during its render, so the icons keep the
-			// composition order while still relabelling on a language change.
+			// The workbench owns the entry point (ribbon, home list, and the open
+			// command); a feature only declares what it is and what else it offers.
+			host.catalog({
+				id: "flashcards",
+				icon: "layers",
+				title: (language) => createTranslator(language)("main.viewTitle"),
+				openCommandId: OPEN_COMMAND_ID,
+				settingsSectionId: FLASHCARD_SECTION_ID,
+				available: () => true,
+				open: () => {
+					void host.activateView(VIEW_TYPE_FLASHCARD);
+				},
+			});
+
 			const strings = t(host);
 			host.chrome((chrome) => {
-				chrome.ribbon("layers", strings("main.ribbonOpenFlashcards"), () => {
-					void host.activateView(VIEW_TYPE_FLASHCARD);
-				});
-				chrome.command({
-					id: OPEN_COMMAND_ID,
-					name: strings("main.commandOpenFlashcards"),
-					run: () => {
-						void host.activateView(VIEW_TYPE_FLASHCARD);
-					},
-				});
 				chrome.command({
 					id: SYNC_COMMAND_ID,
 					name: strings("main.commandSyncDecks"),

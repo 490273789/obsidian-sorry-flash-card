@@ -207,16 +207,20 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 
 			dictionary.applySettings();
 
+			host.catalog({
+				id: "dictionary",
+				icon: "book-open",
+				title: (language) => dictionaryStrings(language).displayName,
+				openCommandId: OPEN_COMMAND_ID,
+				openHotkeys: [{ modifiers: ["Alt"], key: "W" }],
+				settingsSectionId: DICTIONARY_SECTION_ID,
+				available: () => host.settings().dictionary.enabled,
+				open: () => openPrompt(host),
+			});
+
 			const strings = dictionaryStrings(host.settings().language);
 			host.chrome((chrome) => {
 				if (!host.settings().dictionary.enabled) return;
-				chrome.ribbon("book-open", strings.openCommand, () => openPrompt(host));
-				chrome.command({
-					id: OPEN_COMMAND_ID,
-					name: strings.openCommand,
-					hotkeys: [{ modifiers: ["Alt"], key: "W" }],
-					run: () => openPrompt(host),
-				});
 				chrome.command({
 					id: LOOKUP_SELECTION_COMMAND_ID,
 					name: strings.selectionCommand,

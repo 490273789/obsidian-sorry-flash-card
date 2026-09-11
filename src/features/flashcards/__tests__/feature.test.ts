@@ -116,13 +116,19 @@ describe("flashcard feature", () => {
 		deep.pronunciation = null;
 	});
 
-	it("registers its view, ribbon, commands, and settings section", () => {
+	it("registers its view, catalog entry, commands, and settings section", () => {
 		const { feature, fake } = renderFeature();
 
 		expect([...fake.views.keys()]).toEqual(["flashcard-view"]);
-		expect(fake.ribbons.map((ribbon) => ribbon.icon)).toEqual(["layers"]);
+		const entry = fake.catalog.get("flashcards")!;
+		expect(entry.icon).toBe("layers");
+		expect(entry.title("zh")).toBe("闪卡学习");
+		expect(entry.openCommandId).toBe("open-flashcard-view");
+		expect(entry.settingsSectionId).toBe("flashcards");
+		expect(entry.available()).toBe(true);
+		// The workbench owns the ribbon and the open command.
+		expect(fake.ribbons).toEqual([]);
 		expect(fake.commands.map((command) => command.id)).toEqual([
-			"open-flashcard-view",
 			"sync-flashcard-decks",
 			"migrate-card-identities",
 			"repair-card-identities",

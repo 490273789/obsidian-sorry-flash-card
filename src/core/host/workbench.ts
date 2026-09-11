@@ -32,6 +32,34 @@ export interface WorkbenchChromeScope {
 	command(spec: WorkbenchCommand): void;
 }
 
+/**
+ * How one feature presents itself in the workbench: what it is called, which icon
+ * represents it, and how to open it.
+ *
+ * Pushed on every render, exactly like a settings section, so a feature that is
+ * currently disabled simply reports itself as unavailable instead of the host
+ * guessing from settings.
+ */
+export interface WorkbenchCatalogEntry {
+	/** Feature id; the same id replaces the previous entry. */
+	id: string;
+	title(language: Language): string;
+	icon: string;
+	/**
+	 * Command id for the host-generated "open" command. Features keep the id they
+	 * have always used so user-assigned hotkeys survive.
+	 */
+	openCommandId: string;
+	/** Default hotkeys for the generated open command. */
+	openHotkeys?: Hotkey[];
+	/** Settings section that configures this feature; the home links to it. */
+	settingsSectionId: string;
+	/** Whether the feature currently offers an entry point. */
+	available(): boolean;
+	/** Opens or focuses the feature's primary view. */
+	open(): void;
+}
+
 /** One section of the plugin settings tab, contributed by a feature or the host. */
 export interface WorkbenchSettingsSection {
 	id: string;
@@ -87,6 +115,8 @@ export interface WorkbenchHost {
 	updateSettings(patch: Partial<FlashcardSettings>): Promise<void>;
 	/** Contributes a settings section for this feature. Same id replaces the previous one. */
 	settingsSection(section: WorkbenchSettingsSection): void;
+	/** Contributes this feature's catalog entry. Same id replaces the previous one. */
+	catalog(entry: WorkbenchCatalogEntry): void;
 }
 
 export interface Workbench {
@@ -96,6 +126,13 @@ export interface Workbench {
 	addSettingsSection(section: WorkbenchSettingsSection): void;
 	/** Settings sections from the host and every feature, ordered. */
 	settingsSections(): WorkbenchSettingsSection[];
+	/** Catalog entries of every feature, in feature order. */
+	catalog(): WorkbenchCatalogEntry[];
+	/**
+	 * Declares the workbench's own chrome (its ribbon and commands). Rebuilt on
+	 * every refresh like a feature's chrome, so it relabels on a language change.
+	 */
+	ring(build: (chrome: WorkbenchChromeScope) => void): void;
 	/** The settings tab registers itself here so features can reach it. */
 	setSettingsTab(tab: WorkbenchSettingsTab): void;
 	/** The settings-tab capability, for host-owned sections created outside features. */
@@ -123,6 +160,12 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 	const chromeByFeature = new Map<string, FeatureChrome>();
 	const hostsByFeature = new Map<string, WorkbenchHost>();
 	const sectionsById = new Map<string, WorkbenchSettingsSection>();
+	const catalogById = new Map<string, WorkbenchCatalogEntry>();
+	/** Command ids the host generated for the previous catalog, so it can clean up. */
+	let catalogCommandIds: string[] = [];
+	/** Chrome id reserved for the workbench's own ribbon and commands. */
+	const HOST_CHROME_ID = "\u0000workbench-host";
+	let ringBuilder: ((chrome: WorkbenchChromeScope) => void) | null = null;
 	const features = options.createFeatures();
 	let settingsTab: WorkbenchSettingsTab | null = null;
 	let disposed = false;
@@ -184,10 +227,35 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 			settingsSection: (section) => {
 				sectionsById.set(section.id, section);
 			},
+
+			catalog: (entry) => {
+				catalogById.set(entry.id, entry);
+			},
 		};
 
 		hostsByFeature.set(featureId, host);
 		return host;
+	};
+
+	/**
+	 * Rebuilds the host-generated chrome from the catalog: one "open" command per
+	 * feature that currently offers an entry point.
+	 */
+	const rebuildCatalogCommands = (): void => {
+		const entries = [...catalogById.values()];
+		for (const id of catalogCommandIds) options.plugin.removeCommand(id);
+		catalogCommandIds = [];
+		const language = options.readSettings().language;
+		for (const entry of entries) {
+			if (!entry.available()) continue;
+			catalogCommandIds.push(entry.openCommandId);
+			options.plugin.addCommand({
+				id: entry.openCommandId,
+				name: entry.title(language),
+				hotkeys: entry.openHotkeys,
+				callback: () => entry.open(),
+			});
+		}
 	};
 
 	const pushSettingsToOpenViews = (): void => {
@@ -218,6 +286,8 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 					console.error(`Failed to render the ${feature.id} feature:`, error);
 				}
 			}
+			rebuildCatalogCommands();
+			if (ringBuilder) hostFor(HOST_CHROME_ID).chrome(ringBuilder);
 			pushSettingsToOpenViews();
 		},
 
@@ -226,6 +296,14 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 		},
 
 		settingsSections: () => [...sectionsById.values()].sort((a, b) => a.order - b.order),
+
+		// Feature order is the order the composition module lists them in, which is
+		// also the order features render in.
+		catalog: () => [...catalogById.values()],
+
+		ring: (build) => {
+			ringBuilder = build;
+		},
 
 		setSettingsTab: (tab) => {
 			settingsTab = tab;
@@ -244,6 +322,9 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 				}
 			}
 			for (const feature of features) removeChrome(feature.id);
+			removeChrome(HOST_CHROME_ID);
+			for (const id of catalogCommandIds) options.plugin.removeCommand(id);
+			catalogCommandIds = [];
 		},
 	};
 }

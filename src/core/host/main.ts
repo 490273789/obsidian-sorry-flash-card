@@ -2,6 +2,7 @@ import { Plugin } from "obsidian";
 import { createWorkbench, type Workbench } from "./workbench";
 import { createWorkbenchFeatures } from "../../features";
 import { createAiEngineSection } from "./aiEngineSection";
+import { attachWorkbenchHome } from "./workbenchHome";
 import { createObsidianAiService } from "./aiAdapter";
 import { normalizeAiSettings } from "../ai/configuration";
 import type { AiService, AiSettings } from "../ai";
@@ -58,6 +59,13 @@ export default class FlashcardPlugin extends Plugin {
 		this.pluginSettingsTab = new FlashcardSettingTab(this.app, this);
 		this.workbench.setSettingsTab(this.pluginSettingsTab);
 		this.addSettingTab(this.pluginSettingsTab);
+
+		// The workbench's own entry point: one ribbon and a feature list.
+		attachWorkbenchHome({
+			plugin: this,
+			workbench: this.workbench,
+			readSettings: () => this.settings,
+		});
 
 		this.workbench.refresh();
 	}

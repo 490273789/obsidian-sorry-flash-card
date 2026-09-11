@@ -56,17 +56,15 @@ describe("dictionary feature", () => {
 			"flashcard-dictionary-view",
 			"flashcard-dictionary-favorite-view",
 		]);
-		expect(fake.ribbons).toEqual([
-			{
-				icon: "book-open",
-				title: dictionaryStrings("zh").openCommand,
-				onClick: expect.any(Function),
-			},
-		]);
-		expect(fake.commands.map((command) => command.id)).toEqual([
-			"open-dictionary",
-			"dictionary-lookup-selection",
-		]);
+		const entry = fake.catalog.get("dictionary")!;
+		expect(entry.icon).toBe("book-open");
+		expect(entry.title("zh")).toBe(dictionaryStrings("zh").displayName);
+		expect(entry.openCommandId).toBe("open-dictionary");
+		expect(entry.openHotkeys).toEqual([{ modifiers: ["Alt"], key: "W" }]);
+		expect(entry.settingsSectionId).toBe("dictionary");
+		expect(entry.available()).toBe(true);
+		expect(fake.commands.map((command) => command.id)).toEqual(["dictionary-lookup-selection"]);
+		expect(fake.ribbons).toEqual([]);
 		expect([...fake.sections.keys()]).toEqual(["dictionary"]);
 		// The section keeps the historical position after the AI 翻译 section.
 		expect(fake.sections.get("dictionary")!.order).toBe(3);
@@ -88,6 +86,7 @@ describe("dictionary feature", () => {
 
 		expect(fake.ribbons).toEqual([]);
 		expect(fake.commands).toEqual([]);
+		expect(fake.catalog.get("dictionary")!.available()).toBe(false);
 		expect([...fake.views.keys()]).toHaveLength(2);
 		expect([...fake.sections.keys()]).toEqual(["dictionary"]);
 

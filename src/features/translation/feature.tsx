@@ -127,19 +127,21 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Workbenc
 				}),
 			);
 
+			host.catalog({
+				id: "translation",
+				icon: "languages",
+				title: (language) => translationStrings(language).title,
+				openCommandId: OPEN_COMMAND_ID,
+				settingsSectionId: TRANSLATION_SECTION_ID,
+				available: () => host.settings().translation.enabled,
+				open: () => {
+					void activateView(host);
+				},
+			});
+
 			const strings = translationStrings(host.settings().language);
 			host.chrome((chrome) => {
 				if (!host.settings().translation.enabled) return;
-				chrome.ribbon("languages", strings.title, () => {
-					void activateView(host);
-				});
-				chrome.command({
-					id: OPEN_COMMAND_ID,
-					name: strings.title,
-					run: () => {
-						void activateView(host);
-					},
-				});
 				chrome.command({
 					id: SELECTION_COMMAND_ID,
 					name: strings.selectionCommand,

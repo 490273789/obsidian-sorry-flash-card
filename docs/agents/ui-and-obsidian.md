@@ -12,6 +12,7 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 - Render card Markdown with Obsidian `MarkdownRenderer`, never raw HTML injection.
 - Use the shared modal primitives under `src/core/ui/primitives/Modal/` and the existing confirmation/card-editor components before creating a new overlay system. Imperative contexts that have no React host (the settings tab, command callbacks) use an Obsidian `Modal` subclass instead, as in `src/features/flashcards/obsidian/continuityModals.ts` and `src/core/host/dictionaryModals.ts`.
 - Use `lucide-react` for new React icon buttons. Keep controls keyboard-friendly and preserve existing shortcuts.
+- Do not add a ribbon icon for a feature: push a catalog entry with `host.catalog(...)` and let the workbench home and its generated command provide the entry point (ADR-0022). The workbench's own ribbon is declared once through `Workbench.ring`.
 - Keep copy Chinese-first and route user-visible strings through `src/core/i18n/`.
 
 ## Deck home

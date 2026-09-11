@@ -12,6 +12,7 @@ interface FakeRibbon {
 interface FakeCommand {
 	id: string;
 	name: string;
+	hotkeys?: unknown;
 	editorCheckCallback?: (checking: boolean, editor: { getSelection(): string }) => boolean;
 	callback?: () => void;
 }
@@ -263,5 +264,126 @@ describe("workbench", () => {
 		const patch = { dictionary: DEFAULT_SETTINGS.dictionary };
 		await host().updateSettings(patch);
 		expect(commitSettings).toHaveBeenCalledWith(patch);
+	});
+
+	it("generates one open command per available catalog entry and keeps its id", () => {
+		const openFirst = vi.fn();
+		const openSecond = vi.fn();
+		const { commands, plugin, workbench } = setup([
+			feature("first", (host) =>
+				host.catalog({
+					id: "first",
+					icon: "layers",
+					title: () => "First",
+					openCommandId: "open-first",
+					openHotkeys: [{ modifiers: ["Alt"], key: "W" }],
+					settingsSectionId: "first",
+					available: () => true,
+					open: openFirst,
+				}),
+			),
+			feature("second", (host) =>
+				host.catalog({
+					id: "second",
+					icon: "book-open",
+					title: () => "Second",
+					openCommandId: "open-second",
+					settingsSectionId: "second",
+					available: () => false,
+					open: openSecond,
+				}),
+			),
+		]);
+
+		workbench.refresh();
+
+		expect([...commands.keys()]).toEqual(["open-first"]);
+		expect(commands.get("open-first")!.name).toBe("First");
+		expect(commands.get("open-first")!.hotkeys).toEqual([{ modifiers: ["Alt"], key: "W" }]);
+		commands.get("open-first")!.callback?.();
+		expect(openFirst).toHaveBeenCalledTimes(1);
+		expect(openSecond).not.toHaveBeenCalled();
+		expect(plugin.addCommand).toHaveBeenCalledTimes(1);
+	});
+
+	it("drops the generated command once a feature reports itself unavailable", () => {
+		let available = true;
+		const { commands, workbench } = setup([
+			feature("only", (host) =>
+				host.catalog({
+					id: "only",
+					icon: "languages",
+					title: () => "Only",
+					openCommandId: "open-only",
+					settingsSectionId: "only",
+					available: () => available,
+					open: vi.fn(),
+				}),
+			),
+		]);
+
+		workbench.refresh();
+		expect(commands.has("open-only")).toBe(true);
+
+		available = false;
+		workbench.refresh();
+		expect(commands.has("open-only")).toBe(false);
+	});
+
+	it("exposes catalog entries in feature order and replaces them by id", () => {
+		const { workbench, host } = setup([
+			feature("a", (h) =>
+				h.catalog({
+					id: "a",
+					icon: "a",
+					title: () => "A",
+					openCommandId: "open-a",
+					settingsSectionId: "a",
+					available: () => true,
+					open: vi.fn(),
+				}),
+			),
+			feature("b", (h) =>
+				h.catalog({
+					id: "b",
+					icon: "b",
+					title: () => "B",
+					openCommandId: "open-b",
+					settingsSectionId: "b",
+					available: () => true,
+					open: vi.fn(),
+				}),
+			),
+		]);
+
+		workbench.refresh();
+		expect(workbench.catalog().map((entry) => entry.id)).toEqual(["a", "b"]);
+
+		// A second render must replace, not duplicate.
+		workbench.refresh();
+		expect(workbench.catalog()).toHaveLength(2);
+		void host;
+	});
+
+	it("rebuilds the workbench ring chrome and clears it on dispose", () => {
+		const { plugin, ribbonEls, commands, workbench } = setup([feature("f", () => {})]);
+		workbench.ring((chrome) => {
+			chrome.ribbon("layout-grid", "Home", () => {});
+			chrome.command({ id: "open-home", name: "Home", run: () => {} });
+		});
+
+		workbench.refresh();
+		expect(ribbonEls).toHaveLength(1);
+		expect(commands.has("open-home")).toBe(true);
+
+		// The ring is rebuilt with everything else, so it relabels on a language change.
+		workbench.refresh();
+		expect(ribbonEls).toHaveLength(2);
+		expect(ribbonEls[0]!.remove).toHaveBeenCalledTimes(1);
+		expect(plugin.removeCommand).toHaveBeenCalledWith("open-home");
+
+		workbench.dispose();
+		expect(ribbonEls[1]!.remove).toHaveBeenCalledTimes(1);
+		expect(commands.has("open-home")).toBe(false);
 	});
 });

@@ -83,6 +83,8 @@ Read the layering inside a slice the same way as before: `domain/` and `settings
 
 - Register Obsidian-facing commands and services in `src/core/host/main.ts`; keep feature behavior in its domain module.
 - 工作台功能 register through the workbench seam (`WorkbenchFeature.render(host)`) and reach Obsidian chrome only through `WorkbenchHost`. `main.ts` and `settingsTab.ts` must not name a feature's views, ribbon, commands, or settings slice: add a feature to `src/features/index.ts` instead.
+- A feature declares its identity with `host.catalog(entry)` (title, icon, open command id, settings section, availability, how to open) and never adds its own ribbon: the workbench owns the entry point and the home list (ADR-0022). `host.chrome(...)` is only for commands specific to that feature.
+- `Workbench.ring(build)` is the only place host-owned chrome is declared; it is rebuilt with every refresh so it relabels with the interface language.
 - A feature writes settings only through `host.updateSettings(patch)`. The host applies the patch to the settings committed at write time, so a queued write never resurrects a stale slice.
 - A settings slice is the single authority for the keys it owns (ADR-0019). To add or change a slice, edit its owner's `SettingsSlice` descriptor and register it in `src/core/host/settingsSlices.ts`; never add a branch to `DataStore`, and never read `DEFAULT_SETTINGS` from a normalizer. Slices must return exactly the keys they declare and must not overlap.
 - 工作台功能 must not import one another. A primitive shared by two features belongs in `src/core/`, not inside one feature's directory (ADR-0021).
@@ -113,5 +115,6 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0019: the settings document is composed from feature-owned slices; each slice owns its defaults, normalization, and cloning.
 - ADR-0020: one React mount seam (`createReactItemView`) builds every workbench view.
 - ADR-0021: the source tree is sliced by 工作台功能; `src/core/` holds everything that is not one feature.
+- ADR-0022: the workbench owns the single entry point (ribbon + 工作台首页); features declare identity through the catalog.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

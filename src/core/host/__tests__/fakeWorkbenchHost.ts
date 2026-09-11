@@ -1,6 +1,7 @@
 import { vi } from "vitest";
 import type { FlashcardSettings } from "../../shared/types";
 import type {
+	WorkbenchCatalogEntry,
 	WorkbenchChromeScope,
 	WorkbenchCommand,
 	WorkbenchHost,
@@ -11,6 +12,7 @@ export interface FakeWorkbenchHost {
 	host: WorkbenchHost;
 	views: Map<string, unknown>;
 	sections: Map<string, WorkbenchSettingsSection>;
+	catalog: Map<string, WorkbenchCatalogEntry>;
 	ribbons: { icon: string; title: string; onClick: () => void }[];
 	commands: WorkbenchCommand[];
 	activateView: ReturnType<typeof vi.fn>;
@@ -32,6 +34,7 @@ export function createFakeWorkbenchHost(
 ): FakeWorkbenchHost {
 	const views = new Map<string, unknown>();
 	const sections = new Map<string, WorkbenchSettingsSection>();
+	const catalog = new Map<string, WorkbenchCatalogEntry>();
 	const ribbons: FakeWorkbenchHost["ribbons"] = [];
 	const commands: WorkbenchCommand[] = [];
 	const activateView = vi.fn().mockResolvedValue(undefined);
@@ -56,12 +59,14 @@ export function createFakeWorkbenchHost(
 		activateView,
 		updateSettings,
 		settingsSection: (section: WorkbenchSettingsSection) => sections.set(section.id, section),
+		catalog: (entry: WorkbenchCatalogEntry) => catalog.set(entry.id, entry),
 	} as unknown as WorkbenchHost;
 
 	return {
 		host,
 		views,
 		sections,
+		catalog,
 		ribbons,
 		commands,
 		activateView,

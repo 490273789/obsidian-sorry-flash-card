@@ -62,11 +62,16 @@ describe("translation feature", () => {
 		feature.render(fake.host);
 
 		expect([...fake.views.keys()]).toEqual(["flashcard-translator-view"]);
-		expect(fake.ribbons.map((ribbon) => ribbon.icon)).toEqual(["languages"]);
-		expect(fake.commands.map((command) => command.id)).toEqual([
-			"open-ai-translator",
-			"translate-selection",
-		]);
+		const entry = fake.catalog.get("translation")!;
+		expect(entry.icon).toBe("languages");
+		expect(entry.title("zh")).toBe(translationStrings("zh").title);
+		expect(entry.openCommandId).toBe("open-ai-translator");
+		expect(entry.settingsSectionId).toBe("translation");
+		expect(entry.available()).toBe(true);
+		// The open command belongs to the workbench; only the feature-specific
+		// command is registered here.
+		expect(fake.commands.map((command) => command.id)).toEqual(["translate-selection"]);
+		expect(fake.ribbons).toEqual([]);
 		expect(fake.sections.get("translation")!.order).toBe(2);
 		expect(fake.sections.get("translation")!.label("zh")).toBe(
 			translationSettingsStrings("zh").heading,
@@ -86,6 +91,7 @@ describe("translation feature", () => {
 
 		expect(fake.ribbons).toEqual([]);
 		expect(fake.commands).toEqual([]);
+		expect(fake.catalog.get("translation")!.available()).toBe(false);
 		expect([...fake.views.keys()]).toEqual(["flashcard-translator-view"]);
 
 		feature.stop();
@@ -112,8 +118,9 @@ describe("translation feature", () => {
 		fake.activateView.mockRejectedValue(new Error("private diagnostic"));
 		feature.render(fake.host);
 
-		const command = fake.commands.find((entry) => entry.id === "open-ai-translator")!;
-		expect(() => command.run!()).not.toThrow();
+		// The workbench generates the open command from the catalog entry.
+		const entry = fake.catalog.get("translation")!;
+		expect(() => entry.open()).not.toThrow();
 		await vi.waitFor(() => {
 			expect(Notice).toHaveBeenLastCalledWith(translationStrings("zh").openFailed);
 		});
