@@ -1,7 +1,7 @@
 import "../styles/index.scss";
 import { Plugin } from "obsidian";
 import { createWorkbench, type Workbench } from "./workbench";
-import { createWorkbenchFeatures } from "../../features";
+import { createWorkbenchModules } from "../../features";
 import { createAiEngineSection } from "./aiEngineSection";
 import { attachWorkbenchHome } from "./workbenchHome";
 import { createObsidianAiService } from "./aiAdapter";
@@ -46,8 +46,8 @@ export default class StudyStudioPlugin extends Plugin {
 			plugin: this,
 			readSettings: () => this.settings,
 			commitSettings: this.commitSettings,
-			createFeatures: () =>
-				createWorkbenchFeatures({
+			createModules: () =>
+				createWorkbenchModules({
 					ai: this.aiService,
 					dataStore: this.dataStore,
 					net: this.net,

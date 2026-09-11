@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { buildSelectionPopupSettingsViewModel } from "../viewModel";
+import { buildSelectionHelperSettingsViewModel } from "../viewModel";
 
-describe("buildSelectionPopupSettingsViewModel", () => {
+describe("buildSelectionHelperSettingsViewModel", () => {
 	it("builds settings view model in Chinese with dictionary toggles", async () => {
 		const setEnabled = vi.fn();
 		const setModifier = vi.fn();
@@ -12,7 +12,7 @@ describe("buildSelectionPopupSettingsViewModel", () => {
 			{ id: "cambridge", label: "剑桥词典" },
 		];
 
-		const vm = buildSelectionPopupSettingsViewModel(
+		const vm = buildSelectionHelperSettingsViewModel(
 			{ enabled: true, modifier: "alt", selectedDictionaries: ["youdao"] },
 			available,
 			{ setEnabled, setModifier, toggleDictionary },
@@ -58,7 +58,7 @@ describe("buildSelectionPopupSettingsViewModel", () => {
 	});
 
 	it("builds settings view model in English", () => {
-		const vm = buildSelectionPopupSettingsViewModel(
+		const vm = buildSelectionHelperSettingsViewModel(
 			{ enabled: false, modifier: "ctrl", selectedDictionaries: [] },
 			[],
 			{ setEnabled: vi.fn(), setModifier: vi.fn(), toggleDictionary: vi.fn() },

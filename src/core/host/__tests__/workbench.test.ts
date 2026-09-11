@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_SETTINGS } from "../settingsSlices";
-import { createWorkbench, type WorkbenchFeature, type WorkbenchHost } from "../workbench";
+import { createWorkbench, type WorkbenchModule, type WorkbenchHost } from "../workbench";
 
 interface FakeRibbon {
 	icon: string;
@@ -59,7 +59,7 @@ function createFakeApp() {
 	return { app, setViewState, revealLeaf };
 }
 
-function setup(features: WorkbenchFeature[]) {
+function setup(modules: WorkbenchModule[]) {
 	const fakePlugin = createFakePlugin();
 	const fakeApp = createFakeApp();
 	const commitSettings = vi.fn().mockResolvedValue(undefined);
@@ -69,9 +69,9 @@ function setup(features: WorkbenchFeature[]) {
 		plugin: fakePlugin.plugin as never,
 		readSettings: () => DEFAULT_SETTINGS,
 		commitSettings,
-		// Capture the per-feature host the workbench hands out.
-		createFeatures: () =>
-			features.map((entry) => ({
+		// Capture the per-module host the workbench hands out.
+		createModules: () =>
+			modules.map((entry) => ({
 				id: entry.id,
 				render: (host: WorkbenchHost) => {
 					hosts.set(entry.id, host);
@@ -89,7 +89,7 @@ function setup(features: WorkbenchFeature[]) {
 	};
 }
 
-function feature(id: string, render: WorkbenchFeature["render"]): WorkbenchFeature {
+function feature(id: string, render: WorkbenchModule["render"]): WorkbenchModule {
 	return { id, render, stop: vi.fn() };
 }
 
@@ -203,9 +203,10 @@ describe("workbench", () => {
 
 	it("pushes committed settings into open views and stops every feature on dispose", () => {
 		const updateSettings = vi.fn();
-		const firstStop = vi.fn();
-		const secondStop = vi.fn();
-		const features: WorkbenchFeature[] = [
+		const stopOrder: string[] = [];
+		const firstStop = vi.fn(() => stopOrder.push("first"));
+		const secondStop = vi.fn(() => stopOrder.push("second"));
+		const features: WorkbenchModule[] = [
 			{
 				id: "f",
 				render: (host) => host.registerView("view-a", () => ({ updateSettings }) as never),
@@ -229,6 +230,7 @@ describe("workbench", () => {
 		workbench.dispose();
 		expect(firstStop).toHaveBeenCalledTimes(1);
 		expect(secondStop).toHaveBeenCalledTimes(1);
+		expect(stopOrder).toEqual(["second", "first"]);
 	});
 
 	it("reuses an existing leaf instead of opening a second one", async () => {

@@ -1,98 +1,60 @@
-import React, { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import React, { useEffect } from "react";
 import { Sparkles, RotateCcw } from "lucide-react";
-import { cls } from "../../../core/shared/classNames";
-import type { DictionaryController } from "../../dictionary/domain/controller";
-import type { DictionarySectionContent } from "../../dictionary/domain/types";
-import type { SelectionPopupStrings } from "../strings/selectionPopup";
+import { cls } from "../../shared/classNames";
+import type { SelectionLookupSection, SelectionLookupSnapshot } from "../domain/types";
+import type { SelectionHelperStrings } from "../strings/selectionPopup";
 import styles from "./SelectionPopup.module.scss";
 
 export interface SelectionDictCardProps {
 	query: string;
-	controller: DictionaryController;
-	selectedDictionaries?: readonly string[];
-	strings: SelectionPopupStrings;
+	lookup: SelectionLookupSnapshot;
+	strings: SelectionHelperStrings;
+	onSelectSource: (sourceId: string) => void;
+	onRetry: (sourceId: string) => void;
+	onGenerateAi: () => void;
 	onOpenInMainTab: (word: string) => void;
 	onClose: () => void;
 }
 
-function renderSection(content: DictionarySectionContent, word: string): React.ReactNode {
-	if (content.kind === "list") {
+function renderSection(section: SelectionLookupSection): React.ReactNode {
+	if (section.kind === "list") {
 		return (
 			<ol className={styles.list}>
-				{content.items.map((item, index) => (
+				{section.items.map((item, index) => (
 					<li key={`${index}-${item}`}>{item}</li>
 				))}
 			</ol>
 		);
 	}
 
-	if (content.kind === "ai-definitions") {
-		return (
-			<div>
-				{content.definitions.map((def, index) => (
-					<div key={`${index}-${def.partOfSpeech}`} className={styles.aiSense}>
-						{def.partOfSpeech && (
-							<span className={styles.sensePos}>{def.partOfSpeech}</span>
-						)}
-						<span className={styles.senseMeaning}>{def.meaning}</span>
-					</div>
-				))}
-			</div>
-		);
-	}
-
 	return (
 		<div>
-			<p>{word}</p>
+			{section.definitions.map((def, index) => (
+				<div key={`${index}-${def.partOfSpeech}`} className={styles.aiSense}>
+					{def.partOfSpeech && (
+						<span className={styles.sensePos}>{def.partOfSpeech}</span>
+					)}
+					<span className={styles.senseMeaning}>{def.meaning}</span>
+				</div>
+			))}
 		</div>
 	);
 }
 
 export const SelectionDictCard = React.memo(function SelectionDictCard({
 	query,
-	controller,
-	selectedDictionaries,
+	lookup,
 	strings,
+	onSelectSource,
+	onRetry,
+	onGenerateAi,
 	onOpenInMainTab,
 	onClose,
 }: SelectionDictCardProps) {
-	const subscribe = useCallback(
-		(listener: () => void) => controller.subscribe(listener),
-		[controller],
-	);
-	const getSnapshot = useCallback(() => controller.getSnapshot(), [controller]);
-	const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-
-	const activeWord = state.query || query;
-	const sources = useMemo(() => {
-		if (!selectedDictionaries || selectedDictionaries.length === 0) {
-			return state.sources;
-		}
-		const allowed = new Set(selectedDictionaries);
-		const filtered = state.sources.filter((s) => allowed.has(s.id));
-		return filtered.length > 0 ? filtered : state.sources;
-	}, [state.sources, selectedDictionaries]);
-
-	const activeSource = sources.find((s) => s.id === state.activeSourceId) ?? sources[0];
-
-	const handleGenerateAi = useCallback(async () => {
-		if (!state.query && query) {
-			controller.prefill(query);
-			await controller.lookup();
-		}
-		await controller.loadAi();
-	}, [controller, state.query, query]);
-
-	const handleRetry = useCallback(
-		async (sourceId: string, kind?: string) => {
-			if (kind === "ai") {
-				await handleGenerateAi();
-			} else {
-				await controller.retry(sourceId);
-			}
-		},
-		[controller, handleGenerateAi],
-	);
+	const activeWord = lookup.query || query;
+	const sources = lookup.sources;
+	const activeSource =
+		sources.find((source) => source.id === lookup.activeSourceId) ?? sources[0];
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
@@ -116,17 +78,11 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 		};
 	}, [activeWord, onOpenInMainTab, onClose]);
 
-	const pronunciations = activeSource?.result?.pronunciations ?? [];
-	const sections = activeSource?.result?.sections ?? [];
+	const pronunciations = activeSource?.pronunciations ?? [];
+	const sections = activeSource?.sections ?? [];
 
 	return (
-		<div
-			className={styles.card}
-			role="dialog"
-			aria-label={activeWord}
-			tabIndex={-1}
-			onClick={(e) => e.stopPropagation()}
-		>
+		<dialog open className={styles.card} aria-label={activeWord} tabIndex={-1}>
 			<header className={styles.header}>
 				<div className={styles.titleRow}>
 					<h3 className={styles.word}>{activeWord}</h3>
@@ -153,7 +109,7 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 									role="tab"
 									aria-selected={isActive}
 									className={cls(styles.tab, isActive && styles.tabActive)}
-									onClick={() => controller.selectSource(source.id)}
+									onClick={() => onSelectSource(source.id)}
 								>
 									{source.label}
 								</button>
@@ -169,13 +125,13 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 						<button
 							type="button"
 							className={styles.aiGenerateBtn}
-							onClick={() => void handleGenerateAi()}
+							onClick={onGenerateAi}
 						>
 							<Sparkles size={14} aria-hidden="true" />
 							<span>{strings.aiGenerate}</span>
 						</button>
-						{state.aiEngineName && (
-							<span className={styles.aiEngineHint}>{state.aiEngineName}</span>
+						{lookup.aiEngineName && (
+							<span className={styles.aiEngineHint}>{lookup.aiEngineName}</span>
 						)}
 					</div>
 				) : activeSource?.status === "loading" ? (
@@ -190,19 +146,28 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 						<button
 							type="button"
 							className={styles.aiGenerateBtn}
-							onClick={() => void handleRetry(activeSource.id, activeSource.kind)}
+							onClick={() =>
+								activeSource.kind === "ai"
+									? onGenerateAi()
+									: onRetry(activeSource.id)
+							}
 						>
 							<RotateCcw size={14} aria-hidden="true" />
 							<span>{strings.retry}</span>
 						</button>
 					</div>
 				) : sections.length > 0 ? (
-					sections.map((section, idx) => (
-						<div key={`${idx}-${section.title}`}>
-							{renderSection(section.content, activeWord)}
-						</div>
-					))
-				) : state.status === "loading" ? (
+					<>
+						{sections.map((section, idx) => (
+							<div key={idx}>{renderSection(section)}</div>
+						))}
+						{activeSource?.hasComplexContent && (
+							<div className={styles.status}>{strings.complexContent}</div>
+						)}
+					</>
+				) : activeSource?.hasComplexContent ? (
+					<div className={styles.status}>{strings.complexContent}</div>
+				) : lookup.status === "loading" ? (
 					<div className={styles.status}>{strings.loading}</div>
 				) : (
 					<div className={styles.status}>{strings.emptyDefinition}</div>
@@ -213,6 +178,6 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 				<span>{strings.openInMainTabHint}</span>
 				<kbd className={styles.kbd}>Esc 关闭</kbd>
 			</footer>
-		</div>
+		</dialog>
 	);
 });

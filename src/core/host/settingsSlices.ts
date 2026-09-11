@@ -5,7 +5,7 @@ import type { FlashcardSettings } from "../shared/types";
 import { translationSettingsSlice } from "../../features/translation/domain/configuration";
 import { flashcardSettingsSlice } from "../../features/flashcards/settings/slice";
 import { hostSettingsSlice } from "../settings/hostSlice";
-import { selectionPopupSettingsSlice } from "../settings/selectionPopupSlice";
+import { selectionPopupSettingsSlice } from "../selectionHelper/settings/slice";
 
 /**
  * Every slice of the persisted settings document, in normalization order.

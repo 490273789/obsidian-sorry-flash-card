@@ -31,7 +31,7 @@ import { createObsidianContinuitySourceStore } from "./obsidian/continuityAdapte
 import { FlashcardApp } from "./ui/FlashcardApp";
 import { createReactItemView } from "../../core/host/reactItemView";
 import type {
-	WorkbenchFeature,
+	WorkbenchModule,
 	WorkbenchHost,
 	WorkbenchSettingsSection,
 } from "../../core/host/workbench";
@@ -64,7 +64,7 @@ interface FlashcardServices {
  * 卡片身份维护, and the flashcards settings section. Owns every deep module that no
  * other feature uses yet; the shared DataStore and settings document stay in the host.
  */
-export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFeature {
+export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchModule {
 	let services: FlashcardServices | null = null;
 	let exportNotice: Notice | null = null;
 	let pronunciationUnsubscribe: (() => void) | null = null;

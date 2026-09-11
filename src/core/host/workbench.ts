@@ -3,16 +3,16 @@ import type { SettingsViewModelDefinition } from "../settings/viewModel";
 import type { FlashcardSettings, Language } from "../shared/types";
 
 /**
- * One unit of learning capability hosted by the workbench.
+ * One runtime module hosted by the workbench.
  *
  * `render` is the single entry point and must be idempotent: the workbench calls
  * it once at startup and again after every committed settings change. Views are
  * registered once by the host; chrome is rebuilt on every call.
  */
-export interface WorkbenchFeature {
+export interface WorkbenchModule {
 	readonly id: string;
 	render(host: WorkbenchHost): void;
-	/** Releases feature-owned resources: runtimes, subscriptions, timers, modals. */
+	/** Releases module-owned resources: runtimes, subscriptions, timers, modals. */
 	stop(): void;
 }
 
@@ -125,7 +125,7 @@ export interface WorkbenchHost {
 }
 
 export interface Workbench {
-	/** Re-renders every registered feature against committed settings. */
+	/** Re-renders every registered module against committed settings. */
 	refresh(): void;
 	/** Contributes a host-owned shared settings section, such as AI engines. */
 	addSettingsSection(section: WorkbenchSettingsSection): void;
@@ -142,7 +142,7 @@ export interface Workbench {
 	setSettingsTab(tab: WorkbenchSettingsTab): void;
 	/** The settings-tab capability, for host-owned sections created outside features. */
 	readonly settingsTab: WorkbenchSettingsTab;
-	/** Releases every feature. */
+	/** Releases every module. */
 	dispose(): void;
 }
 
@@ -152,18 +152,18 @@ export interface WorkbenchOptions {
 	readSettings(): FlashcardSettings;
 	/** Commits a settings patch; must publish the committed settings on success. */
 	commitSettings(patch: Partial<FlashcardSettings>): Promise<void>;
-	createFeatures(): WorkbenchFeature[];
+	createModules(): WorkbenchModule[];
 }
 
-interface FeatureChrome {
+interface ModuleChrome {
 	ribbonEl: HTMLElement | null;
 	commandIds: string[];
 }
 
 export function createWorkbench(options: WorkbenchOptions): Workbench {
 	const registeredViewTypes = new Set<string>();
-	const chromeByFeature = new Map<string, FeatureChrome>();
-	const hostsByFeature = new Map<string, WorkbenchHost>();
+	const chromeByModule = new Map<string, ModuleChrome>();
+	const hostsByModule = new Map<string, WorkbenchHost>();
 	const sectionsById = new Map<string, WorkbenchSettingsSection>();
 	const catalogById = new Map<string, WorkbenchCatalogEntry>();
 	/** Command ids the host generated for the previous catalog, so it can clean up. */
@@ -171,7 +171,7 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 	/** Chrome id reserved for the workbench's own ribbon and commands. */
 	const HOST_CHROME_ID = "\u0000workbench-host";
 	let ringBuilder: ((chrome: WorkbenchChromeScope) => void) | null = null;
-	const features = options.createFeatures();
+	const modules = options.createModules();
 	let settingsTab: WorkbenchSettingsTab | null = null;
 	let disposed = false;
 
@@ -181,16 +181,16 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 		open: (sectionId) => settingsTab?.open(sectionId),
 	};
 
-	const removeChrome = (featureId: string): void => {
-		const chrome = chromeByFeature.get(featureId);
+	const removeChrome = (moduleId: string): void => {
+		const chrome = chromeByModule.get(moduleId);
 		if (!chrome) return;
 		chrome.ribbonEl?.remove();
 		for (const id of chrome.commandIds) options.plugin.removeCommand(id);
-		chromeByFeature.set(featureId, { ribbonEl: null, commandIds: [] });
+		chromeByModule.set(moduleId, { ribbonEl: null, commandIds: [] });
 	};
 
-	const hostFor = (featureId: string): WorkbenchHost => {
-		const existing = hostsByFeature.get(featureId);
+	const hostFor = (moduleId: string): WorkbenchHost => {
+		const existing = hostsByModule.get(moduleId);
 		if (existing) return existing;
 
 		const host: WorkbenchHost = {
@@ -207,9 +207,9 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 			},
 
 			chrome: (build) => {
-				removeChrome(featureId);
-				const chrome: FeatureChrome = { ribbonEl: null, commandIds: [] };
-				chromeByFeature.set(featureId, chrome);
+				removeChrome(moduleId);
+				const chrome: ModuleChrome = { ribbonEl: null, commandIds: [] };
+				chromeByModule.set(moduleId, chrome);
 				build({
 					ribbon: (icon, title, onClick) => {
 						chrome.ribbonEl?.remove();
@@ -248,7 +248,7 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 			},
 		};
 
-		hostsByFeature.set(featureId, host);
+		hostsByModule.set(moduleId, host);
 		return host;
 	};
 
@@ -294,11 +294,11 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 	return {
 		refresh: () => {
 			if (disposed) return;
-			for (const feature of features) {
+			for (const module of modules) {
 				try {
-					feature.render(hostFor(feature.id));
+					module.render(hostFor(module.id));
 				} catch (error) {
-					console.error(`Failed to render the ${feature.id} feature:`, error);
+					console.error(`Failed to render the ${module.id} workbench module:`, error);
 				}
 			}
 			rebuildCatalogCommands();
@@ -312,8 +312,7 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 
 		settingsSections: () => [...sectionsById.values()].sort((a, b) => a.order - b.order),
 
-		// Feature order is the order the composition module lists them in, which is
-		// also the order features render in.
+		// Catalog order follows the order feature modules register their entries.
 		catalog: () => [...catalogById.values()],
 
 		ring: (build) => {
@@ -329,14 +328,15 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 		dispose: () => {
 			if (disposed) return;
 			disposed = true;
-			for (const feature of features) {
+			// Dependants are composed after their providers, so release in reverse order.
+			for (const module of [...modules].reverse()) {
 				try {
-					feature.stop();
+					module.stop();
 				} catch (error) {
-					console.error(`Failed to stop the ${feature.id} feature:`, error);
+					console.error(`Failed to stop the ${module.id} workbench module:`, error);
 				}
 			}
-			for (const feature of features) removeChrome(feature.id);
+			for (const module of modules) removeChrome(module.id);
 			removeChrome(HOST_CHROME_ID);
 			for (const id of catalogCommandIds) options.plugin.removeCommand(id);
 			catalogCommandIds = [];

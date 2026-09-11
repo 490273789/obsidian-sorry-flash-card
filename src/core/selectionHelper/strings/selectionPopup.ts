@@ -1,6 +1,6 @@
 import type { Language } from "../../../core/shared/types";
 
-export interface SelectionPopupStrings {
+export interface SelectionHelperStrings {
 	lookup: string;
 	translate: string;
 	openInMainTabHint: string;
@@ -23,9 +23,10 @@ export interface SelectionPopupStrings {
 	aiGenerate: string;
 	aiGenerating: string;
 	retry: string;
+	complexContent: string;
 }
 
-const ZH_STRINGS: SelectionPopupStrings = {
+const ZH_STRINGS: SelectionHelperStrings = {
 	lookup: "查词",
 	translate: "翻译",
 	openInMainTabHint: "按 Enter 在主标签页打开",
@@ -49,9 +50,10 @@ const ZH_STRINGS: SelectionPopupStrings = {
 	aiGenerate: "生成 AI 释义",
 	aiGenerating: "正在生成 AI 释义…",
 	retry: "重试",
+	complexContent: "此来源包含复杂内容，请在词典主标签查看。",
 };
 
-const EN_OVERRIDES: Partial<SelectionPopupStrings> = {
+const EN_OVERRIDES: Partial<SelectionHelperStrings> = {
 	lookup: "Lookup",
 	translate: "Translate",
 	openInMainTabHint: "Press Enter to open in main tab",
@@ -78,9 +80,10 @@ const EN_OVERRIDES: Partial<SelectionPopupStrings> = {
 	aiGenerate: "Generate AI definitions",
 	aiGenerating: "Generating AI definitions…",
 	retry: "Retry",
+	complexContent: "This source contains rich content. Open it in the main dictionary tab.",
 };
 
-export function selectionPopupStrings(language: Language): SelectionPopupStrings {
+export function selectionHelperStrings(language: Language): SelectionHelperStrings {
 	if (language === "en") {
 		return { ...ZH_STRINGS, ...EN_OVERRIDES };
 	}

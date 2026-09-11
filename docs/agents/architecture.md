@@ -8,14 +8,14 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 
 1. Creates `DataStore` and loads persisted settings/data.
 2. Creates the plugin-lifetime `AiService`.
-3. Creates the `Workbench` (`src/core/host/workbench.ts`) with the feature list from
+3. Creates the `Workbench` (`src/core/host/workbench.ts`) with the module list from
    `src/features/index.ts`, adds the host-owned AI engine settings section, registers
    the settings tab, and calls `workbench.refresh()`.
 
 The settings document itself is composed from the feature-owned slices registered in
 `src/core/host/settingsSlices.ts` (ADR-0019), so the composition root never enumerates a slice.
 
-`Workbench.refresh()` calls `render(host)` on every 工作台功能, then pushes committed settings
+`Workbench.refresh()` calls `render(host)` on every `WorkbenchModule`, then pushes committed settings
 into every open view the workbench registered. The composition root owns only the settings
 document, its write queue (`commitSettings(patch)`), the shared `AiService` and `DataStore`, and
 the plugin lifecycle; it never names a feature's views, chrome, commands, or settings slice.
@@ -25,6 +25,8 @@ Each feature owns everything else it needs. `src/features/flashcards/feature.tsx
 render and disposes them in `stop()`, because no other feature uses them; `AI 翻译` and `词典`
 own their runtimes the same way. Shared services reach a feature through its factory in
 `features/index.ts`, never through the host.
+
+`src/core/selectionHelper/` is the 工作台-owned 选区助手 interaction module (ADR-0025), not a 工作台功能. It runs through the same `WorkbenchModule` lifecycle without contributing a catalog entry. 词典 and AI 翻译 each provide a narrow adapter; the composition module connects them without reading either feature's runtime.
 
 `src/core/host/reactItemView.tsx` mounts every view's React tree (ADR-0020) and injects the flashcard services into `FlashcardApp`. Closing a view unmounts its React adapter and stops current pronunciation, but it does not itself end an active session. Plugin unload calls `workbench.dispose()`, which stops every feature before the shared `AiService` is disposed.
 
@@ -37,6 +39,7 @@ src/
 |-- core/                    # everything that is not one feature
 |   |-- host/                # composition root (main.ts), workbench seam, view mount seam, settings tab, AI section, settings-slice registry
 |   |-- settings/            # the SettingsSlice contract and the host slice
+|   |-- selectionHelper/     # 工作台-owned selection interaction, settings, DOM adapter, and UI
 |   |-- storage/             # DataStore: the single writer of Sync-tracked data.json and the local deck-index cache
 |   |-- ai/                  # shared AI engine service
 |   |-- i18n/                # translator framework, shared strings, AI error strings
@@ -46,7 +49,7 @@ src/
 |-- features/
 |   |-- index.ts             # the only module that lists every feature
 |   |-- flashcards/
-|   |   |-- feature.tsx      # the slice's interface: the WorkbenchFeature
+|   |   |-- feature.tsx      # the slice's WorkbenchModule implementation
 |   |   |-- domain/          # cards, decks, history, identity, pronunciation, sessions, wordList
 |   |   |-- settings/        # slice descriptor, settings view model, study metadata
 |   |   |-- strings/         # dictionary, typed useFlashcardI18n, practice-message defaults
@@ -83,7 +86,7 @@ Read the layering inside a slice the same way as before: `domain/` and `settings
 ## Boundary rules
 
 - Register Obsidian-facing commands and services in `src/core/host/main.ts`; keep feature behavior in its domain module.
-- 工作台功能 register through the workbench seam (`WorkbenchFeature.render(host)`) and reach Obsidian chrome only through `WorkbenchHost`. `main.ts` and `settingsTab.ts` must not name a feature's views, ribbon, commands, or settings slice: add a feature to `src/features/index.ts` instead.
+- 工作台 modules run through the workbench seam (`WorkbenchModule.render(host)`). 工作台功能 reach Obsidian chrome only through `WorkbenchHost` and declare identity through the catalog; the 选区助手 uses the lifecycle without becoming a 工作台功能. `main.ts` and `settingsTab.ts` must not name a feature's views, ribbon, commands, or settings slice: add composition in `src/features/index.ts` instead.
 - A feature declares its identity with `host.catalog(entry)` (title, icon, open command id, settings section, availability, how to open) and never adds its own ribbon: the workbench owns the entry point and the home list (ADR-0022). `host.chrome(...)` is only for commands specific to that feature.
 - `Workbench.ring(build)` is the only place host-owned chrome is declared; it is rebuilt with every refresh so it relabels with the interface language.
 - A feature writes settings only through `host.updateSettings(patch)`. The host applies the patch to the settings committed at write time, so a queued write never resurrects a stale slice.
@@ -121,5 +124,6 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0022: the workbench owns the single entry point (ribbon + 工作台首页); features declare identity through the catalog.
 - ADR-0023: one layout module (`.fc-page*` / `.fc-panel*`) owns every view's page shell and panels.
 - ADR-0024: one outbound port (`src/core/net/`) owns requests, credentials, and transport error classification.
+- ADR-0025: the 选区助手 is a 工作台-owned interaction module with feature-owned dictionary and translation adapters and an independent inline query session.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

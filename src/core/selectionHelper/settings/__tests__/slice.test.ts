@@ -4,7 +4,7 @@ import {
 	normalizeSelectionPopupModifier,
 	normalizeSelectionPopupSettings,
 	selectionPopupSettingsSlice,
-} from "../selectionPopupSlice";
+} from "../slice";
 
 describe("selectionPopupSettingsSlice", () => {
 	it("returns default settings", () => {

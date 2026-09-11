@@ -1,4 +1,4 @@
-import type { SelectionPopupSettings } from "../../features/selectionPopup/domain/types";
+import type { SelectionHelperSettings } from "../selectionHelper/domain/types";
 import type { TranslationSettings } from "../../features/translation/domain/types";
 import type { DictionarySettings } from "../../features/dictionary/domain/types";
 import type { AiSettings } from "../ai/types";
@@ -71,7 +71,7 @@ export interface FlashcardSettings extends HostSettings, FlashcardStudySettings 
 	/** Migrated English dictionary tool settings. */
 	dictionary: DictionarySettings;
 	/** Selection popup helper preferences. */
-	selectionPopup: SelectionPopupSettings;
+	selectionPopup: SelectionHelperSettings;
 }
 
 /**

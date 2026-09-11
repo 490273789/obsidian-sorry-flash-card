@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectTranslationDirection } from "../languageDetector";
+import { detectTranslationDirection } from "../selectionDirection";
 
 describe("detectTranslationDirection", () => {
 	it("detects Chinese text as zh-en", () => {

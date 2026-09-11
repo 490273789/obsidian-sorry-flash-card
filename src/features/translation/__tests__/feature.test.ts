@@ -20,6 +20,7 @@ vi.mock("../domain/translationRuntime", () => ({
 		readonly dispose = vi.fn();
 		readonly subscribe = vi.fn(() => () => {});
 		readonly configure = vi.fn();
+		readonly translate = vi.fn();
 		readonly testYoudao = vi.fn();
 		readonly getSnapshot = () => ({
 			settings: {
@@ -109,6 +110,30 @@ describe("translation feature", () => {
 
 		expect(lastRuntime().prefill.mock.calls).toEqual([["selected text"]]);
 		expect(fake.activateView).toHaveBeenCalledWith("flashcard-translator-view");
+
+		feature.stop();
+	});
+
+	it("adapts 选区助手 translation to direction, prefill, and main-tab activation", async () => {
+		const feature = createTranslationFeature({ ai: {} as never, net: {} as never });
+		const fake = createFakeWorkbenchHost(enabledSettings);
+		feature.render(fake.host);
+
+		await feature.selectionAdapter.openPrefilled("selected text");
+
+		const runtime = runtimeSpies.instances[runtimeSpies.instances.length - 1] as {
+			configure: ReturnType<typeof vi.fn>;
+			prefill: ReturnType<typeof vi.fn>;
+			translate: ReturnType<typeof vi.fn>;
+		};
+		expect(runtime.configure).toHaveBeenCalledWith(
+			expect.objectContaining({ direction: "en-zh" }),
+		);
+		expect(runtime.prefill).toHaveBeenCalledWith("selected text");
+		expect(runtime.translate).not.toHaveBeenCalled();
+		expect(fake.activateView).toHaveBeenCalledWith("flashcard-translator-view", {
+			mainTab: true,
+		});
 
 		feature.stop();
 	});

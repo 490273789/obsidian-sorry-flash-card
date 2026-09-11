@@ -1,20 +1,21 @@
 import React, { useEffect, useRef } from "react";
 import { BookOpen, Languages } from "lucide-react";
-import { cls } from "../../../core/shared/classNames";
-import type { SelectionPopupStrings } from "../strings/selectionPopup";
+import { cls } from "../../shared/classNames";
+import type { SelectionHelperStrings } from "../strings/selectionPopup";
 import styles from "./SelectionPopup.module.scss";
 
 export interface SelectionBubbleProps {
-	text: string;
-	isEnglishWord: boolean;
-	strings: SelectionPopupStrings;
+	canLookup: boolean;
+	canTranslate: boolean;
+	strings: SelectionHelperStrings;
 	onLookup: () => void;
 	onTranslate: () => void;
 	onClose: () => void;
 }
 
 export const SelectionBubble = React.memo(function SelectionBubble({
-	isEnglishWord,
+	canLookup,
+	canTranslate,
 	strings,
 	onLookup,
 	onTranslate,
@@ -24,12 +25,12 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 	const translateRef = useRef<HTMLButtonElement | null>(null);
 
 	useEffect(() => {
-		if (isEnglishWord) {
+		if (canLookup) {
 			lookupRef.current?.focus();
 		} else {
 			translateRef.current?.focus();
 		}
-	}, [isEnglishWord]);
+	}, [canLookup]);
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
@@ -43,7 +44,7 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 			if (event.key === "1") {
 				event.preventDefault();
 				event.stopPropagation();
-				if (isEnglishWord) {
+				if (canLookup) {
 					onLookup();
 				} else {
 					onTranslate();
@@ -54,14 +55,14 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 			if (event.key === "2" || event.key === "t" || event.key === "T") {
 				event.preventDefault();
 				event.stopPropagation();
-				onTranslate();
+				if (canTranslate) onTranslate();
 				return;
 			}
 
 			if (event.key === "Enter") {
 				event.preventDefault();
 				event.stopPropagation();
-				if (isEnglishWord) {
+				if (canLookup) {
 					if (document.activeElement === translateRef.current) {
 						onTranslate();
 					} else {
@@ -77,7 +78,7 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown, true);
 		};
-	}, [isEnglishWord, onLookup, onTranslate, onClose]);
+	}, [canLookup, canTranslate, onLookup, onTranslate, onClose]);
 
 	return (
 		<div
@@ -86,7 +87,7 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 			aria-label={strings.settingsHeading}
 			tabIndex={-1}
 		>
-			{isEnglishWord && (
+			{canLookup && (
 				<button
 					ref={lookupRef}
 					type="button"
@@ -102,20 +103,22 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 					<span className={styles.hint}>[1]</span>
 				</button>
 			)}
-			<button
-				ref={translateRef}
-				type="button"
-				className={cls(styles.button, !isEnglishWord && styles.buttonPrimary)}
-				onClick={(e) => {
-					e.stopPropagation();
-					onTranslate();
-				}}
-				title={strings.translate}
-			>
-				<Languages aria-hidden="true" />
-				<span>{strings.translate}</span>
-				<span className={styles.hint}>{isEnglishWord ? "[2]" : "[↵]"}</span>
-			</button>
+			{canTranslate && (
+				<button
+					ref={translateRef}
+					type="button"
+					className={cls(styles.button, !canLookup && styles.buttonPrimary)}
+					onClick={(e) => {
+						e.stopPropagation();
+						onTranslate();
+					}}
+					title={strings.translate}
+				>
+					<Languages aria-hidden="true" />
+					<span>{strings.translate}</span>
+					<span className={styles.hint}>{canLookup ? "[2]" : "[↵]"}</span>
+				</button>
+			)}
 		</div>
 	);
 });

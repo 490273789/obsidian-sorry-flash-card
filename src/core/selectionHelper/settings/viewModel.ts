@@ -1,29 +1,29 @@
 import type {
 	SettingsViewModelDefinition,
 	SettingsViewModelSetting,
-} from "../../../core/settings/viewModel";
-import type { Language } from "../../../core/shared/types";
-import type { SelectionPopupModifier, SelectionPopupSettings } from "../domain/types";
-import { selectionPopupStrings } from "../strings/selectionPopup";
+} from "../../settings/viewModel";
+import type { Language } from "../../shared/types";
+import type { SelectionHelperModifier, SelectionHelperSettings } from "../domain/types";
+import { selectionHelperStrings } from "../strings/selectionPopup";
 
 export interface AvailableDictionaryItem {
 	id: string;
 	label: string;
 }
 
-export interface SelectionPopupSettingsActions {
+export interface SelectionHelperSettingsActions {
 	setEnabled: (enabled: boolean) => Promise<void>;
-	setModifier: (modifier: SelectionPopupModifier) => Promise<void>;
+	setModifier: (modifier: SelectionHelperModifier) => Promise<void>;
 	toggleDictionary: (id: string, enabled: boolean) => Promise<void>;
 }
 
-export function buildSelectionPopupSettingsViewModel(
-	settings: SelectionPopupSettings,
+export function buildSelectionHelperSettingsViewModel(
+	settings: SelectionHelperSettings,
 	availableDictionaries: readonly AvailableDictionaryItem[],
-	actions: SelectionPopupSettingsActions,
+	actions: SelectionHelperSettingsActions,
 	language: Language,
 ): SettingsViewModelDefinition {
-	const strings = selectionPopupStrings(language);
+	const strings = selectionHelperStrings(language);
 
 	const items: SettingsViewModelSetting[] = [
 		{
@@ -52,7 +52,7 @@ export function buildSelectionPopupSettingsViewModel(
 						{ value: "shift", label: strings.modifierShift },
 						{ value: "ctrl", label: strings.modifierCtrl },
 					],
-					onChange: (value) => actions.setModifier(value as SelectionPopupModifier),
+					onChange: (value) => actions.setModifier(value as SelectionHelperModifier),
 				},
 			],
 		},

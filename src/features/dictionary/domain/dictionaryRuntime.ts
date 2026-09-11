@@ -102,6 +102,48 @@ export class DictionaryRuntime {
 		this.favoriteController.resetSession();
 	}
 
+	/** Creates an isolated, short-lived lookup session for the 工作台's 选区助手. */
+	createSelectionLookupSession(
+		query: string,
+		sourceIds: readonly string[],
+	): DictionaryController | null {
+		if (this.disposed) return null;
+		const selected = new Set(sourceIds);
+		const currentDictionary = this.settings.getDictionarySettings();
+		const frozenSources = currentDictionary.sources.filter(
+			(source) => source.enabled && selected.has(source.id),
+		);
+		if (frozenSources.length === 0) return null;
+		const frozenDictionary: DictionarySettings = {
+			...structuredClone(currentDictionary),
+			sources: structuredClone(frozenSources),
+		};
+
+		const scopedSettings: DictionarySettingsStore = {
+			getDictionarySettings: () => ({
+				...structuredClone(frozenDictionary),
+				history: [...this.settings.getDictionarySettings().history],
+			}),
+			updateDictionarySettings: (mutate) => this.settings.updateDictionarySettings(mutate),
+			getLocalDictionaryAdministrationState: () =>
+				this.settings.getLocalDictionaryAdministrationState(),
+			setLocalDictionaryAdministrationState: (state) =>
+				this.settings.setLocalDictionaryAdministrationState(state),
+			save: () => this.settings.save(),
+		};
+		const controller = new DictionaryController(
+			scopedSettings,
+			(source) => this.resolveSource(source, frozenDictionary),
+			async () => {},
+			() => {},
+			this.options.notify,
+			() => this.aiEngineInfo(),
+		);
+		controller.prefill(query);
+		void controller.lookup();
+		return controller;
+	}
+
 	closeLocalSources(): void {
 		for (const source of this.localSources.values()) source.close();
 		this.localSources.clear();
@@ -153,8 +195,10 @@ export class DictionaryRuntime {
 		return { configId, name: config?.name ?? null };
 	}
 
-	private resolveSource(settings: Readonly<DictionarySourceSettings>): DictionarySource {
-		const dictionary = this.options.settings.getDictionarySettings();
+	private resolveSource(
+		settings: Readonly<DictionarySourceSettings>,
+		dictionary: Readonly<DictionarySettings> = this.options.settings.getDictionarySettings(),
+	): DictionarySource {
 		switch (settings.kind) {
 			case "youdao":
 				return new YoudaoDictionarySource(

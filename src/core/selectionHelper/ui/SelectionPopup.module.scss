@@ -78,12 +78,15 @@
 }
 
 .card {
+	margin: 0;
+	padding: 0;
 	width: 380px;
 	max-width: calc(100vw - 32px);
 	max-height: 420px;
 	display: flex;
 	flex-direction: column;
 	background: var(--background-primary);
+	color: inherit;
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 10px;
 	box-shadow:

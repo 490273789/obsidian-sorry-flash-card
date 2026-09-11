@@ -69,7 +69,7 @@
 每个独立视图模块遵循 Colocation 模式：
 
 - `src/features/translation/ui/`：`Translator.module.scss`
-- `src/features/selectionPopup/ui/`：`SelectionPopup.module.scss`
+- `src/core/selectionHelper/ui/`：`SelectionPopup.module.scss`
 - `src/features/dictionary/ui/`：`Dictionary.module.scss`
 - `src/features/flashcards/ui/views/**`：
     - `Home/`：`DeckList.module.scss`

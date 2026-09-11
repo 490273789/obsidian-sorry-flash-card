@@ -11,11 +11,13 @@ import { DictionaryFavoriteView, DictionaryView } from "./ui";
 import { DictionaryLookupModal } from "./obsidian/modals";
 import { DictionarySettingsEditor } from "./obsidian/settingsEditor";
 import { createDictionarySettingsStore } from "./obsidian/settingsStore";
+import { createDictionarySelectionAdapter } from "./selectionAdapter";
+import type { SelectionDictionaryAdapter } from "../../core/selectionHelper/domain/types";
 import { createReactItemView } from "../../core/host/reactItemView";
 import { cls } from "../../core/shared/classNames";
 import styles from "./ui/Dictionary.module.scss";
 import type {
-	WorkbenchFeature,
+	WorkbenchModule,
 	WorkbenchHost,
 	WorkbenchSettingsSection,
 } from "../../core/host/workbench";
@@ -36,8 +38,8 @@ export interface DictionaryFeatureDeps {
 	plugin: Plugin;
 }
 
-export interface DictionaryFeature extends WorkbenchFeature {
-	runtime(): DictionaryRuntime | null;
+export interface DictionaryFeature extends WorkbenchModule {
+	readonly selectionAdapter: SelectionDictionaryAdapter;
 }
 
 /**
@@ -49,6 +51,7 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 	let runtime: DictionaryRuntime | null = null;
 	let editor: DictionarySettingsEditor | null = null;
 	let modal: DictionaryLookupModal | null = null;
+	let activeHost: WorkbenchHost | null = null;
 
 	const openSettings = (host: WorkbenchHost): void => {
 		host.settingsTab.open(DICTIONARY_SECTION_ID);
@@ -144,12 +147,16 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 		modal.open();
 	};
 
-	const openQuery = async (host: WorkbenchHost, query: string): Promise<void> => {
+	const openQuery = async (
+		host: WorkbenchHost,
+		query: string,
+		mainTab = false,
+	): Promise<void> => {
 		const strings = dictionaryStrings(host.settings().language);
 		try {
 			const dictionary = ensureRuntime(host);
 			dictionary.controller.prefill(query);
-			await host.activateView(VIEW_TYPE_DICTIONARY);
+			await host.activateView(VIEW_TYPE_DICTIONARY, mainTab ? { mainTab: true } : undefined);
 			await dictionary.controller.lookup();
 		} catch (error) {
 			console.error("Failed to open the dictionary view:", error);
@@ -157,6 +164,13 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 		}
 	};
 
+	const selectionAdapter = createDictionarySelectionAdapter({
+		runtime: () => runtime,
+		openInMainTab: async (query) => {
+			if (!activeHost) return;
+			await openQuery(activeHost, query, true);
+		},
+	});
 	/**
 	 * The 词典 feature keeps both views registered while disabled: the previous
 	 * adapters rendered this placeholder instead of the lookup UI.
@@ -203,6 +217,7 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 		id: "dictionary",
 
 		render: (host) => {
+			activeHost = host;
 			const dictionary = ensureRuntime(host);
 
 			host.registerView(
@@ -279,12 +294,13 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 		},
 
 		stop: () => {
+			activeHost = null;
 			modal?.close();
 			modal = null;
 			runtime?.dispose();
 			runtime = null;
 		},
 
-		runtime: () => runtime,
+		selectionAdapter,
 	};
 }

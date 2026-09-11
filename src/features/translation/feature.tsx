@@ -5,16 +5,18 @@ import { translationStrings } from "./strings/translation";
 import { translationSettingsStrings } from "./strings/settings";
 import { normalizeTranslationSettings } from "./domain/configuration";
 import { TranslationRuntime } from "./domain/translationRuntime";
+import { detectTranslationDirection } from "./domain/selectionDirection";
 import { translateYoudao } from "./domain/youdao";
 import { createSharedTranslator } from "../../core/i18n";
 import { TranslatorView } from "./ui";
 import { createReactItemView } from "../../core/host/reactItemView";
 import { TranslationSettingsEditor } from "./obsidian/settingsEditor";
 import type {
-	WorkbenchFeature,
+	WorkbenchModule,
 	WorkbenchHost,
 	WorkbenchSettingsSection,
 } from "../../core/host/workbench";
+import type { SelectionTranslationAdapter } from "../../core/selectionHelper/domain/types";
 
 /** Settings section id this feature contributes. */
 export const TRANSLATION_SECTION_ID = "translation";
@@ -30,8 +32,8 @@ export interface TranslationFeatureDeps {
 	net: OutboundPort;
 }
 
-export interface TranslationFeature extends WorkbenchFeature {
-	runtime(): TranslationRuntime | null;
+export interface TranslationFeature extends WorkbenchModule {
+	readonly selectionAdapter: SelectionTranslationAdapter;
 }
 
 /**
@@ -43,6 +45,7 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Translat
 	let editor: TranslationSettingsEditor | null = null;
 	/** Open-view lease handed to the runtime; the last view closing clears the session. */
 	let detachOpenView: (() => void) | null = null;
+	let activeHost: WorkbenchHost | null = null;
 
 	const ensureRuntime = (host: WorkbenchHost): TranslationRuntime => {
 		if (runtime) return runtime;
@@ -96,6 +99,25 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Translat
 		}
 	};
 
+	const selectionAdapter: SelectionTranslationAdapter = {
+		available: () => Boolean(activeHost?.settings().translation.enabled),
+		openPrefilled: async (text) => {
+			if (!activeHost) return;
+			const translation = ensureRuntime(activeHost);
+			const direction = detectTranslationDirection(text);
+			const snapshot = translation.getSnapshot();
+			if (snapshot.settings.direction !== direction) {
+				await translation.configure({ ...snapshot.settings, direction });
+			}
+			translation.prefill(text);
+			try {
+				await activeHost.activateView(VIEW_TYPE_TRANSLATOR, { mainTab: true });
+			} catch {
+				new Notice(translationStrings(activeHost.settings().language).openFailed);
+			}
+		},
+	};
+
 	const section = (
 		host: WorkbenchHost,
 		translation: TranslationRuntime,
@@ -121,6 +143,7 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Translat
 		id: "translation",
 
 		render: (host) => {
+			activeHost = host;
 			const translation = ensureRuntime(host);
 
 			host.registerView(
@@ -182,10 +205,11 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Translat
 		},
 
 		stop: () => {
+			activeHost = null;
 			runtime?.dispose();
 			runtime = null;
 		},
 
-		runtime: () => runtime,
+		selectionAdapter,
 	};
 }
