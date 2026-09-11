@@ -125,11 +125,7 @@
 		var(--background-secondary) 4%
 	);
 	--fc-input-bg-hover: color-mix(in srgb, var(--interactive-accent) 5%, var(--fc-input-bg) 95%);
-	--fc-input-border: color-mix(
-		in srgb,
-		var(--background-modifier-border-hover) 58%,
-		var(--text-muted) 42%
-	);
+	--fc-input-border: var(--fc-control-border);
 	--fc-input-border-focus: var(--fc-control-border-selected);
 
 	/* ── 首页主操作（学习 / 刷题）────────────────────────────── */

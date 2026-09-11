@@ -306,6 +306,10 @@ export function DictionaryView({
 							</legend>
 							<FlashcardInput
 								id="dictionary-query"
+								className={cls(
+									"flashcard-dictionary-search-input",
+									styles.searchInput,
+								)}
 								value={state.input}
 								maxLength={128}
 								autoComplete="off"

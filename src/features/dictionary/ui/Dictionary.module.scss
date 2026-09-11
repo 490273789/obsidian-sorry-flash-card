@@ -78,30 +78,38 @@
 		background: var(--fc-input-bg);
 	}
 
-	:global(.flashcard-input) {
+	.searchInput,
+	:global(.flashcard-input),
+	:global(input) {
 		flex: 1 1 auto;
 		min-width: 0;
 		height: var(--fc-control-md);
 		min-height: var(--fc-control-md);
 		margin: 0;
 		padding: 0 var(--fc-space-2);
-		border: none;
-		border-radius: 0;
-		background: transparent;
-		box-shadow: none;
+		border: none !important;
+		border-radius: 0 !important;
+		background: transparent !important;
+		box-shadow: none !important;
+		outline: none !important;
 		color: var(--fc-text);
 
+		&:hover,
 		&:hover:not(:disabled):not([readonly]) {
-			border-color: transparent;
-			background: transparent;
+			border: none !important;
+			border-color: transparent !important;
+			background: transparent !important;
+			box-shadow: none !important;
+			outline: none !important;
 		}
 
 		&:focus,
 		&:focus-visible {
-			border-color: transparent;
-			background: transparent;
-			outline: none;
-			box-shadow: none;
+			border: none !important;
+			border-color: transparent !important;
+			background: transparent !important;
+			outline: none !important;
+			box-shadow: none !important;
 		}
 	}
 

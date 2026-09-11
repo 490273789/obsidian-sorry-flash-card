@@ -20,7 +20,7 @@
 		box-shadow var(--fc-motion-quick) ease;
 
 	&:hover:not(:disabled) {
-		border-color: var(--fc-control-border);
+		border-color: var(--fc-control-border-hover);
 		background: var(--fc-input-bg-hover);
 	}
 
