@@ -14,8 +14,8 @@
 - Reply in Chinese unless the user requests another language.
 - Use Obsidian APIs for vault, view, settings, notices, secrets, requests, and Markdown rendering; do not replace them with browser-only assumptions.
 - Preserve module boundaries and domain invariants. Read the guide for the area before changing behavior in it.
-- After any code change, run `pnpm run build` at minimum, and report every check and manual verification you did not run. UI and styling changes need no new tests; behavior changes need focused tests beside the affected module.
-- Never whole-read the generated and data artifacts: `data.json` (1.7 MB) and `main.js` (586 KB) will consume the context in one call. Grep them or read bounded ranges instead.
+- After any code change, run `pnpm run build` at minimum. Report checks performed and any required checks or relevant manual verification left incomplete. Purely visual and styling changes need no new tests; behavior changes, including UI interactions, need focused tests beside the affected module.
+- Use targeted searches or bounded reads for large generated and data artifacts such as `data.json` and `main.js`; never read them in full.
 
 ## Progressive disclosure
 
@@ -36,7 +36,7 @@ Read only the guides relevant to the current task; a task crossing several areas
 
 ## Subagent roles
 
-Dispatch a role by naming it and its contract in a `subagent` prompt; the same five exist as native agents under `~/.codex/agents/`.
+Use the runtime's subagent tool and explicit role selector (in this Codex runtime, `collaboration.spawn_agent` with `agent_type`). Choose from roles exposed by the current runtime; naming a role in the prompt alone does not select its configuration. If a suitable role is unavailable, handle the work locally.
 
 | Role       | Use for                                                                                           | Return                                                                   |
 | ---------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
@@ -46,10 +46,14 @@ Dispatch a role by naming it and its contract in a `subagent` prompt; the same f
 | `solver`   | difficult bugs, cross-module or async/state work, performance, architecture-sensitive refactoring | root cause, implementation performed, risks, validation performed        |
 | `reviewer` | independent verification after meaningful changes                                                 | findings by severity, each with affected file, impact, reproduction, fix |
 
-- Delegate when the work would otherwise flood your context with searches, logs, or file reads; a few tool calls are cheaper done directly.
-- Prefer the cheapest role that can finish reliably, and escalate on missing reasoning capability, not on task size.
-- Keep the noise in the child: logs, full file contents, and broad search results stay in its context.
-- Treat every child's output as evidence, never as automatically correct — you own the final result.
+- Delegate bounded, independent tasks when doing so reduces substantial context load or enables useful parallel work, and the primary agent has other useful work to continue. Handle tasks requiring only a few tool calls locally.
+- Choose the lightest suitable role and use its configured model and reasoning settings. If the task exceeds its capabilities, have the child report findings and blockers so the primary agent can take over or escalate.
+- Each task must specify its objective, relevant context and guide paths, scope, file ownership, completion criteria, validation requirements, and expected output. Pass only the context needed for that task.
+- Agents share the working directory. Assign non-overlapping write scopes to concurrent implementation tasks; sequence dependent or overlapping changes. Preserve other agents' edits.
+- Keep explorer and reviewer tasks read-only. Use tester to execute validation and report failures to the implementation owner, rather than make source changes. Coordinate builds and other commands that write shared artifacts; run final integration checks after edits are stable.
+- Continue independent work while children run, without duplicating their tasks. Collect all required results before declaring completion.
+- Keep raw logs, full file contents, and broad search results in the child context. Return concise findings with file references, validation evidence, uncertainties, and blockers.
+- Treat every child's output as evidence, never as automatically correct. The primary agent inspects actual changes and validation results, resolves findings, and verifies the integrated result.
 
 ## Reference lookup
 

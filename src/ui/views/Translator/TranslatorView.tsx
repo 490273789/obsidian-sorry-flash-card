@@ -198,12 +198,11 @@ export const TranslatorView = React.memo(function TranslatorView({
 									</div>
 									<FlashcardButton
 										size="sm"
+										variant="ghost"
 										icon={Copy}
 										disabled={!result.text || result.status === "loading"}
 										onClick={() => void copyResult(result)}
-									>
-										{strings.copy}
-									</FlashcardButton>
+									></FlashcardButton>
 								</header>
 								<FlashcardTextarea
 									id={`${viewId}-translator-output-${result.id}`}

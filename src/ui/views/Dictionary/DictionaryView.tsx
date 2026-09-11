@@ -345,12 +345,12 @@ export function DictionaryView({
 								size="sm"
 								icon={Bookmark}
 								onClick={() => void controller.openFavorite()}
-							>
-								{strings.favorite}
-							</FlashcardButton>
-							<FlashcardButton size="sm" icon={Copy} onClick={() => void copyQuery()}>
-								{strings.copy}
-							</FlashcardButton>
+							></FlashcardButton>
+							<FlashcardButton
+								size="sm"
+								icon={Copy}
+								onClick={() => void copyQuery()}
+							></FlashcardButton>
 						</div>
 					</section>
 				)}

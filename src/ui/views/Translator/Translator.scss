@@ -74,7 +74,7 @@
 	grid-template-rows: auto minmax(0, 1fr) auto;
 	overflow: hidden;
 	border: 1px solid var(--fc-line);
-	border-radius: var(--fc-radius-sm);
+	border-radius: var(--fc-radius-md);
 	background: var(--fc-surface-section);
 	transition: border-color var(--fc-motion-quick) ease;
 
@@ -92,7 +92,7 @@
 	}
 
 	> header {
-		min-height: var(--fc-control-touch);
+		min-height: var(--fc-header-height);
 		border-bottom: 1px solid var(--fc-line-soft);
 
 		label,
@@ -111,7 +111,7 @@
 		height: 100%;
 		padding: var(--fc-space-4);
 		border: 0;
-		border-radius: 0;
+		border-radius: 0 0 var(--fc-radius-md) var(--fc-radius-md);
 		background: transparent;
 		line-height: var(--fc-line-body);
 		resize: none;
@@ -119,6 +119,9 @@
 		&:focus,
 		&:focus-visible {
 			box-shadow: none;
+			border-left: 0;
+			border-right: 0;
+			border-bottom: 0;
 		}
 	}
 
@@ -139,7 +142,7 @@
 }
 
 .flashcard-translator-result-title {
-	display: grid;
+	display: flex;
 	min-width: 0;
 	gap: var(--fc-space-1);
 

@@ -154,13 +154,8 @@
 .flashcard-header-center {
 	justify-content: flex-start;
 	color: var(--fc-text);
-	font-weight: var(--fc-weight-semibold);
+	font-weight: var(--fc-weight-bold);
 	text-align: left;
-}
-
-.flashcard-header-title-content {
-	min-width: 0;
-	font-size: var(--fc-font-lg);
 }
 
 .flashcard-header-badge {
@@ -495,10 +490,10 @@
 
 .flashcard-header-stat-value {
 	flex: 0 0 auto;
-	font-size: var(--fc-font-md);
+	font-size: var(--fc-font-sm);
 	line-height: 1;
 	font-family: var(--fc-font-ui);
-	font-weight: var(--fc-weight-semibold);
+	font-weight: var(--fc-weight-regular);
 }
 
 .flashcard-header-stat-value.tone-blue,
