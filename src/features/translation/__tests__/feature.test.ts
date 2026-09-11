@@ -56,7 +56,7 @@ describe("translation feature", () => {
 	});
 
 	it("registers its view, its chrome, and its settings section", () => {
-		const feature = createTranslationFeature({ ai: {} as never });
+		const feature = createTranslationFeature({ ai: {} as never, net: {} as never });
 		const fake = createFakeWorkbenchHost(enabledSettings);
 
 		feature.render(fake.host);
@@ -81,7 +81,7 @@ describe("translation feature", () => {
 	});
 
 	it("adds no chrome while translation is disabled", () => {
-		const feature = createTranslationFeature({ ai: {} as never });
+		const feature = createTranslationFeature({ ai: {} as never, net: {} as never });
 		const fake = createFakeWorkbenchHost({
 			...DEFAULT_SETTINGS,
 			translation: { ...DEFAULT_SETTINGS.translation, enabled: false },
@@ -98,7 +98,7 @@ describe("translation feature", () => {
 	});
 
 	it("only prefills the selection, without translating or touching the note", () => {
-		const feature = createTranslationFeature({ ai: {} as never });
+		const feature = createTranslationFeature({ ai: {} as never, net: {} as never });
 		const fake = createFakeWorkbenchHost(enabledSettings);
 		feature.render(fake.host);
 
@@ -113,7 +113,7 @@ describe("translation feature", () => {
 	});
 
 	it("reports a view open failure without rejecting", async () => {
-		const feature = createTranslationFeature({ ai: {} as never });
+		const feature = createTranslationFeature({ ai: {} as never, net: {} as never });
 		const fake = createFakeWorkbenchHost(enabledSettings);
 		fake.activateView.mockRejectedValue(new Error("private diagnostic"));
 		feature.render(fake.host);
@@ -129,7 +129,7 @@ describe("translation feature", () => {
 	});
 
 	it("builds one runtime and disposes it on stop", () => {
-		const feature = createTranslationFeature({ ai: {} as never });
+		const feature = createTranslationFeature({ ai: {} as never, net: {} as never });
 		const fake = createFakeWorkbenchHost(enabledSettings);
 
 		feature.render(fake.host);

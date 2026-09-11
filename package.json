@@ -13,6 +13,8 @@
 		"typecheck": "tsc --noEmit --skipLibCheck",
 		"dictionary:engine": "cargo build --release --target wasm32-unknown-unknown -p dictionary-engine && wasm-bindgen target/wasm32-unknown-unknown/release/dictionary_engine.wasm --target web --out-dir src/features/dictionary/domain/engine --out-name dictionary_engine",
 		"build": "pnpm run typecheck && vite build",
+		"artifacts:check": "node scripts/check-artifact-size.mjs",
+		"architecture:check": "node scripts/check-module-boundaries.mjs",
 		"deploy": "pnpm run build && node scripts/deploy-icloud.mjs",
 		"version": "node scripts/version-bump.mjs && git add manifest.json versions.json",
 		"release": "pnpm version --message \"chore(release): %s\" --tag-version-prefix \"\"",
@@ -23,7 +25,7 @@
 		"lint:fix": "oxlint src --fix",
 		"format": "oxfmt .",
 		"format:check": "oxfmt . --check",
-		"check:all": "pnpm run format:check && pnpm run lint && pnpm run test",
+		"check:all": "pnpm run format:check && pnpm run lint && pnpm run architecture:check && pnpm run test",
 		"setup-hooks": "node scripts/setup-hooks.mjs",
 		"prepare": "node scripts/setup-hooks.mjs"
 	},

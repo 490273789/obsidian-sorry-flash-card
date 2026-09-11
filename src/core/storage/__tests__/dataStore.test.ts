@@ -85,7 +85,7 @@ function makeCard(
 	};
 }
 
-function serializeDeck(deck: Deck): StoredData["decks"][string] {
+function serializeDeck(deck: Deck): NonNullable<StoredData["decks"]>[string] {
 	return {
 		...deck,
 		cards: deck.cards.map((card) => ({
@@ -272,11 +272,11 @@ describe("DataStore settings", () => {
 			availableTags: ["#单词", "#短语"],
 		});
 
-		expect(plugin.saveData).toHaveBeenLastCalledWith(
-			expect.objectContaining({
-				availableTags: ["#单词", "#短语"],
-			}),
-		);
+		const saved = plugin.saveData.mock.calls[
+			plugin.saveData.mock.calls.length - 1
+		]?.[0] as StoredData;
+		expect(saved).toMatchObject({ schemaVersion: 2 });
+		expect(saved).not.toHaveProperty("availableTags");
 		expect(store.hasAvailableTagsSnapshot()).toBe(true);
 		expect(store.getAvailableTags()).toEqual(["#单词", "#短语"]);
 	});
@@ -391,6 +391,128 @@ describe("DataStore settings", () => {
 			wordLearningDecks: { "notes/deck.md": true },
 		});
 		expect(store.getRevision()).toBe(revision + 1);
+	});
+
+	it("migrates legacy deck content into compact learning state without retaining card text", async () => {
+		const card = makeCard("stable-card", State.Review, new Date("2026-08-01T00:00:00.000Z"), 0);
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [card],
+			studyCount: 3,
+			lastStudied: "2026-08-02T00:00:00.000Z",
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-08-02T00:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+
+		await new DataStore(plugin as never).loadSettings();
+
+		const saved = plugin.saveData.mock.calls[0]?.[0] as StoredData;
+		expect(saved).toMatchObject({
+			schemaVersion: 2,
+			learning: {
+				cards: { [card.id]: {} },
+				decks: { [deck.id]: { studyCount: 3, lastStudied: deck.lastStudied } },
+			},
+		});
+		expect(saved.learning?.cards[card.id]).not.toHaveProperty("sourceFile");
+		expect(JSON.stringify(saved)).not.toContain(card.front);
+		expect(JSON.stringify(saved)).not.toContain(card.back);
+	});
+
+	it("compacts early V2 documents that still duplicate Markdown card placement", async () => {
+		const card = makeCard("stable-card", State.Review, new Date("2026-08-01T00:00:00.000Z"), 0);
+		const plugin = makePlugin({
+			schemaVersion: 2,
+			settings: makeSettings(),
+			learning: {
+				cards: {
+					[card.id]: {
+						fsrsCard: serializeDeck({
+							id: "notes/deck.md",
+							name: "deck",
+							filePath: "notes/deck.md",
+							tag: "",
+							cards: [card],
+							studyCount: 0,
+							lastStudied: null,
+						}).cards[0]!.fsrsCard,
+						sourceFile: card.sourceFile,
+					},
+				},
+				decks: {},
+				studyHistory: [],
+				spellingProgress: {},
+				continuity: { sources: {}, issues: [], journal: null },
+			},
+			cache: { deckIndexVersion: 1 },
+		} satisfies StoredData);
+
+		await new DataStore(plugin as never).loadSettings();
+
+		const saved = plugin.saveData.mock.calls[0]?.[0] as StoredData;
+		expect(saved.learning?.cards[card.id]).not.toHaveProperty("sourceFile");
+	});
+
+	it("serializes concurrent session transitions from the latest committed state", async () => {
+		const card = makeCard("stable-card", State.New, new Date("2026-08-01T00:00:00.000Z"), 0);
+		const deck: Deck = {
+			id: "notes/deck.md",
+			name: "deck",
+			filePath: "notes/deck.md",
+			tag: "#单词",
+			cards: [card],
+			studyCount: 0,
+			lastStudied: null,
+		};
+		const plugin = makePlugin({
+			decks: { [deck.id]: serializeDeck(deck) },
+			lastSync: "2026-08-02T00:00:00.000Z",
+			settings: makeSettings(),
+		} satisfies StoredData);
+		const store = new DataStore(plugin as never);
+		await store.loadSettings();
+		plugin.saveData.mockClear();
+
+		await Promise.all([
+			store.commitSessionTransition({
+				cardUpdates: [],
+				spellingAttempts: [],
+				incrementStudyCountFor: [deck.id],
+				historyEntries: [
+					{
+						deckId: deck.id,
+						deckName: deck.name,
+						mode: "study",
+						cardCount: 1,
+						duration: 10,
+					},
+				],
+			}),
+			store.commitSessionTransition({
+				cardUpdates: [],
+				spellingAttempts: [],
+				incrementStudyCountFor: [deck.id],
+				historyEntries: [
+					{
+						deckId: deck.id,
+						deckName: deck.name,
+						mode: "study",
+						cardCount: 1,
+						duration: 20,
+					},
+				],
+			}),
+		]);
+
+		expect(store.getDeck(deck.id)?.studyCount).toBe(2);
+		expect(store.getStudyHistory()).toHaveLength(2);
+		expect(plugin.saveData).toHaveBeenCalledTimes(2);
 	});
 
 	it("persists independent spelling progress without changing FSRS state", async () => {
@@ -573,7 +695,7 @@ describe("DataStore settings", () => {
 		const saved = plugin.saveData.mock.calls[
 			plugin.saveData.mock.calls.length - 1
 		]?.[0] as StoredData;
-		expect(saved.decks[targetDeckId]?.cards[0]?.fsrsCard.state).toBe(State.Review);
+		expect(saved.learning?.cards[card.id]?.fsrsCard.state).toBe(State.Review);
 	});
 
 	it("prunes progress for cards deleted from a retained deck", async () => {
@@ -835,10 +957,11 @@ describe("DataStore deck scanning and study plans", () => {
 		expect(dates.size).toBe(20);
 		expect(dates.has("2026-07-03")).toBe(true);
 		expect(dates.has("2026-06-01")).toBe(false);
-		expect(plugin.saveData).toHaveBeenCalledTimes(1);
+		// The legacy fixture is migrated on load, then the visit writes the new entry.
+		expect(plugin.saveData).toHaveBeenCalledTimes(2);
 	});
 
-	it("preserves card object identities and reuses serialized card cache for untouched cards", async () => {
+	it("keeps card content out of data.json while persisting only changed learning state", async () => {
 		const card1 = makeCard("card-1", State.New, new Date("2026-08-01T00:00:00.000Z"), 0);
 		const card2 = makeCard("card-2", State.New, new Date("2026-08-01T00:00:00.000Z"), 1);
 		const card3 = makeCard("card-3", State.New, new Date("2026-08-01T00:00:00.000Z"), 2);
@@ -881,10 +1004,11 @@ describe("DataStore deck scanning and study plans", () => {
 		expect(nextDeck.cards[1]).toBe(initialCard2);
 		expect(nextDeck.cards[2]).toBe(initialCard3);
 
-		// Verify serialized cards for untouched cards were cached and reused
+		// The Sync-tracked document contains only learner state, never Markdown content.
 		const firstSavedData = plugin.saveData.mock.calls[0]![0] as StoredData;
-		const savedCard2First = firstSavedData.decks[deck.id]!.cards[1]!;
-		const savedCard3First = firstSavedData.decks[deck.id]!.cards[2]!;
+		expect(firstSavedData.decks).toBeUndefined();
+		expect(firstSavedData.learning?.cards[card2.id]?.fsrsCard.state).toBe(State.New);
+		expect(firstSavedData.learning?.cards[card3.id]?.fsrsCard.state).toBe(State.New);
 
 		// Second transition updating only card-1 again
 		const updatedFsrs2 = { ...nextDeck.cards[0]!.fsrsCard, reps: 2 };
@@ -896,11 +1020,7 @@ describe("DataStore deck scanning and study plans", () => {
 		});
 
 		const secondSavedData = plugin.saveData.mock.calls[1]![0] as StoredData;
-		const savedCard2Second = secondSavedData.decks[deck.id]!.cards[1]!;
-		const savedCard3Second = secondSavedData.decks[deck.id]!.cards[2]!;
-
-		// SerializedCard for untouched cards must be the identical cached object instance
-		expect(savedCard2Second).toBe(savedCard2First);
-		expect(savedCard3Second).toBe(savedCard3First);
+		expect(secondSavedData.learning?.cards[card2.id]?.fsrsCard.state).toBe(State.New);
+		expect(secondSavedData.learning?.cards[card3.id]?.fsrsCard.state).toBe(State.New);
 	});
 });

@@ -2,6 +2,7 @@ import type { Plugin } from "obsidian";
 import type { AiService } from "../core/ai";
 import type { DataStore } from "../core/storage/dataStore";
 import type { WorkbenchFeature } from "../core/host/workbench";
+import type { OutboundPort } from "../core/net";
 import { createDictionaryFeature } from "./dictionary/feature";
 import { createFlashcardFeature } from "./flashcards/feature";
 import { createTranslationFeature } from "./translation/feature";
@@ -10,6 +11,7 @@ export interface WorkbenchFeatureDeps {
 	ai: AiService;
 	dataStore: DataStore;
 	plugin: Plugin;
+	net: OutboundPort;
 }
 
 /**
@@ -19,8 +21,8 @@ export interface WorkbenchFeatureDeps {
  */
 export function createWorkbenchFeatures(deps: WorkbenchFeatureDeps): WorkbenchFeature[] {
 	return [
-		createFlashcardFeature({ dataStore: deps.dataStore }),
-		createTranslationFeature({ ai: deps.ai }),
-		createDictionaryFeature({ ai: deps.ai, plugin: deps.plugin }),
+		createFlashcardFeature({ dataStore: deps.dataStore, net: deps.net }),
+		createTranslationFeature({ ai: deps.ai, net: deps.net }),
+		createDictionaryFeature({ ai: deps.ai, net: deps.net, plugin: deps.plugin }),
 	];
 }

@@ -1,5 +1,6 @@
-import { Notice, requestUrl } from "obsidian";
+import { Notice } from "obsidian";
 import type { AiService } from "../../core/ai";
+import { TransportError, type OutboundPort } from "../../core/net";
 import { translationStrings } from "./strings/translation";
 import { translationSettingsStrings } from "./strings/settings";
 import { normalizeTranslationSettings } from "./domain/configuration";
@@ -26,6 +27,7 @@ const SELECTION_COMMAND_ID = "translate-selection";
 
 export interface TranslationFeatureDeps {
 	ai: AiService;
+	net: OutboundPort;
 }
 
 /**
@@ -52,10 +54,28 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Workbenc
 					text,
 					direction,
 					{
-						readSecret: (id) => host.app.secretStorage.getSecret(id),
+						readSecret: (id) => deps.net.readSecret(id),
 						request: async (request) => {
-							const response = await requestUrl({ ...request, throw: false });
-							return { status: response.status, text: response.text };
+							try {
+								const response = await deps.net.request({
+									label: "translation-youdao",
+									url: request.url,
+									method: request.method,
+									headers: request.headers,
+									body:
+										typeof request.body === "string" ? request.body : undefined,
+									timeoutMs: 0,
+								});
+								return { status: response.status, text: response.text };
+							} catch (error) {
+								if (error instanceof TransportError) {
+									return {
+										status: error.httpStatus ?? 0,
+										text: error.responseText ?? "",
+									};
+								}
+								throw error;
+							}
 						},
 					},
 					signal,

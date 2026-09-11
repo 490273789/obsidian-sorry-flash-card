@@ -78,7 +78,12 @@ export function createOutboundPort(options: OutboundPortOptions): OutboundPort {
 						);
 						return;
 					}
-					finish(undefined, { status: response.status, text: response.text });
+					finish(undefined, {
+						status: response.status,
+						text: response.text,
+						arrayBuffer: response.arrayBuffer,
+						headers: response.headers,
+					});
 				},
 				(error: unknown) => finish(new TransportError("network", { cause: error })),
 			);

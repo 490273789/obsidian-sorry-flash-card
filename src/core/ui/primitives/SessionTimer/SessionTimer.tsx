@@ -22,12 +22,17 @@ export const SessionTimer = memo(function SessionTimer({
 	const [elapsedTime, setElapsedTime] = useState(() => getElapsedSeconds(startTime));
 
 	useEffect(() => {
-		setElapsedTime(getElapsedSeconds(startTime));
+		const initialUpdate = window.setTimeout(() => {
+			setElapsedTime(getElapsedSeconds(startTime));
+		}, 0);
 		const interval = window.setInterval(() => {
 			setElapsedTime(getElapsedSeconds(startTime));
 		}, 1000);
 
-		return () => window.clearInterval(interval);
+		return () => {
+			window.clearTimeout(initialUpdate);
+			window.clearInterval(interval);
+		};
 	}, [startTime]);
 
 	return <span className={className}>{formatElapsedTime(elapsedTime)}</span>;

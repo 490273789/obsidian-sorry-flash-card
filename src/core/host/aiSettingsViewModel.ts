@@ -6,7 +6,7 @@ import type {
 	SettingsViewModelSetting,
 	SettingsViewModelControl,
 	SettingsActionResult,
-} from "../../features/flashcards/settings/viewModel";
+} from "../settings/viewModel";
 
 export type AiViewMode = "list" | "form";
 

@@ -22,6 +22,10 @@ styles.css
 # obsidian
 data.json
 
+# Local, rebuildable plugin resources. Critical learning state remains in data.json.
+cache/deck-index.json
+data.backup-v*.json
+
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 

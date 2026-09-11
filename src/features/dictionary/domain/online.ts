@@ -1,9 +1,4 @@
-import {
-	request as obsidianRequest,
-	requestUrl,
-	type RequestUrlParam,
-	type RequestUrlResponse,
-} from "obsidian";
+import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 import { dictionaryText } from "./messages";
 import { prepareDictionarySandboxDocument, type SandboxDocument } from "./sandbox-document";
 import {
@@ -119,7 +114,7 @@ function errorForStatus(status: number): DictionaryError {
 
 export async function requestOnlineResponse(
 	request: RequestUrlParam,
-	execute: OnlineRequestExecutor = requestUrl,
+	execute: OnlineRequestExecutor,
 ): Promise<RequestUrlResponse> {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	try {
@@ -145,7 +140,7 @@ export async function requestOnlineResponse(
 
 export async function requestOnlineDictionary(
 	url: string,
-	execute: OnlineRequestExecutor = requestUrl,
+	execute: OnlineRequestExecutor,
 	headers: Readonly<Record<string, string>> = {},
 ): Promise<string> {
 	const response = await requestOnlineResponse(
@@ -165,7 +160,7 @@ export async function requestOnlineDictionary(
 
 export async function requestOnlineText(
 	request: RequestUrlParam,
-	execute: OnlineTextRequestExecutor = obsidianRequest,
+	execute: OnlineTextRequestExecutor,
 ): Promise<string> {
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	try {

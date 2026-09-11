@@ -1,4 +1,3 @@
-import { requestUrl } from "obsidian";
 import { dictionaryText } from "./messages";
 import { buildYoudaoV3Body } from "../../../core/shared/youdaoSign";
 import type { YoudaoDictionarySettings } from "./types";
@@ -289,7 +288,7 @@ export class YoudaoDictionarySource implements DictionarySource {
 
 	constructor(
 		private readonly settings: Readonly<YoudaoDictionarySettings>,
-		private readonly execute: OnlineRequestExecutor = requestUrl,
+		private readonly execute: OnlineRequestExecutor,
 	) {}
 
 	async lookup(query: DictionaryQuery): Promise<DictionaryResult> {

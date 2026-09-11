@@ -1,5 +1,5 @@
 import type { App, Command, Editor, Hotkey, ItemView, Plugin, WorkspaceLeaf } from "obsidian";
-import type { SettingsViewModelDefinition } from "../../features/flashcards/settings/viewModel";
+import type { SettingsViewModelDefinition } from "../settings/viewModel";
 import type { FlashcardSettings, Language } from "../shared/types";
 
 /**

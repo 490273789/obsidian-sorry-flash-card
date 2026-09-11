@@ -104,7 +104,10 @@ function createDataStore() {
 }
 
 function renderFeature() {
-	const feature = createFlashcardFeature({ dataStore: createDataStore() as never });
+	const feature = createFlashcardFeature({
+		dataStore: createDataStore() as never,
+		net: { request: vi.fn(), requestHostPinned: vi.fn(), readSecret: vi.fn() },
+	});
 	const fake = createFakeWorkbenchHost(DEFAULT_SETTINGS);
 	feature.render(fake.host);
 	return { feature, fake };

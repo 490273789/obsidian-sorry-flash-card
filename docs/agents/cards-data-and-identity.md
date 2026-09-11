@@ -6,8 +6,9 @@ Read this guide before changing Markdown card syntax, parsing, indexing, card so
 
 - The user's Markdown notes are authoritative for card content.
 - A deck ID is its source file path. Changing this affects persisted deck settings, history, and learning state.
-- `DataStore` owns the unified persisted document: settings, derived deck cache, study history, spelling progress, discovered tags, FSRS state, and card-identity continuity state.
-- Persist through `DataStore.saveSettings()`, `DataStore.save()`, or its atomic session/continuity adapters. Do not add independent plugin-data writes.
+- `DataStore` owns persisted learning state and the local deck-index cache. `data.json` contains settings, FSRS state keyed by stable card identity, study history, spelling progress, deck statistics, and card-identity continuity state. It must not contain card front/back/explanation text, parsed tags, or a full derived deck index.
+- `cache/deck-index.json` is local-only and may contain parsed card text, tags, source locations, and source snapshots. It is not Sync-tracked and must always be recoverable by scanning Markdown sources.
+- Persist through `DataStore.saveSettings()`, `DataStore.save()`, or its atomic session/continuity adapters. Do not add independent plugin-data writes; its write queue owns ordering and external Sync reloads.
 - Preserve backward-compatible normalization in `loadSettings()`, including legacy `flashcardTag` to `flashcardTags` migration.
 - Preserve FSRS card state when reparsing or rebuilding a deck index.
 

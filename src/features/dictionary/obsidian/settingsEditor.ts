@@ -7,12 +7,7 @@ import {
 } from "../domain/configuration";
 import type { DictionaryRuntime } from "../domain/dictionaryRuntime";
 import type { LocalDictionaryAdministrationFailureCode } from "../domain/local-administration";
-import type {
-	DictionarySettings,
-	PersistedYoudaoDictionarySettings,
-	YoudaoDictionarySettings,
-} from "../domain/types";
-import { YoudaoDictionarySource } from "../domain/youdao";
+import type { DictionarySettings } from "../domain/types";
 import { dictionaryStrings, type DictionaryStrings } from "../strings/dictionary";
 import type { Language } from "../../../core/shared/types";
 import {
@@ -20,7 +15,7 @@ import {
 	formatDictionaryBytes,
 	type DictionarySettingsEditorActions,
 } from "../settings/viewModel";
-import type { SettingsViewModelDefinition } from "../../flashcards/settings/viewModel";
+import type { SettingsViewModelDefinition } from "../../../core/settings/viewModel";
 import { pickLocalDictionaryFiles } from "./localDictionaryFilePicker";
 import { confirmLocalDictionaryDeletion } from "./modals";
 
@@ -169,10 +164,7 @@ export class DictionarySettingsEditor {
 		this.testing = true;
 		this.refresh();
 		try {
-			const persisted = this.runtime.settings.getDictionarySettings().youdao;
-			await new YoudaoDictionarySource(this.resolveYoudao(persisted)).lookup({
-				text: "test",
-			});
+			await this.runtime.testYoudao();
 			new Notice(strings.testSuccess);
 		} catch (error) {
 			const detail = error instanceof Error && error.message ? ` ${error.message}` : "";
@@ -180,30 +172,6 @@ export class DictionarySettingsEditor {
 		} finally {
 			this.testing = false;
 			this.refresh();
-		}
-	}
-
-	private resolveYoudao(
-		persisted: Readonly<PersistedYoudaoDictionarySettings>,
-	): YoudaoDictionarySettings {
-		const dictionaries = [...persisted.dictionaries];
-		if (persisted.accessMode === "free") {
-			return { accessMode: "free", appKey: "", appSecret: "", dictionaries };
-		}
-		return {
-			accessMode: "official",
-			appKey: this.readSecret(persisted.appKeySecretId),
-			appSecret: this.readSecret(persisted.appSecretSecretId),
-			dictionaries,
-		};
-	}
-
-	private readSecret(secretId: string): string {
-		if (!secretId) return "";
-		try {
-			return this.runtime.app.secretStorage.getSecret(secretId) ?? "";
-		} catch {
-			return "";
 		}
 	}
 

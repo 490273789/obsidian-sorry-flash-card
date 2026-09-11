@@ -11,16 +11,18 @@ import { FlashcardSettings } from "../shared/types";
 import { DEFAULT_SETTINGS } from "./settingsSlices";
 import { DataStore } from "../storage/dataStore";
 import { FlashcardSettingTab } from "./settingsTab";
+import { createOutboundPort, type OutboundPort } from "../net";
 
 /**
  * The composition root: it owns the settings document, its write queue, and the
  * shared services every feature may use. Feature behavior lives in
  * `src/obsidian/features/`, reached through the workbench seam.
  */
-export default class FlashcardPlugin extends Plugin {
+export default class StudyStudioPlugin extends Plugin {
 	settings: FlashcardSettings = DEFAULT_SETTINGS;
 	dataStore!: DataStore;
 	aiService!: AiService;
+	net!: OutboundPort;
 	workbench!: Workbench;
 	private pluginSettingsTab: FlashcardSettingTab | null = null;
 	private settingsWriteQueue: Promise<void> = Promise.resolve();
@@ -30,10 +32,12 @@ export default class FlashcardPlugin extends Plugin {
 		// loadSettings() performs a single disk read: settings + decks + history.
 		// load() is a no-op when called right after (data already in memory).
 		this.settings = await this.dataStore.loadSettings();
+		this.net = createOutboundPort({ app: this.app, defaultTimeoutMs: 0 });
 		this.aiService = createObsidianAiService(
 			this.app,
 			this.settings.ai,
 			this.persistAiSettings,
+			this.net,
 		);
 		await this.dataStore.load();
 
@@ -46,6 +50,7 @@ export default class FlashcardPlugin extends Plugin {
 				createWorkbenchFeatures({
 					ai: this.aiService,
 					dataStore: this.dataStore,
+					net: this.net,
 					plugin: this,
 				}),
 		});
@@ -73,6 +78,20 @@ export default class FlashcardPlugin extends Plugin {
 	onunload() {
 		this.workbench?.dispose();
 		this.aiService?.dispose();
+	}
+
+	/** Obsidian Sync changed data.json; reload the authoritative document as one transition. */
+	async onExternalSettingsChange(): Promise<void> {
+		if (!this.dataStore) return;
+		await this.settingsWriteQueue;
+		try {
+			await this.dataStore.reloadExternalSettings();
+			const settings = this.dataStore.getSettings();
+			this.aiService?.replaceSettings(settings.ai);
+			this.publishSettings(settings);
+		} catch (error) {
+			console.error("Failed to reload externally synchronized StudyStudio settings:", error);
+		}
 	}
 
 	/**

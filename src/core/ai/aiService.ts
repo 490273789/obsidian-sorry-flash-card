@@ -177,6 +177,18 @@ export class AiService {
 		this.listeners.clear();
 	}
 
+	/** Replace settings after Obsidian Sync updates the shared data.json document. */
+	replaceSettings(settings: unknown): void {
+		this.assertActive();
+		const next = normalizeAiSettings(settings);
+		for (const previous of this.settings.configs) {
+			if (!next.configs.some((current) => connectionKey(current) === connectionKey(previous)))
+				this.models.delete(connectionKey(previous));
+		}
+		this.settings = next;
+		this.publish();
+	}
+
 	private resolve(id: string | undefined): AiEngineConfig {
 		const selected = id === undefined ? this.settings.defaultConfigId : id;
 		if (selected === null) throw new AiError("no-default");

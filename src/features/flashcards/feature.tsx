@@ -1,4 +1,5 @@
 import { Notice, Platform } from "obsidian";
+import type { RequestUrlParam } from "obsidian";
 import { createTranslator, flashcardTranslator } from "./strings/index";
 import type {
 	FlashcardSettings,
@@ -8,6 +9,7 @@ import type {
 } from "../../core/shared/types";
 import { buildSettingsViewModel, type SettingsViewModelActions } from "./settings/viewModel";
 import type { DataStore } from "../../core/storage/dataStore";
+import { TransportError, type OutboundPort } from "../../core/net";
 import {
 	createDeckHome,
 	type DeckHome,
@@ -47,6 +49,7 @@ const REPAIR_IDENTITIES_COMMAND_ID = "repair-card-identities";
 
 export interface FlashcardFeatureDeps {
 	dataStore: DataStore;
+	net: OutboundPort;
 }
 
 interface FlashcardServices {
@@ -83,9 +86,11 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 			createIdentity: createCardIdentity,
 		});
 		const pronunciationRuntime = createPronunciationRuntime(
-			host.app,
+			deps.net,
 			host.settings().pronunciation,
 			{
+				requester: createPronunciationRequester(deps.net),
+				getSecret: (id) => deps.net.readSecret(id),
 				persistSettings: async (pronunciation) => {
 					await host.updateSettings({ pronunciation: { ...pronunciation } });
 				},
@@ -659,5 +664,37 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 			services?.pronunciationRuntime.dispose();
 			services = null;
 		},
+	};
+}
+
+/** Bridges the pronunciation provider's binary request shape to the host port. */
+function createPronunciationRequester(net: OutboundPort) {
+	return async (request: RequestUrlParam) => {
+		try {
+			const response = await net.request({
+				label: "Pronunciation audio synthesis",
+				url: request.url,
+				method: request.method,
+				headers: {
+					...request.headers,
+					...(request.contentType ? { "Content-Type": request.contentType } : {}),
+				},
+				body: typeof request.body === "string" ? request.body : undefined,
+			});
+			return {
+				status: response.status,
+				arrayBuffer: response.arrayBuffer ?? new ArrayBuffer(0),
+				headers: response.headers ?? {},
+			};
+		} catch (error) {
+			if (error instanceof TransportError && error.httpStatus !== null) {
+				return {
+					status: error.httpStatus,
+					arrayBuffer: new ArrayBuffer(0),
+					headers: {},
+				};
+			}
+			throw error;
+		}
 	};
 }

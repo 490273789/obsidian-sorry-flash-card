@@ -1,4 +1,4 @@
-import { requestUrl, type App, type RequestUrlParam } from "obsidian";
+import type { RequestUrlParam } from "obsidian";
 import type {
 	CardDirection,
 	PronunciationAccent,
@@ -51,8 +51,13 @@ export interface PronunciationRuntimeDependencies {
 	persistSettings?: (settings: PronunciationSettings) => Promise<void>;
 }
 
+/** Host capability required by pronunciation; the runtime never reads Obsidian APIs itself. */
+export interface PronunciationRuntimeHost {
+	readSecret(id: string): string | null;
+}
+
 export function createPronunciationRuntime(
-	app: App,
+	host: PronunciationRuntimeHost,
 	settings: PronunciationSettings,
 	dependencies: PronunciationRuntimeDependencies = {},
 ): PronunciationRuntime {
@@ -78,13 +83,21 @@ export function createPronunciationRuntime(
 			(typeof URL === "undefined" || typeof URL.revokeObjectURL !== "function"
 				? null
 				: (url) => URL.revokeObjectURL(url)),
-		requester: dependencies.requester ?? ((request: RequestUrlParam) => requestUrl(request)),
+		// Production wiring supplies the host-owned outbound port. Tests can provide
+		// a focused requester; an omitted one fails as an ordinary provider failure.
+		requester:
+			dependencies.requester ??
+			(async (_request: RequestUrlParam) => ({
+				status: 0,
+				arrayBuffer: new ArrayBuffer(0),
+				headers: {},
+			})),
 		cache: dependencies.cache ?? new IndexedDbPronunciationAudioCache(),
 		isOnline:
 			dependencies.isOnline ??
 			(() => typeof navigator === "undefined" || navigator.onLine !== false),
 		now: dependencies.now ?? Date.now,
-		getSecret: dependencies.getSecret ?? ((id) => app.secretStorage.getSecret(id)),
+		getSecret: dependencies.getSecret ?? ((id) => host.readSecret(id)),
 		requestTimeoutMs: dependencies.requestTimeoutMs ?? 8000,
 		voiceLoadTimeoutMs: dependencies.voiceLoadTimeoutMs ?? 400,
 		getSystemLanguage:

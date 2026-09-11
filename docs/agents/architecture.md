@@ -4,7 +4,7 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
 
 ## Runtime composition
 
-`src/core/host/main.ts` is the composition root and nothing else. `FlashcardPlugin.onload()`:
+`src/core/host/main.ts` is the composition root and nothing else. `StudyStudioPlugin.onload()`:
 
 1. Creates `DataStore` and loads persisted settings/data.
 2. Creates the plugin-lifetime `AiService`.
@@ -37,7 +37,7 @@ src/
 |-- core/                    # everything that is not one feature
 |   |-- host/                # composition root (main.ts), workbench seam, view mount seam, settings tab, AI section, settings-slice registry
 |   |-- settings/            # the SettingsSlice contract and the host slice
-|   |-- storage/             # DataStore: the single writer of data.json
+|   |-- storage/             # DataStore: the single writer of Sync-tracked data.json and the local deck-index cache
 |   |-- ai/                  # shared AI engine service
 |   |-- i18n/                # translator framework, shared strings, AI error strings
 |   |-- shared/              # the settings document type plus generic helpers
@@ -70,7 +70,7 @@ Read the layering inside a slice the same way as before: `domain/` and `settings
 | Deck home           | `src/features/flashcards/domain/decks/deckHome.ts`                                                                         | Shared home snapshot, deck readiness, settings draft, refresh/migration/save/export activity, navigation revalidation, reorder persistence, word list visit recording, and read facades for deck data |
 | Sessions            | `src/features/flashcards/domain/sessions/sessionLifecycle.ts`                                                              | The single idle/active/result lifecycle and durable transitions for study/practice/spelling                                                                                                           |
 | Card continuity     | `src/features/flashcards/domain/identity/cardIdentityContinuity.ts`                                                        | Synchronization, migration, repair, source changes, stable card identity continuity                                                                                                                   |
-| Persistence         | `src/core/storage/dataStore.ts`                                                                                            | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                                                                                  |
+| Persistence         | `src/core/storage/dataStore.ts`                                                                                            | Versioned learner state in data.json, local deck-index cache, durable settings/session transitions, revisions/subscriptions                                                                           |
 | Settings document   | `src/core/host/settingsSlices.ts`, `src/core/settings/slice.ts`                                                            | The slice registry and the composed settings document: defaults, normalization, and cloning for every owner                                                                                           |
 | Outbound port       | `src/core/net/`                                                                                                            | Request execution, status classification, deadline and cancellation, credential reads, and the single host-pinned exception (ADR-0024)                                                                |
 | AI engines          | `src/core/ai/`                                                                                                             | Named provider/model configurations, model discovery, text/image requests, credentials through an injected reader, and per-request timeout/cancellation                                               |
@@ -95,6 +95,7 @@ Read the layering inside a slice the same way as before: `domain/` and `settings
 - `DeckHome`, `SessionLifecycle`, `CardIdentityContinuity`, and `PronunciationRuntime` are deep shared interfaces. Extend their semantic actions/snapshots instead of adding parallel state managers or pass-through wrappers.
 - Pure engines, planners, builders, and presentation models must not import React or perform Obsidian I/O.
 - `DataStore` publishes a monotonic revision after committed changes. Consumers subscribe rather than inventing manual refresh counters.
+- `data.json` is the cross-device authority for settings and learner state. Markdown-derived card text belongs only in `cache/deck-index.json`; missing or corrupt cache data must be rebuilt rather than treated as user-data loss.
 - Outbound work goes through the outbound port: do not call `requestUrl`, `fetch`, or `secretStorage.getSecret` from a feature. A raw host-pinned fetch is the single sanctioned exception and lives behind `requestHostPinned` (ADR-0024).
 - Use `import type` for Obsidian-only or boundary-only types in pure modules and tests whenever runtime loading is unnecessary.
 

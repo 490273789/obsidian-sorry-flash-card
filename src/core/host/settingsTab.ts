@@ -17,7 +17,7 @@ import {
 	type SettingsViewModelControl,
 	type SettingsViewModelDefinition,
 	type SettingsViewModelSetting,
-} from "../../features/flashcards/settings/viewModel";
+} from "../settings/viewModel";
 import type { Language } from "../shared/types";
 
 type VisibleDefinition = { visible?: boolean | (() => boolean) };

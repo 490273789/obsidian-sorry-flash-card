@@ -116,7 +116,7 @@ export const FlashcardApp: React.FC<FlashcardAppProps> = ({
 	useEffect(() => {
 		if (lifecycleSnapshot.kind !== "idle" || !lifecycleSnapshot.lastEnd) return;
 		new Notice(t("identity.sessionEndedBySourceChange"));
-		setViewState({ type: "home" });
+		queueMicrotask(() => setViewState({ type: "home" }));
 		void sessionLifecycle.act(lifecycleSnapshot.reference, {
 			kind: "acknowledge-end",
 			noticeId: lifecycleSnapshot.lastEnd.id,

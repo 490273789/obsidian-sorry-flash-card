@@ -1,4 +1,3 @@
-import { request } from "obsidian";
 import { dictionaryText } from "./messages";
 import {
 	cleanOnlineText,
@@ -71,7 +70,7 @@ export class HujiangDictionarySource implements DictionarySource, OnlineHtmlDict
 	readonly attribution = dictionaryText().hujiangAttribution;
 	readonly styles = HUJIANG_STYLES;
 
-	constructor(private readonly execute: OnlineTextRequestExecutor = request) {}
+	constructor(private readonly execute: OnlineTextRequestExecutor) {}
 
 	async request(query: string): Promise<string> {
 		return requestOnlineText(

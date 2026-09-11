@@ -294,6 +294,12 @@ struct PackageWriter {
     files: BTreeMap<String, Vec<u8>>,
 }
 
+type DefinitionEntries = (
+	u64,
+	Vec<FrameDescriptor>,
+	BTreeMap<String, Vec<RecordLocator>>,
+);
+
 impl PackageWriter {
     fn add(&mut self, path: &str, data: Vec<u8>) -> Result<()> {
         if !valid_package_path(path) || self.descriptors.contains_key(path) {
@@ -318,11 +324,7 @@ impl PackageWriter {
 fn write_definition_entries<I>(
     package: &mut PackageWriter,
     entries: I,
-) -> Result<(
-    u64,
-    Vec<FrameDescriptor>,
-    BTreeMap<String, Vec<RecordLocator>>,
-)>
+) -> Result<DefinitionEntries>
 where
     I: IntoIterator<Item = Result<DictionaryEntry>>,
 {

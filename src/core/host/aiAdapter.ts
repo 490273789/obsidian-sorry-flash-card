@@ -1,15 +1,15 @@
 import type { App, RequestUrlParam } from "obsidian";
 import { AiService, type AiSettings } from "../ai";
-import { createOutboundPort, TransportError } from "../net";
+import { createOutboundPort, TransportError, type OutboundPort } from "../net";
 
 export function createObsidianAiService(
 	app: App,
 	settings: AiSettings,
 	persist: (settings: AiSettings) => Promise<void>,
+	net: OutboundPort = createOutboundPort({ app, defaultTimeoutMs: 0 }),
 ): AiService {
 	// The AI service enforces the request deadline itself (it also covers
-	// cancellation and disposal), so the port adds no deadline of its own.
-	const net = createOutboundPort({ app, defaultTimeoutMs: 0 });
+	// cancellation and disposal), so the shared port adds no deadline of its own.
 	return new AiService(settings, {
 		persist,
 		createId: () => crypto.randomUUID(),

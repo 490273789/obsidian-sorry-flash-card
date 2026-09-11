@@ -1,6 +1,7 @@
 import React from "react";
-import { Notice, requestUrl, type Plugin } from "obsidian";
+import { Notice, type Plugin } from "obsidian";
 import type { AiService } from "../../core/ai";
+import { TransportError, type OutboundPort } from "../../core/net";
 import { normalizeDictionarySettings } from "./domain/configuration";
 import { DictionaryRuntime } from "./domain/dictionaryRuntime";
 import { dictionaryStrings } from "./strings/dictionary";
@@ -29,6 +30,7 @@ export const VIEW_TYPE_DICTIONARY_FAVORITE = "flashcard-dictionary-favorite-view
 
 export interface DictionaryFeatureDeps {
 	ai: AiService;
+	net: OutboundPort;
 	plugin: Plugin;
 }
 
@@ -68,7 +70,33 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 			}),
 			ai: deps.ai,
 			language: () => host.settings().language,
-			request: async (request) => requestUrl({ ...request, throw: false }),
+			readSecret: (id) => deps.net.readSecret(id),
+			request: async (request) => {
+				try {
+					const response = await deps.net.request({
+						label: "dictionary-online-source",
+						url: request.url,
+						method: request.method,
+						headers: request.headers,
+						body: typeof request.body === "string" ? request.body : undefined,
+						timeoutMs: 12_000,
+					});
+					return {
+						status: response.status,
+						text: response.text,
+						arrayBuffer: new TextEncoder().encode(response.text).buffer,
+					} as never;
+				} catch (error) {
+					if (error instanceof TransportError && error.httpStatus !== null) {
+						return {
+							status: error.httpStatus,
+							text: error.responseText ?? "",
+							arrayBuffer: new TextEncoder().encode(error.responseText ?? "").buffer,
+						} as never;
+					}
+					throw error;
+				}
+			},
 			openSettings: () => openSettings(host),
 			openFavoriteView: async (word) => {
 				await runtime?.favoriteController.prefill(word);

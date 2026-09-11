@@ -59,6 +59,10 @@ export interface OutboundRequest {
 export interface OutboundResponse {
 	status: number;
 	text: string;
+	/** Present for requestUrl-backed calls that need a binary provider response. */
+	arrayBuffer?: ArrayBuffer;
+	/** Original response headers, normalized only by the host request implementation. */
+	headers?: Record<string, string>;
 }
 
 export interface HostPinnedRequest {

@@ -7,7 +7,7 @@ import type {
 	SettingsViewModelControl,
 	SettingsViewModelDefinition,
 	SettingsViewModelSetting,
-} from "../../flashcards/settings/viewModel";
+} from "../../../core/settings/viewModel";
 
 export interface TranslationSettingsEditorState {
 	snapshot: TranslationSnapshot;

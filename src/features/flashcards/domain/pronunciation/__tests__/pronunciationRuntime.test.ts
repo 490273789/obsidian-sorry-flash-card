@@ -1,4 +1,3 @@
-import type { App } from "obsidian";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type PronunciationSettings } from "../../../../../core/shared/types";
 import { DEFAULT_SETTINGS } from "../../../../../core/host/settingsSlices";
@@ -6,6 +5,7 @@ import { MemoryPronunciationAudioCache, createPronunciationCacheKey } from "../a
 import { createPronunciationRequestDescriptor, type PronunciationRequester } from "../providers";
 import {
 	createPronunciationRuntime,
+	type PronunciationRuntimeHost,
 	selectLocalEnglishVoice,
 	shouldAutoPronounceSessionCard,
 } from "../pronunciationRuntime";
@@ -86,12 +86,10 @@ function makeSettings(overrides: Partial<PronunciationSettings> = {}): Pronuncia
 	};
 }
 
-function makeApp(): App {
+function makeApp(): PronunciationRuntimeHost {
 	return {
-		secretStorage: {
-			getSecret: (id: string) => (id ? "secret" : null),
-		},
-	} as unknown as App;
+		readSecret: (id: string) => (id ? "secret" : null),
+	};
 }
 
 function makeAudioFactory(options: { reject?: boolean } = {}) {

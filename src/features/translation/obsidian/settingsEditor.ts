@@ -10,7 +10,7 @@ import {
 import { DEFAULT_TRANSLATION_PROMPT, normalizeTranslationSettings } from "../domain/configuration";
 import type { TranslationRuntime } from "../domain/translationRuntime";
 import type { TranslationSettings } from "../domain/types";
-import type { SettingsViewModelDefinition } from "../../flashcards/settings/viewModel";
+import type { SettingsViewModelDefinition } from "../../../core/settings/viewModel";
 
 export type TranslationSettingsRuntime = Pick<
 	TranslationRuntime,

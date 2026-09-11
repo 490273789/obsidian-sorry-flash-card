@@ -80,8 +80,11 @@ export const SpellingView = React.memo(function SpellingView({
 
 	useEffect(() => {
 		pronunciationRuntime.stop();
-		setInput("");
-		window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0);
+		const reset = window.setTimeout(() => {
+			setInput("");
+			inputRef.current?.focus({ preventScroll: true });
+		}, 0);
+		return () => window.clearTimeout(reset);
 	}, [currentCard.identity, pronunciationRuntime]);
 
 	useEffect(() => () => pronunciationRuntime.stop(), [pronunciationRuntime]);

@@ -53,7 +53,6 @@ export const PracticeView = React.memo(function PracticeView({
 
 	useEffect(() => {
 		pronunciationRuntime.stop();
-		setAnswerCardId(null);
 		return () => pronunciationRuntime.stop();
 	}, [currentCard.identity, pronunciationRuntime]);
 
@@ -71,10 +70,6 @@ export const PracticeView = React.memo(function PracticeView({
 		void pronunciationRuntime.speak(autoPronunciationText, "auto").catch(() => undefined);
 		return () => pronunciationRuntime.stop();
 	}, [autoPronunciationText, currentCard.identity, pronunciationRuntime]);
-
-	useEffect(() => {
-		if (!pronunciationEnabled) setAutoPronunciationEnabled(false);
-	}, [pronunciationEnabled]);
 
 	const handleShowAnswer = useCallback(() => {
 		setAnswerCardId(currentCard.identity);

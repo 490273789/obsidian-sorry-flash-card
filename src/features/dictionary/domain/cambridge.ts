@@ -1,4 +1,3 @@
-import { requestUrl } from "obsidian";
 import { dictionaryText } from "./messages";
 import {
 	cleanOnlineText,
@@ -89,7 +88,7 @@ export class CambridgeDictionarySource implements DictionarySource, OnlineHtmlDi
 	readonly attribution = dictionaryText().cambridgeAttribution;
 	readonly styles = CAMBRIDGE_STYLES;
 
-	constructor(private readonly execute: OnlineRequestExecutor = requestUrl) {}
+	constructor(private readonly execute: OnlineRequestExecutor) {}
 
 	async request(query: string): Promise<string> {
 		const url = `${CAMBRIDGE_HOST}/search/direct/?datasetsearch=english-chinese-simplified&q=${encodeURIComponent(query)}`;

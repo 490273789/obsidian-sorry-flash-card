@@ -10,7 +10,7 @@ import { DictionaryFavoriteFile } from "./favorite-file";
 import { HujiangDictionarySource } from "./hujiang";
 import { LocalDictionaryImporter } from "./importer";
 import { LocalDictionaryAdministrationModule } from "./local-administration";
-import { dictionaryText, setDictionaryLanguage } from "./messages";
+import { dictionaryText } from "./messages";
 import type { OnlineTextRequestExecutor } from "./online";
 import {
 	DictionaryError,
@@ -31,6 +31,7 @@ export interface DictionaryRuntimeOptions {
 	openFavoriteView: (word: string) => Promise<void>;
 	openSettings: () => void;
 	plugin: Plugin;
+	readSecret: (id: string) => string | null;
 	request: (request: RequestUrlParam) => Promise<RequestUrlResponse>;
 	settings: DictionarySettingsStore;
 }
@@ -82,7 +83,6 @@ export class DictionaryRuntime {
 	/** Re-reads committed settings and re-applies them to both controllers. */
 	applySettings(): void {
 		if (this.disposed) return;
-		setDictionaryLanguage(this.options.language());
 		this.dropRemovedLocalSources();
 		this.controller.refreshSettings();
 		this.favoriteController.refreshSettings();
@@ -117,11 +117,22 @@ export class DictionaryRuntime {
 			saved = false;
 		}
 		if (!saved) {
-			this.options.notify(dictionaryText().saveFailed);
+			this.options.notify(dictionaryText(this.options.language()).saveFailed);
 			return false;
 		}
 		this.applySettings();
 		return true;
+	}
+
+	/** Exercises the committed Youdao connection through the shared outbound port. */
+	async testYoudao(): Promise<void> {
+		const dictionary = this.options.settings.getDictionarySettings();
+		await new YoudaoDictionarySource(
+			this.resolveYoudao(dictionary.youdao),
+			this.options.request,
+		).lookup({
+			text: "test",
+		});
 	}
 
 	dispose(): void {
@@ -168,7 +179,11 @@ export class DictionaryRuntime {
 		dictionary: Readonly<DictionarySettings>,
 	): DictionarySource {
 		const metadata = dictionary.localDictionaries.find((item) => item.id === sourceId);
-		if (!metadata) throw new DictionaryError("configuration", dictionaryText().importFailed);
+		if (!metadata)
+			throw new DictionaryError(
+				"configuration",
+				dictionaryText(this.options.language()).importFailed,
+			);
 		const existing = this.localSources.get(metadata.id);
 		if (existing) return existing;
 		const source = new CompiledDictionarySource(
@@ -194,7 +209,7 @@ export class DictionaryRuntime {
 	private readSecret(secretId: string): string {
 		if (!secretId.trim()) return "";
 		try {
-			return this.options.app.secretStorage.getSecret(secretId)?.trim() ?? "";
+			return this.options.readSecret(secretId)?.trim() ?? "";
 		} catch {
 			return "";
 		}

@@ -8,7 +8,7 @@ import type {
 	SettingsViewModelControl,
 	SettingsViewModelDefinition,
 	SettingsViewModelSetting,
-} from "../../flashcards/settings/viewModel";
+} from "../../../core/settings/viewModel";
 
 export interface DictionarySettingsEditorState {
 	/** Committed dictionary settings; the editor never owns a second authority. */

@@ -176,7 +176,9 @@ export const WordListView = React.memo(function WordListView({
 }: WordListViewProps) {
 	const { t } = useFlashcardI18n();
 	const onRecordVisitRef = useRef(onRecordVisit);
-	onRecordVisitRef.current = onRecordVisit;
+	useEffect(() => {
+		onRecordVisitRef.current = onRecordVisit;
+	}, [onRecordVisit]);
 
 	useEffect(() => {
 		const startTime = Date.now();
@@ -227,13 +229,15 @@ export const WordListView = React.memo(function WordListView({
 	}, [rowGap, viewport.height, viewport.scrollTop, virtualRows.rows]);
 
 	useEffect(() => {
-		setShuffledItems(null);
-		setRevealedIdsByColumn({
-			front: new Set(),
-			back: new Set(),
+		queueMicrotask(() => {
+			setShuffledItems(null);
+			setRevealedIdsByColumn({
+				front: new Set(),
+				back: new Set(),
+			});
+			setRowHeights(new Map());
+			setActiveExplanationItem(null);
 		});
-		setRowHeights(new Map());
-		setActiveExplanationItem(null);
 	}, [sourceItems]);
 
 	const handleShuffleToggle = useCallback(() => {
@@ -400,7 +404,7 @@ export const WordListView = React.memo(function WordListView({
 	}, [queueRowHeight]);
 
 	useEffect(() => {
-		setRowHeights(new Map());
+		queueMicrotask(() => setRowHeights(new Map()));
 	}, [viewport.width]);
 
 	useEffect(() => {

@@ -47,7 +47,11 @@ describe("dictionary feature", () => {
 	});
 
 	it("registers its two views, its chrome, and its settings section", () => {
-		const feature = createDictionaryFeature({ ai: {} as never, plugin: {} as never });
+		const feature = createDictionaryFeature({
+			ai: {} as never,
+			net: {} as never,
+			plugin: {} as never,
+		});
 		const fake = createFakeWorkbenchHost(enabledSettings);
 
 		feature.render(fake.host);
@@ -76,7 +80,11 @@ describe("dictionary feature", () => {
 	});
 
 	it("keeps its views and settings section but adds no chrome while disabled", () => {
-		const feature = createDictionaryFeature({ ai: {} as never, plugin: {} as never });
+		const feature = createDictionaryFeature({
+			ai: {} as never,
+			net: {} as never,
+			plugin: {} as never,
+		});
 		const fake = createFakeWorkbenchHost({
 			...DEFAULT_SETTINGS,
 			dictionary: { ...DEFAULT_SETTINGS.dictionary, enabled: false },
@@ -94,7 +102,11 @@ describe("dictionary feature", () => {
 	});
 
 	it("builds one runtime, applies settings on every render, and disposes it on stop", () => {
-		const feature = createDictionaryFeature({ ai: {} as never, plugin: {} as never });
+		const feature = createDictionaryFeature({
+			ai: {} as never,
+			net: {} as never,
+			plugin: {} as never,
+		});
 		const fake = createFakeWorkbenchHost(enabledSettings);
 
 		feature.render(fake.host);

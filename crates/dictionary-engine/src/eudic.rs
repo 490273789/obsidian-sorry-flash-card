@@ -708,7 +708,7 @@ impl<'a, S: ReadAt> SourceCursor<'a, S> {
     fn read_array<const N: usize>(&mut self) -> Result<[u8; N]> {
         let buffer_end = self.buffer_offset + self.buffer.len() as u64;
         if self.offset < self.buffer_offset || self.offset + N as u64 > buffer_end {
-            let available = self.source.len().checked_sub(self.offset).unwrap_or(0);
+			let available = self.source.len().saturating_sub(self.offset);
             let length = usize::try_from(available.min(SOURCE_READ_BYTES as u64))
                 .map_err(|_| EngineError::corrupt("EUDIC cursor overflow"))?;
             if length < N {
