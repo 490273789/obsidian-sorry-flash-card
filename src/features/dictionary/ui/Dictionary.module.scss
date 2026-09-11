@@ -130,14 +130,17 @@
 		font-weight: var(--fc-weight-medium);
 	}
 
-	button {
-		@include fc-button-reset;
-		padding: 2px var(--fc-space-2);
+	.savedItem {
+		display: inline-flex;
+		align-items: center;
+		cursor: pointer;
+		padding: var(--fc-space-1) var(--fc-space-3) var(--fc-space-2);
 		border: 1px solid var(--fc-line-soft);
-		border-radius: var(--fc-radius-pill);
+		border-radius: var(--fc-radius-sm);
 		background: var(--fc-surface-control);
 		color: var(--fc-text);
 		font-size: var(--fc-font-sm);
+		line-height: 1;
 
 		&:hover {
 			background: var(--fc-surface-hover);
@@ -495,34 +498,43 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--fc-space-1);
+	border-bottom: 1px solid var(--fc-line-soft);
+	margin-bottom: var(--fc-space-3);
 
 	button {
+		position: relative;
 		min-height: var(--fc-control-sm);
-		padding: 0 var(--fc-space-2);
+		padding: 4px var(--fc-space-3);
+		margin-bottom: -1px;
 		border: 1px solid var(--fc-line-soft);
-		border-radius: var(--fc-radius-sm);
+		border-radius: var(--fc-radius-md) var(--fc-radius-md) 0 0;
 		background: transparent;
 		color: var(--fc-muted);
 		font-size: var(--fc-font-sm);
 		cursor: pointer;
-		transition:
-			background var(--fc-motion-quick) ease,
-			color var(--fc-motion-quick) ease;
+		z-index: 0;
+
+		&:first-child {
+			margin-left: 0;
+		}
 
 		&:hover {
 			background: var(--fc-surface-hover);
 			color: var(--fc-text);
+			z-index: 1;
 		}
 
 		&:focus-visible {
 			@include fc-focus-ring;
+			z-index: 3;
 		}
 
 		&.isActive {
-			border-color: var(--fc-control-border-selected);
 			background: var(--fc-surface-selected);
+			border-bottom-color: var(--fc-surface-selected);
 			color: var(--fc-text);
 			font-weight: var(--fc-weight-medium);
+			z-index: 2;
 		}
 	}
 }
@@ -539,13 +551,16 @@
 		font-weight: var(--fc-weight-medium);
 	}
 
-	button {
+	.suggestionItem {
 		@include fc-button-reset;
-		padding: 2px var(--fc-space-2);
+		display: inline-flex;
+		align-items: center;
+		padding: var(--fc-space-1) var(--fc-space-3);
 		border: 1px solid var(--fc-line-soft);
 		border-radius: var(--fc-radius-pill);
 		color: var(--fc-text);
 		font-size: var(--fc-font-sm);
+		line-height: 1;
 
 		&:hover {
 			background: var(--fc-surface-hover);
@@ -640,8 +655,8 @@
 
 @media (pointer: coarse) {
 	.tab,
-	.savedList button,
-	.suggestions button,
+	.savedList .savedItem,
+	.suggestions .suggestionItem,
 	.detailTabs button {
 		min-height: var(--fc-control-touch);
 	}

@@ -359,13 +359,24 @@ export function DictionaryView({
 								{strings.history}
 							</strong>
 							{state.history.slice(0, 12).map((word) => (
-								<button
+								<div
 									key={`history-${word}`}
-									type="button"
+									role="button"
+									tabIndex={0}
+									className={cls(
+										"flashcard-dictionary-saved-item",
+										styles.savedItem,
+									)}
 									onClick={() => lookupWord(word)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.preventDefault();
+											lookupWord(word);
+										}
+									}}
 								>
 									{word}
-								</button>
+								</div>
 							))}
 						</div>
 					</section>
@@ -743,13 +754,24 @@ export function DictionaryView({
 										>
 											<strong>{strings.suggestions}</strong>
 											{result.suggestions.map((word) => (
-												<button
+												<div
 													key={word}
-													type="button"
+													role="button"
+													tabIndex={0}
+													className={cls(
+														"flashcard-dictionary-suggestion-item",
+														styles.suggestionItem,
+													)}
 													onClick={() => lookupWord(word)}
+													onKeyDown={(e) => {
+														if (e.key === "Enter" || e.key === " ") {
+															e.preventDefault();
+															lookupWord(word);
+														}
+													}}
 												>
 													{word}
-												</button>
+												</div>
 											))}
 										</div>
 									)}
