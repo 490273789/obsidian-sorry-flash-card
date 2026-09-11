@@ -36,4 +36,4 @@ Read only the guides relevant to the current task; a task crossing several areas
 
 ## Reference lookup
 
-For questions about a library, framework, SDK, API, CLI, or cloud service, use Context7 even when the API looks familiar. Skip it for ordinary refactors, local business-logic debugging, code review, and scripts written from scratch.
+Use Context7 MCP to fetch current documentation whenever the user asks about a library, framework, SDK, API, CLI tool, or cloud service -- even well-known ones like React, or Obsidian API. This includes API syntax, configuration, version migration, library-specific debugging, setup instructions, and CLI tool usage. Use even when you think you know the answer -- your training data may not reflect recent changes. Prefer this over web search for library docs.

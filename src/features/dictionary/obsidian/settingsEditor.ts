@@ -21,6 +21,7 @@ import {
 	type DictionarySettingsEditorActions,
 } from "../settings/viewModel";
 import type { SettingsViewModelDefinition } from "../../flashcards/settings/viewModel";
+import { pickLocalDictionaryFiles } from "./localDictionaryFilePicker";
 import { confirmLocalDictionaryDeletion } from "./modals";
 
 function dictionaryImportErrorMessage(
@@ -208,9 +209,12 @@ export class DictionarySettingsEditor {
 
 	private async importLocalDictionaries(kind: "files" | "folder"): Promise<void> {
 		if (this.importing) return;
-		const files = await this.pickLocalDictionaryFiles(kind);
-		if (files.length === 0) return;
 		const strings = dictionaryStrings(this.language());
+		const files = await pickLocalDictionaryFiles(
+			kind,
+			kind === "folder" ? strings.folderImport : strings.import,
+		);
+		if (files.length === 0) return;
 		this.importing = true;
 		this.refresh();
 		const progress = new Notice(strings.compiledProgress("validate", 0), 0);
@@ -241,32 +245,6 @@ export class DictionarySettingsEditor {
 			this.importing = false;
 			this.refresh();
 		}
-	}
-
-	private pickLocalDictionaryFiles(kind: "files" | "folder"): Promise<File[]> {
-		const strings = dictionaryStrings(this.language());
-		return new Promise((resolve) => {
-			const input = document.createElement("input");
-			input.type = "file";
-			input.multiple = true;
-			input.style.display = "none";
-			input.setAttribute(
-				"aria-label",
-				kind === "folder" ? strings.folderImport : strings.import,
-			);
-			if (kind === "folder") input.setAttribute("webkitdirectory", "");
-			else input.accept = ".eudic,.mdx,.mdd,.css,.js";
-			const finish = (files: File[]): void => {
-				input.remove();
-				resolve(files);
-			};
-			input.addEventListener("change", () => finish([...(input.files ?? [])]), {
-				once: true,
-			});
-			input.addEventListener("cancel", () => finish([]), { once: true });
-			document.body.append(input);
-			input.click();
-		});
 	}
 
 	private async deleteLocalDictionary(id: string): Promise<void> {
