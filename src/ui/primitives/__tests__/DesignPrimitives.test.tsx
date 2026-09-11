@@ -31,9 +31,18 @@ describe("design primitives", () => {
 		expect(submitHtml).toContain('type="submit"');
 	});
 
-	it("marks decorative icons as aria-hidden", () => {
+	it("marks decorative icons as aria-hidden and applies fixed size styles (default 16px or explicit)", () => {
 		const html = renderToStaticMarkup(<FlashcardButton icon={X} aria-label="关闭" />);
 		expect(html).toContain('aria-hidden="true"');
+		expect(html).toContain("width:16px");
+		expect(html).toContain("height:16px");
+		expect(html).toContain("flex-shrink:0");
+
+		const customHtml = renderToStaticMarkup(
+			<FlashcardButton icon={X} iconSize={18} aria-label="关闭" />,
+		);
+		expect(customHtml).toContain("width:18px");
+		expect(customHtml).toContain("height:18px");
 	});
 
 	it("combines preset shape classes with variant color classes", () => {

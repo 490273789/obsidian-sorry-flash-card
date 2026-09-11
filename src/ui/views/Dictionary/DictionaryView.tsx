@@ -290,7 +290,6 @@ export function DictionaryView({
 							<FlashcardButton
 								preset="icon"
 								icon={Settings2}
-								iconSize={18}
 								title={strings.openSettings}
 								aria-label={strings.openSettings}
 								onClick={() => controller.openSettings()}
@@ -310,6 +309,7 @@ export function DictionaryView({
 								type="submit"
 								variant="primary"
 								icon={Search}
+								iconSize={18}
 								disabled={!canLookup}
 							>
 								{strings.query}

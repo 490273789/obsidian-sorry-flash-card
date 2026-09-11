@@ -37,12 +37,8 @@ const PRESET_CLASSES: Record<ButtonPreset, string> = {
 };
 
 /** Presets that render a compact square icon-only control. */
-const COMPACT_ICON_PRESETS: ReadonlySet<ButtonPreset> = new Set(["icon", "prev"]);
-
-/** Default icon size for compact icon-only presets. */
-const COMPACT_ICON_SIZE = 16;
-/** Default icon size for buttons with text. */
-const DEFAULT_ICON_SIZE = 18;
+/** Default icon size in pixels when not explicitly provided. */
+const DEFAULT_ICON_SIZE = 16;
 
 export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	/** Semantic visual variant. Colors the button; combined with preset when both are set. */
@@ -55,7 +51,7 @@ export interface FlashcardButtonProps extends React.ButtonHTMLAttributes<HTMLBut
 	rating?: 1 | 2 | 3 | 4 | 5;
 	/** Optional Lucide icon element rendered before children. */
 	icon?: LucideIcon;
-	/** Icon size in pixels. Defaults to 18 for normal buttons, 16 for icon-only. */
+	/** Icon size in pixels. Defaults to 16 when not set. */
 	iconSize?: number;
 	/** Extra CSS class names appended after the generated ones. */
 	className?: string;
@@ -118,18 +114,25 @@ export const FlashcardButton = React.forwardRef<HTMLButtonElement, FlashcardButt
 			classes.push(extraClassName);
 		}
 
-		// Resolve icon size
-		const resolvedIconSize =
-			iconSize ??
-			(preset !== undefined && COMPACT_ICON_PRESETS.has(preset)
-				? COMPACT_ICON_SIZE
-				: DEFAULT_ICON_SIZE);
+		// Resolve icon size: use explicit iconSize if provided, otherwise default to 16px
+		const resolvedIconSize = iconSize ?? DEFAULT_ICON_SIZE;
 
 		return (
 			// `type="button"` is the safe default; callers may override via `type`.
 			<button ref={ref} type="button" className={classes.join(" ")} {...rest}>
 				{Icon && (
-					<Icon size={resolvedIconSize} className={iconClassName} aria-hidden="true" />
+					<Icon
+						size={resolvedIconSize}
+						className={iconClassName}
+						style={{
+							width: resolvedIconSize,
+							height: resolvedIconSize,
+							minWidth: resolvedIconSize,
+							minHeight: resolvedIconSize,
+							flexShrink: 0,
+						}}
+						aria-hidden="true"
+					/>
 				)}
 				{children}
 			</button>
