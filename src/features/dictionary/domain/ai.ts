@@ -1,4 +1,5 @@
 import { AiError, type AiErrorCode, type AiService } from "../../../core/ai";
+import { TransportError, type TransportErrorCode } from "../../../core/net/types";
 import { dictionaryText } from "./messages";
 import { isRecord } from "../../../core/shared/isRecord";
 import {
@@ -256,26 +257,34 @@ export function dictionaryErrorCodeForAiError(
 		case "config-not-found":
 		case "no-default":
 			return "configuration";
-		case "unauthorized":
-			return "unauthorized";
-		case "rate-limited":
-			return "rate-limit";
-		case "provider-error":
-			return "server";
-		case "network":
-		case "timeout":
-			return "network";
-		case "invalid-response":
 		case "incomplete-response":
 		case "invalid-input":
 		case "unsupported-image":
 			return "invalid-response";
-		case "cancelled":
 		case "busy":
 		case "disposed":
 		case "save-failed":
 			return "request";
 		default:
+			return "request";
+	}
+}
+
+export function dictionaryErrorCodeForAiTransport(code: TransportErrorCode): DictionaryErrorCode {
+	switch (code) {
+		case "unauthorized":
+			return "unauthorized";
+		case "rate-limited":
+			return "rate-limit";
+		case "not-found":
+		case "server":
+			return "server";
+		case "network":
+		case "timeout":
+			return "network";
+		case "invalid-response":
+			return "invalid-response";
+		case "cancelled":
 			return "request";
 	}
 }
@@ -319,6 +328,14 @@ export class AiDictionarySource implements DictionarySource {
 			);
 		} catch (error) {
 			if (error instanceof DictionaryError) throw error;
+			if (error instanceof TransportError) {
+				const code = dictionaryErrorCodeForAiTransport(error.code);
+				throw new DictionaryError(
+					code,
+					dictionaryErrorCodeMessage(code, dictionaryText()),
+					error.httpStatus,
+				);
+			}
 			if (!(error instanceof AiError)) {
 				throw new DictionaryError(
 					"request",
@@ -326,11 +343,7 @@ export class AiDictionarySource implements DictionarySource {
 				);
 			}
 			const code = dictionaryErrorCodeForAiError(error.code);
-			throw new DictionaryError(
-				code,
-				dictionaryErrorCodeMessage(code, dictionaryText()),
-				error.httpStatus ?? null,
-			);
+			throw new DictionaryError(code, dictionaryErrorCodeMessage(code, dictionaryText()));
 		}
 	}
 }

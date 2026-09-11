@@ -1,5 +1,5 @@
 import type { Language } from "../shared/types";
-import type { AiErrorCode } from "../ai";
+import type { AiFailureCode } from "../ai";
 
 const zh = {
 	heading: "AI 引擎",
@@ -118,7 +118,7 @@ const en: typeof zh = {
 export function aiStrings(language: Language): typeof zh {
 	return language === "en" ? en : zh;
 }
-const errors: Record<Language, Record<AiErrorCode, string>> = {
+const errors: Record<Language, Record<AiFailureCode, string>> = {
 	zh: {
 		busy: "操作正在进行，请稍候",
 		"invalid-config": "请填写名称、模型、密钥引用及有效的 Base URL",
@@ -129,7 +129,8 @@ const errors: Record<Language, Record<AiErrorCode, string>> = {
 		"unsupported-image": "当前模型不支持图片",
 		unauthorized: "鉴权失败，请检查密钥与服务权限",
 		"rate-limited": "请求受限，请检查额度或稍后重试",
-		"provider-error": "厂商拒绝请求，请检查模型、接口地址及服务状态",
+		"not-found": "请求地址或模型不存在",
+		server: "厂商拒绝请求，请检查模型、接口地址及服务状态",
 		network: "网络请求失败",
 		"invalid-response": "厂商返回了无法识别的结果",
 		"incomplete-response": "生成未完整结束或被厂商拦截",
@@ -148,7 +149,8 @@ const errors: Record<Language, Record<AiErrorCode, string>> = {
 		"unsupported-image": "This model does not support images",
 		unauthorized: "Authentication failed; check credentials and permissions",
 		"rate-limited": "Rate or quota limit reached",
-		"provider-error": "Provider rejected the request; check model, endpoint and service status",
+		"not-found": "Request endpoint or model was not found",
+		server: "Provider rejected the request; check model, endpoint and service status",
 		network: "Network request failed",
 		"invalid-response": "Unrecognized provider response",
 		"incomplete-response": "Generation was incomplete or blocked",
@@ -158,6 +160,6 @@ const errors: Record<Language, Record<AiErrorCode, string>> = {
 		"save-failed": "Save failed; previous configuration retained",
 	},
 };
-export function aiErrorText(language: Language, code: AiErrorCode): string {
+export function aiErrorText(language: Language, code: AiFailureCode): string {
 	return errors[language][code];
 }

@@ -1,10 +1,13 @@
-import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
+import { TransportError, type OutboundPort } from "../../../../core/net/types";
 import type { PronunciationSettings } from "../../../../core/shared/types";
 import type { PronunciationRequestDescriptor, SynthesizedAudio } from "./types";
 
-export type PronunciationRequester = (
-	request: RequestUrlParam,
-) => Promise<Pick<RequestUrlResponse, "status" | "arrayBuffer" | "headers">>;
+export type PronunciationRequester = OutboundPort["request"];
+
+export interface PronunciationRequestOptions {
+	signal?: AbortSignal;
+	timeoutMs?: number;
+}
 
 export class PronunciationProviderError extends Error {
 	constructor(
@@ -53,10 +56,11 @@ export function createPronunciationRequestDescriptor(
 }
 
 export async function synthesizeAzureSpeech(
-	requester: PronunciationRequester,
+	net: Pick<OutboundPort, "request">,
 	descriptor: PronunciationRequestDescriptor,
 	settings: PronunciationSettings,
 	secret: string,
+	options: PronunciationRequestOptions = {},
 ): Promise<SynthesizedAudio> {
 	const region = settings.azureRegion.trim().toLowerCase();
 	if (!/^[a-z0-9]+$/.test(region)) {
@@ -76,19 +80,20 @@ export async function synthesizeAzureSpeech(
 		"</voice>",
 		"</speak>",
 	].join("");
-	const response = await requester({
+	const response = await net.request({
+		label: "pronunciation-azure",
 		url: `https://${region}.${domain}/cognitiveservices/v1`,
 		method: "POST",
-		contentType: "application/ssml+xml",
 		headers: {
+			"Content-Type": "application/ssml+xml",
 			"Ocp-Apim-Subscription-Key": secret,
 			"X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
 			"User-Agent": "wsr-flash-card",
 		},
 		body,
-		throw: false,
+		...options,
 	});
-	assertSuccessfulResponse(response.status);
+	if (!response.arrayBuffer) throw new TransportError("invalid-response");
 	return {
 		data: response.arrayBuffer,
 		mimeType: getContentType(response.headers) ?? "audio/mpeg",
@@ -97,18 +102,20 @@ export async function synthesizeAzureSpeech(
 }
 
 export async function synthesizeOpenAiSpeech(
-	requester: PronunciationRequester,
+	net: Pick<OutboundPort, "request">,
 	descriptor: PronunciationRequestDescriptor,
 	secret: string,
+	options: PronunciationRequestOptions = {},
 ): Promise<SynthesizedAudio> {
 	const accentDescription =
 		descriptor.accent === "en-GB" ? "standard British English" : "standard American English";
-	const response = await requester({
+	const response = await net.request({
+		label: "pronunciation-openai",
 		url: "https://api.openai.com/v1/audio/speech",
 		method: "POST",
-		contentType: "application/json",
 		headers: {
 			Authorization: `Bearer ${secret}`,
+			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({
 			model: OPENAI_TTS_MODEL,
@@ -118,9 +125,9 @@ export async function synthesizeOpenAiSpeech(
 			response_format: "mp3",
 			speed: descriptor.rate === "slow" ? 0.75 : 1,
 		}),
-		throw: false,
+		...options,
 	});
-	assertSuccessfulResponse(response.status);
+	if (!response.arrayBuffer) throw new TransportError("invalid-response");
 	return {
 		data: response.arrayBuffer,
 		mimeType: getContentType(response.headers) ?? "audio/mpeg",
@@ -149,12 +156,8 @@ export function escapeXml(value: string): string {
 	});
 }
 
-function assertSuccessfulResponse(status: number): void {
-	if (status >= 200 && status < 300) return;
-	throw new PronunciationProviderError(`Pronunciation provider returned ${status}`, status);
-}
-
-function getContentType(headers: Record<string, string>): string | null {
+function getContentType(headers: Record<string, string> | undefined): string | null {
+	if (!headers) return null;
 	for (const [name, value] of Object.entries(headers)) {
 		if (name.toLowerCase() === "content-type") return value.split(";")[0]?.trim() ?? null;
 	}

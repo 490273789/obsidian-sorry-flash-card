@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import { AiError, type AiService } from "../../../core/ai";
+import { aiFailureCode, aiFailureHttpStatus, type AiService } from "../../../core/ai";
 import { aiErrorText } from "../../../core/i18n/ai";
 import { translationSettingsStrings } from "../strings/settings";
 import type { Language } from "../../../core/shared/types";
@@ -156,9 +156,10 @@ export class TranslationSettingsEditor {
 
 	private report(error: unknown): void {
 		const t = translationSettingsStrings(this.language());
-		const safe = error instanceof AiError ? error : new AiError("network");
+		const code = aiFailureCode(error);
+		const httpStatus = aiFailureHttpStatus(error);
 		new Notice(
-			`${t.errorPrefix}${aiErrorText(this.language(), safe.code)}${safe.httpStatus ? ` (HTTP ${safe.httpStatus})` : ""}`,
+			`${t.errorPrefix}${aiErrorText(this.language(), code)}${httpStatus ? ` (HTTP ${httpStatus})` : ""}`,
 		);
 	}
 }

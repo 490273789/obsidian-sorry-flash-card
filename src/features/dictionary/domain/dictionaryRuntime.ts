@@ -1,5 +1,6 @@
-import type { App, Plugin, RequestUrlParam, RequestUrlResponse } from "obsidian";
+import type { App, Plugin } from "obsidian";
 import type { AiService } from "../../../core/ai";
+import type { OutboundPort } from "../../../core/net";
 import type { Language } from "../../../core/shared/types";
 import { AiDictionarySource } from "./ai";
 import { CambridgeDictionarySource } from "./cambridge";
@@ -11,7 +12,6 @@ import { HujiangDictionarySource } from "./hujiang";
 import { LocalDictionaryImporter } from "./importer";
 import { LocalDictionaryAdministrationModule } from "./local-administration";
 import { dictionaryText } from "./messages";
-import type { OnlineTextRequestExecutor } from "./online";
 import {
 	DictionaryError,
 	type DictionarySettings,
@@ -27,10 +27,9 @@ export interface DictionaryRuntimeOptions {
 	ai: AiService;
 	app: App;
 	language: () => Language;
+	net: OutboundPort;
 	notify: (message: string) => void;
 	plugin: Plugin;
-	readSecret: (id: string) => string | null;
-	request: (request: RequestUrlParam) => Promise<RequestUrlResponse>;
 	settings: DictionarySettingsStore;
 }
 
@@ -164,7 +163,7 @@ export class DictionaryRuntime {
 		const dictionary = this.options.settings.getDictionarySettings();
 		await new YoudaoDictionarySource(
 			this.resolveYoudao(dictionary.youdao),
-			this.options.request,
+			this.options.net,
 		).lookup({
 			text: "test",
 		});
@@ -196,12 +195,12 @@ export class DictionaryRuntime {
 			case "youdao":
 				return new YoudaoDictionarySource(
 					this.resolveYoudao(dictionary.youdao),
-					this.options.request,
+					this.options.net,
 				);
 			case "cambridge":
-				return new CambridgeDictionarySource(this.options.request);
+				return new CambridgeDictionarySource(this.options.net);
 			case "hujiang":
-				return new HujiangDictionarySource(this.createTextRequest());
+				return new HujiangDictionarySource(this.options.net);
 			case "ai": {
 				const info = this.aiEngineInfo();
 				return new AiDictionarySource(info.configId, info.name, this.options.ai);
@@ -227,6 +226,7 @@ export class DictionaryRuntime {
 			metadata,
 			this.options.app.vault.adapter,
 			`${this.dictionaryRoot}/${metadata.id}`,
+			this.options.net,
 		);
 		this.localSources.set(metadata.id, source);
 		return source;
@@ -246,14 +246,10 @@ export class DictionaryRuntime {
 	private readSecret(secretId: string): string {
 		if (!secretId.trim()) return "";
 		try {
-			return this.options.readSecret(secretId)?.trim() ?? "";
+			return this.options.net.readSecret(secretId)?.trim() ?? "";
 		} catch {
 			return "";
 		}
-	}
-
-	private createTextRequest(): OnlineTextRequestExecutor {
-		return async (request) => (await this.options.request({ ...request, throw: false })).text;
 	}
 
 	private dropRemovedLocalSources(): void {

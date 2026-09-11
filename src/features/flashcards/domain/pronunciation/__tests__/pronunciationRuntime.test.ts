@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { TransportError } from "../../../../../core/net/types";
 import { type PronunciationSettings } from "../../../../../core/shared/types";
 import { DEFAULT_SETTINGS } from "../../../../../core/host/settingsSlices";
 import { MemoryPronunciationAudioCache, createPronunciationCacheKey } from "../audioCache";
@@ -88,6 +89,12 @@ function makeSettings(overrides: Partial<PronunciationSettings> = {}): Pronuncia
 
 function makeApp(): PronunciationRuntimeHost {
 	return {
+		request: async () => ({
+			status: 200,
+			text: "",
+			arrayBuffer: new Uint8Array([1, 2, 3]).buffer,
+			headers: { "content-type": "audio/mpeg" },
+		}),
 		readSecret: (id: string) => (id ? "secret" : null),
 	};
 }
@@ -110,10 +117,19 @@ function makeAudioFactory(options: { reject?: boolean } = {}) {
 }
 
 function makeRequester(status = 200): ReturnType<typeof vi.fn<PronunciationRequester>> {
-	return vi.fn<PronunciationRequester>().mockResolvedValue({
-		status,
-		arrayBuffer: new Uint8Array([1, 2, 3]).buffer,
-		headers: { "content-type": "audio/mpeg" },
+	return vi.fn<PronunciationRequester>().mockImplementation(async () => {
+		if (status >= 400) {
+			throw new TransportError(
+				status === 401 ? "unauthorized" : status === 429 ? "rate-limited" : "server",
+				{ httpStatus: status },
+			);
+		}
+		return {
+			status,
+			text: "",
+			arrayBuffer: new Uint8Array([1, 2, 3]).buffer,
+			headers: { "content-type": "audio/mpeg" },
+		};
 	});
 }
 
@@ -285,13 +301,14 @@ describe("pronunciation management lifecycle", () => {
 	it("shares online tests and lets configuration cancel the active test", async () => {
 		const response = deferred<{
 			status: number;
+			text: string;
 			arrayBuffer: ArrayBuffer;
 			headers: Record<string, string>;
 		}>();
 		const requester = vi.fn<PronunciationRequester>(() => response.promise);
 		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: null,
-			requester,
+			net: { ...makeApp(), request: requester },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -305,6 +322,7 @@ describe("pronunciation management lifecycle", () => {
 		await expect(configured).resolves.toMatchObject({ status: "applied" });
 		response.resolve({
 			status: 200,
+			text: "",
 			arrayBuffer: new Uint8Array([1]).buffer,
 			headers: { "content-type": "audio/mpeg" },
 		});
@@ -392,7 +410,7 @@ describe("pronunciation runtime order and resilience", () => {
 		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: synthesis as unknown as SpeechSynthesis,
 			createUtterance: makeUtterance,
-			requester,
+			net: { ...makeApp(), request: requester },
 		});
 
 		await expect(runtime.speak("hello", "manual")).resolves.toEqual({
@@ -410,7 +428,7 @@ describe("pronunciation runtime order and resilience", () => {
 		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: synthesis as unknown as SpeechSynthesis,
 			createUtterance: makeUtterance,
-			requester,
+			net: { ...makeApp(), request: requester },
 			voiceLoadTimeoutMs: 1000,
 		});
 		const pending = runtime.speak("hello", "manual");
@@ -440,7 +458,7 @@ describe("pronunciation runtime order and resilience", () => {
 			speechSynthesis: null,
 			cache,
 			isOnline: () => false,
-			getSecret: () => null,
+			net: { ...makeApp(), readSecret: () => null },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -458,7 +476,7 @@ describe("pronunciation runtime order and resilience", () => {
 		const requester = makeRequester();
 		const commonDependencies = {
 			speechSynthesis: null,
-			requester,
+			net: { ...makeApp(), request: requester },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -489,7 +507,7 @@ describe("pronunciation runtime order and resilience", () => {
 			makeSettings({ azureSecretId: "" }),
 			{
 				...commonDependencies,
-				getSecret: () => null,
+				net: { ...makeApp(), readSecret: () => null, request: requester },
 			},
 		);
 		await expect(missingSecretRuntime.speak("hello", "manual")).resolves.toEqual({
@@ -504,7 +522,7 @@ describe("pronunciation runtime order and resilience", () => {
 		const requester = makeRequester();
 		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: null,
-			requester,
+			net: { ...makeApp(), request: requester },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -524,7 +542,7 @@ describe("pronunciation runtime order and resilience", () => {
 		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: null,
 			cache,
-			requester,
+			net: { ...makeApp(), request: requester },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -543,7 +561,7 @@ describe("pronunciation runtime order and resilience", () => {
 		const settings = makeSettings();
 		const runtime = createPronunciationRuntime(makeApp(), settings, {
 			speechSynthesis: null,
-			requester: makeRequester(401),
+			net: { ...makeApp(), request: makeRequester(401) },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -564,7 +582,7 @@ describe("pronunciation runtime order and resilience", () => {
 		let now = 100;
 		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: null,
-			requester: makeRequester(429),
+			net: { ...makeApp(), request: makeRequester(429) },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -596,7 +614,7 @@ describe("pronunciation runtime order and resilience", () => {
 
 		const cloudRuntime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: null,
-			requester: makeRequester(),
+			net: { ...makeApp(), request: makeRequester() },
 			createAudio: makeAudioFactory({ reject: true }),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),
@@ -610,10 +628,12 @@ describe("pronunciation runtime order and resilience", () => {
 
 	it("times out cloud requests and applies the network cooldown", async () => {
 		let now = 100;
-		const requester = vi.fn<PronunciationRequester>(() => new Promise(() => undefined));
+		const requester = vi.fn<PronunciationRequester>(async () => {
+			throw new TransportError("timeout");
+		});
 		const runtime = createPronunciationRuntime(makeApp(), makeSettings(), {
 			speechSynthesis: null,
-			requester,
+			net: { ...makeApp(), request: requester },
 			createAudio: makeAudioFactory(),
 			createObjectUrl: () => "blob:test",
 			revokeObjectUrl: vi.fn(),

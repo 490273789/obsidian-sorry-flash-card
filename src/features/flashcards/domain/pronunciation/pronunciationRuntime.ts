@@ -1,4 +1,4 @@
-import type { RequestUrlParam } from "obsidian";
+import { TransportError, type OutboundPort } from "../../../../core/net/types";
 import type {
 	CardDirection,
 	PronunciationAccent,
@@ -7,11 +7,9 @@ import type {
 import { extractSpellingWord } from "../cards/spellingWord";
 import { IndexedDbPronunciationAudioCache, createPronunciationCacheKey } from "./audioCache";
 import {
-	PronunciationProviderError,
 	createPronunciationRequestDescriptor,
 	synthesizeAzureSpeech,
 	synthesizeOpenAiSpeech,
-	type PronunciationRequester,
 } from "./providers";
 import { normalizePronunciationSettings } from "./pronunciationSettings";
 import type {
@@ -39,11 +37,10 @@ export interface PronunciationRuntimeDependencies {
 	createAudio?: ((url: string) => HTMLAudioElement) | null;
 	createObjectUrl?: ((blob: Blob) => string) | null;
 	revokeObjectUrl?: ((url: string) => void) | null;
-	requester?: PronunciationRequester;
+	net?: Pick<OutboundPort, "request" | "readSecret">;
 	cache?: PronunciationAudioCache;
 	isOnline?: () => boolean;
 	now?: () => number;
-	getSecret?: (id: string) => string | null;
 	requestTimeoutMs?: number;
 	voiceLoadTimeoutMs?: number;
 	getSystemLanguage?: () => string;
@@ -52,9 +49,7 @@ export interface PronunciationRuntimeDependencies {
 }
 
 /** Host capability required by pronunciation; the runtime never reads Obsidian APIs itself. */
-export interface PronunciationRuntimeHost {
-	readSecret(id: string): string | null;
-}
+export type PronunciationRuntimeHost = Pick<OutboundPort, "request" | "readSecret">;
 
 export function createPronunciationRuntime(
 	host: PronunciationRuntimeHost,
@@ -83,21 +78,12 @@ export function createPronunciationRuntime(
 			(typeof URL === "undefined" || typeof URL.revokeObjectURL !== "function"
 				? null
 				: (url) => URL.revokeObjectURL(url)),
-		// Production wiring supplies the host-owned outbound port. Tests can provide
-		// a focused requester; an omitted one fails as an ordinary provider failure.
-		requester:
-			dependencies.requester ??
-			(async (_request: RequestUrlParam) => ({
-				status: 0,
-				arrayBuffer: new ArrayBuffer(0),
-				headers: {},
-			})),
+		net: dependencies.net ?? host,
 		cache: dependencies.cache ?? new IndexedDbPronunciationAudioCache(),
 		isOnline:
 			dependencies.isOnline ??
 			(() => typeof navigator === "undefined" || navigator.onLine !== false),
 		now: dependencies.now ?? Date.now,
-		getSecret: dependencies.getSecret ?? ((id) => host.readSecret(id)),
 		requestTimeoutMs: dependencies.requestTimeoutMs ?? 8000,
 		voiceLoadTimeoutMs: dependencies.voiceLoadTimeoutMs ?? 400,
 		getSystemLanguage:
@@ -129,6 +115,7 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 	private revision = 0;
 	private snapshot: PronunciationSnapshot | null = null;
 	private activePlayback: ActivePlayback | null = null;
+	private activeRequestController: AbortController | null = null;
 	private operationId = 0;
 	private configureQueue: Promise<void> = Promise.resolve();
 	private queuedConfigurations = 0;
@@ -287,11 +274,10 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		const secret = this.getProviderSecret(descriptor);
 		if (!secret) return { status: "unavailable", reason: "not-configured" };
 
+		const requestController = new AbortController();
+		this.activeRequestController = requestController;
 		try {
-			const audio = await withTimeout(
-				this.synthesizeOnline(descriptor, secret),
-				this.dependencies.requestTimeoutMs,
-			);
+			const audio = await this.synthesizeOnline(descriptor, secret, requestController.signal);
 			if (operationId !== this.operationId) return { status: "cancelled" };
 			if (cacheKey) {
 				await this.dependencies.cache.put(cacheKey, {
@@ -312,6 +298,10 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 			if (operationId !== this.operationId) return { status: "cancelled" };
 			const reason = this.handleProviderError(descriptor.provider, error);
 			return { status: "failed", reason };
+		} finally {
+			if (this.activeRequestController === requestController) {
+				this.activeRequestController = null;
+			}
 		}
 	}
 
@@ -364,11 +354,10 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		if (!this.dependencies.isOnline()) {
 			return { status: "unavailable", reason: "offline" };
 		}
+		const requestController = new AbortController();
+		this.activeRequestController = requestController;
 		try {
-			const audio = await withTimeout(
-				this.synthesizeOnline(descriptor, secret),
-				this.dependencies.requestTimeoutMs,
-			);
+			const audio = await this.synthesizeOnline(descriptor, secret, requestController.signal);
 			if (operationId !== this.operationId) return { status: "cancelled" };
 			return this.playAudio(
 				descriptor.text,
@@ -381,11 +370,17 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 			if (operationId !== this.operationId) return { status: "cancelled" };
 			const reason = this.handleProviderError(descriptor.provider, error);
 			return { status: "failed", reason };
+		} finally {
+			if (this.activeRequestController === requestController) {
+				this.activeRequestController = null;
+			}
 		}
 	}
 
 	stop(): void {
 		this.operationId++;
+		this.activeRequestController?.abort();
+		this.activeRequestController = null;
 		this.cancelActiveTest?.();
 		this.activePlayback?.cancel();
 		this.activePlayback = null;
@@ -641,10 +636,17 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 	private async synthesizeOnline(
 		descriptor: PronunciationRequestDescriptor,
 		secret: string,
+		signal: AbortSignal,
 	): Promise<SynthesizedAudio> {
 		return descriptor.provider === "azure"
-			? synthesizeAzureSpeech(this.dependencies.requester, descriptor, this.settings, secret)
-			: synthesizeOpenAiSpeech(this.dependencies.requester, descriptor, secret);
+			? synthesizeAzureSpeech(this.dependencies.net, descriptor, this.settings, secret, {
+					signal,
+					timeoutMs: this.dependencies.requestTimeoutMs,
+				})
+			: synthesizeOpenAiSpeech(this.dependencies.net, descriptor, secret, {
+					signal,
+					timeoutMs: this.dependencies.requestTimeoutMs,
+				});
 	}
 
 	private createOnlineDescriptor(text: string): PronunciationRequestDescriptor | null {
@@ -662,7 +664,7 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 				: this.settings.openaiSecretId;
 		if (!secretId.trim()) return null;
 		try {
-			return this.dependencies.getSecret(secretId)?.trim() || null;
+			return this.dependencies.net.readSecret(secretId)?.trim() || null;
 		} catch {
 			return null;
 		}
@@ -676,16 +678,15 @@ class BrowserPronunciationRuntime implements PronunciationRuntime {
 		provider: "azure" | "openai",
 		error: unknown,
 	): PronunciationFailureReason {
-		if (error instanceof TimeoutError) {
+		if (error instanceof TransportError && error.code === "timeout") {
 			this.blockProvider(provider, this.dependencies.now() + 30_000);
 			return "timeout";
 		}
-		const status = error instanceof PronunciationProviderError ? error.status : null;
-		if (status === 401 || status === 403) {
+		if (error instanceof TransportError && error.code === "unauthorized") {
 			this.blockProvider(provider, Number.POSITIVE_INFINITY);
 			return "unauthorized";
 		}
-		if (status === 429) {
+		if (error instanceof TransportError && error.code === "rate-limited") {
 			this.blockProvider(provider, this.dependencies.now() + 60_000);
 			return "quota";
 		}
@@ -767,24 +768,6 @@ export function selectLocalEnglishVoice(
 		if (exact) return exact;
 	}
 	return localEnglishVoices.find((voice) => voice.default) ?? localEnglishVoices[0] ?? null;
-}
-
-class TimeoutError extends Error {}
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-	return new Promise((resolve, reject) => {
-		const timer = globalThis.setTimeout(() => reject(new TimeoutError()), timeoutMs);
-		void promise.then(
-			(value) => {
-				globalThis.clearTimeout(timer);
-				resolve(value);
-			},
-			(error: unknown) => {
-				globalThis.clearTimeout(timer);
-				reject(error);
-			},
-		);
-	});
 }
 
 export function shouldAutoPronounceSessionCard(options: {

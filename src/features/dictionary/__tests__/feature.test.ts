@@ -24,7 +24,7 @@ vi.mock("../domain/dictionaryRuntime", () => ({
 		readonly favoriteController = { prefill: vi.fn(), resetSession: vi.fn() };
 		readonly dispose = vi.fn();
 		readonly applySettings = vi.fn();
-		constructor(readonly options?: { request: (req: unknown) => Promise<unknown> }) {
+		constructor(readonly options?: { net: unknown }) {
 			runtimeSpies.instances.push(this);
 		}
 	},
@@ -126,7 +126,7 @@ describe("dictionary feature", () => {
 		expect(runtime.dispose.mock.calls).toHaveLength(1);
 	});
 
-	it("passes outbound responses to the runtime with parsed json and headers", async () => {
+	it("passes the outbound port directly to the runtime", () => {
 		const netRequest = vi.fn(async () => ({
 			status: 200,
 			text: JSON.stringify({ simple: { word: "test" } }),
@@ -140,22 +140,8 @@ describe("dictionary feature", () => {
 		const fake = createFakeWorkbenchHost(enabledSettings);
 		feature.render(fake.host);
 
-		const runtime = runtimeSpies.instances[0] as {
-			options?: { request: (req: unknown) => Promise<unknown> };
-		};
-		const response = (await runtime.options?.request({
-			url: "https://dict.youdao.com/jsonapi?q=test",
-			method: "GET",
-		})) as {
-			status: number;
-			text: string;
-			json: unknown;
-			headers: Record<string, string>;
-		};
-
-		expect(response.status).toBe(200);
-		expect(response.json).toEqual({ simple: { word: "test" } });
-		expect(response.headers).toEqual({ "content-type": "application/json" });
+		const runtime = runtimeSpies.instances[0] as { options?: { net: unknown } };
+		expect(runtime.options?.net).toEqual(expect.objectContaining({ request: netRequest }));
 
 		feature.stop();
 	});

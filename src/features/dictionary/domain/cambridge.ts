@@ -5,7 +5,7 @@ import {
 	requestOnlineDictionary,
 	type OnlineHtmlDictionaryParsed,
 	type OnlineHtmlDictionarySource,
-	type OnlineRequestExecutor,
+	type DictionaryOutboundPort,
 } from "./online";
 import {
 	type DictionaryQuery,
@@ -88,11 +88,11 @@ export class CambridgeDictionarySource implements DictionarySource, OnlineHtmlDi
 	readonly attribution = dictionaryText().cambridgeAttribution;
 	readonly styles = CAMBRIDGE_STYLES;
 
-	constructor(private readonly execute: OnlineRequestExecutor) {}
+	constructor(private readonly net: DictionaryOutboundPort) {}
 
 	async request(query: string): Promise<string> {
 		const url = `${CAMBRIDGE_HOST}/search/direct/?datasetsearch=english-chinese-simplified&q=${encodeURIComponent(query)}`;
-		return requestOnlineDictionary(url, this.execute);
+		return requestOnlineDictionary(url, this.net);
 	}
 
 	parse(documentNode: Document, query: string): OnlineHtmlDictionaryParsed {

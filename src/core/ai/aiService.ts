@@ -1,4 +1,5 @@
 import { cleanAiConfig, normalizeAiSettings, validateAiConnection } from "./configuration";
+import { TransportError } from "../net/types";
 import {
 	callAiJson,
 	encodeMessages,
@@ -25,7 +26,7 @@ export class AiService {
 	private loadingModels = new Set<string>();
 	private testing = new Set<string>();
 	private listeners = new Set<() => void>();
-	private cancellations = new Set<() => void>();
+	private requestControllers = new Set<AbortController>();
 	private writes: Promise<unknown> = Promise.resolve();
 	private disposed = false;
 	private snapshot!: AiSnapshot;
@@ -86,7 +87,7 @@ export class AiService {
 			imageInput === "unsupported"
 		)
 			throw new AiError("unsupported-image");
-		return this.run(request, async (check) => {
+		return this.run(request, async (signal, timeoutMs, check) => {
 			const body: Record<string, unknown> = {
 				model: config.model,
 				messages,
@@ -103,6 +104,7 @@ export class AiService {
 				config,
 				`${config.baseUrl}/chat/completions`,
 				body,
+				{ signal, timeoutMs },
 				check,
 			);
 			const usage = readUsage(data);
@@ -129,13 +131,14 @@ export class AiService {
 		this.testing.add(testingKey);
 		this.publish();
 		try {
-			await this.run(options, async (check) => {
+			await this.run(options, async (signal, timeoutMs, check) => {
 				const messages = encodeMessages([{ role: "user", text: "Reply with OK." }]);
 				const data = await callAiJson(
 					this.deps,
 					config,
 					`${config.baseUrl}/chat/completions`,
 					{ model: config.model, messages, stream: false },
+					{ signal, timeoutMs },
 					check,
 				);
 				readTextResponse(data);
@@ -155,8 +158,8 @@ export class AiService {
 		this.loadingModels.add(captured.id);
 		this.publish();
 		try {
-			const models = await this.run(options, (check) =>
-				fetchAiModels(this.deps, captured, check),
+			const models = await this.run(options, (signal, timeoutMs, check) =>
+				fetchAiModels(this.deps, captured, check, { signal, timeoutMs }),
 			);
 			// Cache by connection so draft discovery survives saving under a new ID.
 			// Snapshots only expose catalogues matching currently committed connections.
@@ -173,7 +176,8 @@ export class AiService {
 
 	dispose(): void {
 		this.disposed = true;
-		for (const cancel of this.cancellations) cancel();
+		for (const controller of this.requestControllers) controller.abort();
+		this.requestControllers.clear();
 		this.listeners.clear();
 	}
 
@@ -220,41 +224,29 @@ export class AiService {
 		this.publish();
 	}
 
-	private run<T>(options: AiRequestOptions, work: (check: () => void) => Promise<T>): Promise<T> {
+	private async run<T>(
+		options: AiRequestOptions,
+		work: (signal: AbortSignal, timeoutMs: number, check: () => void) => Promise<T>,
+	): Promise<T> {
 		this.assertActive();
 		const timeout = options.timeoutMs ?? 120_000;
-		const signal = options.signal;
 		if (!Number.isFinite(timeout) || timeout <= 0 || timeout > 2_147_483_647)
-			return Promise.reject(new AiError("invalid-input"));
-		if (signal?.aborted) return Promise.reject(new AiError("cancelled"));
-		return new Promise<T>((resolve, reject) => {
-			let done = false;
-			const finish = (error?: unknown, result?: T) => {
-				if (done) return;
-				done = true;
-				clearTimeout(timer);
-				signal?.removeEventListener("abort", cancel);
-				this.cancellations.delete(cancel);
-				if (error) reject(error instanceof AiError ? error : new AiError("network"));
-				else resolve(result!);
-			};
-			const cancel = () => finish(new AiError("cancelled"));
-			const timer = setTimeout(() => finish(new AiError("timeout")), timeout);
-			this.cancellations.add(cancel);
-			signal?.addEventListener("abort", cancel, { once: true });
-			const check = () => {
-				if (done) throw new AiError("cancelled");
-			};
-			void Promise.resolve()
-				.then(() => {
-					check();
-					return work(check);
-				})
-				.then(
-					(result) => finish(undefined, result),
-					(error: unknown) => finish(error),
-				);
-		});
+			throw new AiError("invalid-input");
+		if (options.signal?.aborted) throw new TransportError("cancelled");
+		const controller = new AbortController();
+		const cancel = () => controller.abort();
+		options.signal?.addEventListener("abort", cancel, { once: true });
+		this.requestControllers.add(controller);
+		const check = () => {
+			if (controller.signal.aborted) throw new TransportError("cancelled");
+		};
+		try {
+			check();
+			return await work(controller.signal, timeout, check);
+		} finally {
+			options.signal?.removeEventListener("abort", cancel);
+			this.requestControllers.delete(controller);
+		}
 	}
 
 	private assertActive(): void {

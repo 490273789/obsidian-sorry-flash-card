@@ -3,9 +3,9 @@ import {
 	cleanOnlineText,
 	lookupOnlineHtmlDictionary,
 	requestOnlineText,
+	type DictionaryOutboundPort,
 	type OnlineHtmlDictionaryParsed,
 	type OnlineHtmlDictionarySource,
-	type OnlineTextRequestExecutor,
 } from "./online";
 import { type DictionaryQuery, type DictionaryResult, type DictionarySource } from "./types";
 
@@ -70,7 +70,7 @@ export class HujiangDictionarySource implements DictionarySource, OnlineHtmlDict
 	readonly attribution = dictionaryText().hujiangAttribution;
 	readonly styles = HUJIANG_STYLES;
 
-	constructor(private readonly execute: OnlineTextRequestExecutor) {}
+	constructor(private readonly net: DictionaryOutboundPort) {}
 
 	async request(query: string): Promise<string> {
 		return requestOnlineText(
@@ -79,7 +79,7 @@ export class HujiangDictionarySource implements DictionarySource, OnlineHtmlDict
 				method: "GET",
 				url: `${HUJIANG_ENDPOINT}/${encodeURIComponent(query)}`,
 			},
-			this.execute,
+			this.net,
 		);
 	}
 

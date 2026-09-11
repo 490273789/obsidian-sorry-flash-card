@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { TransportError } from "../../../../core/net/types";
 import { translateYoudao, youdaoV3SignInput } from "../youdao";
 
 const connection = {
@@ -6,14 +7,6 @@ const connection = {
 	appKeySecretId: "app-key",
 	appSecretSecretId: "app-secret",
 };
-
-function deferred<T>() {
-	let resolve!: (value: T) => void;
-	const promise = new Promise<T>((done) => {
-		resolve = done;
-	});
-	return { promise, resolve };
-}
 
 describe("translateYoudao", () => {
 	it("signs and sends the documented v3 form request", async () => {
@@ -50,21 +43,13 @@ describe("translateYoudao", () => {
 		).rejects.toMatchObject({ code: "rate-limited" });
 	});
 
-	it("times out after two minutes and ignores a late transport result", async () => {
-		vi.useFakeTimers();
-		const gate = deferred<{ status: number; text: string }>();
+	it("preserves the outbound port timeout classification", async () => {
 		const pending = translateYoudao(connection, "hello", "en-zh", {
-			request: () => gate.promise,
+			request: async () => {
+				throw new TransportError("timeout");
+			},
 			readSecret: () => "secret",
 		});
-		const rejection = expect(pending).rejects.toMatchObject({ code: "timeout" });
-		await vi.advanceTimersByTimeAsync(120_000);
-		await rejection;
-		gate.resolve({
-			status: 200,
-			text: JSON.stringify({ errorCode: "0", translation: ["迟到"] }),
-		});
-		await Promise.resolve();
-		vi.useRealTimers();
+		await expect(pending).rejects.toMatchObject({ code: "timeout" });
 	});
 });

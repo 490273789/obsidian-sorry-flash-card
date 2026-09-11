@@ -9,7 +9,7 @@ import {
 	type DictionarySource,
 	type Pronunciation,
 } from "./types";
-import { requestOnlineResponse, type OnlineRequestExecutor } from "./online";
+import { requestOnlineResponse, type DictionaryOutboundPort } from "./online";
 import { isRecord } from "../../../core/shared/isRecord";
 
 export const YOUDAO_FREE_ENDPOINT = "https://dict.youdao.com/jsonapi";
@@ -308,7 +308,7 @@ export class YoudaoDictionarySource implements DictionarySource {
 
 	constructor(
 		private readonly settings: Readonly<YoudaoDictionarySettings>,
-		private readonly execute: OnlineRequestExecutor,
+		private readonly net: DictionaryOutboundPort,
 	) {}
 
 	async lookup(query: DictionaryQuery): Promise<DictionaryResult> {
@@ -323,7 +323,7 @@ export class YoudaoDictionarySource implements DictionarySource {
 				method: "GET",
 				url: `${YOUDAO_FREE_ENDPOINT}?q=${encodeURIComponent(query)}`,
 			},
-			this.execute,
+			this.net,
 		);
 		try {
 			return parseYoudaoFreeResponse(responseJson(response), query);
@@ -355,11 +355,11 @@ export class YoudaoDictionarySource implements DictionarySource {
 		const response = await requestOnlineResponse(
 			{
 				body,
-				contentType: "application/x-www-form-urlencoded",
+				headers: { "Content-Type": "application/x-www-form-urlencoded" },
 				method: "POST",
 				url: YOUDAO_OFFICIAL_ENDPOINT,
 			},
-			this.execute,
+			this.net,
 		);
 		return parseYoudaoOfficialResponse(responseJson(response), query);
 	}

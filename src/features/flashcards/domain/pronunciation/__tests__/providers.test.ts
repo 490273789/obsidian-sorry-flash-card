@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { TransportError } from "../../../../../core/net/types";
 import { type PronunciationSettings } from "../../../../../core/shared/types";
 import { DEFAULT_SETTINGS } from "../../../../../core/host/settingsSlices";
 import {
@@ -20,6 +21,7 @@ function makeSettings(overrides: Partial<PronunciationSettings> = {}): Pronuncia
 function successfulRequester(): ReturnType<typeof vi.fn<PronunciationRequester>> {
 	return vi.fn<PronunciationRequester>().mockResolvedValue({
 		status: 200,
+		text: "",
 		arrayBuffer: new Uint8Array([1, 2, 3]).buffer,
 		headers: { "Content-Type": "audio/mpeg; charset=binary" },
 	});
@@ -37,7 +39,12 @@ describe("pronunciation providers", () => {
 		const requester = successfulRequester();
 		if (!descriptor) throw new Error("Expected descriptor");
 
-		const audio = await synthesizeAzureSpeech(requester, descriptor, settings, "azure-secret");
+		const audio = await synthesizeAzureSpeech(
+			{ request: requester },
+			descriptor,
+			settings,
+			"azure-secret",
+		);
 
 		expect(audio).toMatchObject({ mimeType: "audio/mpeg", source: "azure" });
 		expect(requester).toHaveBeenCalledWith(
@@ -63,7 +70,7 @@ describe("pronunciation providers", () => {
 		const descriptor = createPronunciationRequestDescriptor("hello", globalSettings);
 		const requester = successfulRequester();
 		if (!descriptor) throw new Error("Expected descriptor");
-		await synthesizeAzureSpeech(requester, descriptor, globalSettings, "secret");
+		await synthesizeAzureSpeech({ request: requester }, descriptor, globalSettings, "secret");
 		expect(requester.mock.calls[0]![0].url).toBe(
 			"https://eastus.tts.speech.microsoft.com/cognitiveservices/v1",
 		);
@@ -72,7 +79,7 @@ describe("pronunciation providers", () => {
 		const chinaDescriptor = createPronunciationRequestDescriptor("hello", chinaSettings);
 		if (!chinaDescriptor) throw new Error("Expected descriptor");
 		await expect(
-			synthesizeAzureSpeech(requester, chinaDescriptor, chinaSettings, "secret"),
+			synthesizeAzureSpeech({ request: requester }, chinaDescriptor, chinaSettings, "secret"),
 		).rejects.toBeInstanceOf(PronunciationProviderError);
 	});
 
@@ -86,11 +93,14 @@ describe("pronunciation providers", () => {
 		const requester = successfulRequester();
 		if (!descriptor) throw new Error("Expected descriptor");
 
-		await synthesizeOpenAiSpeech(requester, descriptor, "openai-secret");
+		await synthesizeOpenAiSpeech({ request: requester }, descriptor, "openai-secret");
 
 		const request = requester.mock.calls[0]![0];
 		expect(request.url).toBe("https://api.openai.com/v1/audio/speech");
-		expect(request.headers).toEqual({ Authorization: "Bearer openai-secret" });
+		expect(request.headers).toEqual({
+			Authorization: "Bearer openai-secret",
+			"Content-Type": "application/json",
+		});
 		const body = JSON.parse(typeof request.body === "string" ? request.body : "{}");
 		expect(body).toMatchObject({
 			model: "gpt-4o-mini-tts",
@@ -106,15 +116,13 @@ describe("pronunciation providers", () => {
 		const settings = makeSettings();
 		const descriptor = createPronunciationRequestDescriptor("hello", settings);
 		if (!descriptor) throw new Error("Expected descriptor");
-		const requester = vi.fn<PronunciationRequester>().mockResolvedValue({
-			status: 429,
-			arrayBuffer: new ArrayBuffer(0),
-			headers: {},
-		});
+		const requester = vi
+			.fn<PronunciationRequester>()
+			.mockRejectedValue(new TransportError("rate-limited", { httpStatus: 429 }));
 
 		await expect(
-			synthesizeAzureSpeech(requester, descriptor, settings, "secret"),
-		).rejects.toMatchObject({ status: 429 });
+			synthesizeAzureSpeech({ request: requester }, descriptor, settings, "secret"),
+		).rejects.toMatchObject({ code: "rate-limited", httpStatus: 429 });
 	});
 
 	it("uses the system's British locale for cloud fallback when accent follows system", () => {

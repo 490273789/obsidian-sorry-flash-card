@@ -1,5 +1,9 @@
-import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
+import {
+	TransportError,
+	type OutboundRequest,
+	type OutboundResponse,
+} from "../../../../core/net/types";
 import { buildYoudaoV3Body, youdaoV3SignInput } from "../../../../core/shared/youdaoSign";
 import type { YoudaoDictionarySettings } from "../types";
 import {
@@ -9,8 +13,6 @@ import {
 	YOUDAO_OFFICIAL_ENDPOINT,
 	YoudaoDictionarySource,
 } from "../youdao";
-
-vi.mock("obsidian", () => ({ request: vi.fn(), requestUrl: vi.fn() }));
 
 const FREE_FIXTURE = {
 	blng_sents_part: {
@@ -105,11 +107,10 @@ const OFFICIAL_FIXTURE = {
 	],
 };
 
-function response(json: unknown, status = 200): RequestUrlResponse {
+function response(json: unknown, status = 200): OutboundResponse {
 	return {
 		arrayBuffer: new ArrayBuffer(0),
 		headers: {},
-		json,
 		status,
 		text: JSON.stringify(json),
 	};
@@ -313,18 +314,20 @@ describe("parseYoudaoOfficialResponse", () => {
 });
 
 describe("YoudaoDictionarySource dictionary selection", () => {
-	function requestsFrom(payload: unknown, calls: RequestUrlParam[]) {
-		return vi.fn(async (request: RequestUrlParam): Promise<RequestUrlResponse> => {
-			calls.push(request);
-			return response(payload);
-		});
+	function requestsFrom(payload: unknown, calls: OutboundRequest[]) {
+		return {
+			request: vi.fn(async (request: OutboundRequest): Promise<OutboundResponse> => {
+				calls.push(request);
+				return response(payload);
+			}),
+		};
 	}
 
 	async function selectDict(
 		query: string,
 		dictionaries: string[],
 	): Promise<{ dicts: string | null; langType: string | null }> {
-		const calls: RequestUrlParam[] = [];
+		const calls: OutboundRequest[] = [];
 		const source = new YoudaoDictionarySource(
 			settings({ accessMode: "official", dictionaries }),
 			requestsFrom(OFFICIAL_FIXTURE, calls),
@@ -351,13 +354,10 @@ describe("YoudaoDictionarySource dictionary selection", () => {
 
 describe("YoudaoDictionarySource never falls back between access modes", () => {
 	it("uses only the free endpoint in free mode", async () => {
-		const calls: RequestUrlParam[] = [];
+		const calls: OutboundRequest[] = [];
 		const source = new YoudaoDictionarySource(
 			settings({ accessMode: "free", appKey: "", appSecret: "" }),
-			async (request) => {
-				calls.push(request);
-				return response(FREE_FIXTURE);
-			},
+			{ request: async (request) => (calls.push(request), response(FREE_FIXTURE)) },
 		);
 		const result = await source.lookup({ text: "test" });
 
@@ -370,14 +370,10 @@ describe("YoudaoDictionarySource never falls back between access modes", () => {
 	});
 
 	it("keeps a free-mode parse failure on the free endpoint", async () => {
-		const calls: RequestUrlParam[] = [];
-		const source = new YoudaoDictionarySource(
-			settings({ accessMode: "free" }),
-			async (request) => {
-				calls.push(request);
-				return response({});
-			},
-		);
+		const calls: OutboundRequest[] = [];
+		const source = new YoudaoDictionarySource(settings({ accessMode: "free" }), {
+			request: async (request) => (calls.push(request), response({})),
+		});
 		await expect(source.lookup({ text: "missing" })).rejects.toMatchObject({
 			code: "not-found",
 		});
@@ -386,28 +382,23 @@ describe("YoudaoDictionarySource never falls back between access modes", () => {
 	});
 
 	it("maps a free-mode transport failure without an official retry", async () => {
-		const calls: RequestUrlParam[] = [];
-		const source = new YoudaoDictionarySource(
-			settings({ accessMode: "free" }),
-			async (request) => {
+		const calls: OutboundRequest[] = [];
+		const source = new YoudaoDictionarySource(settings({ accessMode: "free" }), {
+			request: async (request) => {
 				calls.push(request);
-				return response({}, 503);
+				throw new TransportError("server", { httpStatus: 503 });
 			},
-		);
+		});
 		await expect(source.lookup({ text: "test" })).rejects.toMatchObject({ code: "server" });
 		expect(calls).toHaveLength(1);
 		expect(calls[0]?.method).toBe("GET");
 	});
 
 	it("uses only the official endpoint in official mode", async () => {
-		const calls: RequestUrlParam[] = [];
-		const source = new YoudaoDictionarySource(
-			settings({ accessMode: "official" }),
-			async (request) => {
-				calls.push(request);
-				return response({ errorCode: "120" });
-			},
-		);
+		const calls: OutboundRequest[] = [];
+		const source = new YoudaoDictionarySource(settings({ accessMode: "official" }), {
+			request: async (request) => (calls.push(request), response({ errorCode: "120" })),
+		});
 		await expect(source.lookup({ text: "missing" })).rejects.toMatchObject({
 			code: "not-found",
 		});
@@ -418,44 +409,40 @@ describe("YoudaoDictionarySource never falls back between access modes", () => {
 	});
 
 	it("requires credentials in official mode before any request", async () => {
-		const execute = vi.fn(async () => response(OFFICIAL_FIXTURE));
+		const request = vi.fn(async () => response(OFFICIAL_FIXTURE));
 		const source = new YoudaoDictionarySource(
 			settings({ accessMode: "official", appKey: "  ", appSecret: "" }),
-			execute,
+			{ request },
 		);
 		await expect(source.lookup({ text: "test" })).rejects.toMatchObject({
 			code: "configuration",
 		});
-		expect(execute).not.toHaveBeenCalled();
+		expect(request).not.toHaveBeenCalled();
 	});
 
 	it("parses free-mode response when json is undefined on response", async () => {
-		const source = new YoudaoDictionarySource(
-			settings({ accessMode: "free" }),
-			async () =>
-				({
-					arrayBuffer: new ArrayBuffer(0),
-					headers: {},
-					status: 200,
-					text: JSON.stringify(FREE_FIXTURE),
-				}) as RequestUrlResponse,
-		);
+		const source = new YoudaoDictionarySource(settings({ accessMode: "free" }), {
+			request: async () => ({
+				arrayBuffer: new ArrayBuffer(0),
+				headers: {},
+				status: 200,
+				text: JSON.stringify(FREE_FIXTURE),
+			}),
+		});
 		const result = await source.lookup({ text: "test" });
 		expect(result.word).toBe("test");
 		expect(result.sections.length).toBeGreaterThan(0);
 	});
 
 	it("parses official-mode response when json is undefined on response", async () => {
-		const source = new YoudaoDictionarySource(
-			settings({ accessMode: "official" }),
-			async () =>
-				({
-					arrayBuffer: new ArrayBuffer(0),
-					headers: {},
-					status: 200,
-					text: JSON.stringify(OFFICIAL_FIXTURE),
-				}) as RequestUrlResponse,
-		);
+		const source = new YoudaoDictionarySource(settings({ accessMode: "official" }), {
+			request: async () => ({
+				arrayBuffer: new ArrayBuffer(0),
+				headers: {},
+				status: 200,
+				text: JSON.stringify(OFFICIAL_FIXTURE),
+			}),
+		});
 		const result = await source.lookup({ text: "test" });
 		expect(result.word).toBe("test");
 		expect(result.sections.length).toBeGreaterThan(0);

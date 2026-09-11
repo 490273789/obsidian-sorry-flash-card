@@ -1,3 +1,5 @@
+import type { OutboundPort, TransportErrorCode } from "../net/types";
+
 export type AiProvider = "deepseek" | "bailian" | "youdao";
 
 export interface AiEngineConfig {
@@ -60,42 +62,23 @@ export type AiErrorCode =
 	| "missing-key"
 	| "invalid-input"
 	| "unsupported-image"
-	| "unauthorized"
-	| "rate-limited"
-	| "provider-error"
-	| "network"
-	| "invalid-response"
 	| "incomplete-response"
-	| "timeout"
-	| "cancelled"
 	| "disposed"
 	| "save-failed";
 
+/** Domain and transport failures a caller may present for an AI operation. */
+export type AiFailureCode = AiErrorCode | TransportErrorCode;
+
 /** Safe diagnostics: no raw response bodies, credentials or prompts. */
 export class AiError extends Error {
-	constructor(
-		public readonly code: AiErrorCode,
-		public readonly httpStatus?: number,
-	) {
+	constructor(public readonly code: AiErrorCode) {
 		super(code);
 		this.name = "AiError";
 	}
 }
 
-export interface AiHttpRequest {
-	url: string;
-	method: "GET" | "POST";
-	headers: Record<string, string>;
-	body?: string;
-}
-
-export interface AiHttpResponse {
-	status: number;
-	text: string;
-}
 export interface AiDependencies {
-	request: (request: AiHttpRequest) => Promise<AiHttpResponse>;
-	readSecret: (id: string) => string | null | Promise<string | null>;
+	net: Pick<OutboundPort, "request" | "readSecret">;
 	persist: (settings: AiSettings) => Promise<void>;
 	createId: () => string;
 }

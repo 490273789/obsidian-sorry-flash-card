@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AiService } from "../aiService";
-import { AiError, type AiEngineConfig, type AiHttpResponse, type AiSettings } from "../types";
+import { type AiEngineConfig, type AiSettings } from "../types";
 import { normalizeAiSettings } from "../configuration";
+import { TransportError, type OutboundRequest, type OutboundResponse } from "../../net/types";
 
 const config: AiEngineConfig = {
 	id: "engine-1",
@@ -11,7 +12,7 @@ const config: AiEngineConfig = {
 	secretId: "ai-key",
 	model: "deepseek-v4-flash",
 };
-const response = (text = "Hello"): AiHttpResponse => ({
+const response = (text = "Hello"): OutboundResponse => ({
 	status: 200,
 	text: JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: text } }] }),
 });
@@ -25,16 +26,22 @@ function deferred<T>() {
 	});
 	return { promise, resolve, reject };
 }
+function abortablePending(signal?: AbortSignal): Promise<OutboundResponse> {
+	return new Promise((_, reject) => {
+		const cancel = () => reject(new TransportError("cancelled"));
+		if (signal?.aborted) cancel();
+		else signal?.addEventListener("abort", cancel, { once: true });
+	});
+}
 function setup(settings: AiSettings = { configs: [config], defaultConfigId: config.id }) {
-	const request = vi.fn<(_: unknown) => Promise<AiHttpResponse>>().mockResolvedValue(response());
+	const request = vi
+		.fn<(_: OutboundRequest) => Promise<OutboundResponse>>()
+		.mockResolvedValue(response());
 	const persist = vi.fn<(_: AiSettings) => Promise<void>>().mockResolvedValue(undefined);
-	const readSecret = vi
-		.fn<(_: string) => string | null | Promise<string | null>>()
-		.mockReturnValue("secret-value");
+	const readSecret = vi.fn<(_: string) => string | null>().mockReturnValue("secret-value");
 	const service = new AiService(settings, {
-		request,
+		net: { request, readSecret },
 		persist,
-		readSecret,
 		createId: () => "new-id",
 	});
 	return { service, request, persist, readSecret };
@@ -153,9 +160,9 @@ describe("AI text and image requests", () => {
 		});
 	});
 	it("retains in-flight config and message content across edits and deletions", async () => {
-		const { service, request, readSecret } = setup();
-		const gate = deferred<string | null>();
-		readSecret.mockReturnValueOnce(gate.promise);
+		const { service, request } = setup();
+		const gate = deferred<OutboundResponse>();
+		request.mockReturnValueOnce(gate.promise);
 		const input = [{ role: "user" as const, text: "original" }];
 		const pending = service.generate({ messages: input });
 		input[0]!.text = "changed";
@@ -165,7 +172,7 @@ describe("AI text and image requests", () => {
 			baseUrl: "https://other.example/v1",
 		});
 		await service.deleteConfig(config.id);
-		gate.resolve("original-secret");
+		gate.resolve(response());
 		await expect(pending).resolves.toMatchObject({ model: config.model });
 		expect(request).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -210,13 +217,15 @@ describe("AI text and image requests", () => {
 	it.each([
 		[401, "unauthorized"],
 		[429, "rate-limited"],
-		[500, "provider-error"],
+		[500, "server"],
 	])("returns safe HTTP %i errors without retrying", async (status, code) => {
 		const { service, request } = setup();
-		request.mockResolvedValue({
-			status: Number(status),
-			text: "secret-value and private prompt",
-		});
+		request.mockRejectedValue(
+			new TransportError(code as "unauthorized" | "rate-limited" | "server", {
+				httpStatus: Number(status),
+				responseText: "secret-value and private prompt",
+			}),
+		);
 		await expect(service.generate({ messages })).rejects.toMatchObject({
 			code,
 			httpStatus: status,
@@ -226,7 +235,7 @@ describe("AI text and image requests", () => {
 	it("does not expose raw transport errors or accept truncated model output", async () => {
 		const { service, request } = setup();
 		request.mockRejectedValueOnce(new Error("secret-value"));
-		await expect(service.generate({ messages })).rejects.toEqual(new AiError("network"));
+		await expect(service.generate({ messages })).rejects.toMatchObject({ code: "network" });
 		request.mockResolvedValueOnce({
 			status: 200,
 			text: JSON.stringify({
@@ -243,33 +252,32 @@ describe("AI request lifecycle", () => {
 	it("times out after 120 seconds, discards late results and leaves other requests independent", async () => {
 		vi.useFakeTimers();
 		const { service, request } = setup();
-		const gate = deferred<AiHttpResponse>();
-		request.mockReturnValueOnce(gate.promise);
+		request.mockImplementationOnce(
+			(spec) =>
+				new Promise((_, reject) =>
+					setTimeout(() => reject(new TransportError("timeout")), spec.timeoutMs),
+				),
+		);
 		const slow = service.generate({ messages });
 		const rejection = expect(slow).rejects.toMatchObject({ code: "timeout" });
 		await vi.advanceTimersByTimeAsync(119_999);
 		await expect(service.generate({ messages })).resolves.toMatchObject({ text: "Hello" });
 		await vi.advanceTimersByTimeAsync(1);
 		await rejection;
-		gate.resolve(response("late"));
-		await Promise.resolve();
 		expect(vi.getTimerCount()).toBe(0);
 	});
-	it("cancels before secret retrieval completes without sending a request", async () => {
-		const { service, request, readSecret } = setup();
-		const gate = deferred<string | null>();
-		readSecret.mockReturnValue(gate.promise);
+	it("passes cancellation to the outbound port", async () => {
+		const { service, request } = setup();
+		request.mockImplementationOnce((spec) => abortablePending(spec.signal));
 		const controller = new AbortController();
 		const pending = service.generate({ messages, signal: controller.signal });
 		controller.abort();
 		await expect(pending).rejects.toMatchObject({ code: "cancelled" });
-		gate.resolve("secret-value");
-		await Promise.resolve();
-		expect(request).not.toHaveBeenCalled();
+		expect(request).toHaveBeenCalledOnce();
 	});
 	it("disposes active requests and rejects future calls", async () => {
 		const { service, request } = setup();
-		request.mockReturnValue(new Promise(() => {}));
+		request.mockImplementation((spec) => abortablePending(spec.signal));
 		const pending = service.generate({ messages });
 		service.dispose();
 		await expect(pending).rejects.toMatchObject({ code: "cancelled" });
@@ -381,7 +389,7 @@ describe("model discovery", () => {
 	});
 	it("does not publish a catalogue when its configuration changed while loading", async () => {
 		const { service, request } = setup();
-		const gate = deferred<AiHttpResponse>();
+		const gate = deferred<OutboundResponse>();
 		request.mockReturnValue(gate.promise);
 		const pending = service.listModels(config);
 		await service.saveConfig({ ...config, baseUrl: "https://new.example/v1" });

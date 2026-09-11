@@ -1,6 +1,6 @@
 import { Notice } from "obsidian";
 import type { AiService } from "../../core/ai";
-import { TransportError, type OutboundPort } from "../../core/net";
+import type { OutboundPort } from "../../core/net";
 import { translationStrings } from "./strings/translation";
 import { translationSettingsStrings } from "./strings/settings";
 import { normalizeTranslationSettings } from "./domain/configuration";
@@ -56,37 +56,7 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Translat
 				});
 			},
 			youdao: (connection, text, direction, signal) =>
-				translateYoudao(
-					connection,
-					text,
-					direction,
-					{
-						readSecret: (id) => deps.net.readSecret(id),
-						request: async (request) => {
-							try {
-								const response = await deps.net.request({
-									label: "translation-youdao",
-									url: request.url,
-									method: request.method,
-									headers: request.headers,
-									body:
-										typeof request.body === "string" ? request.body : undefined,
-									timeoutMs: 0,
-								});
-								return { status: response.status, text: response.text };
-							} catch (error) {
-								if (error instanceof TransportError) {
-									return {
-										status: error.httpStatus ?? 0,
-										text: error.responseText ?? "",
-									};
-								}
-								throw error;
-							}
-						},
-					},
-					signal,
-				),
+				translateYoudao(connection, text, direction, deps.net, signal),
 		});
 		return runtime;
 	};

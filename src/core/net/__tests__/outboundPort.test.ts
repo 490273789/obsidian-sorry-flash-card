@@ -66,6 +66,19 @@ describe("outbound port", () => {
 		).rejects.toMatchObject({ code: "network" });
 	});
 
+	it("rejects a response larger than the caller's accepted size", async () => {
+		requestUrlMock.mockResolvedValueOnce({
+			arrayBuffer: new ArrayBuffer(32),
+			status: 200,
+			text: "oversized",
+		} as never);
+		const { port } = createPort();
+
+		await expect(
+			port.request({ label: "test", maxBytes: 16, url: "https://example.test" }),
+		).rejects.toMatchObject({ code: "invalid-response", httpStatus: 200 });
+	});
+
 	it("fails with timeout once the default deadline passes", async () => {
 		vi.useFakeTimers();
 		requestUrlMock.mockImplementation(() => new Promise(() => {}) as never);
@@ -185,6 +198,42 @@ describe("outbound port", () => {
 					maxBytes: 16,
 				}),
 			).rejects.toMatchObject({ code: "invalid-response" });
+		});
+
+		it("stops a streamed response as soon as it exceeds the accepted size", async () => {
+			const cancel = vi.fn().mockResolvedValue(undefined);
+			const releaseLock = vi.fn();
+			vi.stubGlobal(
+				"fetch",
+				vi.fn().mockResolvedValue({
+					body: {
+						getReader: () => ({
+							cancel,
+							read: vi
+								.fn()
+								.mockResolvedValueOnce({ done: false, value: new Uint8Array(12) })
+								.mockResolvedValueOnce({ done: false, value: new Uint8Array(12) }),
+							releaseLock,
+						}),
+					},
+					headers: {
+						get: (name: string) => (name === "content-type" ? "image/jpeg" : null),
+					},
+					status: 200,
+				}),
+			);
+			const { port } = createPort();
+
+			await expect(
+				port.requestHostPinned({
+					accept: "image/jpeg",
+					label: "eudic",
+					maxBytes: 16,
+					url: "https://img.example.test/a.jpg",
+				}),
+			).rejects.toMatchObject({ code: "invalid-response" });
+			expect(cancel).toHaveBeenCalledOnce();
+			expect(releaseLock).toHaveBeenCalledOnce();
 		});
 	});
 });

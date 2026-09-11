@@ -1,6 +1,6 @@
-import type { AiHttpResponse } from "../../../../core/ai/types";
 import { describe, expect, it, vi } from "vitest";
-import { AiError, AiService } from "../../../../core/ai";
+import { AiService } from "../../../../core/ai";
+import { TransportError, type OutboundResponse } from "../../../../core/net/types";
 import { normalizeTranslationSettings, renderTranslationPrompt } from "../configuration";
 import { TranslationRuntime } from "../translationRuntime";
 import type { TranslationOutput, TranslationSettings } from "../types";
@@ -14,12 +14,12 @@ function deferred<T>() {
 	});
 	return { promise, resolve, reject };
 }
-const response = (text: string): AiHttpResponse => ({
+const response = (text: string): OutboundResponse => ({
 	status: 200,
 	text: JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: text } }] }),
 });
 function setup() {
-	const request = vi.fn<() => Promise<AiHttpResponse>>().mockResolvedValue(response("Hello"));
+	const request = vi.fn<() => Promise<OutboundResponse>>().mockResolvedValue(response("Hello"));
 	const ai = new AiService(
 		{
 			configs: [
@@ -35,8 +35,7 @@ function setup() {
 			defaultConfigId: "a",
 		},
 		{
-			request,
-			readSecret: () => "secret",
+			net: { request, readSecret: () => "secret" },
 			createId: () => "new",
 			persist: async () => {},
 		},
@@ -60,7 +59,7 @@ function setup() {
 describe("translation session", () => {
 	it("prefills without requesting and preserves order when results finish out of order", async () => {
 		const { runtime, request, youdao } = setup();
-		const gate = deferred<AiHttpResponse>();
+		const gate = deferred<OutboundResponse>();
 		request.mockReturnValueOnce(gate.promise);
 		runtime.prefill("你好");
 		expect(request).not.toHaveBeenCalled();
@@ -76,7 +75,7 @@ describe("translation session", () => {
 	});
 	it("keeps successful outputs when another provider fails and retries only failures", async () => {
 		const { runtime, request, youdao } = setup();
-		youdao.mockRejectedValueOnce(new AiError("unauthorized"));
+		youdao.mockRejectedValueOnce(new TransportError("unauthorized"));
 		runtime.setInput("你好");
 		await runtime.translate();
 		expect(runtime.getSnapshot().status).toBe("success");

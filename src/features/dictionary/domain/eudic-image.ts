@@ -1,3 +1,4 @@
+import { TransportError, type OutboundPort } from "../../../core/net/types";
 import { dictionaryText } from "./messages";
 import { DictionaryError } from "./types";
 
@@ -10,7 +11,7 @@ const EUDIC_REMOTE_PATH = "/buckets/main/store_main/word_card/v2/en/";
 const MAX_REMOTE_IMAGE_BYTES = 4_194_304;
 const REMOTE_TIMEOUT_MS = 12_000;
 
-export type EudicFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+type EudicOutboundPort = Pick<OutboundPort, "requestHostPinned">;
 
 function eudicResourceUrl(path: string): string | null {
 	if (!path.startsWith(EUDIC_RESOURCE_PREFIX)) return null;
@@ -22,55 +23,6 @@ function eudicResourceUrl(path: string): string | null {
 		: null;
 }
 
-async function readBoundedImage(response: Response): Promise<Uint8Array> {
-	const declaredLength = Number(response.headers.get("content-length"));
-	if (Number.isFinite(declaredLength) && declaredLength > MAX_REMOTE_IMAGE_BYTES) {
-		throw new DictionaryError("invalid-response", dictionaryText().errors.responseTooLarge);
-	}
-	if (!response.body) {
-		const data = new Uint8Array(await response.arrayBuffer());
-		if (data.byteLength > MAX_REMOTE_IMAGE_BYTES) {
-			throw new DictionaryError("invalid-response", dictionaryText().errors.responseTooLarge);
-		}
-		return data;
-	}
-	const reader = response.body.getReader();
-	const chunks: Uint8Array[] = [];
-	let totalBytes = 0;
-	let completed = false;
-	try {
-		while (true) {
-			// oxlint-disable-next-line no-await-in-loop -- the response stream must be consumed in order.
-			const item = await reader.read();
-			if (item.done) {
-				completed = true;
-				break;
-			}
-			totalBytes += item.value.byteLength;
-			if (totalBytes > MAX_REMOTE_IMAGE_BYTES) {
-				throw new DictionaryError(
-					"invalid-response",
-					dictionaryText().errors.responseTooLarge,
-				);
-			}
-			chunks.push(item.value);
-		}
-	} finally {
-		if (!completed) await reader.cancel().catch(() => undefined);
-		reader.releaseLock();
-	}
-	if (totalBytes === 0) {
-		throw new DictionaryError("empty-response", dictionaryText().errors.emptyResponse);
-	}
-	const data = new Uint8Array(totalBytes);
-	let offset = 0;
-	for (const chunk of chunks) {
-		data.set(chunk, offset);
-		offset += chunk.byteLength;
-	}
-	return data;
-}
-
 function toBase64(data: Uint8Array): string {
 	let binary = "";
 	for (let offset = 0; offset < data.byteLength; offset += 0x8000) {
@@ -79,23 +31,10 @@ function toBase64(data: Uint8Array): string {
 	return btoa(binary);
 }
 
-/**
- * Deliberate exception to the "use Obsidian request APIs" rule: this loader
- * keeps the raw `fetch` because it must pass `redirect: 'error'`.
- *
- * Refusing redirects is a security invariant here: host pinning and the JPEG
- * MIME check only constrain the requested URL, so a redirect could silently
- * send the request to an arbitrary origin. Obsidian's `requestUrl` follows
- * redirects and exposes no way to disable that, so it cannot express this
- * policy; `credentials: 'omit'` additionally guarantees no ambient cookies are
- * sent to the image host.
- */
 export class EudicImageResourceLoader {
 	private readonly controllers = new Set<AbortController>();
 
-	constructor(
-		private readonly fetcher: EudicFetch = (input, init) => globalThis.fetch(input, init),
-	) {}
+	constructor(private readonly net: EudicOutboundPort) {}
 
 	close(): void {
 		for (const controller of this.controllers) controller.abort();
@@ -106,41 +45,44 @@ export class EudicImageResourceLoader {
 		const url = eudicResourceUrl(path);
 		if (!url) return null;
 		const controller = new AbortController();
-		const timeout = globalThis.setTimeout(() => controller.abort(), REMOTE_TIMEOUT_MS);
 		this.controllers.add(controller);
 		try {
-			const response = await this.fetcher(url, {
-				credentials: "omit",
-				redirect: "error",
-				referrerPolicy: "no-referrer",
+			const response = await this.net.requestHostPinned({
+				accept: "image/jpeg",
+				label: "eudic-dictionary-image",
+				maxBytes: MAX_REMOTE_IMAGE_BYTES,
 				signal: controller.signal,
+				timeoutMs: REMOTE_TIMEOUT_MS,
+				url,
 			});
-			if (!response.ok) {
-				const code = response.status === 429 ? "rate-limit" : "server";
-				throw new DictionaryError(
-					code,
-					dictionaryText().eudicImageUnavailable,
-					response.status,
-				);
+			const data = new Uint8Array(response.bytes);
+			if (data.byteLength === 0) {
+				throw new DictionaryError("empty-response", dictionaryText().errors.emptyResponse);
 			}
-			if (response.headers.get("content-type")?.split(";", 1)[0]?.trim() !== "image/jpeg") {
-				throw new DictionaryError(
-					"invalid-response",
-					dictionaryText().errors.invalidResponse,
-				);
-			}
-			const data = await readBoundedImage(response);
 			return `data:image/jpeg;base64,${toBase64(data)}`;
 		} catch (error) {
 			if (error instanceof DictionaryError) throw error;
-			throw new DictionaryError(
-				"network",
-				controller.signal.aborted
-					? dictionaryText().errors.timeout
-					: dictionaryText().eudicImageUnavailable,
-			);
+			if (error instanceof TransportError) {
+				const code =
+					error.code === "rate-limited"
+						? "rate-limit"
+						: error.code === "invalid-response"
+							? "invalid-response"
+							: error.code === "network" ||
+								  error.code === "timeout" ||
+								  error.code === "cancelled"
+								? "network"
+								: "server";
+				throw new DictionaryError(
+					code,
+					error.code === "timeout"
+						? dictionaryText().errors.timeout
+						: dictionaryText().eudicImageUnavailable,
+					error.httpStatus,
+				);
+			}
+			throw new DictionaryError("network", dictionaryText().eudicImageUnavailable);
 		} finally {
-			globalThis.clearTimeout(timeout);
 			this.controllers.delete(controller);
 		}
 	}

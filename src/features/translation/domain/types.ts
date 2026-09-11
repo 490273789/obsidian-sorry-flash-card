@@ -1,4 +1,4 @@
-import type { AiErrorCode } from "../../../core/ai";
+import type { AiFailureCode } from "../../../core/ai";
 
 export type TranslationDirection = "zh-en" | "en-zh";
 export interface TranslationProfile {
@@ -26,14 +26,14 @@ export interface TranslationResultState extends TranslationOutput {
 	model: string;
 	provider: string;
 	status: "idle" | "loading" | "success" | "error";
-	error?: AiErrorCode;
+	error?: AiFailureCode;
 }
 export interface TranslationSnapshot {
 	settings: TranslationSettings;
 	input: string;
 	results: readonly TranslationResultState[];
 	status: "idle" | "loading" | "success" | "error";
-	error?: AiErrorCode;
+	error?: AiFailureCode;
 	saving: boolean;
 	testing: boolean;
 }

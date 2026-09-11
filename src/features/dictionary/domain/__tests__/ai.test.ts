@@ -1,25 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 import { AiError, type AiErrorCode, type AiService } from "../../../../core/ai";
-import { AiDictionarySource, dictionaryErrorCodeForAiError, parseAiDictionaryResult } from "../ai";
+import { TransportError, type TransportErrorCode } from "../../../../core/net/types";
+import {
+	AiDictionarySource,
+	dictionaryErrorCodeForAiError,
+	dictionaryErrorCodeForAiTransport,
+	parseAiDictionaryResult,
+} from "../ai";
 import type { DictionaryErrorCode } from "../types";
 
 const AI_ERROR_CODES: readonly AiErrorCode[] = [
 	"busy",
-	"cancelled",
 	"config-not-found",
 	"disposed",
 	"incomplete-response",
 	"invalid-config",
 	"invalid-input",
-	"invalid-response",
 	"missing-key",
-	"network",
 	"no-default",
-	"provider-error",
-	"rate-limited",
 	"save-failed",
-	"timeout",
-	"unauthorized",
 	"unsupported-image",
 ];
 
@@ -31,19 +30,23 @@ const ERROR_CODE_MAPPING: ReadonlyArray<
 	["invalid-config", "configuration"],
 	["config-not-found", "configuration"],
 	["no-default", "configuration"],
-	["unauthorized", "unauthorized"],
-	["rate-limited", "rate-limit"],
-	["provider-error", "server"],
-	["network", "network"],
-	["timeout", "network"],
-	["invalid-response", "invalid-response"],
 	["incomplete-response", "invalid-response"],
 	["invalid-input", "invalid-response"],
 	["unsupported-image", "invalid-response"],
-	["cancelled", "request"],
 	["busy", "request"],
 	["disposed", "request"],
 	["save-failed", "request"],
+];
+
+const TRANSPORT_ERROR_MAPPING: ReadonlyArray<readonly [TransportErrorCode, DictionaryErrorCode]> = [
+	["unauthorized", "unauthorized"],
+	["rate-limited", "rate-limit"],
+	["not-found", "server"],
+	["server", "server"],
+	["network", "network"],
+	["timeout", "network"],
+	["invalid-response", "invalid-response"],
+	["cancelled", "request"],
 ];
 
 function definition(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -74,6 +77,10 @@ function stubAi(generate: unknown): AiService {
 describe("dictionaryErrorCodeForAiError", () => {
 	it.each(ERROR_CODE_MAPPING)("maps %s to %s", (code, expected) => {
 		expect(dictionaryErrorCodeForAiError(code)).toBe(expected);
+	});
+
+	it.each(TRANSPORT_ERROR_MAPPING)("maps transport %s to %s", (code, expected) => {
+		expect(dictionaryErrorCodeForAiTransport(code)).toBe(expected);
 	});
 
 	it("covers every AiErrorCode member", () => {
@@ -323,13 +330,11 @@ describe("AiDictionarySource", () => {
 	});
 
 	it.each([
-		["provider-error", 502, "server"],
-		["rate-limited", 429, "rate-limit"],
-		["missing-key", undefined, "configuration"],
-		["timeout", undefined, "network"],
-		["cancelled", undefined, "request"],
-	])("maps an AiError(%s) onto %s", async (aiCode, status, expected) => {
-		const error = new AiError(aiCode as AiErrorCode, status);
+		["missing-key", "configuration"],
+		["incomplete-response", "invalid-response"],
+		["busy", "request"],
+	] as const)("maps an AiError(%s) onto %s", async (aiCode, expected) => {
+		const error = new AiError(aiCode);
 		const source = new AiDictionarySource(
 			"cfg",
 			"Engine",
@@ -339,7 +344,26 @@ describe("AiDictionarySource", () => {
 		);
 		await expect(source.lookup({ text: "test" })).rejects.toMatchObject({
 			code: expected,
-			status: status ?? null,
+			status: null,
+		});
+	});
+
+	it.each([
+		["server", 502, "server"],
+		["rate-limited", 429, "rate-limit"],
+		["timeout", null, "network"],
+		["cancelled", null, "request"],
+	] as const)("maps a TransportError(%s) onto %s", async (transportCode, status, expected) => {
+		const source = new AiDictionarySource(
+			"cfg",
+			"Engine",
+			stubAi(async () => {
+				throw new TransportError(transportCode, { httpStatus: status });
+			}),
+		);
+		await expect(source.lookup({ text: "test" })).rejects.toMatchObject({
+			code: expected,
+			status,
 		});
 	});
 

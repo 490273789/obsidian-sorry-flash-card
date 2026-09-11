@@ -30,6 +30,50 @@ export function transportCodeForStatus(status: number): TransportErrorCode | nul
 	return "server";
 }
 
+async function readBoundedBody(response: Response, maxBytes: number): Promise<ArrayBuffer> {
+	const declaredLength = Number(response.headers.get("content-length"));
+	if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+		throw new TransportError("invalid-response", { httpStatus: response.status });
+	}
+	if (!response.body) {
+		const bytes = await response.arrayBuffer();
+		if (bytes.byteLength > maxBytes) {
+			throw new TransportError("invalid-response", { httpStatus: response.status });
+		}
+		return bytes;
+	}
+
+	const reader = response.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let totalBytes = 0;
+	let completed = false;
+	try {
+		while (true) {
+			// oxlint-disable-next-line no-await-in-loop -- response chunks must be consumed in order.
+			const item = await reader.read();
+			if (item.done) {
+				completed = true;
+				break;
+			}
+			totalBytes += item.value.byteLength;
+			if (totalBytes > maxBytes) {
+				throw new TransportError("invalid-response", { httpStatus: response.status });
+			}
+			chunks.push(item.value);
+		}
+	} finally {
+		if (!completed) await reader.cancel().catch(() => undefined);
+		reader.releaseLock();
+	}
+	const result = new Uint8Array(totalBytes);
+	let offset = 0;
+	for (const chunk of chunks) {
+		result.set(chunk, offset);
+		offset += chunk.byteLength;
+	}
+	return result.buffer;
+}
+
 /**
  * Builds the workbench's outbound port over Obsidian's request API.
  *
@@ -78,6 +122,18 @@ export function createOutboundPort(options: OutboundPortOptions): OutboundPort {
 						);
 						return;
 					}
+					if (
+						spec.maxBytes !== undefined &&
+						response.arrayBuffer.byteLength > spec.maxBytes
+					) {
+						finish(
+							new TransportError("invalid-response", {
+								httpStatus: response.status,
+								responseText: response.text,
+							}),
+						);
+						return;
+					}
 					finish(undefined, {
 						status: response.status,
 						text: response.text,
@@ -116,10 +172,7 @@ export function createOutboundPort(options: OutboundPortOptions): OutboundPort {
 			if (!contentType.toLowerCase().includes(spec.accept.toLowerCase())) {
 				throw new TransportError("invalid-response", { httpStatus: response.status });
 			}
-			const bytes = await response.arrayBuffer();
-			if (bytes.byteLength > spec.maxBytes) {
-				throw new TransportError("invalid-response", { httpStatus: response.status });
-			}
+			const bytes = await readBoundedBody(response, spec.maxBytes);
 			return { status: response.status, bytes };
 		} catch (error) {
 			if (error instanceof TransportError) throw error;

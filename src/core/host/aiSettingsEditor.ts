@@ -1,5 +1,11 @@
 import { Notice } from "obsidian";
-import { AiError, type AiEngineConfig, type AiModel, type AiService } from "../ai";
+import {
+	aiFailureCode,
+	aiFailureHttpStatus,
+	type AiEngineConfig,
+	type AiModel,
+	type AiService,
+} from "../ai";
 import { AI_PRESETS } from "../ai/configuration";
 import { aiErrorText, aiStrings } from "../i18n/ai";
 import type { Language } from "../shared/types";
@@ -183,9 +189,10 @@ export class AiSettingsEditor {
 	}
 	private report(error: unknown, prefix?: string): void {
 		const t = aiStrings(this.language());
-		const safe = error instanceof AiError ? error : new AiError("network");
+		const code = aiFailureCode(error);
+		const httpStatus = aiFailureHttpStatus(error);
 		new Notice(
-			`${prefix ?? t.errorPrefix} ${aiErrorText(this.language(), safe.code)}${safe.httpStatus ? ` (${t.http} ${safe.httpStatus})` : ""}`,
+			`${prefix ?? t.errorPrefix} ${aiErrorText(this.language(), code)}${httpStatus ? ` (${t.http} ${httpStatus})` : ""}`,
 		);
 	}
 }

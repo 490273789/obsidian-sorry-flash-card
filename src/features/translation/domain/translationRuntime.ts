@@ -1,4 +1,4 @@
-import { AiError, type AiService } from "../../../core/ai";
+import { AiError, aiFailureCode, type AiService } from "../../../core/ai";
 import {
 	normalizeTranslationSettings,
 	renderTranslationPrompt,
@@ -190,7 +190,7 @@ export class TranslationRuntime {
 						if (generation !== this.generation || this.disposed) return;
 						this.updateResult(profile.id, {
 							status: "error",
-							error: error instanceof AiError ? error.code : "network",
+							error: aiFailureCode(error),
 						});
 					}
 				}),

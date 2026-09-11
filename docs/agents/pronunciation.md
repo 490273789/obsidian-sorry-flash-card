@@ -19,7 +19,7 @@ Pronunciation is offline-first in this order:
 2. Device-local cached audio for the configured provider/voice/accent/rate/text descriptor.
 3. The configured Azure Speech or OpenAI provider when online and available.
 
-- Online requests use Obsidian `requestUrl`, not browser `fetch` assumptions.
+- Online requests use the outbound port backed by Obsidian `requestUrl`, not browser `fetch` assumptions inside the feature.
 - Provider secret values live only in Obsidian `SecretStorage`; persist secret IDs only. Never include secret values in `DataStore`, logs, notices, fixtures, or source.
 - Preserve offline handling, request timeouts, provider cooldowns, cancellation, and graceful fallback on platforms missing speech, audio, Web Crypto, or IndexedDB.
 - The IndexedDB audio cache has an in-memory fallback and a 100 MiB LRU limit. Cache keys must remain provider/variant/accent/rate/text-specific.

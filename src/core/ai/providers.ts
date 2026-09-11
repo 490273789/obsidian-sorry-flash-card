@@ -1,4 +1,5 @@
 import { isRecord, validateAiConnection } from "./configuration";
+import { TransportError } from "../net/types";
 import {
 	AiError,
 	type AiDependencies,
@@ -21,13 +22,14 @@ export async function callAiJson(
 	config: AiEngineConfig,
 	url: string,
 	body?: unknown,
+	requestOptions: { signal?: AbortSignal; timeoutMs?: number } = {},
 	checkActive: () => void = () => {},
 ): Promise<unknown> {
 	validateAiConnection(config);
 	checkActive();
 	let key: string | null;
 	try {
-		key = await deps.readSecret(config.secretId);
+		key = deps.net.readSecret(config.secretId);
 	} catch {
 		throw new AiError("missing-key");
 	}
@@ -35,30 +37,23 @@ export async function callAiJson(
 	if (!key?.trim()) throw new AiError("missing-key");
 	let response;
 	try {
-		response = await deps.request({
+		response = await deps.net.request({
+			label: "ai-provider",
 			url,
 			method: body === undefined ? "GET" : "POST",
 			headers: { Authorization: `Bearer ${key.trim()}`, "Content-Type": "application/json" },
 			body: body === undefined ? undefined : JSON.stringify(body),
+			...requestOptions,
 		});
-	} catch {
-		throw new AiError("network");
+	} catch (error) {
+		if (error instanceof TransportError) throw error;
+		throw new TransportError("network", { cause: error });
 	}
 	checkActive();
-	if (response.status < 200 || response.status >= 300) {
-		throw new AiError(
-			response.status === 401 || response.status === 403
-				? "unauthorized"
-				: response.status === 429
-					? "rate-limited"
-					: "provider-error",
-			response.status,
-		);
-	}
 	try {
 		return JSON.parse(response.text);
 	} catch {
-		throw new AiError("invalid-response");
+		throw new TransportError("invalid-response", { httpStatus: response.status });
 	}
 }
 
@@ -98,12 +93,14 @@ export function encodeMessages(messages: readonly AiMessage[]): unknown[] {
 }
 
 export function readTextResponse(data: unknown): string {
-	if (!isRecord(data) || !Array.isArray(data.choices)) throw new AiError("invalid-response");
+	if (!isRecord(data) || !Array.isArray(data.choices))
+		throw new TransportError("invalid-response");
 	const choice: unknown = data.choices[0];
-	if (!isRecord(choice) || !isRecord(choice.message)) throw new AiError("invalid-response");
+	if (!isRecord(choice) || !isRecord(choice.message))
+		throw new TransportError("invalid-response");
 	if (choice.finish_reason !== "stop") throw new AiError("incomplete-response");
 	if (typeof choice.message.content !== "string" || !choice.message.content.trim())
-		throw new AiError("invalid-response");
+		throw new TransportError("invalid-response");
 	return choice.message.content;
 }
 
@@ -131,12 +128,21 @@ export async function fetchAiModels(
 	deps: AiDependencies,
 	config: AiEngineConfig,
 	checkActive: () => void,
+	requestOptions: { signal?: AbortSignal; timeoutMs?: number } = {},
 ): Promise<AiModel[]> {
 	const base = config.baseUrl.replace(/\/+$/, "");
 	const nativeBailian = config.provider === "bailian" && base.endsWith("/compatible-mode/v1");
 	if (!nativeBailian) {
-		const data = await callAiJson(deps, config, `${base}/models`, undefined, checkActive);
-		if (!isRecord(data) || !Array.isArray(data.data)) throw new AiError("invalid-response");
+		const data = await callAiJson(
+			deps,
+			config,
+			`${base}/models`,
+			undefined,
+			requestOptions,
+			checkActive,
+		);
+		if (!isRecord(data) || !Array.isArray(data.data))
+			throw new TransportError("invalid-response");
 		return data.data
 			.filter(isRecord)
 			.flatMap((item) =>
@@ -148,9 +154,9 @@ export async function fetchAiModels(
 	const models: AiModel[] = [];
 	for (let page = 1; page <= 100; page++) {
 		const url = `${base.replace(/\/compatible-mode\/v1$/, "/api/v1/models")}?page_no=${page}&page_size=100`;
-		const data = await callAiJson(deps, config, url, undefined, checkActive);
+		const data = await callAiJson(deps, config, url, undefined, requestOptions, checkActive);
 		if (!isRecord(data) || !isRecord(data.output) || !Array.isArray(data.output.models))
-			throw new AiError("invalid-response");
+			throw new TransportError("invalid-response");
 		for (const item of data.output.models) {
 			if (!isRecord(item) || typeof item.model !== "string") continue;
 			const metadata = isRecord(item.inference_metadata)
@@ -179,5 +185,5 @@ export async function fetchAiModels(
 		)
 			return models;
 	}
-	throw new AiError("invalid-response");
+	throw new TransportError("invalid-response");
 }

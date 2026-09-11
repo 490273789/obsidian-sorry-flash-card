@@ -48,6 +48,8 @@ export interface OutboundRequest {
 	method?: string;
 	headers?: Record<string, string>;
 	body?: string;
+	/** Maximum accepted response body size in bytes. */
+	maxBytes?: number;
 	/**
 	 * Deadline for this call. Omit to use the port's default; `0` disables the
 	 * port-level deadline for callers that enforce their own.

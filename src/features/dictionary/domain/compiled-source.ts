@@ -1,4 +1,5 @@
 import { Platform, type DataAdapter } from "obsidian";
+import type { OutboundPort } from "../../../core/net/types";
 import { dictionaryText } from "./messages";
 import type { LocalDictionarySettings } from "./types";
 // oxlint-disable-next-line import/default -- Vite's ?worker&inline query generates this constructor.
@@ -59,7 +60,7 @@ export class CompiledDictionarySource implements DictionarySource {
 	private readonly textResources = new Map<string, Promise<string | null>>();
 	private readonly pending = new Map<number, PendingRequest>();
 	private readonly queryWorker = new QueryWorker();
-	private readonly remoteResources = new EudicImageResourceLoader();
+	private readonly remoteResources: EudicImageResourceLoader;
 	private closed = false;
 	private packageReader: CompiledPackageReader | null = null;
 	private nextRequestId = 1;
@@ -71,6 +72,7 @@ export class CompiledDictionarySource implements DictionarySource {
 		private readonly metadata: Readonly<LocalDictionarySettings>,
 		private readonly adapter: DataAdapter,
 		private readonly dictionaryRoot: string,
+		net: Pick<OutboundPort, "requestHostPinned">,
 	) {
 		this.id = metadata.id;
 		this.label = metadata.name;
@@ -78,6 +80,7 @@ export class CompiledDictionarySource implements DictionarySource {
 		this.packageCacheBytes = (totalBudget * 3) / 8;
 		this.resourceUrls = new ResourceUrlLru(totalBudget / 4);
 		this.sandboxStorage = new LocalDictionarySandboxStorage(adapter, dictionaryRoot);
+		this.remoteResources = new EudicImageResourceLoader(net);
 		this.queryWorker.addEventListener("message", (event: MessageEvent<WorkerOutput>) => {
 			void this.handleWorkerMessage(event.data);
 		});
