@@ -85,13 +85,20 @@ function parseCardBlock(
 		(line, index) => index > frontBackIndex && isMarkerLine(line, EXPLANATION_SEPARATOR),
 	);
 
-	const frontLines = blockLines.slice(0, frontBackIndex);
-	const cardIdentity =
-		frontLines.map(extractCardIdentityMarker).find((identity) => identity !== null) ?? null;
-	const front = frontLines
-		.filter((line) => extractCardIdentityMarker(line) === null)
-		.join("\n")
-		.trim();
+	let cardIdentity: string | null = null;
+	const contentFrontLines: string[] = [];
+	for (let i = 0; i < frontBackIndex; i++) {
+		const line = blockLines[i]!;
+		const marker = extractCardIdentityMarker(line);
+		if (marker !== null) {
+			if (cardIdentity === null) {
+				cardIdentity = marker;
+			}
+		} else {
+			contentFrontLines.push(line);
+		}
+	}
+	const front = contentFrontLines.join("\n").trim();
 	const backLines =
 		explanationIndex === -1
 			? blockLines.slice(frontBackIndex + 1)

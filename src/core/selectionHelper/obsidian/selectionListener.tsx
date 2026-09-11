@@ -33,7 +33,8 @@ export class SelectionListener {
 		};
 
 		const handleScroll = (event: Event) => {
-			if (this.containerEl && !this.containerEl.contains(event.target as Node)) {
+			if (!this.containerEl) return;
+			if (!this.containerEl.contains(event.target as Node)) {
 				this.deps.helper.dismiss();
 			}
 		};

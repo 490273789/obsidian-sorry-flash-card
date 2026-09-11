@@ -100,6 +100,22 @@ function buildStudyHistoryDayGroups(
 		});
 }
 
+const WEEKDAY_FORMATTERS: Record<string, Intl.DateTimeFormat> = {
+	zh: new Intl.DateTimeFormat("zh-CN", { weekday: "short" }),
+	en: new Intl.DateTimeFormat("en-US", { weekday: "short" }),
+};
+
+function getWeekdayFormatter(language: Language): Intl.DateTimeFormat {
+	let formatter = WEEKDAY_FORMATTERS[language];
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(language === "zh" ? "zh-CN" : "en-US", {
+			weekday: "short",
+		});
+		WEEKDAY_FORMATTERS[language] = formatter;
+	}
+	return formatter;
+}
+
 function formatStudyHistoryDate(
 	dateStr: string,
 	{ language, t, now }: BuildStudyHistoryPresentationModelOptions & { now: Date },
@@ -127,8 +143,6 @@ function formatStudyHistoryDate(
 	}
 
 	const date = new Date(`${dateStr}T00:00:00`);
-	const weekday = new Intl.DateTimeFormat(language === "zh" ? "zh-CN" : "en-US", {
-		weekday: "short",
-	}).format(date);
+	const weekday = getWeekdayFormatter(language).format(date);
 	return t("stats.dateWithLabel", { date: display, label: weekday });
 }

@@ -1022,5 +1022,12 @@ describe("DataStore deck scanning and study plans", () => {
 		const secondSavedData = plugin.saveData.mock.calls[1]![0] as StoredData;
 		expect(secondSavedData.learning?.cards[card2.id]?.fsrsCard.state).toBe(State.New);
 		expect(secondSavedData.learning?.cards[card3.id]?.fsrsCard.state).toBe(State.New);
+		// Untouched cards reuse the cached serialized learning state object, avoiding re-serializing
+		expect(secondSavedData.learning?.cards[card2.id]).toBe(
+			firstSavedData.learning?.cards[card2.id],
+		);
+		expect(secondSavedData.learning?.cards[card3.id]).toBe(
+			firstSavedData.learning?.cards[card3.id],
+		);
 	});
 });

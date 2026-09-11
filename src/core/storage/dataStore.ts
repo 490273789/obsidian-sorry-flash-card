@@ -159,6 +159,10 @@ export class DataStore {
 	 * can be reused without recreating ISO date strings and objects.
 	 */
 	private serializedCardCache = new WeakMap<FlashCard, SerializedCard>();
+	/** FSRS card serialization cache keyed by Card object identity. */
+	private serializedFSRSCardCache = new WeakMap<Card, SerializedFSRSCard>();
+	/** Persisted card learning state cache keyed by FlashCard object identity. */
+	private persistedCardStateCache = new WeakMap<FlashCard, PersistedCardLearningState>();
 	/** Sorted non-new due times per deck, used by DeckHome's next-wake timer. */
 	private deckDueTimes = new Map<string, number[]>();
 	private deckDueTimesValid = false;
@@ -357,9 +361,14 @@ export class DataStore {
 				lastStudied: deck.lastStudied,
 			};
 			for (const card of deck.cards) {
-				cards[card.id] = {
-					fsrsCard: this.serializeFSRSCard(card.fsrsCard),
-				};
+				let state = this.persistedCardStateCache.get(card);
+				if (!state || state.fsrsCard !== this.serializedFSRSCardCache.get(card.fsrsCard)) {
+					state = {
+						fsrsCard: this.serializeFSRSCard(card.fsrsCard),
+					};
+					this.persistedCardStateCache.set(card, state);
+				}
+				cards[card.id] = state;
 			}
 		}
 		return {
@@ -664,15 +673,19 @@ export class DataStore {
 	 * Serialize FSRS card
 	 */
 	private serializeFSRSCard(card: Card): SerializedFSRSCard {
+		const cached = this.serializedFSRSCardCache.get(card);
+		if (cached) return cached;
 		const { due, last_review, ...serializedCard } = card;
 
-		return {
+		const serialized: SerializedFSRSCard = {
 			...serializedCard,
 			due: due instanceof Date ? due.toISOString() : due,
 			last_review:
 				last_review instanceof Date ? last_review.toISOString() : (last_review ?? null),
 			learning_steps: serializedCard.learning_steps ?? 0,
 		};
+		this.serializedFSRSCardCache.set(card, serialized);
+		return serialized;
 	}
 
 	/**
@@ -898,15 +911,17 @@ export class DataStore {
 		nextDecks: ReadonlyMap<string, Deck>,
 		progress: Record<string, SpellingCardProgress>,
 	): void {
-		const availableIdentities = new Set(
-			Array.from(nextDecks.values()).flatMap((deck) => deck.cards.map((card) => card.id)),
-		);
-		const previousIdentities = new Set(
-			Array.from(previousDecks.values()).flatMap((deck) => deck.cards.map((card) => card.id)),
-		);
-		for (const cardId of previousIdentities) {
-			if (!availableIdentities.has(cardId)) {
-				delete progress[cardId];
+		const availableIdentities = new Set<string>();
+		for (const deck of nextDecks.values()) {
+			for (const card of deck.cards) {
+				availableIdentities.add(card.id);
+			}
+		}
+		for (const deck of previousDecks.values()) {
+			for (const card of deck.cards) {
+				if (!availableIdentities.has(card.id)) {
+					delete progress[card.id];
+				}
 			}
 		}
 	}
@@ -942,7 +957,28 @@ function hasDeprecatedCardPlacement(learning: LearningStateDocument): boolean {
 function cloneContinuityState(
 	state: PersistedCardIdentityContinuityState,
 ): PersistedCardIdentityContinuityState {
-	return JSON.parse(JSON.stringify(state)) as PersistedCardIdentityContinuityState;
+	return {
+		sources: { ...state.sources },
+		issues: state.issues.map((issue) => ({
+			...issue,
+			affectedSources: [...issue.affectedSources],
+			candidates: issue.candidates.map((candidate) => ({ ...candidate })),
+			...(issue.type === "identity-ambiguity"
+				? { missingIdentities: [...issue.missingIdentities] }
+				: {}),
+		})),
+		journal: state.journal
+			? {
+					...state.journal,
+					completedSources: [...state.journal.completedSources],
+					pendingSources: [...state.journal.pendingSources],
+					sources: state.journal.sources.map((source) => ({
+						...source,
+						identityMap: { ...source.identityMap },
+					})),
+				}
+			: null,
+	};
 }
 
 function normalizeSpellingProgress(
@@ -1035,11 +1071,6 @@ function findCardLocation(
 	cardId: string,
 	cardIndex?: ReadonlyMap<string, CardIndexLocation>,
 ): { deckId: string; deck: Deck; cardIndex: number } | null {
-	const originDeck = decks.get(deckId);
-	const originIndex = originDeck?.cards.findIndex((card) => card.id === cardId) ?? -1;
-	if (originDeck && originIndex !== -1) {
-		return { deckId, deck: originDeck, cardIndex: originIndex };
-	}
 	if (cardIndex) {
 		const location = cardIndex.get(cardId);
 		if (location) {
@@ -1054,7 +1085,13 @@ function findCardLocation(
 			}
 		}
 	}
+	const originDeck = decks.get(deckId);
+	const originIndex = originDeck?.cards.findIndex((card) => card.id === cardId) ?? -1;
+	if (originDeck && originIndex !== -1) {
+		return { deckId, deck: originDeck, cardIndex: originIndex };
+	}
 	for (const [candidateDeckId, deck] of decks) {
+		if (candidateDeckId === deckId) continue;
 		const cardIndexInDeck = deck.cards.findIndex((card) => card.id === cardId);
 		if (cardIndexInDeck !== -1) {
 			return {
