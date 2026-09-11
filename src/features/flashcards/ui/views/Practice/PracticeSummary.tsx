@@ -1,5 +1,6 @@
 import React, { memo, useMemo } from "react";
 import { FileText, Check, X, Timer, CircleCheck, CircleX, RotateCw, House } from "lucide-react";
+import { cls } from "../../../../../core/shared/classNames";
 import type {
 	PracticeResultSnapshot,
 	SessionCardSnapshot,
@@ -10,6 +11,7 @@ import { MarkdownContent } from "../../primitives/Markdown";
 import { useFlashcardI18n } from "../../../strings/context";
 import { formatCompactDuration } from "../../../strings/index";
 import { getDisplayCardContent } from "../../../domain/cards/cardDisplay";
+import styles from "./Practice.module.scss";
 
 interface PracticeSummaryProps {
 	result: PracticeResultSnapshot;
@@ -45,13 +47,13 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 	const incorrectCards = result.incorrectCards;
 
 	return (
-		<div className="flashcard-practice-summary fc-page fc-page--fill">
+		<div className={cls("flashcard-practice-summary fc-page fc-page--fill", styles.summary)}>
 			<FlashcardHeader icon={CircleCheck} title={t("practice.title")} onBack={onHome} />
 
-			<div className="flashcard-practice-summary-scroll">
-				<div className="flashcard-practice-summary-header">
-					<div className="flashcard-practice-summary-title">{completionMessage}</div>
-					<div className="flashcard-practice-summary-deck">
+			<div className={cls("flashcard-practice-summary-scroll", styles.summaryScroll)}>
+				<div className={cls("flashcard-practice-summary-header", styles.summaryHeader)}>
+					<div className={styles.summaryTitle}>{completionMessage}</div>
+					<div className={styles.summaryDeck}>
 						{t("practice.summaryDeck", {
 							deckName: result.originDeck.name,
 							totalQuestions: result.totalQuestions,
@@ -60,52 +62,66 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 					</div>
 				</div>
 
-				<div className="flashcard-practice-summary-stats">
-					<div className="flashcard-practice-stat-card flashcard-practice-stat-accuracy">
+				<div className={cls("flashcard-practice-summary-stats", styles.summaryStats)}>
+					<div className={cls("flashcard-practice-stat-card", styles.statCard)}>
 						<div
-							className="flashcard-practice-stat-value"
+							className={styles.statValue}
 							style={{ color: getAccuracyColor(result.accuracy) }}
 						>
 							{result.accuracy.toFixed(1)}%
 						</div>
-						<div className="flashcard-practice-stat-label">
-							{t("practice.accuracy")}
-						</div>
+						<div className={styles.statLabel}>{t("practice.accuracy")}</div>
 					</div>
 
-					<div className="flashcard-practice-stat-row">
-						<div className="flashcard-practice-stat-item fc-lift">
-							<span className="flashcard-practice-stat-icon">
+					<div className={cls("flashcard-practice-stat-row", styles.statRow)}>
+						<div
+							className={cls("flashcard-practice-stat-item fc-lift", styles.statItem)}
+						>
+							<span className={styles.statIcon}>
 								<FileText size={14} />
 							</span>
-							<span className="flashcard-practice-stat-text">
+							<span className={styles.statText}>
 								{t("practice.totalQuestions")}
 								<strong>{result.totalQuestions}</strong>
 							</span>
 						</div>
-						<div className="flashcard-practice-stat-item flashcard-practice-stat-correct fc-lift">
-							<span className="flashcard-practice-stat-icon">
+						<div
+							className={cls(
+								"flashcard-practice-stat-item flashcard-practice-stat-correct fc-lift",
+								styles.statItem,
+								styles.statCorrect,
+							)}
+						>
+							<span className={styles.statIcon}>
 								<Check size={14} />
 							</span>
-							<span className="flashcard-practice-stat-text">
+							<span className={styles.statText}>
 								{t("practice.correct")}
 								<strong>{result.correctCount}</strong>
 							</span>
 						</div>
-						<div className="flashcard-practice-stat-item flashcard-practice-stat-wrong fc-lift">
-							<span className="flashcard-practice-stat-icon">
+						<div
+							className={cls(
+								"flashcard-practice-stat-item flashcard-practice-stat-wrong fc-lift",
+								styles.statItem,
+								styles.statWrong,
+							)}
+						>
+							<span className={styles.statIcon}>
 								<X size={14} />
 							</span>
-							<span className="flashcard-practice-stat-text">
+							<span className={styles.statText}>
 								{t("practice.incorrect")}
 								<strong>{result.incorrectCount}</strong>
 							</span>
 						</div>
-						<div className="flashcard-practice-stat-item fc-lift">
-							<span className="flashcard-practice-stat-icon">
+						<div
+							className={cls("flashcard-practice-stat-item fc-lift", styles.statItem)}
+						>
+							<span className={styles.statIcon}>
 								<Timer size={14} />
 							</span>
-							<span className="flashcard-practice-stat-text">
+							<span className={styles.statText}>
 								{t("practice.timeSpent")}
 								<strong>{formatCompactDuration(language, result.timeSpent)}</strong>
 							</span>
@@ -114,14 +130,19 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 				</div>
 
 				{incorrectCards.length > 0 && (
-					<div className="flashcard-practice-incorrect-section">
-						<h3 className="flashcard-practice-incorrect-title">
+					<div
+						className={cls(
+							"flashcard-practice-incorrect-section",
+							styles.incorrectSection,
+						)}
+					>
+						<h3 className={styles.incorrectTitle}>
 							<CircleX size={16} />{" "}
 							{t("practice.incorrectList", {
 								count: incorrectCards.length,
 							})}
 						</h3>
-						<div className="flashcard-practice-incorrect-list">
+						<div className={styles.incorrectList}>
 							{incorrectCards.map((card, index) => (
 								<IncorrectCardItem
 									key={card.identity}
@@ -136,7 +157,7 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 				)}
 			</div>
 
-			<div className="flashcard-practice-summary-actions">
+			<div className={cls("flashcard-practice-summary-actions", styles.summaryActions)}>
 				<FlashcardButton
 					variant="primary"
 					icon={RotateCw}
@@ -182,37 +203,31 @@ const IncorrectCardItem = memo(function IncorrectCardItem({
 	const displayContent = getDisplayCardContent(card, direction);
 
 	return (
-		<div className="flashcard-practice-incorrect-item fc-lift">
-			<div className="flashcard-practice-incorrect-index">{index}</div>
-			<div className="flashcard-practice-incorrect-content">
-				<div className="flashcard-practice-incorrect-question">
-					<span className="flashcard-practice-incorrect-label">
-						{t("practice.questionLabel")}
-					</span>
+		<div className={cls("flashcard-practice-incorrect-item fc-lift", styles.incorrectItem)}>
+			<div className={styles.incorrectIndex}>{index}</div>
+			<div className={styles.incorrectContent}>
+				<div className={styles.incorrectQuestion}>
+					<span className={styles.incorrectLabel}>{t("practice.questionLabel")}</span>
 					<MarkdownContent
 						content={displayContent.prompt}
-						className="flashcard-practice-incorrect-text"
+						className={styles.incorrectText}
 						markdownRenderer={markdownRenderer}
 					/>
 				</div>
-				<div className="flashcard-practice-incorrect-answer">
-					<span className="flashcard-practice-incorrect-label">
-						{t("practice.answerLabel")}
-					</span>
+				<div className={styles.incorrectAnswer}>
+					<span className={styles.incorrectLabel}>{t("practice.answerLabel")}</span>
 					<MarkdownContent
 						content={displayContent.answer}
-						className="flashcard-practice-incorrect-text"
+						className={styles.incorrectText}
 						markdownRenderer={markdownRenderer}
 					/>
 				</div>
 				{displayContent.explanation && (
-					<div className="flashcard-practice-incorrect-explanation">
-						<span className="flashcard-practice-incorrect-label">
-							{t("common.explanation")}:
-						</span>
+					<div className={styles.incorrectExplanation}>
+						<span className={styles.incorrectLabel}>{t("common.explanation")}:</span>
 						<MarkdownContent
 							content={displayContent.explanation}
-							className="flashcard-practice-incorrect-text"
+							className={styles.incorrectText}
 							markdownRenderer={markdownRenderer}
 						/>
 					</div>

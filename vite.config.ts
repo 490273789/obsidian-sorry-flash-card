@@ -66,6 +66,12 @@ export default defineConfig(({ mode }) => {
 	const isProduction = mode === "production";
 
 	return {
+		css: {
+			modules: {
+				localsConvention: "camelCase",
+				generateScopedName: "fc-[name]__[local]_[hash:base64:5]",
+			},
+		},
 		build: {
 			// The dictionary engine WASM (654 KiB) must stay inside main.js: the
 			// copy step below deletes dist/, so any emitted asset would be lost.

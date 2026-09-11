@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Target, Shuffle, SlidersHorizontal, Repeat2, ListOrdered } from "lucide-react";
+import { cls } from "../../../../../core/shared/classNames";
 import type { CardDirection, Deck } from "../../../../../core/shared/types";
 import type { SessionStartRequest } from "../../../domain/sessions/sessionLifecycle";
 import type { PracticeSetupPlan } from "../../../domain/sessions/sessionPlanner";
@@ -8,6 +9,7 @@ import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
 import { FlashcardInput } from "../../../../../core/ui/primitives/Input";
 import { useFlashcardI18n } from "../../../strings/context";
 import { SetupControlGroup, SetupSelector } from "../../../../../core/ui/primitives/SetupSelector";
+import styles from "./Practice.module.scss";
 
 const QUICK_QUESTION_COUNTS = [20, 50, 100, 150, 200];
 
@@ -153,14 +155,14 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 			<FlashcardHeader icon={Target} title={t("practice.title")} onBack={onBack} />
 
 			<div className="flashcard-setup-content fc-page__body fc-page__body--narrow">
-				<div className="flashcard-study-hero flashcard-practice-hero">
-					<div className="flashcard-deck-name-wrapper">
-						<div className="flashcard-deck-name">{deck.name}</div>
-						<div className="flashcard-deck-tag">{deck.tag}</div>
+				<div className={styles.hero}>
+					<div className={styles.deckNameWrapper}>
+						<div className={styles.deckName}>{deck.name}</div>
+						<div className={styles.deckTag}>{deck.tag}</div>
 					</div>
 				</div>
 
-				<div className="flashcard-study-panel flashcard-setup-controls">
+				<div className={styles.setupPanel}>
 					<SetupControlGroup
 						icon={SlidersHorizontal}
 						title={t("practice.chooseCount")}
@@ -184,15 +186,18 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 							onChange={setSelectionMode}
 						/>
 
-						<div className="flashcard-setup-control-detail">
+						<div className={styles.controlDetail}>
 							{selectionMode === "random" ? (
 								<>
-									<div className="flashcard-practice-quick-buttons">
+									<div className={styles.quickButtons}>
 										{quickQuestionCounts.map((count) => (
 											<FlashcardButton
 												key={count}
 												type="button"
-												className="flashcard-setup-chip"
+												className={cls(
+													styles.chip,
+													questionCount === count && styles.active,
+												)}
 												active={questionCount === count}
 												onClick={() => handleQuickSelect(count)}
 											>
@@ -201,7 +206,10 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 										))}
 										<FlashcardButton
 											type="button"
-											className="flashcard-setup-chip"
+											className={cls(
+												styles.chip,
+												questionCount === maxQuestions && styles.active,
+											)}
 											active={questionCount === maxQuestions}
 											onClick={() => handleQuickSelect(maxQuestions)}
 										>
@@ -209,46 +217,44 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 										</FlashcardButton>
 									</div>
 
-									<label className="flashcard-setup-custom-field">
-										<span className="flashcard-practice-input-label">
+									<label className={styles.customField}>
+										<span className={styles.inputLabel}>
 											{t("practice.customCount")}
 										</span>
 										<FlashcardInput
 											type="number"
-											className="flashcard-practice-input"
+											className={styles.input}
 											value={inputValue}
 											onChange={handleInputChange}
 											onBlur={handleInputBlur}
 											min={1}
 											max={maxQuestions}
 										/>
-										<span className="flashcard-practice-input-hint">
-											1–{maxQuestions}
-										</span>
+										<span className={styles.inputHint}>1–{maxQuestions}</span>
 									</label>
 								</>
 							) : (
-								<div className="flashcard-practice-range-group">
-									<div className="flashcard-practice-range-inputs">
-										<label className="flashcard-setup-range-field">
-											<span className="flashcard-practice-input-label">
+								<div className={styles.rangeGroup}>
+									<div className={styles.rangeInputs}>
+										<label className={styles.rangeField}>
+											<span className={styles.inputLabel}>
 												{t("practice.rangeStart")}
 											</span>
 											<FlashcardInput
 												type="number"
-												className="flashcard-practice-input"
+												className={styles.input}
 												value={rangeStartInput}
 												onChange={handleRangeStartChange}
 												onBlur={handleRangeBlur}
 											/>
 										</label>
-										<label className="flashcard-setup-range-field">
-											<span className="flashcard-practice-input-label">
+										<label className={styles.rangeField}>
+											<span className={styles.inputLabel}>
 												{t("practice.rangeEnd")}
 											</span>
 											<FlashcardInput
 												type="number"
-												className="flashcard-practice-input"
+												className={styles.input}
 												value={rangeEndInput}
 												onChange={handleRangeEndChange}
 												onBlur={handleRangeBlur}
@@ -287,7 +293,7 @@ export const PracticeSetup = React.memo(function PracticeSetup({
 					</SetupControlGroup>
 				</div>
 
-				<div className="flashcard-study-action-bar">
+				<div className={styles.actionBar}>
 					<FlashcardButton
 						variant="primary"
 						preset="show"

@@ -7,8 +7,11 @@ import type {
 import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
 import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
 import { MarkdownContent } from "../../primitives/Markdown";
+import { cls } from "../../../../../core/shared/classNames";
 import { useFlashcardI18n } from "../../../strings/context";
 import { formatCompactDuration } from "../../../strings/index";
+import spellingStyles from "./Spelling.module.scss";
+import practiceStyles from "../Practice/Practice.module.scss";
 
 interface SpellingSummaryProps {
 	result: SpellingResultSnapshot;
@@ -29,16 +32,26 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 	const incorrectCards = result.incorrectCards;
 
 	return (
-		<div className="flashcard-practice-summary flashcard-spelling-summary fc-page fc-page--fill">
+		<div
+			className={cls(
+				"flashcard-practice-summary flashcard-spelling-summary fc-page fc-page--fill",
+				practiceStyles.summary,
+			)}
+		>
 			<FlashcardHeader icon={Keyboard} title={t("spelling.title")} onBack={onHome} />
-			<div className="flashcard-practice-summary-scroll">
-				<div className="flashcard-practice-summary-header">
-					<div className="flashcard-practice-summary-title">
+			<div className={cls("flashcard-practice-summary-scroll", practiceStyles.summaryScroll)}>
+				<div
+					className={cls(
+						"flashcard-practice-summary-header",
+						practiceStyles.summaryHeader,
+					)}
+				>
+					<div className={practiceStyles.summaryTitle}>
 						{result.firstTryIncorrectCount === 0
 							? t("spelling.completePerfect")
 							: t("spelling.completeWithErrors")}
 					</div>
-					<div className="flashcard-practice-summary-deck">
+					<div className={practiceStyles.summaryDeck}>
 						{t("spelling.summaryDeck", {
 							deckName: result.originDeck.name,
 							totalWords: result.totalWords,
@@ -47,16 +60,23 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 					</div>
 				</div>
 
-				<div className="flashcard-practice-summary-stats">
-					<div className="flashcard-practice-stat-card flashcard-practice-stat-accuracy">
-						<div className="flashcard-practice-stat-value">
+				<div
+					className={cls("flashcard-practice-summary-stats", practiceStyles.summaryStats)}
+				>
+					<div
+						className={cls(
+							"flashcard-practice-stat-card flashcard-practice-stat-accuracy",
+							practiceStyles.statCard,
+						)}
+					>
+						<div className={practiceStyles.statValue}>
 							{result.firstTryAccuracy.toFixed(1)}%
 						</div>
-						<div className="flashcard-practice-stat-label">
+						<div className={practiceStyles.statLabel}>
 							{t("spelling.firstTryAccuracy")}
 						</div>
 					</div>
-					<div className="flashcard-practice-stat-row">
+					<div className={cls("flashcard-practice-stat-row", practiceStyles.statRow)}>
 						<SummaryStat
 							icon={Check}
 							label={t("spelling.firstTryCorrect")}
@@ -81,14 +101,19 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 				</div>
 
 				{incorrectCards.length > 0 && (
-					<div className="flashcard-practice-incorrect-section">
-						<h3 className="flashcard-practice-incorrect-title">
+					<div
+						className={cls(
+							"flashcard-practice-incorrect-section",
+							practiceStyles.incorrectSection,
+						)}
+					>
+						<h3 className={practiceStyles.incorrectTitle}>
 							<CircleX size={16} />{" "}
 							{t("spelling.incorrectList", {
 								count: incorrectCards.length,
 							})}
 						</h3>
-						<div className="flashcard-practice-incorrect-list">
+						<div className={practiceStyles.incorrectList}>
 							{incorrectCards.map((card, index) => (
 								<IncorrectSpellingItem
 									key={card.identity}
@@ -102,7 +127,9 @@ export const SpellingSummary = React.memo(function SpellingSummary({
 				)}
 			</div>
 
-			<div className="flashcard-practice-summary-actions">
+			<div
+				className={cls("flashcard-practice-summary-actions", practiceStyles.summaryActions)}
+			>
 				{incorrectCards.length > 0 && (
 					<FlashcardButton variant="danger" icon={CircleX} onClick={onRetryIncorrect}>
 						{t("spelling.retryIncorrect", {
@@ -131,11 +158,11 @@ function SummaryStat({
 	value: string | number;
 }) {
 	return (
-		<div className="flashcard-practice-stat-item fc-lift">
-			<span className="flashcard-practice-stat-icon">
+		<div className={cls("flashcard-practice-stat-item fc-lift", practiceStyles.statItem)}>
+			<span className={practiceStyles.statIcon}>
 				<Icon size={14} />
 			</span>
-			<span className="flashcard-practice-stat-text">
+			<span className={practiceStyles.statText}>
 				{label}
 				<strong>{value}</strong>
 			</span>
@@ -154,20 +181,25 @@ const IncorrectSpellingItem = memo(function IncorrectSpellingItem({
 }) {
 	const { t } = useFlashcardI18n();
 	return (
-		<div className="flashcard-practice-incorrect-item fc-lift">
-			<div className="flashcard-practice-incorrect-index">{index}</div>
-			<div className="flashcard-practice-incorrect-content">
-				<div className="flashcard-practice-incorrect-question">
-					<span className="flashcard-practice-incorrect-label">
+		<div
+			className={cls(
+				"flashcard-practice-incorrect-item fc-lift",
+				practiceStyles.incorrectItem,
+			)}
+		>
+			<div className={practiceStyles.incorrectIndex}>{index}</div>
+			<div className={practiceStyles.incorrectContent}>
+				<div className={practiceStyles.incorrectQuestion}>
+					<span className={practiceStyles.incorrectLabel}>
 						{t("spelling.meaningPrompt")}
 					</span>
 					<MarkdownContent
 						content={card.back}
-						className="flashcard-practice-incorrect-text"
+						className={practiceStyles.incorrectText}
 						markdownRenderer={markdownRenderer}
 					/>
 				</div>
-				<div className="flashcard-spelling-summary-answer-row">
+				<div className={spellingStyles.summaryAnswerRow}>
 					<span>
 						{t("spelling.firstInput")}: <strong>{card.firstInput || "—"}</strong>
 					</span>

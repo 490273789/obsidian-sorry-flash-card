@@ -13,6 +13,8 @@ import { FlashcardButton } from "../../../core/ui/primitives/Button";
 import { FlashcardInput } from "../../../core/ui/primitives/Input";
 import { canPlayDictionaryAudio } from "./audio";
 import { SandboxDocumentFrame } from "./SandboxDocumentFrame";
+import { cls } from "../../../core/shared/classNames";
+import styles from "./Dictionary.module.scss";
 
 export interface DictionaryViewProps {
 	controller: DictionaryController;
@@ -132,17 +134,22 @@ function AiSense({
 	strings: DictionaryStrings;
 }) {
 	return (
-		<article className="flashcard-dictionary-ai-sense">
-			<header className="flashcard-dictionary-ai-sense-heading">
-				<span className="flashcard-dictionary-ai-sense-number" aria-hidden="true">
+		<article className={cls("flashcard-dictionary-ai-sense", styles.aiSense)}>
+			<header className={cls("flashcard-dictionary-ai-sense-heading", styles.aiSenseHeading)}>
+				<span
+					className={cls("flashcard-dictionary-ai-sense-number", styles.aiSenseNumber)}
+					aria-hidden="true"
+				>
 					{number}
 				</span>
 				{definition.partOfSpeech && (
-					<span className="flashcard-dictionary-ai-pos">{definition.partOfSpeech}</span>
+					<span className={cls("flashcard-dictionary-ai-pos", styles.aiPos)}>
+						{definition.partOfSpeech}
+					</span>
 				)}
 				<strong>{definition.meaning}</strong>
 			</header>
-			<dl className="flashcard-dictionary-ai-sense-details">
+			<dl className={cls("flashcard-dictionary-ai-sense-details", styles.aiSenseDetails)}>
 				{definition.explanation && (
 					<div>
 						<dt>{strings.sections.explanation}</dt>
@@ -164,7 +171,7 @@ function AiSense({
 				{definition.examples.length > 0 && (
 					<div>
 						<dt>{strings.sections.examples}</dt>
-						<dd className="flashcard-dictionary-ai-examples">
+						<dd className={cls("flashcard-dictionary-ai-examples", styles.aiExamples)}>
 							{definition.examples.map((example, index) => (
 								<div key={`${index}-${example.sentence}`}>
 									<p lang="en">{highlightedSentence(example.sentence, word)}</p>
@@ -196,7 +203,7 @@ function SectionContent({
 }) {
 	if (content.kind === "list") {
 		return (
-			<ol className="flashcard-dictionary-list">
+			<ol className={cls("flashcard-dictionary-list", styles.list)}>
 				{content.items.map((item, index) => (
 					<li key={`${index}-${item}`}>{item}</li>
 				))}
@@ -205,7 +212,7 @@ function SectionContent({
 	}
 	if (content.kind === "ai-definitions") {
 		return (
-			<div className="flashcard-dictionary-ai-senses">
+			<div className={cls("flashcard-dictionary-ai-senses", styles.aiSenses)}>
 				{content.definitions.map((definition, index) => (
 					<AiSense
 						key={`${index}-${definition.partOfSpeech}-${definition.meaning}`}
@@ -264,10 +271,14 @@ export function DictionaryView({
 
 	return (
 		<main
-			className="flashcard-dictionary flashcard-dictionary-page fc-page fc-page--column"
+			className={cls(
+				"flashcard-dictionary flashcard-dictionary-page fc-page fc-page--column",
+				styles.page,
+				styles.dictionary,
+			)}
 			aria-busy={isLoading}
 		>
-			<div className="flashcard-dictionary-chrome">
+			<div className={cls("flashcard-dictionary-chrome", styles.chrome)}>
 				<search className="flashcard-dictionary-search">
 					<form
 						className="flashcard-dictionary-search-form"
@@ -276,8 +287,18 @@ export function DictionaryView({
 							if (canLookup) void controller.lookup();
 						}}
 					>
-						<fieldset className="flashcard-dictionary-search-controls">
-							<legend className="flashcard-dictionary-visually-hidden">
+						<fieldset
+							className={cls(
+								"flashcard-dictionary-search-controls",
+								styles.searchControls,
+							)}
+						>
+							<legend
+								className={cls(
+									"flashcard-dictionary-visually-hidden",
+									styles.visuallyHidden,
+								)}
+							>
 								{strings.inputLabel}
 							</legend>
 							<FlashcardInput
@@ -321,7 +342,7 @@ export function DictionaryView({
 
 				{state.history.length > 0 && (
 					<section className="flashcard-dictionary-saved" aria-label={strings.history}>
-						<div className="flashcard-dictionary-saved-list">
+						<div className={cls("flashcard-dictionary-saved-list", styles.savedList)}>
 							<strong className="flashcard-dictionary-saved-label">
 								{strings.history}
 							</strong>
@@ -339,7 +360,9 @@ export function DictionaryView({
 				)}
 
 				{state.query && (
-					<section className="flashcard-dictionary-query-actions">
+					<section
+						className={cls("flashcard-dictionary-query-actions", styles.queryActions)}
+					>
 						<h2>{state.query}</h2>
 						<div>
 							<FlashcardButton
@@ -358,7 +381,11 @@ export function DictionaryView({
 
 				{copyStatus && state.query && (
 					<p
-						className={`flashcard-dictionary-copy-status${copyStatus.isError ? " is-error" : ""}`}
+						className={cls(
+							"flashcard-dictionary-copy-status",
+							styles.copyStatus,
+							copyStatus.isError && ["is-error", styles.isError],
+						)}
 						role={copyStatus.isError ? "alert" : "status"}
 					>
 						{copyStatus.message}
@@ -367,15 +394,19 @@ export function DictionaryView({
 			</div>
 
 			{!state.query ? (
-				<p className="flashcard-dictionary-placeholder">{strings.noQuery}</p>
+				<p className={cls("flashcard-dictionary-placeholder", styles.placeholder)}>
+					{strings.noQuery}
+				</p>
 			) : state.sources.length === 0 ? (
-				<p className="flashcard-dictionary-placeholder">{strings.noEnabledSources}</p>
+				<p className={cls("flashcard-dictionary-placeholder", styles.placeholder)}>
+					{strings.noEnabledSources}
+				</p>
 			) : null}
 
 			{state.sources.length > 0 && (
 				<div
 					ref={sourceTablistRef}
-					className="flashcard-dictionary-tabs"
+					className={cls("flashcard-dictionary-tabs", styles.tabs)}
 					role="tablist"
 					aria-label={strings.sourceMenu}
 				>
@@ -387,7 +418,16 @@ export function DictionaryView({
 								id={sourceTabId(source.id)}
 								type="button"
 								role="tab"
-								className={`flashcard-dictionary-tab is-${source.status}${selected ? " is-active" : ""}`}
+								className={cls(
+									"flashcard-dictionary-tab",
+									`is-${source.status}`,
+									styles.tab,
+									selected && ["is-active", styles.isActive],
+									source.status === "loading" && styles.isLoading,
+									source.status === "success" && styles.isSuccess,
+									source.status === "empty" && styles.isEmpty,
+									source.status === "error" && styles.isError,
+								)}
 								aria-controls={sourcePanelId(source.id)}
 								aria-label={`${source.label} · ${sourceStatusLabel(source, strings)}`}
 								aria-selected={selected}
@@ -407,7 +447,10 @@ export function DictionaryView({
 								}
 							>
 								<span
-									className="flashcard-dictionary-tab-status"
+									className={cls(
+										"flashcard-dictionary-tab-status",
+										styles.tabStatus,
+									)}
 									aria-hidden="true"
 								/>
 								<span>{source.label}</span>
@@ -417,7 +460,10 @@ export function DictionaryView({
 				</div>
 			)}
 
-			<section className="flashcard-dictionary-results" aria-label={strings.results}>
+			<section
+				className={cls("flashcard-dictionary-results", styles.results)}
+				aria-label={strings.results}
+			>
 				{state.sources.map((source) => {
 					const selected = state.activeSourceId === source.id;
 					const sections = tabSections(source);
@@ -427,17 +473,30 @@ export function DictionaryView({
 						<article
 							key={source.id}
 							id={sourcePanelId(source.id)}
-							className="flashcard-dictionary-source fc-panel fc-panel--scroll"
+							className={cls(
+								"flashcard-dictionary-source fc-panel fc-panel--scroll",
+								styles.source,
+							)}
 							role="tabpanel"
 							aria-labelledby={sourceTabId(source.id)}
 							tabIndex={0}
 							hidden={!selected}
 						>
 							{source.kind === "ai" && source.status === "idle" ? (
-								<div className="flashcard-dictionary-ai-action">
+								<div
+									className={cls(
+										"flashcard-dictionary-ai-action",
+										styles.aiAction,
+									)}
+								>
 									<p>{strings.aiEngineDescription}</p>
 									{state.aiEngineName && (
-										<p className="flashcard-dictionary-ai-engine">
+										<p
+											className={cls(
+												"flashcard-dictionary-ai-engine",
+												styles.aiEngine,
+											)}
+										>
 											<span>{strings.aiEngine}</span>
 											<span>{state.aiEngineName}</span>
 										</p>
@@ -451,15 +510,20 @@ export function DictionaryView({
 									</FlashcardButton>
 								</div>
 							) : source.status === "loading" ? (
-								<output className="flashcard-dictionary-loading">
+								<output
+									className={cls("flashcard-dictionary-loading", styles.loading)}
+								>
 									{source.kind === "ai" ? strings.aiGenerating : strings.loading}
 								</output>
 							) : source.status === "empty" ? (
-								<p className="flashcard-dictionary-empty">
+								<p className={cls("flashcard-dictionary-empty", styles.empty)}>
 									{strings.errors.notFound}
 								</p>
 							) : source.status === "error" ? (
-								<div className="flashcard-dictionary-error" role="alert">
+								<div
+									className={cls("flashcard-dictionary-error", styles.error)}
+									role="alert"
+								>
 									<p>{source.error}</p>
 									<FlashcardButton
 										size="sm"
@@ -474,7 +538,12 @@ export function DictionaryView({
 							{result && (
 								<>
 									{result.pronunciations.length > 0 && (
-										<div className="flashcard-dictionary-pronunciations">
+										<div
+											className={cls(
+												"flashcard-dictionary-pronunciations",
+												styles.pronunciations,
+											)}
+										>
 											{result.pronunciations.map((pronunciation) => {
 												const audioUrl = pronunciation.audioUrl;
 												const playable =
@@ -518,7 +587,14 @@ export function DictionaryView({
 										return (
 											<section
 												key={`${source.id}-${section.title}-${sectionIndex}`}
-												className={`flashcard-dictionary-section${section.content.kind === "document" ? " is-document" : ""}`}
+												className={cls(
+													"flashcard-dictionary-section",
+													styles.section,
+													section.content.kind === "document" && [
+														"is-document",
+														styles.isDocument,
+													],
+												)}
 											>
 												<h4>{section.title}</h4>
 												<SectionContent
@@ -534,10 +610,18 @@ export function DictionaryView({
 									})}
 
 									{sections.length > 0 && (
-										<div className="flashcard-dictionary-details">
+										<div
+											className={cls(
+												"flashcard-dictionary-details",
+												styles.details,
+											)}
+										>
 											<div
 												ref={sectionTablistRef}
-												className="flashcard-dictionary-detail-tabs"
+												className={cls(
+													"flashcard-dictionary-detail-tabs",
+													styles.detailTabs,
+												)}
 												role="tablist"
 												aria-label={`${source.label} · ${strings.details}`}
 											>
@@ -550,7 +634,12 @@ export function DictionaryView({
 															id={sectionTabId(source.id, item.index)}
 															type="button"
 															role="tab"
-															className={active ? "is-active" : ""}
+															className={cls(
+																active && [
+																	"is-active",
+																	styles.isActive,
+																],
+															)}
 															aria-controls={sectionPanelId(
 																source.id,
 																item.index,
@@ -591,7 +680,16 @@ export function DictionaryView({
 													<section
 														key={`${source.id}-panel-${item.index}`}
 														id={sectionPanelId(source.id, item.index)}
-														className={`flashcard-dictionary-section flashcard-dictionary-detail-panel${item.section.content.kind === "document" ? " is-document" : ""}`}
+														className={cls(
+															"flashcard-dictionary-section flashcard-dictionary-detail-panel",
+															styles.section,
+															styles.detailPanel,
+															item.section.content.kind ===
+																"document" && [
+																"is-document",
+																styles.isDocument,
+															],
+														)}
 														role="tabpanel"
 														aria-labelledby={sectionTabId(
 															source.id,
@@ -613,7 +711,12 @@ export function DictionaryView({
 									)}
 
 									{result.suggestions.length > 0 && (
-										<div className="flashcard-dictionary-suggestions">
+										<div
+											className={cls(
+												"flashcard-dictionary-suggestions",
+												styles.suggestions,
+											)}
+										>
 											<strong>{strings.suggestions}</strong>
 											{result.suggestions.map((word) => (
 												<button
@@ -626,7 +729,12 @@ export function DictionaryView({
 											))}
 										</div>
 									)}
-									<footer className="flashcard-dictionary-attribution">
+									<footer
+										className={cls(
+											"flashcard-dictionary-attribution",
+											styles.attribution,
+										)}
+									>
 										{result.attribution}
 									</footer>
 								</>

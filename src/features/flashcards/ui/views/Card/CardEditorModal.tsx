@@ -1,10 +1,12 @@
 import React, { memo, useCallback, useId, useMemo, useState } from "react";
 import { FilePlus2, Pencil, Sparkles, X } from "lucide-react";
+import { cls } from "../../../../../core/shared/classNames";
 import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
 import { FlashcardTextarea } from "../../../../../core/ui/primitives/Input";
 import { FlashcardSelect } from "../../../../../core/ui/primitives/Select";
 import { useFlashcardI18n } from "../../../strings/context";
 import { ModalSurface } from "../../../../../core/ui/primitives/Modal";
+import styles from "./CardEditorModal.module.scss";
 
 export type CardEditorMode = "create" | "edit";
 
@@ -87,7 +89,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 
 	return (
 		<ModalSurface
-			className="flashcard-card-editor-modal"
+			className={cls("flashcard-card-editor-modal", styles.modal)}
 			labelledBy={titleId}
 			describedBy={subtitleId}
 			onRequestClose={onClose}
@@ -121,9 +123,9 @@ export const CardEditorModal = memo(function CardEditorModal({
 						/>
 					</div>
 
-					<div className="flashcard-modal-body flashcard-card-editor-body">
+					<div className={cls("flashcard-modal-body", styles.body)}>
 						{mode === "create" && (
-							<label className="flashcard-card-editor-field">
+							<label className={styles.field}>
 								<span>{t("cardEditor.selectDeck")}</span>
 								<FlashcardSelect
 									value={deckId}
@@ -140,7 +142,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 							</label>
 						)}
 
-						<label className="flashcard-card-editor-field">
+						<label className={styles.field}>
 							<span>{t("common.cardFront")}</span>
 							<FlashcardTextarea
 								value={front}
@@ -152,7 +154,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 							/>
 						</label>
 
-						<label className="flashcard-card-editor-field">
+						<label className={styles.field}>
 							<span>{t("common.cardBack")}</span>
 							<FlashcardTextarea
 								value={back}
@@ -163,7 +165,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 							/>
 						</label>
 
-						<label className="flashcard-card-editor-field">
+						<label className={styles.field}>
 							<span>{t("common.explanationOptional")}</span>
 							<FlashcardTextarea
 								value={explanation}
@@ -174,7 +176,7 @@ export const CardEditorModal = memo(function CardEditorModal({
 							/>
 						</label>
 
-						{error && <div className="flashcard-card-editor-error">{error}</div>}
+						{error && <div className={styles.error}>{error}</div>}
 					</div>
 
 					<div className="flashcard-modal-footer">

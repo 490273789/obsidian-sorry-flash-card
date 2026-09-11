@@ -12,6 +12,8 @@ import { DictionaryLookupModal } from "./obsidian/modals";
 import { DictionarySettingsEditor } from "./obsidian/settingsEditor";
 import { createDictionarySettingsStore } from "./obsidian/settingsStore";
 import { createReactItemView } from "../../core/host/reactItemView";
+import { cls } from "../../core/shared/classNames";
+import styles from "./ui/Dictionary.module.scss";
 import type {
 	WorkbenchFeature,
 	WorkbenchHost,
@@ -167,7 +169,7 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): Dictionary
 		if (host.settings().dictionary.enabled) return body();
 		const strings = dictionaryStrings(language);
 		return (
-			<div className="flashcard-dictionary-disabled">
+			<div className={cls("flashcard-dictionary-disabled", styles.disabled)}>
 				<p className="fc-kicker">{strings.disabled}</p>
 				<FlashcardButton variant="primary" onClick={() => openSettings(host)}>
 					{strings.openSettings}

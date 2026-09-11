@@ -1,0 +1,64 @@
+/* Card Editor Modal */
+
+.modal {
+	width: min(640px, 100%);
+	max-height: 80vh;
+	max-height: 80dvh;
+	background: var(--modal-background, var(--background-primary));
+}
+
+.body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-2);
+	padding: 0 0 var(--fc-space-3);
+	border: 0;
+	border-bottom: 1px solid var(--fc-line);
+	border-radius: 0;
+	background: transparent;
+
+	span {
+		color: var(--fc-muted);
+		font-size: var(--fc-font-sm);
+		font-weight: var(--fc-weight-semibold);
+	}
+
+	select,
+	textarea {
+		width: 100%;
+		min-width: 0;
+		border-color: var(--fc-input-border);
+		border-radius: var(--fc-radius-sm);
+		background: var(--fc-input-bg);
+		color: var(--fc-text);
+	}
+
+	select {
+		min-height: var(--fc-control-md);
+		padding: var(--fc-space-2) var(--fc-space-3);
+	}
+
+	textarea {
+		height: clamp(112px, 16dvh, 150px);
+		min-height: 112px;
+		resize: vertical;
+		padding: var(--fc-space-3);
+		word-break: break-word;
+	}
+}
+
+.error {
+	padding: var(--fc-space-3);
+	border: 1px solid rgba(var(--fc-red-rgb), 0.3);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(var(--fc-red-rgb), 0.1);
+	color: var(--fc-red);
+	font-size: var(--fc-font-sm);
+	font-weight: var(--fc-weight-semibold);
+}

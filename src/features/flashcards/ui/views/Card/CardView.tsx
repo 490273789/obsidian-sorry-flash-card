@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { PartyPopper, RotateCcw } from "lucide-react";
 import { Notice } from "obsidian";
-import { StudyRating } from "../../../../../core/shared/types";
+import { cls } from "../../../../../core/shared/classNames";
+import type { StudyRating } from "../../../../../core/shared/types";
 import { getRatingButtons } from "../../../domain/sessions/scheduler";
 import { getDisplayCardContent } from "../../../domain/cards/cardDisplay";
 import type { ActiveStudySnapshot } from "../../../domain/sessions/sessionLifecycle";
@@ -17,6 +18,15 @@ import {
 	type PronunciationRuntime,
 } from "../../../domain/pronunciation";
 import { extractSpellingWord } from "../../../domain/cards/spellingWord";
+import styles from "./CardView.module.scss";
+
+const RATING_CLASSES: Record<StudyRating, string> = {
+	1: styles.rating1,
+	2: styles.rating2,
+	3: styles.rating3,
+	4: styles.rating4,
+	5: styles.rating5,
+};
 
 interface CardViewProps {
 	session: ActiveStudySnapshot;
@@ -280,7 +290,7 @@ export const CardView = React.memo(function CardView({
 						<span className="flashcard-shortcut">({t("common.space")})</span>
 					</FlashcardButton>
 				) : (
-					<div className="flashcard-response-controls">
+					<div className={cls("flashcard-response-controls", styles.responseControls)}>
 						<FlashcardButton
 							preset="prev"
 							icon={RotateCcw}
@@ -289,22 +299,42 @@ export const CardView = React.memo(function CardView({
 							disabled={!session.canPrevious}
 							title={`${t("common.undo")} (6)`}
 						/>
-						<div className="flashcard-rating-grid">
+						<div className={cls("flashcard-rating-grid", styles.ratingGrid)}>
 							{ratingButtons.map((btn) => (
 								<FlashcardButton
 									key={btn.rating}
 									preset="rating"
 									rating={btn.rating}
+									className={cls(styles.ratingBtn, RATING_CLASSES[btn.rating])}
 									onClick={() => void handleRating(btn.rating)}
 									aria-label={`${btn.label}，${btn.intervalDesc}，${btn.shortcut}`}
 								>
-									<span className="flashcard-rating-meta">
-										<span className="flashcard-rating-label">{btn.label}</span>
-										<span className="flashcard-rating-interval">
+									<span
+										className={cls("flashcard-rating-meta", styles.ratingMeta)}
+									>
+										<span
+											className={cls(
+												"flashcard-rating-label",
+												styles.ratingLabel,
+											)}
+										>
+											{btn.label}
+										</span>
+										<span
+											className={cls(
+												"flashcard-rating-interval",
+												styles.ratingInterval,
+											)}
+										>
 											{btn.shortcut}
 										</span>
 									</span>
-									<span className="flashcard-rating-duration">
+									<span
+										className={cls(
+											"flashcard-rating-duration",
+											styles.ratingDuration,
+										)}
+									>
 										{btn.intervalDesc}
 									</span>
 								</FlashcardButton>

@@ -5,6 +5,8 @@ import { dictionaryStrings } from "../strings/dictionary";
 import type { Language } from "../../../core/shared/types";
 import { FlashcardButton } from "../../../core/ui/primitives/Button";
 import { FlashcardInput, FlashcardTextarea } from "../../../core/ui/primitives/Input";
+import { cls } from "../../../core/shared/classNames";
+import styles from "./Dictionary.module.scss";
 
 export interface DictionaryFavoriteViewProps {
 	controller: DictionaryFavoriteController;
@@ -27,15 +29,24 @@ export function DictionaryFavoriteView({
 
 	return (
 		<main
-			className="flashcard-dictionary-favorite flashcard-dictionary-page fc-page fc-page--column"
+			className={cls(
+				"flashcard-dictionary-favorite flashcard-dictionary-page fc-page fc-page--column",
+				styles.page,
+				styles.favorite,
+			)}
 			aria-busy={saving}
 		>
-			<header className="flashcard-dictionary-favorite-header">
+			<header className={cls("flashcard-dictionary-favorite-header", styles.favoriteHeader)}>
 				<p className="fc-kicker">{strings.favoriteSidebarEyebrow}</p>
 				<h2>{strings.favoriteSidebarTitle}</h2>
 			</header>
 
-			<p className="flashcard-dictionary-favorite-destination">
+			<p
+				className={cls(
+					"flashcard-dictionary-favorite-destination",
+					styles.favoriteDestination,
+				)}
+			>
 				<span>{strings.favoritePath}</span>
 				<FlashcardButton
 					type="button"
@@ -49,7 +60,7 @@ export function DictionaryFavoriteView({
 			</p>
 
 			<form
-				className="flashcard-dictionary-favorite-form"
+				className={cls("flashcard-dictionary-favorite-form", styles.favoriteForm)}
 				onSubmit={(event) => {
 					event.preventDefault();
 					if (canSave) void controller.save();
@@ -113,7 +124,9 @@ export function DictionaryFavoriteView({
 					/>
 				</label>
 
-				<div className="flashcard-dictionary-favorite-actions">
+				<div
+					className={cls("flashcard-dictionary-favorite-actions", styles.favoriteActions)}
+				>
 					<FlashcardButton
 						type="submit"
 						variant="primary"
@@ -132,7 +145,11 @@ export function DictionaryFavoriteView({
 				</div>
 
 				<output
-					className={`flashcard-dictionary-favorite-message${state.status === "error" ? " is-error" : ""}`}
+					className={cls(
+						"flashcard-dictionary-favorite-message",
+						styles.favoriteMessage,
+						state.status === "error" && ["is-error", styles.isError],
+					)}
 					aria-live="polite"
 				>
 					{state.message}

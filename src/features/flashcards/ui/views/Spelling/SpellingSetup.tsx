@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { BrainCircuit, Keyboard, ListOrdered, SlidersHorizontal } from "lucide-react";
+import { cls } from "../../../../../core/shared/classNames";
 import type { Deck } from "../../../../../core/shared/types";
 import type { SessionStartRequest } from "../../../domain/sessions/sessionLifecycle";
 import type { SpellingSetupPlan } from "../../../domain/sessions/sessionPlanner";
@@ -8,6 +9,7 @@ import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
 import { FlashcardInput } from "../../../../../core/ui/primitives/Input";
 import { useFlashcardI18n } from "../../../strings/context";
 import { SetupControlGroup, SetupSelector } from "../../../../../core/ui/primitives/SetupSelector";
+import styles from "../Practice/Practice.module.scss";
 
 const QUICK_COUNTS = [10, 20, 50];
 
@@ -87,14 +89,14 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 			/>
 
 			<div className="flashcard-setup-content fc-page__body fc-page__body--narrow">
-				<div className="flashcard-study-hero flashcard-spelling-hero">
-					<div className="flashcard-deck-name-wrapper">
-						<div className="flashcard-deck-name">{deck.name}</div>
-						<div className="flashcard-deck-tag">{deck.tag}</div>
+				<div className={styles.hero}>
+					<div className={styles.deckNameWrapper}>
+						<div className={styles.deckName}>{deck.name}</div>
+						<div className={styles.deckTag}>{deck.tag}</div>
 					</div>
 				</div>
 
-				<div className="flashcard-study-panel flashcard-setup-controls">
+				<div className={styles.setupPanel}>
 					<SetupControlGroup
 						icon={SlidersHorizontal}
 						title={t("spelling.chooseWords")}
@@ -118,14 +120,17 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 							onChange={setMode}
 						/>
 
-						<div className="flashcard-setup-control-detail">
+						<div className={styles.controlDetail}>
 							{mode === "smart" ? (
-								<div className="flashcard-practice-quick-buttons">
+								<div className={styles.quickButtons}>
 									{quickCounts.map((count) => (
 										<FlashcardButton
 											key={count}
 											type="button"
-											className="flashcard-setup-chip"
+											className={cls(
+												styles.chip,
+												questionCount === count && styles.active,
+											)}
 											active={questionCount === count}
 											onClick={() => setQuestionCount(count)}
 										>
@@ -134,7 +139,10 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 									))}
 									<FlashcardButton
 										type="button"
-										className="flashcard-setup-chip"
+										className={cls(
+											styles.chip,
+											questionCount === maxQuestions && styles.active,
+										)}
 										active={questionCount === maxQuestions}
 										onClick={() => setQuestionCount(maxQuestions)}
 									>
@@ -142,15 +150,15 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 									</FlashcardButton>
 								</div>
 							) : (
-								<div className="flashcard-practice-range-group">
-									<div className="flashcard-practice-range-inputs">
-										<label className="flashcard-setup-range-field">
-											<span className="flashcard-practice-input-label">
+								<div className={styles.rangeGroup}>
+									<div className={styles.rangeInputs}>
+										<label className={styles.rangeField}>
+											<span className={styles.inputLabel}>
 												{t("practice.rangeStart")}
 											</span>
 											<FlashcardInput
 												type="number"
-												className="flashcard-practice-input"
+												className={styles.input}
 												min={1}
 												max={maxQuestions}
 												value={rangeStart}
@@ -166,13 +174,13 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 												}}
 											/>
 										</label>
-										<label className="flashcard-setup-range-field">
-											<span className="flashcard-practice-input-label">
+										<label className={styles.rangeField}>
+											<span className={styles.inputLabel}>
 												{t("practice.rangeEnd")}
 											</span>
 											<FlashcardInput
 												type="number"
-												className="flashcard-practice-input"
+												className={styles.input}
 												min={rangeStart}
 												max={maxQuestions}
 												value={rangeEnd}
@@ -195,7 +203,7 @@ export const SpellingSetup = React.memo(function SpellingSetup({
 					</SetupControlGroup>
 				</div>
 
-				<div className="flashcard-study-action-bar">
+				<div className={styles.actionBar}>
 					<FlashcardButton
 						variant="primary"
 						preset="show"

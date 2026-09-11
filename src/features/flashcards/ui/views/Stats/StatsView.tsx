@@ -1,13 +1,22 @@
 import React, { useMemo } from "react";
 import { ChartBar, Sprout } from "lucide-react";
+import { cls } from "../../../../../core/shared/classNames";
 import type { StudyHistoryEntry } from "../../../../../core/shared/types";
+import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
 import {
 	buildStudyHistoryPresentationModel,
 	STUDY_HISTORY_MODE_PRESENTATION,
 } from "../../../domain/history/studyHistoryPresentationModel";
-import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
 import { useFlashcardI18n } from "../../../strings/context";
 import { formatCompactDuration } from "../../../strings/index";
+import styles from "./Stats.module.scss";
+
+const MODE_CLASSES: Record<StudyHistoryEntry["mode"], string> = {
+	study: styles.modeStudy,
+	practice: styles.modePractice,
+	spelling: styles.modeSpelling,
+	"word-list": styles.modeList,
+};
 
 interface StatsViewProps {
 	history: StudyHistoryEntry[];
@@ -23,7 +32,7 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 	const { dayGroups, totals } = presentation;
 
 	return (
-		<div className="flashcard-stats-view fc-page fc-page--fill">
+		<div className="fc-page fc-page--fill">
 			<FlashcardHeader
 				icon={ChartBar}
 				title={t("stats.title")}
@@ -45,7 +54,7 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 			/>
 
 			{/* Day list */}
-			<div className="flashcard-stats-body fc-page__body">
+			<div className={cls("fc-page__body", styles.body)}>
 				{dayGroups.length === 0 ? (
 					<div className="flashcard-empty">
 						<div className="flashcard-empty-icon">
@@ -55,15 +64,13 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 						<p className="flashcard-empty-hint">{t("stats.noRecordsHint")}</p>
 					</div>
 				) : (
-					<div className="flashcard-stats-days">
+					<div>
 						{dayGroups.map(
 							({ date, displayDate, entries, totalDurationLabel, totalCards }) => (
-								<div key={date} className="flashcard-stats-day fc-lift">
-									<div className="flashcard-stats-day-header">
-										<span className="flashcard-stats-day-date">
-											{displayDate}
-										</span>
-										<span className="flashcard-stats-day-meta">
+								<div key={date} className={cls("fc-lift", styles.day)}>
+									<div className={styles.dayHeader}>
+										<span className={styles.dayDate}>{displayDate}</span>
+										<span className={styles.dayMeta}>
 											{t("stats.records", {
 												count: entries.length,
 											})}{" "}
@@ -75,32 +82,34 @@ export const StatsView = React.memo(function StatsView({ history, onBack }: Stat
 										</span>
 									</div>
 
-									<div className="flashcard-stats-sessions">
+									<div>
 										{entries.map((entry) => (
 											<div
 												key={`${entry.timestamp}-${entry.deckId}-${entry.mode}`}
-												className={`flashcard-stats-session ${
-													STUDY_HISTORY_MODE_PRESENTATION[entry.mode].cls
-												} fc-lift`}
+												className={cls(
+													"fc-lift",
+													styles.session,
+													MODE_CLASSES[entry.mode],
+												)}
 											>
-												<span className="flashcard-stats-session-mode">
+												<span className={styles.sessionMode}>
 													{t(
 														STUDY_HISTORY_MODE_PRESENTATION[entry.mode]
 															.labelKey,
 													)}
 												</span>
-												<span className="flashcard-stats-session-deck">
+												<span className={styles.sessionDeck}>
 													{entry.deckName}
 												</span>
-												<div className="flashcard-stats-session-right">
+												<div className={styles.sessionRight}>
 													{entry.cardCount > 0 && (
-														<span className="flashcard-stats-session-cards">
+														<span className={styles.sessionCards}>
 															{t("stats.cards", {
 																count: entry.cardCount,
 															})}
 														</span>
 													)}
-													<span className="flashcard-stats-session-dur">
+													<span className={styles.sessionDur}>
 														{formatCompactDuration(
 															language,
 															entry.duration,

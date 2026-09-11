@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { RotateCcw, X, Check } from "lucide-react";
 import { Notice } from "obsidian";
+import { cls } from "../../../../../core/shared/classNames";
 import { getDisplayCardContent } from "../../../domain/cards/cardDisplay";
 import type { ActivePracticeSnapshot } from "../../../domain/sessions/sessionLifecycle";
 import type { AnswerPresentationTransition } from "../../answerPresentationTransition";
 import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
 import { MarkdownContent, PronounceableMarkdown } from "../../primitives/Markdown";
+import styles from "./Practice.module.scss";
 import { SessionToolbar } from "../../primitives/SessionToolbar";
 import { useWindowKeyDown } from "../../../../../core/ui/hooks/hooks";
 import { useFlashcardI18n } from "../../../strings/context";
@@ -248,7 +250,12 @@ export const PracticeView = React.memo(function PracticeView({
 						<span className="flashcard-shortcut">({t("common.space")})</span>
 					</FlashcardButton>
 				) : (
-					<div className="flashcard-practice-response-controls">
+					<div
+						className={cls(
+							"flashcard-practice-response-controls",
+							styles.responseControls,
+						)}
+					>
 						<FlashcardButton
 							preset="prev"
 							icon={RotateCcw}
@@ -257,13 +264,19 @@ export const PracticeView = React.memo(function PracticeView({
 							disabled={!session.canPrevious}
 							title={`${t("common.undo")} (6)`}
 						/>
-						<div className="flashcard-practice-answer-buttons">
+						<div
+							className={cls(
+								"flashcard-practice-answer-buttons",
+								styles.answerButtons,
+							)}
+						>
 							<FlashcardButton
 								preset="practice-wrong"
+								className={styles.btnWrong}
 								size="lg"
 								onClick={() => void handleAnswer(false)}
 							>
-								<span className="flashcard-practice-btn-icon">
+								<span className={styles.btnIcon}>
 									<X size={18} />
 								</span>
 								<span className="flashcard-practice-btn-label">
@@ -275,10 +288,11 @@ export const PracticeView = React.memo(function PracticeView({
 							</FlashcardButton>
 							<FlashcardButton
 								preset="practice-correct"
+								className={styles.btnCorrect}
 								size="lg"
 								onClick={() => void handleAnswer(true)}
 							>
-								<span className="flashcard-practice-btn-icon">
+								<span className={styles.btnIcon}>
 									<Check size={18} />
 								</span>
 								<span className="flashcard-practice-btn-label">

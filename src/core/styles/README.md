@@ -16,9 +16,44 @@
 - `settings.scss`：Obsidian 设置面板与设置弹窗相关的样式。
 - `motion.scss`：全局动画与关键帧（尊重 `prefers-reduced-motion`）。
 - `responsive.scss`：全局小屏幕和移动端粗指针媒体查询适配。
-- `index.scss`：主样式入口，负责按序汇入全局层、基础组件层及业务视图层。
+- `index.scss`：主样式入口，负责按序汇入全局层及尚未模块化的存量样式。
 
-### 2. 基础 UI 组件样式 (`src/core/ui/primitives/**/`)
+### 2. 混合架构：全局 CSS 与 CSS Modules (`*.module.scss`)
+
+本项目采用 **“全局基础基础设施 + 局部 CSS Modules”** 的混合架构：
+
+- **保留全局 SCSS 的部分**：
+    - 设计 Token（`--fc-*`，`base.scss`）
+    - 全局布局骨架（`.fc-page`、`.fc-panel` 等，`layout.scss`）
+    - Obsidian 宿主与设置界面集成（`settings.scss`、`.modal.mod-flashcard`）
+    - 富文本渲染（`Markdown.scss` 内部由 Obsidian 运行时动态插入的 HTML 标签）
+    - 全局重置与响应式媒体查询
+- **采用 CSS Modules 的部分**：
+    - 业务功能视图（`src/features/**/ui/*.module.scss`）与复杂业务组件。
+    - 样式文件以 `[Name].module.scss` 命名，与 TSX 同目录就近存放。
+    - 不再汇入 `src/core/styles/index.scss`，而是直接由对应的 `.tsx` 引入：`import styles from "./[Name].module.scss"`。
+
+#### CSS Modules 编写与使用规范
+
+1. **作用域与类名命名**：
+    - 内部选择器直接使用清晰简练的语义名（如 `.workspace`、`.notice`、`.results`、`.footer`），不再需要堆叠冗长的人工命名空间前缀（如 `flashcard-translator-*`）。
+    - Vite 会自动生成带 `fc-` 命名空间前缀的类名：`fc-[name]__[local]_[hash:base64:5]`，确保在 Obsidian 全局 DOM 中绝对安全隔离。
+2. **TSX 引用与驼峰映射**：
+    - Vite 开启了 `localsConvention: "camelCase"`，在 SCSS 中书写 `.resultTitle` 或 `.result-title` 均可在 TSX 中通过 `styles.resultTitle` 访问。
+3. **类名组合工具 (`cls`)**：
+    - 组合全局布局类（如 `fc-page`、`fc-panel`）与模块化局部类时，统一使用 `src/core/shared/classNames.ts` 导出的 `cls(...)`：
+        ```tsx
+        import { cls } from "../../../core/shared/classNames";
+        import styles from "./Translator.module.scss";
+
+        <article className={cls("fc-panel", styles.panel)}>
+        	<p className={cls(styles.status, isError && styles.isError)}>{text}</p>
+        </article>;
+        ```
+4. **子级与第三方全局类**：
+    - 若模块内需定制无源码控制的子组件或 Obsidian 注入节点，使用 `:global(.className)` 选择器。
+
+### 3. 基础 UI 组件样式 (`src/core/ui/primitives/**/`)
 
 每个基础控件拥有独立目录，TSX 与对应 SCSS 样式同目录存放并导出：
 
@@ -29,13 +64,22 @@
 
 只被闪卡使用的基元（`SessionToolbar`、`PronunciationButton`、`Markdown`）随功能放在 `src/features/flashcards/ui/primitives/`，规则同上。
 
-### 3. 业务视图组件样式（按功能切片）
+### 4. 业务视图组件样式（按功能切片，全部采用 CSS Modules）
 
-每个独立视图模块同样遵循 Colocation 模式，将页面结构与专属样式内聚管理：
+每个独立视图模块遵循 Colocation 模式：
 
-- `src/features/flashcards/ui/views/**`：`Home/`、`Study/`、`Card/`、`Practice/`、`Spelling/`、`WordList/`、`Stats/`、`DeckSettings/`
-- `src/features/translation/ui/`：`Translator.scss`
-- `src/features/dictionary/ui/`：`Dictionary.scss`
+- `src/features/translation/ui/`：`Translator.module.scss`
+- `src/features/selectionPopup/ui/`：`SelectionPopup.module.scss`
+- `src/features/dictionary/ui/`：`Dictionary.module.scss`
+- `src/features/flashcards/ui/views/**`：
+    - `Home/`：`DeckList.module.scss`
+    - `Study/`：`StudySetup.module.scss`
+    - `Card/`：`CardView.module.scss`、`CardEditorModal.module.scss`
+    - `Practice/`：`Practice.module.scss`
+    - `Spelling/`：`Spelling.module.scss`
+    - `WordList/`：`WordList.module.scss`
+    - `Stats/`：`Stats.module.scss`
+    - `DeckSettings/`：`DeckSettingsModal.module.scss`
 
 视图样式只写该视图特有的规则；页面外壳、面板与 header/footer 语义一律来自布局模块。
 

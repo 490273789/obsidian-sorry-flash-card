@@ -1,3 +1,4 @@
+import "../styles/index.scss";
 import { Plugin } from "obsidian";
 import { createWorkbench, type Workbench } from "./workbench";
 import { createWorkbenchFeatures } from "../../features";
@@ -6,7 +7,6 @@ import { attachWorkbenchHome } from "./workbenchHome";
 import { createObsidianAiService } from "./aiAdapter";
 import { normalizeAiSettings } from "../ai/configuration";
 import type { AiService, AiSettings } from "../ai";
-import "../styles/index.scss";
 import { FlashcardSettings } from "../shared/types";
 import { DEFAULT_SETTINGS } from "./settingsSlices";
 import { DataStore } from "../storage/dataStore";

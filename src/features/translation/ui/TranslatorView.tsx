@@ -1,13 +1,15 @@
 import React, { useCallback, useId, useState, useSyncExternalStore } from "react";
 import { Copy, Languages, Settings2, Trash2 } from "lucide-react";
 import { aiErrorText } from "../../../core/i18n/ai";
-import { formatTranslationString, translationStrings } from "../strings/translation";
+import { cls } from "../../../core/shared/classNames";
 import type { Language } from "../../../core/shared/types";
-import type { TranslationRuntime } from "../domain/translationRuntime";
-import type { TranslationResultState } from "../domain/types";
 import { FlashcardButton } from "../../../core/ui/primitives/Button";
 import { FlashcardHeader } from "../../../core/ui/primitives/Header";
 import { FlashcardTextarea } from "../../../core/ui/primitives/Input";
+import type { TranslationRuntime } from "../domain/translationRuntime";
+import type { TranslationResultState } from "../domain/types";
+import { formatTranslationString, translationStrings } from "../strings/translation";
+import styles from "./Translator.module.scss";
 
 interface TranslatorViewProps {
 	runtime: TranslationRuntime;
@@ -93,14 +95,14 @@ export const TranslatorView = React.memo(function TranslatorView({
 	};
 
 	return (
-		<main className="flashcard-translator fc-page fc-page--column" aria-busy={isLoading}>
+		<main className="fc-page fc-page--column" aria-busy={isLoading}>
 			<FlashcardHeader
 				icon={Languages}
 				title={strings.title}
 				badge={statusText ?? undefined}
 				right={
 					<>
-						<span className="flashcard-translator-model-count">
+						<span className={styles.modelCount}>
 							{formatTranslationString(strings.modelCount, {
 								count: configuredProfiles.length,
 							})}
@@ -116,7 +118,7 @@ export const TranslatorView = React.memo(function TranslatorView({
 				}
 			/>
 
-			<section className="flashcard-translator-direction" aria-label={strings.direction}>
+			<section className={styles.direction} aria-label={strings.direction}>
 				<strong>{sourceLanguage}</strong>
 				<FlashcardButton
 					preset="icon"
@@ -131,14 +133,14 @@ export const TranslatorView = React.memo(function TranslatorView({
 			</section>
 
 			{!snapshot.settings.enabled ? (
-				<section className="flashcard-translator-notice">
+				<section className={styles.notice}>
 					<span>{strings.disabled}</span>
 					<FlashcardButton variant="secondary" size="sm" onClick={onOpenSettings}>
 						{strings.openSettings}
 					</FlashcardButton>
 				</section>
 			) : configuredProfiles.length === 0 ? (
-				<section className="flashcard-translator-notice">
+				<section className={styles.notice}>
 					<span>{strings.noProfiles}</span>
 					<FlashcardButton variant="secondary" size="sm" onClick={onOpenSettings}>
 						{strings.openSettings}
@@ -146,8 +148,8 @@ export const TranslatorView = React.memo(function TranslatorView({
 				</section>
 			) : null}
 
-			<section className="flashcard-translator-workspace">
-				<article className="flashcard-translator-panel fc-panel flashcard-translator-source">
+			<section className={styles.workspace}>
+				<article className={cls("fc-panel", styles.panel)}>
 					<header>
 						<label htmlFor={`${viewId}-translator-input`}>{strings.inputLabel}</label>
 						<span>
@@ -176,7 +178,7 @@ export const TranslatorView = React.memo(function TranslatorView({
 					/>
 				</article>
 
-				<section className="flashcard-translator-results" aria-label={strings.outputLabel}>
+				<section className={styles.results} aria-label={strings.outputLabel}>
 					{snapshot.results.map((result) => {
 						const usage = resultUsage(result, strings.usage);
 						const feedback = copyFeedback?.result === result ? copyFeedback : null;
@@ -184,11 +186,11 @@ export const TranslatorView = React.memo(function TranslatorView({
 						return (
 							<article
 								key={result.id}
-								className="flashcard-translator-panel fc-panel flashcard-translator-result"
+								className={cls("fc-panel", styles.panel)}
 								aria-busy={result.status === "loading"}
 							>
 								<header>
-									<div className="flashcard-translator-result-title">
+									<div className={styles.resultTitle}>
 										<strong>{result.name}</strong>
 										<span>
 											{result.model
@@ -220,21 +222,21 @@ export const TranslatorView = React.memo(function TranslatorView({
 								{(error || usage || feedback) && (
 									<footer>
 										{error && (
-											<p className="is-error" role="alert">
+											<p className={styles.isError} role="alert">
 												{error}
 											</p>
 										)}
 										{feedback && (
 											<p
-												className={feedback.isError ? "is-error" : ""}
+												className={
+													feedback.isError ? styles.isError : undefined
+												}
 												role={feedback.isError ? "alert" : "status"}
 											>
 												{feedback.message}
 											</p>
 										)}
-										{usage && (
-											<p className="flashcard-translator-usage">{usage}</p>
-										)}
+										{usage && <p className={styles.usage}>{usage}</p>}
 									</footer>
 								)}
 							</article>
@@ -243,8 +245,8 @@ export const TranslatorView = React.memo(function TranslatorView({
 				</section>
 			</section>
 
-			<footer className="flashcard-translator-footer">
-				<div className="flashcard-translator-actions">
+			<footer className={styles.footer}>
+				<div className={styles.actions}>
 					<FlashcardButton
 						variant="primary"
 						disabled={!canTranslate}
@@ -263,7 +265,7 @@ export const TranslatorView = React.memo(function TranslatorView({
 				</div>
 				{statusText && (
 					<p
-						className={`flashcard-translator-status ${isStatusError ? "is-error" : ""}`}
+						className={cls(styles.status, isStatusError && styles.isError)}
 						role={isStatusError ? "alert" : "status"}
 					>
 						{statusText}

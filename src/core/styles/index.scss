@@ -10,6 +10,7 @@
 
 // 1b. 布局模块：页面外壳、面板与视图容器（功能样式可覆盖它）
 @use "./layout.scss";
+@use "./cardStack.scss";
 @use "./workbenchHome.scss";
 
 // 2. 基础 UI 组件样式 (UI Primitives)
@@ -28,20 +29,6 @@
 @use "../../features/flashcards/ui/primitives/Markdown/Markdown.scss";
 @use "../../features/flashcards/ui/primitives/PronunciationButton/PronunciationButton.scss";
 
-// 3. 业务功能视图样式 (Views & Features)
-@use "../../features/flashcards/ui/views/Home/DeckList.scss";
-@use "../../features/flashcards/ui/views/Study/StudySetup.scss";
-@use "../../features/flashcards/ui/views/Card/Card.scss";
-@use "../../features/flashcards/ui/views/Practice/Practice.scss";
-@use "../../features/flashcards/ui/views/Spelling/Spelling.scss";
-@use "../../features/flashcards/ui/views/WordList/WordList.scss";
-@use "../../features/flashcards/ui/views/Stats/Stats.scss";
-@use "../../features/flashcards/ui/views/DeckSettings/DeckSettingsModal.scss";
-
-@use "../../features/translation/ui/Translator.scss";
-@use "../../features/dictionary/ui/Dictionary.scss";
-@use "../../features/selectionPopup/ui/SelectionPopup.scss";
-
-// 4. 全局动效与小屏/移动端响应式覆盖 (最后加载)
+// 3. 全局动效与小屏/移动端响应式覆盖 (最后加载)
 @use "./motion.scss";
 @use "./responsive.scss";

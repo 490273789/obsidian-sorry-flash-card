@@ -1,17 +1,26 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Check, CornerDownLeft, Lightbulb, X } from "lucide-react";
 import { Notice } from "obsidian";
+import { cls } from "../../../../../core/shared/classNames";
+import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
+import { FlashcardInput } from "../../../../../core/ui/primitives/Input";
+import type { PronunciationRuntime } from "../../../domain/pronunciation";
 import type {
 	ActiveSpellingSnapshot,
 	SpellingLifecycleFeedback,
 } from "../../../domain/sessions/sessionLifecycle";
+import { useFlashcardI18n } from "../../../strings/context";
 import type { AnswerPresentationTransition } from "../../answerPresentationTransition";
-import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
-import { FlashcardInput } from "../../../../../core/ui/primitives/Input";
 import { MarkdownContent } from "../../primitives/Markdown";
 import { SessionToolbar } from "../../primitives/SessionToolbar";
-import { useFlashcardI18n } from "../../../strings/context";
-import type { PronunciationRuntime } from "../../../domain/pronunciation";
+import styles from "./Spelling.module.scss";
+
+const DIFF_CLASSES = {
+	correct: styles.diffCorrect,
+	incorrect: styles.diffIncorrect,
+	extra: styles.diffExtra,
+	missing: styles.diffMissing,
+};
 
 interface SpellingViewProps {
 	session: ActiveSpellingSnapshot;
@@ -143,7 +152,10 @@ export const SpellingView = React.memo(function SpellingView({
 		feedback?.kind === "retrieval-correct" || feedback?.kind === "correction-correct";
 
 	return (
-		<div ref={viewRef} className="flashcard-study flashcard-spelling-view">
+		<div
+			ref={viewRef}
+			className={cls("flashcard-study flashcard-spelling-view", styles.spellingView)}
+		>
 			<SessionToolbar
 				deckName={session.originDeck.name}
 				progress={`${completed}/${total}`}
@@ -184,40 +196,40 @@ export const SpellingView = React.memo(function SpellingView({
 						(feedback.kind === "retrieval-incorrect" ||
 							feedback.kind === "correction-incorrect") && (
 							<>
-								<div className="flashcard-spelling-feedback is-wrong">
-									<div className="flashcard-spelling-feedback-title">
+								<div className={cls(styles.feedback, styles.isWrong)}>
+									<div className={styles.feedbackTitle}>
 										<X size={18} />
 										{feedback.kind === "retrieval-incorrect"
 											? t("spelling.incorrect")
 											: t("spelling.correctionIncorrect")}
 									</div>
-									<div className="flashcard-spelling-submitted-answer">
+									<div className={styles.submittedAnswer}>
 										<span>{t("spelling.yourInput")}</span>
 										<strong>
 											{feedback.submittedInput || t("spelling.noAnswer")}
 										</strong>
 									</div>
 									<div
-										className="flashcard-spelling-diff"
+										className={styles.diff}
 										aria-label={t("spelling.yourInput")}
 									>
 										{feedback.diff.length > 0 ? (
 											feedback.diff.map((segment, index) => (
 												<span
 													key={`${segment.kind}-${index}`}
-													className={`flashcard-spelling-diff-${segment.kind}`}
+													className={DIFF_CLASSES[segment.kind]}
 													title={segment.expected}
 												>
 													{segment.value || " "}
 												</span>
 											))
 										) : (
-											<span className="flashcard-spelling-empty-answer">
+											<span className={styles.emptyAnswer}>
 												{t("spelling.noAnswer")}
 											</span>
 										)}
 									</div>
-									<div className="flashcard-spelling-correct-answer">
+									<div className={styles.correctAnswer}>
 										<span>{t("spelling.correctAnswer")}</span>
 										<strong>{feedback.expectedAnswer}</strong>
 									</div>
@@ -238,15 +250,14 @@ export const SpellingView = React.memo(function SpellingView({
 						)}
 
 					{isCorrectFeedback && (
-						<div className="flashcard-spelling-feedback is-correct">
+						<div className={cls(styles.feedback, styles.isCorrect)}>
 							<Check size={20} />
 							<span>{t("spelling.correct")}</span>
 							<strong>{feedback.expectedAnswer}</strong>
 						</div>
 					)}
 
-					<label className="flashcard-spelling-input-group">
-						<div className="flashcard-spelling-input-divider" />
+					<label className={styles.inputGroup}>
 						<span>
 							{isCorrection
 								? t("spelling.retypeInstruction")
@@ -277,7 +288,7 @@ export const SpellingView = React.memo(function SpellingView({
 				</div>
 			</div>
 
-			<div className="flashcard-footer flashcard-spelling-actions">
+			<div className={cls("flashcard-footer", styles.actions)}>
 				{!isCorrection && (
 					<FlashcardButton
 						variant="secondary"

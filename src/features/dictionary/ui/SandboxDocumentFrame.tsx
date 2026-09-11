@@ -4,6 +4,8 @@ import {
 	type DictionarySandboxHost,
 	type SandboxDocument,
 } from "../domain/sandbox-document";
+import { cls } from "../../../core/shared/classNames";
+import styles from "./Dictionary.module.scss";
 
 export interface SandboxDocumentFrameProps {
 	document: SandboxDocument;
@@ -62,7 +64,7 @@ export const SandboxDocumentFrame = React.memo(function SandboxDocumentFrame({
 	return (
 		<iframe
 			ref={frameRef}
-			className="flashcard-dictionary-sandbox"
+			className={cls("flashcard-dictionary-sandbox", styles.sandbox)}
 			sandbox="allow-scripts"
 			referrerPolicy="no-referrer"
 			title={title ?? ""}

@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useState } from "react";
 import { CircleCheck, Target, Lock, Brain, Dices, AudioWaveform, Repeat2 } from "lucide-react";
+import { cls } from "../../../../../core/shared/classNames";
 import type { CardDirection, Deck, StudyDayInfo } from "../../../../../core/shared/types";
 import type { SessionStartRequest } from "../../../domain/sessions/sessionLifecycle";
 import type { StudySetupPlan } from "../../../domain/sessions/sessionPlanner";
@@ -7,6 +8,7 @@ import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
 import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
 import { useFlashcardI18n } from "../../../strings/context";
 import { SetupControlGroup, SetupSelector } from "../../../../../core/ui/primitives/SetupSelector";
+import styles from "./StudySetup.module.scss";
 
 interface StudySetupProps {
 	deck: Deck;
@@ -59,12 +61,16 @@ const StudyDayRow = memo(function StudyDayRow({
 
 	return (
 		<div
-			className={`flashcard-study-day-item fc-lift ${
-				day.isCompleted ? "completed" : day.isCurrent ? "current" : "locked"
-			}`}
+			className={cls(
+				styles.dayItem,
+				"fc-lift",
+				day.isCompleted && styles.completed,
+				day.isCurrent && styles.current,
+				!day.isCompleted && !day.isCurrent && styles.locked,
+			)}
 		>
-			<div className="flashcard-study-day-info">
-				<span className="flashcard-study-day-badge">
+			<div className={styles.dayInfo}>
+				<span className={styles.dayBadge}>
 					{day.isCompleted ? (
 						<CircleCheck size={16} />
 					) : day.isCurrent ? (
@@ -73,27 +79,20 @@ const StudyDayRow = memo(function StudyDayRow({
 						<Lock size={16} />
 					)}
 				</span>
-				<span className="flashcard-study-day-name">
+				<span className={styles.dayName}>
 					{t("study.day", { day: day.dayIndex + 1 })}
-					{day.isCurrent && (
-						<span className="flashcard-study-day-today-badge">{t("study.today")}</span>
-					)}
+					{day.isCurrent && <span className={styles.todayBadge}>{t("study.today")}</span>}
 				</span>
 			</div>
-			<div className="flashcard-study-day-progress">
+			<div className={styles.dayProgress}>
 				{day.isCompleted && (
 					<>
-						<FlashcardButton
-							variant="secondary"
-							className="flashcard-study-day-review-btn"
-							onClick={handleReview}
-						>
+						<FlashcardButton variant="secondary" onClick={handleReview}>
 							{t("study.review")}
 						</FlashcardButton>
 						{spellingEnabled && (
 							<FlashcardButton
 								variant="secondary"
-								className="flashcard-study-day-review-btn"
 								onClick={handleSpelling}
 								title={t("home.spellingModeTitle")}
 							>
@@ -102,7 +101,7 @@ const StudyDayRow = memo(function StudyDayRow({
 						)}
 					</>
 				)}
-				<span className="flashcard-study-day-count">
+				<span className={styles.dayCount}>
 					{day.studiedCards}/{day.totalCards}
 				</span>
 			</div>
@@ -164,15 +163,15 @@ export const StudySetup = React.memo(function StudySetup({
 			/>
 
 			<div className="flashcard-setup-content fc-page__body fc-page__body--narrow">
-				<div className="flashcard-study-hero">
-					<div className="flashcard-deck-name-wrapper">
-						<div className="flashcard-deck-name">{deck.name}</div>
-						<div className="flashcard-deck-tag">{deck.tag}</div>
+				<div className={styles.studyHero}>
+					<div className={styles.deckNameWrapper}>
+						<div className={styles.deckName}>{deck.name}</div>
+						<div className={styles.deckTag}>{deck.tag}</div>
 					</div>
 				</div>
 
 				{/* Study preferences */}
-				<div className="flashcard-study-panel flashcard-setup-controls">
+				<div className={cls(styles.studyPanel, styles.setupControls)}>
 					<SetupControlGroup
 						icon={AudioWaveform}
 						title={t("study.studyOrder")}
@@ -230,19 +229,17 @@ export const StudySetup = React.memo(function StudySetup({
 
 				{/* Day list */}
 				{dayList.length > 0 && (
-					<div className="flashcard-study-panel flashcard-study-day-section fc-lift">
-						<div className="flashcard-study-panel-heading">
-							<div className="flashcard-study-day-section-title">
-								{t("study.studyPlan")}
-							</div>
-							<div className="flashcard-study-panel-note">
+					<div className={cls(styles.studyPanel, styles.studyDaySection, "fc-lift")}>
+						<div className={styles.panelHeading}>
+							<div className={styles.daySectionTitle}>{t("study.studyPlan")}</div>
+							<div className={styles.panelNote}>
 								{t("study.completedDaysProgress", {
 									completed: completedDays,
 									total: dayList.length,
 								})}
 							</div>
 						</div>
-						<div className="flashcard-study-day-list">
+						<div className={styles.dayList}>
 							{dayList.map((day) => (
 								<StudyDayRow
 									key={day.dayIndex}
@@ -257,7 +254,7 @@ export const StudySetup = React.memo(function StudySetup({
 					</div>
 				)}
 
-				<div className="flashcard-study-action-bar">
+				<div className={styles.actionBar}>
 					<FlashcardButton
 						variant="primary"
 						preset="show"

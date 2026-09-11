@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { BookOpen, Languages } from "lucide-react";
+import { cls } from "../../../core/shared/classNames";
 import type { SelectionPopupStrings } from "../strings/selectionPopup";
+import styles from "./SelectionPopup.module.scss";
 
 export interface SelectionBubbleProps {
 	text: string;
@@ -79,7 +81,7 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 
 	return (
 		<div
-			className="fc-selection-bubble"
+			className={styles.bubble}
 			role="toolbar"
 			aria-label={strings.settingsHeading}
 			tabIndex={-1}
@@ -88,7 +90,7 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 				<button
 					ref={lookupRef}
 					type="button"
-					className="fc-selection-bubble__button fc-selection-bubble__button--primary"
+					className={cls(styles.button, styles.buttonPrimary)}
 					onClick={(e) => {
 						e.stopPropagation();
 						onLookup();
@@ -97,13 +99,13 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 				>
 					<BookOpen aria-hidden="true" />
 					<span>{strings.lookup}</span>
-					<span className="fc-selection-bubble__hint">[1]</span>
+					<span className={styles.hint}>[1]</span>
 				</button>
 			)}
 			<button
 				ref={translateRef}
 				type="button"
-				className={`fc-selection-bubble__button ${!isEnglishWord ? "fc-selection-bubble__button--primary" : ""}`}
+				className={cls(styles.button, !isEnglishWord && styles.buttonPrimary)}
 				onClick={(e) => {
 					e.stopPropagation();
 					onTranslate();
@@ -112,7 +114,7 @@ export const SelectionBubble = React.memo(function SelectionBubble({
 			>
 				<Languages aria-hidden="true" />
 				<span>{strings.translate}</span>
-				<span className="fc-selection-bubble__hint">{isEnglishWord ? "[2]" : "[↵]"}</span>
+				<span className={styles.hint}>{isEnglishWord ? "[2]" : "[↵]"}</span>
 			</button>
 		</div>
 	);

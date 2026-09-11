@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { Sparkles, RotateCcw } from "lucide-react";
+import { cls } from "../../../core/shared/classNames";
 import type { DictionaryController } from "../../dictionary/domain/controller";
 import type { DictionarySectionContent } from "../../dictionary/domain/types";
 import type { SelectionPopupStrings } from "../strings/selectionPopup";
+import styles from "./SelectionPopup.module.scss";
 
 export interface SelectionDictCardProps {
 	query: string;
@@ -16,7 +18,7 @@ export interface SelectionDictCardProps {
 function renderSection(content: DictionarySectionContent, word: string): React.ReactNode {
 	if (content.kind === "list") {
 		return (
-			<ol className="fc-selection-card__list">
+			<ol className={styles.list}>
 				{content.items.map((item, index) => (
 					<li key={`${index}-${item}`}>{item}</li>
 				))}
@@ -26,16 +28,13 @@ function renderSection(content: DictionarySectionContent, word: string): React.R
 
 	if (content.kind === "ai-definitions") {
 		return (
-			<div className="fc-selection-card__ai-senses">
+			<div>
 				{content.definitions.map((def, index) => (
-					<div
-						key={`${index}-${def.partOfSpeech}`}
-						className="fc-selection-card__ai-sense"
-					>
+					<div key={`${index}-${def.partOfSpeech}`} className={styles.aiSense}>
 						{def.partOfSpeech && (
-							<span className="fc-sense-pos">{def.partOfSpeech}</span>
+							<span className={styles.sensePos}>{def.partOfSpeech}</span>
 						)}
-						<span className="fc-sense-meaning">{def.meaning}</span>
+						<span className={styles.senseMeaning}>{def.meaning}</span>
 					</div>
 				))}
 			</div>
@@ -43,7 +42,7 @@ function renderSection(content: DictionarySectionContent, word: string): React.R
 	}
 
 	return (
-		<div className="fc-selection-card__sandbox-hint">
+		<div>
 			<p>{word}</p>
 		</div>
 	);
@@ -122,19 +121,19 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 
 	return (
 		<div
-			className="fc-selection-card"
+			className={styles.card}
 			role="dialog"
 			aria-label={activeWord}
 			tabIndex={-1}
 			onClick={(e) => e.stopPropagation()}
 		>
-			<header className="fc-selection-card__header">
-				<div className="fc-selection-card__title-row">
-					<h3 className="fc-selection-card__word">{activeWord}</h3>
-					<kbd className="fc-selection-card__kbd">↵ Enter</kbd>
+			<header className={styles.header}>
+				<div className={styles.titleRow}>
+					<h3 className={styles.word}>{activeWord}</h3>
+					<kbd className={styles.kbd}>↵ Enter</kbd>
 				</div>
 				{pronunciations.length > 0 && (
-					<div className="fc-selection-card__phonetics">
+					<div className={styles.phonetics}>
 						{pronunciations.map((p, idx) => (
 							<span key={`${idx}-${p.label}-${p.phonetic}`}>
 								{p.label ? `[${p.label}] ` : ""}
@@ -144,7 +143,7 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 					</div>
 				)}
 				{sources.length > 1 && (
-					<div className="fc-selection-card__tabs" role="tablist">
+					<div className={styles.tabs} role="tablist">
 						{sources.map((source) => {
 							const isActive = source.id === (activeSource?.id ?? "");
 							return (
@@ -153,7 +152,7 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 									type="button"
 									role="tab"
 									aria-selected={isActive}
-									className={`fc-selection-card__tab ${isActive ? "fc-selection-card__tab--active" : ""}`}
+									className={cls(styles.tab, isActive && styles.tabActive)}
 									onClick={() => controller.selectSource(source.id)}
 								>
 									{source.label}
@@ -164,35 +163,33 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 				)}
 			</header>
 
-			<main className="fc-selection-card__body">
+			<main className={styles.body}>
 				{activeSource?.kind === "ai" && activeSource.status === "idle" ? (
-					<div className="fc-selection-card__ai-action">
+					<div className={styles.aiAction}>
 						<button
 							type="button"
-							className="fc-selection-card__ai-generate-btn"
+							className={styles.aiGenerateBtn}
 							onClick={() => void handleGenerateAi()}
 						>
 							<Sparkles size={14} aria-hidden="true" />
 							<span>{strings.aiGenerate}</span>
 						</button>
 						{state.aiEngineName && (
-							<span className="fc-selection-card__ai-engine-hint">
-								{state.aiEngineName}
-							</span>
+							<span className={styles.aiEngineHint}>{state.aiEngineName}</span>
 						)}
 					</div>
 				) : activeSource?.status === "loading" ? (
-					<div className="fc-selection-card__status">
+					<div className={styles.status}>
 						{activeSource.kind === "ai" ? strings.aiGenerating : strings.loading}
 					</div>
 				) : activeSource?.status === "empty" ? (
-					<div className="fc-selection-card__status">{strings.emptyDefinition}</div>
+					<div className={styles.status}>{strings.emptyDefinition}</div>
 				) : activeSource?.status === "error" ? (
-					<div className="fc-selection-card__status fc-selection-card__status--error">
+					<div className={cls(styles.status, styles.statusError)}>
 						<p>{activeSource.error || strings.emptyDefinition}</p>
 						<button
 							type="button"
-							className="fc-selection-card__ai-generate-btn"
+							className={styles.aiGenerateBtn}
 							onClick={() => void handleRetry(activeSource.id, activeSource.kind)}
 						>
 							<RotateCcw size={14} aria-hidden="true" />
@@ -201,20 +198,20 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 					</div>
 				) : sections.length > 0 ? (
 					sections.map((section, idx) => (
-						<div key={`${idx}-${section.title}`} className="fc-selection-card__section">
+						<div key={`${idx}-${section.title}`}>
 							{renderSection(section.content, activeWord)}
 						</div>
 					))
 				) : state.status === "loading" ? (
-					<div className="fc-selection-card__status">{strings.loading}</div>
+					<div className={styles.status}>{strings.loading}</div>
 				) : (
-					<div className="fc-selection-card__status">{strings.emptyDefinition}</div>
+					<div className={styles.status}>{strings.emptyDefinition}</div>
 				)}
 			</main>
 
-			<footer className="fc-selection-card__footer">
+			<footer className={styles.footer}>
 				<span>{strings.openInMainTabHint}</span>
-				<kbd className="fc-selection-card__kbd">Esc 关闭</kbd>
+				<kbd className={styles.kbd}>Esc 关闭</kbd>
 			</footer>
 		</div>
 	);

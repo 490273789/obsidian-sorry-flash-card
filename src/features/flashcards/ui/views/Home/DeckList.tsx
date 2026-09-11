@@ -44,11 +44,13 @@ import type {
 	DeckHomeDestination,
 	DeckHomeSnapshot,
 } from "../../../domain/decks/deckHome";
+import { cls } from "../../../../../core/shared/classNames";
 import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
 import { FlashcardMenu, type FlashcardMenuItem } from "../../../../../core/ui/primitives/Menu";
 import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
 import { DeckSettingsModal } from "../DeckSettings";
 import { useFlashcardI18n } from "../../../strings/context";
+import styles from "./DeckList.module.scss";
 
 interface DeckCardProps {
 	deck: DeckHomeDeckSnapshot;
@@ -136,7 +138,12 @@ const DeckCard = memo(function DeckCard({
 	return (
 		<article
 			ref={setDragNodeRef}
-			className={`flashcard-deck-item fc-lift${showMoreActions ? " is-actions-open" : ""}${isDragging ? " is-dragging" : ""}`}
+			className={cls(
+				"flashcard-deck-item fc-lift",
+				styles.deckItem,
+				showMoreActions && styles.isActionsOpen,
+				isDragging && styles.isDragging,
+			)}
 			data-deck-id={deck.id}
 			style={{
 				transform: CSS.Transform.toString(transform),
@@ -146,16 +153,22 @@ const DeckCard = memo(function DeckCard({
 			{...attributes}
 			{...listeners}
 		>
-			<div className="flashcard-deck-main">
-				<div className="flashcard-deck-headline">
-					<div className="flashcard-deck-name-wrapper">
-						<span className="flashcard-deck-name">{deck.name}</span>
-						<span className="flashcard-deck-tag">{deck.tag}</span>
+			<div className={cls("flashcard-deck-main", styles.deckMain)}>
+				<div className={cls("flashcard-deck-headline", styles.deckHeadline)}>
+					<div className={cls("flashcard-deck-name-wrapper", styles.deckNameWrapper)}>
+						<span className={cls("flashcard-deck-name", styles.deckName)}>
+							{deck.name}
+						</span>
+						<span className={cls("flashcard-deck-tag", styles.deckTag)}>
+							{deck.tag}
+						</span>
 						{deck.spelling.enabled && (
 							<span
-								className={`flashcard-word-learning-badge${
-									spellingReady ? "" : " is-invalid"
-								}`}
+								className={cls(
+									"flashcard-word-learning-badge",
+									styles.wordLearningBadge,
+									!spellingReady && styles.isInvalid,
+								)}
 							>
 								{spellingReady ? (
 									<Keyboard size={13} />
@@ -168,13 +181,30 @@ const DeckCard = memo(function DeckCard({
 							</span>
 						)}
 					</div>
-					<div className="flashcard-deck-stats">
-						<div className="flashcard-deck-stat">
-							<span className="flashcard-deck-stat-value blue">{newCards}</span>/
-							<span className="flashcard-deck-stat-value orange">{totalCards}</span>
+					<div className={cls("flashcard-deck-stats", styles.deckStats)}>
+						<div className={cls("flashcard-deck-stat", styles.deckStat)}>
+							<span
+								className={cls(
+									"flashcard-deck-stat-value blue",
+									styles.deckStatValue,
+								)}
+							>
+								{newCards}
+							</span>
+							/
+							<span
+								className={cls(
+									"flashcard-deck-stat-value orange",
+									styles.deckStatValue,
+								)}
+							>
+								{totalCards}
+							</span>
 						</div>
-						<div className="flashcard-deck-stat">
-							<span className="flashcard-deck-stat-label">
+						<div className={cls("flashcard-deck-stat", styles.deckStat)}>
+							<span
+								className={cls("flashcard-deck-stat-label", styles.deckStatLabel)}
+							>
 								{t("home.studyCountValue", {
 									count: deck.studyCount,
 								})}
@@ -185,15 +215,18 @@ const DeckCard = memo(function DeckCard({
 			</div>
 
 			<div
-				className="flashcard-deck-side"
+				className={cls("flashcard-deck-side", styles.deckSide)}
 				role="presentation"
 				onMouseDown={(event) => event.stopPropagation()}
 				onTouchStart={(event) => event.stopPropagation()}
 			>
 				<div
-					className={`flashcard-deck-actions2${
-						deck.spelling.enabled ? " has-spelling" : ""
-					}`}
+					className={cls(
+						"flashcard-deck-actions2",
+						styles.deckActions,
+						deck.spelling.enabled && "has-spelling",
+						deck.spelling.enabled && styles.hasSpelling,
+					)}
 				>
 					<FlashcardButton
 						variant="primary"
@@ -250,8 +283,8 @@ const DeckCard = memo(function DeckCard({
 							showMoreActions ? t("home.hideMoreActions") : t("home.showMoreActions")
 						}
 						ariaLabel={t("home.moreActions")}
-						triggerClassName="flashcard-deck-action-more"
-						menuClassName="flashcard-deck-more-actions"
+						triggerClassName={cls("flashcard-deck-action-more", styles.actionMore)}
+						menuClassName={cls("flashcard-deck-more-actions", styles.moreActions)}
 						onOpenChange={setShowMoreActions}
 					/>
 				</div>
@@ -435,9 +468,21 @@ export const DeckList = React.memo(function DeckList({
 				/>
 
 				{snapshot.migration && (
-					<section className="flashcard-identity-migration-card">
-						<div className="flashcard-identity-migration-copy">
-							<div className="flashcard-identity-migration-icon">
+					<section
+						className={cls("flashcard-identity-migration-card", styles.migrationCard)}
+					>
+						<div
+							className={cls(
+								"flashcard-identity-migration-copy",
+								styles.migrationCopy,
+							)}
+						>
+							<div
+								className={cls(
+									"flashcard-identity-migration-icon",
+									styles.migrationIcon,
+								)}
+							>
 								<Sparkles size={20} />
 							</div>
 							<div>
@@ -462,12 +507,12 @@ export const DeckList = React.memo(function DeckList({
 				)}
 
 				{snapshot.decks.length === 0 ? (
-					<div className="flashcard-empty">
-						<div className="flashcard-empty-icon">
+					<div className={cls("flashcard-empty", styles.empty)}>
+						<div className={cls("flashcard-empty-icon", styles.emptyIcon)}>
 							<Inbox size={48} />
 						</div>
 						<p>{t("home.emptyTitle")}</p>
-						<p className="flashcard-empty-hint">
+						<p className={cls("flashcard-empty-hint", styles.emptyHint)}>
 							{t("home.emptyHint", { tag: "#wordTag" })}
 						</p>
 						<FlashcardButton variant="primary" icon={Plus} onClick={onOpenAddCard}>
@@ -475,13 +520,31 @@ export const DeckList = React.memo(function DeckList({
 						</FlashcardButton>
 					</div>
 				) : (
-					<div className="flashcard-home-workspace">
-						<section className="flashcard-deck-index" aria-label={t("home.deckIndex")}>
-							<div className="flashcard-deck-index-heading">
-								<span className="flashcard-deck-index-desktop-title">
+					<div className={cls("flashcard-home-workspace", styles.workspace)}>
+						<section
+							className={cls("flashcard-deck-index", styles.deckIndex)}
+							aria-label={t("home.deckIndex")}
+						>
+							<div
+								className={cls(
+									"flashcard-deck-index-heading",
+									styles.deckIndexHeading,
+								)}
+							>
+								<span
+									className={cls(
+										"flashcard-deck-index-desktop-title",
+										styles.desktopTitle,
+									)}
+								>
 									{t("home.deckIndex")}
 								</span>
-								<span className="flashcard-deck-index-mobile-title">
+								<span
+									className={cls(
+										"flashcard-deck-index-mobile-title",
+										styles.mobileTitle,
+									)}
+								>
 									{t("home.otherDecks")}
 								</span>
 							</div>
@@ -494,7 +557,7 @@ export const DeckList = React.memo(function DeckList({
 									items={visibleDeckIds}
 									strategy={rectSortingStrategy}
 								>
-									<div className="flashcard-deck-list">
+									<div className={cls("flashcard-deck-list", styles.deckList)}>
 										{visibleDecks.map((deck) => (
 											<DeckCard
 												key={deck.id}
@@ -537,7 +600,7 @@ export const DeckList = React.memo(function DeckList({
 						</section>
 						<FlashcardButton
 							variant="secondary"
-							className="flashcard-home-add-card"
+							className={cls("flashcard-home-add-card", styles.addCardBtn)}
 							icon={Plus}
 							onClick={onOpenAddCard}
 						>

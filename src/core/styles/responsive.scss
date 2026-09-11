@@ -9,8 +9,7 @@
 		padding-bottom: var(--fc-space-3);
 	}
 
-	.flashcard-deck-list .flashcard-deck-item,
-	.flashcard-study-hero {
+	.flashcard-deck-list .flashcard-deck-item {
 		grid-template-columns: 1fr;
 		min-height: auto;
 	}

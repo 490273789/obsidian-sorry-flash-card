@@ -4,6 +4,7 @@ import type { SelectionTarget } from "../domain/types";
 import type { SelectionPopupStrings } from "../strings/selectionPopup";
 import { SelectionBubble } from "./SelectionBubble";
 import { SelectionDictCard } from "./SelectionDictCard";
+import styles from "./SelectionPopup.module.scss";
 
 export interface SelectionPopupHostProps {
 	target: SelectionTarget;
@@ -59,7 +60,7 @@ export const SelectionPopupHost: React.FC<SelectionPopupHostProps> = ({
 
 	return (
 		<div
-			className="fc-selection-popup-root"
+			className={styles.root}
 			style={{ left: position.left, top: position.top }}
 			onMouseDown={(e) => e.stopPropagation()}
 		>

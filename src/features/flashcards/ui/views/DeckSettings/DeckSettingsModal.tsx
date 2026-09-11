@@ -1,15 +1,17 @@
 import React, { memo, useId } from "react";
 import { Sparkles, TriangleAlert } from "lucide-react";
-import type { DeckHomeSettingsChange, DeckHomeSettingsDraft } from "../../../domain/decks/deckHome";
-import { STUDY_SETTINGS_LIMITS, calculateEstimatedDays } from "../../../settings/studyMeta";
-import { formatStudyOrder } from "../../../strings/index";
-import { ModalSurface } from "../../../../../core/ui/primitives/Modal";
+import { cls } from "../../../../../core/shared/classNames";
 import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
 import { FlashcardCheckbox } from "../../../../../core/ui/primitives/Checkbox";
 import { FlashcardInput } from "../../../../../core/ui/primitives/Input";
+import { ModalSurface } from "../../../../../core/ui/primitives/Modal";
 import { FlashcardSelect } from "../../../../../core/ui/primitives/Select";
 import { FlashcardSlider } from "../../../../../core/ui/primitives/Slider";
+import type { DeckHomeSettingsChange, DeckHomeSettingsDraft } from "../../../domain/decks/deckHome";
+import { calculateEstimatedDays, STUDY_SETTINGS_LIMITS } from "../../../settings/studyMeta";
 import { useFlashcardI18n } from "../../../strings/context";
+import { formatStudyOrder } from "../../../strings/index";
+import styles from "./DeckSettingsModal.module.scss";
 
 export interface DeckSettingsModalProps {
 	draft: DeckHomeSettingsDraft;
@@ -62,7 +64,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 
 	return (
 		<ModalSurface
-			className="flashcard-deck-settings-modal"
+			className={styles.modal}
 			labelledBy={titleId}
 			describedBy={subtitleId}
 			onRequestClose={onClose}
@@ -101,8 +103,8 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 					</div>
 
 					<div className="flashcard-modal-body">
-						<div className="flashcard-deck-settings-purpose flashcard-deck-settings-card">
-							<div className="flashcard-deck-settings-purpose-heading">
+						<div className={cls(styles.purpose, styles.card)}>
+							<div className={styles.purposeHeading}>
 								<div>
 									<strong>{t("deckSettings.wordLearningTitle")}</strong>
 									<p>{t("deckSettings.wordLearningDescription")}</p>
@@ -121,7 +123,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 							</div>
 
 							{draft.wordLearningEnabled && !hasStableIdentities && (
-								<div className="flashcard-deck-settings-warning">
+								<div className={styles.warning}>
 									<TriangleAlert size={16} />
 									<span>{t("deckSettings.identityRequired")}</span>
 									<FlashcardButton
@@ -139,7 +141,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 							{draft.wordLearningEnabled &&
 								(!spellingValidation.canStart ||
 									spellingValidation.invalidCards.length > 0) && (
-									<div className="flashcard-deck-settings-warning">
+									<div className={styles.warning}>
 										<TriangleAlert size={16} />
 										<div>
 											<strong>
@@ -188,7 +190,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 								)}
 						</div>
 
-						<div className="flashcard-deck-settings-toggle flashcard-deck-settings-card">
+						<div className={cls(styles.toggle, styles.card)}>
 							<FlashcardCheckbox
 								checked={draft.useCustom}
 								onChange={(e) =>
@@ -199,13 +201,11 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 								}
 								label={t("deckSettings.useCustom")}
 							/>
-							<p className="flashcard-deck-settings-toggle-copy">
-								{t("deckSettings.useCustomCopy")}
-							</p>
+							<p className={styles.toggleCopy}>{t("deckSettings.useCustomCopy")}</p>
 						</div>
 
 						{!draft.useCustom ? (
-							<div className="flashcard-deck-settings-hint flashcard-deck-settings-card">
+							<div className={cls(styles.hint, styles.card)}>
 								{t("deckSettings.globalHint", {
 									dailyNewCards: draft.global.dailyNewCards,
 									dailyReviewCards: draft.global.dailyReviewCards,
@@ -224,26 +224,26 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 								)}
 							</div>
 						) : (
-							<div className="flashcard-deck-settings-fields">
-								<div className="flashcard-deck-settings-summary flashcard-deck-settings-card">
+							<div className={styles.fields}>
+								<div className={cls(styles.summary, styles.card)}>
 									<div>
-										<span className="flashcard-deck-settings-summary-label">
+										<span className={styles.summaryLabel}>
 											{t("deckSettings.completionPace")}
 										</span>
-										<strong className="flashcard-deck-settings-summary-value">
+										<strong className={styles.summaryValue}>
 											{t("deckSettings.days", {
 												count: draft.daysToComplete,
 											})}
 										</strong>
 									</div>
-									<span className="flashcard-deck-settings-summary-label">
+									<span className={styles.summaryLabel}>
 										{t("deckSettings.dailySummary", {
 											dailyNewCards: draft.dailyNewCards,
 											dailyReviewCards: draft.dailyReviewCards,
 										})}
 									</span>
 								</div>
-								<div className="flashcard-deck-settings-field">
+								<div className={styles.field}>
 									<label>
 										<span>{t("deckSettings.dailyNewCards")}</span>
 										<strong>{draft.dailyNewCards}</strong>
@@ -259,9 +259,9 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 									/>
 								</div>
 								{totalCards > 0 && (
-									<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row flashcard-deck-settings-days">
+									<div className={cls(styles.field, styles.fieldRow)}>
 										<label>{t("deckSettings.estimatedDaysLabel")}</label>
-										<div className="flashcard-deck-settings-days-inputs">
+										<div className={styles.daysInputs}>
 											<FlashcardInput
 												type="number"
 												min={1}
@@ -271,10 +271,10 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 													handleDaysToCompleteChange(e.target.value)
 												}
 											/>
-											<span className="flashcard-deck-settings-days-unit">
+											<span className={styles.daysUnit}>
 												{t("deckSettings.daysUnit")}
 											</span>
-											<span className="flashcard-deck-settings-days-hint">
+											<span className={styles.daysHint}>
 												{t("deckSettings.totalCardsHint", {
 													totalCards,
 												})}
@@ -282,7 +282,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 										</div>
 									</div>
 								)}
-								<div className="flashcard-deck-settings-field">
+								<div className={styles.field}>
 									<label>
 										<span>{t("deckSettings.dailyReviewCards")}</span>
 										<strong>{draft.dailyReviewCards}</strong>
@@ -300,7 +300,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 										}
 									/>
 								</div>
-								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
+								<div className={cls(styles.field, styles.fieldRow)}>
 									<label>{t("deckSettings.studyOrder")}</label>
 									<FlashcardSelect
 										value={draft.studyOrder}
@@ -315,7 +315,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 										<option value="random">{t("order.random")}</option>
 									</FlashcardSelect>
 								</div>
-								<div className="flashcard-deck-settings-field">
+								<div className={styles.field}>
 									<label>
 										<span>{t("deckSettings.targetRetention")}</span>
 										<strong>{draft.requestRetention.toFixed(2)}</strong>
@@ -333,7 +333,7 @@ export const DeckSettingsModal = memo(function DeckSettingsModal({
 										}
 									/>
 								</div>
-								<div className="flashcard-deck-settings-field flashcard-deck-settings-field-row">
+								<div className={cls(styles.field, styles.fieldRow)}>
 									<label>{t("deckSettings.maxReviewInterval")}</label>
 									<FlashcardInput
 										type="number"

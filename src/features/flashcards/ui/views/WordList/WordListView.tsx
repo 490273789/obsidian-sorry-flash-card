@@ -21,10 +21,25 @@ import {
 	VISIBLE_WORD_COLUMNS,
 	type WordListItem,
 } from "../../../domain/wordList/wordListPresentationModel";
+import { cls } from "../../../../../core/shared/classNames";
 import { FlashcardButton } from "../../../../../core/ui/primitives/Button";
 import { FlashcardHeader } from "../../../../../core/ui/primitives/Header";
-import { useFlashcardI18n } from "../../../strings/context";
 import { ModalSurface } from "../../../../../core/ui/primitives/Modal";
+import { useFlashcardI18n } from "../../../strings/context";
+import styles from "./WordList.module.scss";
+
+const COLUMN_STYLES = {
+	front: {
+		cell: styles.cellFirst,
+		text: styles.wordFront,
+		button: styles.columnFront,
+	},
+	back: {
+		cell: styles.cellSecond,
+		text: styles.wordBack,
+		button: styles.columnBack,
+	},
+};
 
 interface WordListViewProps {
 	deck: Deck;
@@ -59,12 +74,13 @@ const WordRow = memo(function WordRow({
 	}, []);
 
 	return (
-		<div className="flashcard-word-row">
+		<div className={styles.row}>
 			{VISIBLE_WORD_COLUMNS.map((column) => {
 				const isMasked = maskedColumns.has(column.key);
 				const isRevealed = revealedIdsByColumn[column.key].has(item.id);
 				const showContent = !isMasked || isRevealed;
 				const value = item[column.key];
+				const columnStyle = COLUMN_STYLES[column.key];
 				const handleReveal = (e: React.MouseEvent<HTMLButtonElement>) => {
 					if (e.detail > 1) return;
 					if (revealTimerRef.current !== null) {
@@ -87,9 +103,11 @@ const WordRow = memo(function WordRow({
 					<button
 						type="button"
 						key={column.key}
-						className={`flashcard-word-cell ${column.className} ${
-							!showContent ? "masked" : ""
-						}`}
+						className={cls(
+							styles.cell,
+							columnStyle.cell,
+							!showContent && styles.masked,
+						)}
 						onClick={handleReveal}
 						onDoubleClick={handleShowExplanation}
 						title={
@@ -99,13 +117,11 @@ const WordRow = memo(function WordRow({
 						}
 					>
 						{showContent ? (
-							<span className={value ? column.textClassName : "flashcard-word-empty"}>
+							<span className={value ? columnStyle.text : styles.wordEmpty}>
 								{value || t("wordList.emptyColumn")}
 							</span>
 						) : (
-							<span className="flashcard-word-mask-text">
-								{t("wordList.clickToShow")}
-							</span>
+							<span className={styles.maskText}>{t("wordList.clickToShow")}</span>
 						)}
 					</button>
 				);
@@ -129,7 +145,7 @@ const WordExplanationModal = memo(function WordExplanationModal({
 
 	return (
 		<ModalSurface
-			className="flashcard-word-explanation-modal"
+			className={styles.modal}
 			labelledBy={titleId}
 			describedBy={subtitleId}
 			onRequestClose={onClose}
@@ -159,7 +175,7 @@ const WordExplanationModal = memo(function WordExplanationModal({
 					</div>
 
 					<div className="flashcard-modal-body">
-						<div className="flashcard-word-explanation-content">
+						<div className={styles.explanationContent}>
 							{item.explanation || t("wordList.emptyColumn")}
 						</div>
 					</div>
@@ -418,15 +434,15 @@ export const WordListView = React.memo(function WordListView({
 	}, []);
 
 	return (
-		<div className="flashcard-word-list-view fc-page fc-page--fill">
+		<div className="fc-page fc-page--fill">
 			<FlashcardHeader
-				className="flashcard-word-list-header"
+				className={styles.header}
 				icon={BookOpenText}
 				title={t("wordList.title", {
 					deckName: deck.name,
 				})}
 				right={
-					<span className="flashcard-word-list-meta">
+					<span className={styles.meta}>
 						{t("wordList.subtitle", {
 							count: items.length,
 							tag: deck.tag,
@@ -436,10 +452,10 @@ export const WordListView = React.memo(function WordListView({
 				onBack={onBack}
 			/>
 
-			<div className="flashcard-word-list-toolbar">
+			<div className={styles.toolbar}>
 				<FlashcardButton
 					variant="primary"
-					className="shuffle"
+					className={styles.shuffle}
 					active={isShuffled}
 					onClick={handleShuffleToggle}
 				>
@@ -451,7 +467,7 @@ export const WordListView = React.memo(function WordListView({
 						<FlashcardButton
 							key={column.key}
 							variant={column.variant}
-							className={column.buttonClassName}
+							className={COLUMN_STYLES[column.key].button}
 							active={isMasked}
 							onClick={() => handleToggleColumnMask(column.key)}
 						>
@@ -461,17 +477,17 @@ export const WordListView = React.memo(function WordListView({
 				})}
 			</div>
 
-			<div className="flashcard-word-list-scroll" ref={scrollRef}>
+			<div className={styles.scroll} ref={scrollRef}>
 				<div
 					ref={listRef}
-					className="flashcard-word-list-virtual flashcard-word-list-virtualized"
+					className={styles.virtual}
 					style={{ height: virtualRows.totalHeight }}
 				>
 					{visibleRows.map((row) => (
 						<div
 							key={row.item.id}
 							ref={(element) => handleMeasureRow(row.item.id, element)}
-							className="flashcard-word-row-frame"
+							className={styles.rowFrame}
 							style={{
 								transform: `translateY(${row.top}px)`,
 							}}

@@ -1,14 +1,14 @@
 // =============================================================================
-// DeckSettingsModal Styles (SCSS)
+// DeckSettingsModal Styles (SCSS Module)
 // =============================================================================
 
-.flashcard-deck-settings-modal {
+.modal {
 	max-height: 80vh;
 	max-height: 80dvh;
 }
 
-.flashcard-deck-settings-card,
-.flashcard-deck-settings-summary {
+.card,
+.summary {
 	padding: var(--fc-space-3);
 	border: 0;
 	border-bottom: 1px solid var(--fc-line-soft);
@@ -16,14 +16,63 @@
 	background: transparent;
 }
 
-.flashcard-deck-settings-toggle,
-.flashcard-deck-settings-fields {
+.purpose {
+	display: flex;
+	flex-direction: column;
+	gap: var(--fc-space-3);
+	margin-bottom: var(--fc-space-3);
+}
+
+.purposeHeading {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--fc-space-3);
+
+	strong {
+		color: var(--fc-text);
+	}
+
+	p {
+		margin: var(--fc-space-1) 0 0;
+		color: var(--fc-muted);
+		font-size: var(--fc-font-sm);
+		line-height: var(--fc-line-body);
+	}
+}
+
+.warning {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--fc-space-2);
+	padding: var(--fc-space-3);
+	border: 1px solid rgba(var(--fc-red-rgb), 0.34);
+	border-radius: var(--fc-radius-sm);
+	background: rgba(var(--fc-red-rgb), 0.08);
+	color: var(--fc-red);
+	font-size: var(--fc-font-sm);
+	line-height: var(--fc-line-body);
+
+	> div {
+		min-width: 0;
+		flex: 1;
+	}
+
+	ul {
+		margin: var(--fc-space-2) 0 0;
+		padding-left: var(--fc-space-4);
+		color: var(--fc-muted);
+	}
+}
+
+.toggle,
+.fields {
 	display: flex;
 	flex-direction: column;
 	gap: var(--fc-space-3);
 }
 
-.flashcard-deck-settings-toggle-label {
+.toggleLabel {
 	display: flex;
 	align-items: center;
 	gap: var(--fc-space-2);
@@ -31,17 +80,17 @@
 	font-weight: var(--fc-weight-semibold);
 }
 
-.flashcard-deck-settings-toggle-copy,
-.flashcard-deck-settings-hint,
-.flashcard-deck-settings-summary-label,
-.flashcard-deck-settings-days-unit,
-.flashcard-deck-settings-days-hint {
+.toggleCopy,
+.hint,
+.summaryLabel,
+.daysUnit,
+.daysHint {
 	color: var(--fc-muted);
 	font-size: var(--fc-font-sm);
 	line-height: var(--fc-line-body);
 }
 
-.flashcard-deck-settings-field {
+.field {
 	flex-direction: column;
 	align-items: stretch;
 
@@ -67,17 +116,24 @@
 	}
 }
 
-.flashcard-deck-settings-summary-value {
+.summaryValue {
 	color: var(--fc-text);
 }
 
-.flashcard-deck-settings-field-row {
+.fieldRow {
 	align-items: flex-start;
 }
 
-.flashcard-deck-settings-days-inputs {
+.daysInputs {
 	display: flex;
 	align-items: center;
 	gap: var(--fc-space-2);
 	flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+	.purposeHeading,
+	.warning {
+		flex-direction: column;
+	}
 }
