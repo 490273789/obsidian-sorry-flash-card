@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import { Sparkles, RotateCcw } from "lucide-react";
 import type { DictionaryController } from "../../dictionary/domain/controller";
 import type { DictionarySectionContent } from "../../dictionary/domain/types";
 import type { SelectionPopupStrings } from "../strings/selectionPopup";
@@ -61,7 +62,7 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 		[controller],
 	);
 	const getSnapshot = useCallback(() => controller.getSnapshot(), [controller]);
-	const state = useSyncExternalStore(subscribe, getSnapshot);
+	const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
 	const activeWord = state.query || query;
 	const sources = useMemo(() => {
@@ -74,6 +75,25 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 	}, [state.sources, selectedDictionaries]);
 
 	const activeSource = sources.find((s) => s.id === state.activeSourceId) ?? sources[0];
+
+	const handleGenerateAi = useCallback(async () => {
+		if (!state.query && query) {
+			controller.prefill(query);
+			await controller.lookup();
+		}
+		await controller.loadAi();
+	}, [controller, state.query, query]);
+
+	const handleRetry = useCallback(
+		async (sourceId: string, kind?: string) => {
+			if (kind === "ai") {
+				await handleGenerateAi();
+			} else {
+				await controller.retry(sourceId);
+			}
+		},
+		[controller, handleGenerateAi],
+	);
 
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
@@ -145,13 +165,39 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 			</header>
 
 			<main className="fc-selection-card__body">
-				{state.status === "loading" || activeSource?.status === "loading" ? (
-					<div className="fc-selection-card__status">{strings.loading}</div>
+				{activeSource?.kind === "ai" && activeSource.status === "idle" ? (
+					<div className="fc-selection-card__ai-action">
+						<button
+							type="button"
+							className="fc-selection-card__ai-generate-btn"
+							onClick={() => void handleGenerateAi()}
+						>
+							<Sparkles size={14} aria-hidden="true" />
+							<span>{strings.aiGenerate}</span>
+						</button>
+						{state.aiEngineName && (
+							<span className="fc-selection-card__ai-engine-hint">
+								{state.aiEngineName}
+							</span>
+						)}
+					</div>
+				) : activeSource?.status === "loading" ? (
+					<div className="fc-selection-card__status">
+						{activeSource.kind === "ai" ? strings.aiGenerating : strings.loading}
+					</div>
 				) : activeSource?.status === "empty" ? (
 					<div className="fc-selection-card__status">{strings.emptyDefinition}</div>
 				) : activeSource?.status === "error" ? (
-					<div className="fc-selection-card__status">
-						{activeSource.error || strings.emptyDefinition}
+					<div className="fc-selection-card__status fc-selection-card__status--error">
+						<p>{activeSource.error || strings.emptyDefinition}</p>
+						<button
+							type="button"
+							className="fc-selection-card__ai-generate-btn"
+							onClick={() => void handleRetry(activeSource.id, activeSource.kind)}
+						>
+							<RotateCcw size={14} aria-hidden="true" />
+							<span>{strings.retry}</span>
+						</button>
 					</div>
 				) : sections.length > 0 ? (
 					sections.map((section, idx) => (
@@ -159,6 +205,8 @@ export const SelectionDictCard = React.memo(function SelectionDictCard({
 							{renderSection(section.content, activeWord)}
 						</div>
 					))
+				) : state.status === "loading" ? (
+					<div className="fc-selection-card__status">{strings.loading}</div>
 				) : (
 					<div className="fc-selection-card__status">{strings.emptyDefinition}</div>
 				)}

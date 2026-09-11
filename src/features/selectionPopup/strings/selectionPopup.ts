@@ -20,6 +20,9 @@ export interface SelectionPopupStrings {
 	dictSelectionHeading: string;
 	dictSelectionDesc: string;
 	noDictionariesAvailable: string;
+	aiGenerate: string;
+	aiGenerating: string;
+	retry: string;
 }
 
 const ZH_STRINGS: SelectionPopupStrings = {
@@ -43,6 +46,9 @@ const ZH_STRINGS: SelectionPopupStrings = {
 	dictSelectionDesc:
 		"选择在划词浮窗中展示哪些字典。若全部勾选或全部未选，则默认展示所有已启用的字典。",
 	noDictionariesAvailable: "暂无可用的字典源，请先在「词典」设置中启用至少一个字典。",
+	aiGenerate: "生成 AI 释义",
+	aiGenerating: "正在生成 AI 释义…",
+	retry: "重试",
 };
 
 const EN_OVERRIDES: Partial<SelectionPopupStrings> = {
@@ -69,6 +75,9 @@ const EN_OVERRIDES: Partial<SelectionPopupStrings> = {
 		"Select which dictionaries to display in the selection popup. If none are explicitly selected, all enabled dictionaries will be shown.",
 	noDictionariesAvailable:
 		"No dictionary sources available. Please enable at least one dictionary in Dictionary settings.",
+	aiGenerate: "Generate AI definitions",
+	aiGenerating: "Generating AI definitions…",
+	retry: "Retry",
 };
 
 export function selectionPopupStrings(language: Language): SelectionPopupStrings {
