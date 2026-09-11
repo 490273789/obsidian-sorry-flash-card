@@ -4,19 +4,19 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 ## React and Obsidian boundaries
 
-- Keep React components functional and organized by layer: UI primitives live under `src/ui/primitives/` (with colocated `.scss` styles), business feature views live under `src/ui/views/` (with colocated `.scss` styles). There is no barrel: import the leaf module (`../../primitives/Button`), because a maintained re-export list drifts as soon as a feature is added.
-- Obsidian views are declared through `createReactItemView` in the owning feature module (`src/obsidian/features/*.tsx`). The seam owns container, React root, `I18nProvider`, the render error boundary, theme opt-in, settings-push re-render, and teardown; a view definition only supplies `type`, `icon`, `title`, `readSettings`, `renderErrorMessage`, `render`, optional classes, and open/close hooks. Do not add an `ItemView` subclass.
-- `FlashcardApp` (`src/ui/FlashcardApp.tsx`) owns navigation/setup drafts and adapts shared service snapshots. It carries initial setup options directly in `ViewState` instead of managing separate `useState` default buckets. It must not become a second authority for deck, session, identity, or pronunciation state.
+- Keep React components functional and organized by layer: UI primitives live under `src/core/ui/primitives/` (with colocated `.scss` styles), business feature views live under `src/core/ui/views/` (with colocated `.scss` styles). There is no barrel: import the leaf module (`../../primitives/Button`), because a maintained re-export list drifts as soon as a feature is added.
+- Obsidian views are declared through `createReactItemView` in the owning feature module (`src/features/*.tsx`). The seam owns container, React root, `I18nProvider`, the render error boundary, theme opt-in, settings-push re-render, and teardown; a view definition only supplies `type`, `icon`, `title`, `readSettings`, `renderErrorMessage`, `render`, optional classes, and open/close hooks. Do not add an `ItemView` subclass.
+- `FlashcardApp` (`src/features/flashcards/ui/FlashcardApp.tsx`) owns navigation/setup drafts and adapts shared service snapshots. It carries initial setup options directly in `ViewState` instead of managing separate `useState` default buckets. It must not become a second authority for deck, session, identity, or pronunciation state.
 - `DeckHome` provides read and recording facades (such as `getDeck`, `getStudyHistory`, and `recordWordListVisit`) to prevent UI components from piercing through to the low-level `DataStore`.
-- `DeckSettingsModal` is isolated from `DeckList` to manage deck-level configuration, reusing pure definitions from `src/settings/studySettingsMeta.ts`.
+- `DeckSettingsModal` is isolated from `DeckList` to manage deck-level configuration, reusing pure definitions from `src/features/flashcards/settings/studyMeta.ts`.
 - Render card Markdown with Obsidian `MarkdownRenderer`, never raw HTML injection.
-- Use the shared modal primitives under `src/ui/primitives/Modal/` and the existing confirmation/card-editor components before creating a new overlay system. Imperative contexts that have no React host (the settings tab, command callbacks) use an Obsidian `Modal` subclass instead, as in `src/obsidian/cardIdentityContinuityModals.ts` and `src/obsidian/dictionaryModals.ts`.
+- Use the shared modal primitives under `src/core/ui/primitives/Modal/` and the existing confirmation/card-editor components before creating a new overlay system. Imperative contexts that have no React host (the settings tab, command callbacks) use an Obsidian `Modal` subclass instead, as in `src/features/flashcards/obsidian/continuityModals.ts` and `src/core/host/dictionaryModals.ts`.
 - Use `lucide-react` for new React icon buttons. Keep controls keyboard-friendly and preserve existing shortcuts.
-- Keep copy Chinese-first and route user-visible strings through `src/i18n/`.
+- Keep copy Chinese-first and route user-visible strings through `src/core/i18n/`.
 
 ## Deck home
 
-`src/decks/deckHome.ts` is one shared plugin-lifetime module used by every open flashcard view.
+`src/features/flashcards/domain/decks/deckHome.ts` is one shared plugin-lifetime module used by every open flashcard view.
 
 - It owns home totals, per-deck study/spelling readiness, migration summary, one settings draft, refresh/migration/save activity, reorder persistence, PDF export activity, word list visit recording, deck read facades, and navigation revalidation.
 - React owns rendering, menus, modal visibility, confirmations, drag interaction, and final navigation handoff.
@@ -26,19 +26,19 @@ Read this guide before changing React UI, deck home behavior, the Obsidian view/
 
 ## Settings compatibility
 
-`src/settings/settingsViewModel.ts` builds the pure definition tree; `src/obsidian/settingsTab.ts` renders it and owns Obsidian effects. The tab is a shell: it renders the sections registered through the workbench (`WorkbenchSettingsSection`), and each feature builds its own section's definitions.
+`src/features/flashcards/settings/viewModel.ts` builds the pure definition tree; `src/core/host/settingsTab.ts` renders it and owns Obsidian effects. The tab is a shell: it renders the sections registered through the workbench (`WorkbenchSettingsSection`), and each feature builds its own section's definitions.
 
 - The tab renders the definition tree through the imperative `display()` → `renderSettings()` path only; keep that single path working.
 - `refreshDefinitions()` always re-renders through `renderSettings()`, so every control must read live view-model state on each render.
 - Narrow unknown/union definition shapes with runtime guards before calling `render` in the manual path.
-- Preserve async tag discovery/refresh and runtime subscription cleanup; both now live in `src/obsidian/features/flashcards.ts`, reached through that feature's settings section.
+- Preserve async tag discovery/refresh and runtime subscription cleanup; both now live in `src/features/flashcards.ts`, reached through that feature's settings section.
 - Pronunciation controls derive values and busy/cache state from `PronunciationRuntime`; do not duplicate transient state in the settings adapter.
 - After settings changes, explicitly verify that the settings tab is not blank when manual Obsidian testing is feasible.
 
 ## Styling
 
-- Edit SCSS under `src/styles/` (for globals) and beside components under `src/ui/primitives/` and `src/ui/views/`. `src/styles/index.scss` is the sole entry imported by `src/obsidian/main.ts`; Vite generates root `styles.css`.
-- Preserve the cascade import order in `src/styles/index.scss`: base tokens & mixins, settings, primitives, views, motion, and responsive.
+- Edit SCSS under `src/core/styles/` (for globals) and beside components under `src/core/ui/primitives/` and `src/core/ui/views/`. `src/core/styles/index.scss` is the sole entry imported by `src/core/host/main.ts`; Vite generates root `styles.css`.
+- Preserve the cascade import order in `src/core/styles/index.scss`: base tokens & mixins, settings, primitives, views, motion, and responsive.
 - Reuse existing `--fc-*` tokens and Obsidian theme tokens. Avoid inline-style proliferation, new parallel token systems, or fixed light/dark palettes.
 - Keep touch targets, keyboard focus, reduced-motion behavior, responsive layouts, and light/dark contrast intact.
 - For a visible regression, make the smallest effective repair before considering broader redesign.

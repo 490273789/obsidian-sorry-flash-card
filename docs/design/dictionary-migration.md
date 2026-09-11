@@ -9,12 +9,12 @@
 1. 完整保留源工具能力：在线来源（有道免费/官方、剑桥、沪江、AI）+ 本地离线引擎（Rust/WASM 编译的 compiled-v2 包、桌面端导入 MDX/MDD/CSS/JS 与 EUDIC、沙箱文档渲染、Eudic 远程图片资源）+ 收藏 + 搜索历史。
 2. 不做数据迁移，也不导入设置或凭据：功能从 `DEFAULT_DICTIONARY_SETTINGS` 起步，用户自行搬运已编译的词典数据，不写迁移脚本。
 3. UI 用 React 重写；源项目的 Vue 实现仅作行为参考。
-4. Rust crate 移植进本仓库：根 `Cargo.toml`、`Cargo.lock`、`crates/dictionary-engine/**`（含 Rust 测试与 `fuzz/`）。`src/dictionary/engine/` 下四个 wasm-bindgen 生成物提交入库，`pnpm build` 与 CI 保持纯 Node；`pnpm dictionary:engine` 负责重建（`cargo build --release --target wasm32-unknown-unknown -p dictionary-engine` + `wasm-bindgen --target web --out-dir src/dictionary/engine --out-name dictionary_engine`）。`target/` 已被 git 忽略。
+4. Rust crate 移植进本仓库：根 `Cargo.toml`、`Cargo.lock`、`crates/dictionary-engine/**`（含 Rust 测试与 `fuzz/`）。`src/features/dictionary/domain/engine/` 下四个 wasm-bindgen 生成物提交入库，`pnpm build` 与 CI 保持纯 Node；`pnpm dictionary:engine` 负责重建（`cargo build --release --target wasm32-unknown-unknown -p dictionary-engine` + `wasm-bindgen --target web --out-dir src/features/dictionary/domain/engine --out-name dictionary_engine`）。`target/` 已被 git 忽略。
 5. 不做闪卡/题库集成；只共享 AI 引擎配置与 Obsidian `SecretStorage`。
 6. 两个视图（词典主视图 + 收藏侧边栏）、一个侧边栏图标、两个命令（`open-dictionary` 绑定 `Alt+W`、`dictionary-lookup-selection`）、设置页一个区块，以及一个 `enabled` 开关控制图标与命令（默认 `false`，与现有 `settings.translation.enabled` 约定一致）。视图始终注册；功能停用时视图就地展示停用提示。
-7. 只移植纯逻辑测试（放在 `src/dictionary/__tests__/`，node Vitest 环境）；不移植 UI 测试。WASM/worker/沙箱集成测试明确不移植，列为人工验证。
+7. 只移植纯逻辑测试（放在 `src/features/dictionary/domain/__tests__/`，node Vitest 环境）；不移植 UI 测试。WASM/worker/沙箱集成测试明确不移植，列为人工验证。
 8. `AiService.generate()` 新增请求级 `jsonMode` 选项；词典的 AI 来源选择 **AI 引擎配置 ID**（`settings.dictionary.ai.configId`），不再使用源工具的 provider/model 对。
-9. 有道 v3 签名原语改为共享：`src/translation/youdaoSign.ts`（`youdaoV3SignInput`、`buildYoudaoV3Body`）同时服务于翻译与词典；端点、参数与解析各自保留（翻译 API 是 v1 `/api`，词典 API 是免费 `dict.youdao.com/jsonapi` + 官方 `openapi.youdao.com/v2/dict`）。
+9. 有道 v3 签名原语改为共享：`src/features/translation/domain/youdaoSign.ts`（`youdaoV3SignInput`、`buildYoudaoV3Body`）同时服务于翻译与词典；端点、参数与解析各自保留（翻译 API 是 v1 `/api`，词典 API 是免费 `dict.youdao.com/jsonapi` + 官方 `openapi.youdao.com/v2/dict`）。
 10. HTTP 规则：所有在线来源使用 Obsidian `requestUrl`/`request`；**唯一例外**是 Eudic 图片抓取，保留原始 `fetch` 并固定 `credentials: 'omit'`、`redirect: 'error'`，因为 `requestUrl` 无法关闭重定向，而"不跟随重定向"是文档化的安全不变量。该例外同时记录于 ADR-0017 与本目录的词典指南。
 11. 不携带源项目的死状态：持久化的 `favorites[]` 数组（从未被读取）、主视图从未渲染的 `state.message`、9 个死文案键（`favorites`、`viewImage`、`dictionaryImage`、`learningBadge`、`partOfSpeechNavigation`、`removeFavorite`、`mobileUnavailable`、`portableReadOnly`、`sourceOrderSaved`），以及被取代的 portable 包生成族。
 12. 有道凭据只保存 `SecretStorage` 引用（`appKeySecretId`、`appSecretSecretId`）；插件数据只存标识符，绝不存明文。
@@ -32,16 +32,16 @@
 
 ## 接入方式
 
-组合根仍是 `src/obsidian/main.ts`：装配共享 AI 服务、词典设置存储与运行时，注册两个视图、两个命令、侧边栏图标与设置区块；`enabled` 只控制图标与命令，视图始终注册并在停用时就地显示提示。
+组合根仍是 `src/core/host/main.ts`：装配共享 AI 服务、词典设置存储与运行时，注册两个视图、两个命令、侧边栏图标与设置区块；`enabled` 只控制图标与命令，视图始终注册并在停用时就地显示提示。
 
 目标结构：
 
-- 领域层 `src/dictionary/**`：类型、配置、文案、控制器、运行时、编译包、沙箱文档、在线来源、导入器、本地管理、worker、`engine/`。
-- 国际化 `src/i18n/dictionary.ts`：`dictionaryStrings(language)`，中文优先，英文覆盖缺失键时回退中文。
-- Obsidian 边界：`src/obsidian/features/dictionary.ts` 装配，加上 `DictionaryView.tsx`、`DictionaryFavoriteView.tsx`、`dictionaryModals.ts`、`dictionarySettingsEditor.ts`。
-- UI：`src/ui/views/Dictionary/**`，使用 `flashcard-dictionary-*` 类名；样式追加到 `src/styles/index.scss` 的 motion/responsive 之前。
-- 设置：`src/settings/dictionarySettingsViewModel.ts`，以及 `src/settings/settingsViewModel.ts` 新增的 `reorderableList` 控件变体。
-- 数据模式：`FlashcardSettings.dictionary`，由 `src/dictionary/configuration.ts` 导出的 `dictionarySettingsSlice` 描述符提供 defaults / normalize / clone，并在 `src/settings/settingsSlices.ts` 注册一次（ADR-0019）。
+- 领域层 `src/features/dictionary/domain/**`：类型、配置、文案、控制器、运行时、编译包、沙箱文档、在线来源、导入器、本地管理、worker、`engine/`。
+- 国际化 `src/features/dictionary/strings/dictionary.ts`：`dictionaryStrings(language)`，中文优先，英文覆盖缺失键时回退中文。
+- Obsidian 边界：`src/features/dictionary.ts` 装配，加上 `DictionaryView.tsx`、`DictionaryFavoriteView.tsx`、`dictionaryModals.ts`、`dictionarySettingsEditor.ts`。
+- UI：`src/features/dictionary/ui/**`，使用 `flashcard-dictionary-*` 类名；样式追加到 `src/core/styles/index.scss` 的 motion/responsive 之前。
+- 设置：`src/features/dictionary/settings/viewModel.ts`，以及 `src/features/flashcards/settings/viewModel.ts` 新增的 `reorderableList` 控件变体。
+- 数据模式：`FlashcardSettings.dictionary`，由 `src/features/dictionary/domain/configuration.ts` 导出的 `dictionarySettingsSlice` 描述符提供 defaults / normalize / clone，并在 `src/core/host/settingsSlices.ts` 注册一次（ADR-0019）。
 - 磁盘：`{vault}/{configDir}/plugins/wsr-flash-card/dictionaries/{id}/compiled-v2/**` 与 `{id}/sandbox-storage.json`（≤256 KiB）。Vault 内只写收藏 Markdown。
 
 AI 释义只保存所选 AI 引擎配置 ID；有道专用连接保存 SecretStorage 引用。共享 AI 服务的新能力保持既有调用兼容，词典的提示词与结果解析归词典模块所有。复用本项目 React 原语、`--fc-*` 与 Obsidian 主题变量、键盘焦点与响应式规范；原 Vue 实现不参与运行。
@@ -127,4 +127,4 @@ AI 释义只保存所选 AI 引擎配置 ID；有道专用连接保存 SecretSto
 ## 已知后续
 
 - **引擎产物重建未验证**：`pnpm dictionary:engine` 要求本机 `wasm-bindgen` CLI 与 `crates/dictionary-engine/Cargo.toml` 固定的 `wasm-bindgen = 0.2.108` 精确匹配（CLI 版本不一致会产生不同产物），并且 `cargo` 需要可写的 registry 缓存。迁移收尾时本机 CLI 为 0.2.127 且 registry 写入被拒绝，因此"重建产物 SHA 与提交版本一致"这一验收项**未执行**，需在具备上述条件的机器上补做。
-- **沙箱内部标识仍带 `obsidian-tools` 前缀**：`src/dictionary/sandbox-document/**` 的消息通道 `obsidian-tools.dictionary-sandbox`、`data-obsidian-tools-dictionary-{theme,audio,entry}` 属性名与 `dataset.obsidianToolsDictionaryTheme` 按原样移植。它们是本插件自用的内部协议标识（不影响行为），但改名必须同时改 `prepare.ts` 的样式字符串、`document.ts` 的主题注入正则与 `host.ts` 的 `dataset` 赋值，且只有真实渲染才能验证深色主题未失效，故留作独立、可运行时验证的后续改动。
+- **沙箱内部标识仍带 `obsidian-tools` 前缀**：`src/features/dictionary/domain/sandbox-document/**` 的消息通道 `obsidian-tools.dictionary-sandbox`、`data-obsidian-tools-dictionary-{theme,audio,entry}` 属性名与 `dataset.obsidianToolsDictionaryTheme` 按原样移植。它们是本插件自用的内部协议标识（不影响行为），但改名必须同时改 `prepare.ts` 的样式字符串、`document.ts` 的主题注入正则与 `host.ts` 的 `dataset` 赋值，且只有真实渲染才能验证深色主题未失效，故留作独立、可运行时验证的后续改动。

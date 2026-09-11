@@ -1,6 +1,6 @@
 # 插件内部 AI 服务调用
 
-`FlashcardPlugin.aiService` 是插件生命周期内共享的 AI 服务。新功能通过构造参数接收 `AiService`，不要自行读取 API Key、保存 AI 配置或构造厂商请求。公共类型从 `src/ai/index.ts` 导入。
+`FlashcardPlugin.aiService` 是插件生命周期内共享的 AI 服务。新功能通过构造参数接收 `AiService`，不要自行读取 API Key、保存 AI 配置或构造厂商请求。公共类型从 `src/core/ai/index.ts` 导入。
 
 ## 设置与模型
 

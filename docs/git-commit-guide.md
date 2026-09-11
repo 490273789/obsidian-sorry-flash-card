@@ -36,22 +36,22 @@
 
 请根据修改涉及的代码模块填写对应 Scope：
 
-| Scope                           | 对应目录 / 模块                  | 说明                                                  |
-| :------------------------------ | :------------------------------- | :---------------------------------------------------- |
-| **`ui`**                        | `src/ui/`                        | React 界面组件、弹窗、交互面板                        |
-| **`styles`**                    | `src/styles/`                    | CSS 样式表、主题与深浅色适配                          |
-| **`cards`** / **`parser`**      | `src/cards/`                     | Markdown 闪卡解析规则、语法解析、格式化               |
-| **`identity`**                  | `src/identity/`                  | 卡片 UUID 稳定性、来源变更对齐与迁移                  |
-| **`session`**                   | `src/sessions/`                  | 学习/复习/练习/拼写流程、FSRS 算法调度器              |
-| **`pronunciation`**             | `src/pronunciation/`             | TTS 语音合成、本地语音、Azure/OpenAI 提供商、音频缓存 |
-| **`deck`**                      | `src/decks/`                     | 牌组管理、PDF 导出功能                                |
-| **`obsidian`**                  | `src/obsidian/`                  | Obsidian View 生命周期、命令注册、设置选项面板        |
-| **`settings`**                  | `src/settings/`                  | 设置 ViewModel、数据持久化设置                        |
-| **`storage`**                   | `src/storage/`                   | `DataStore` 数据存储与迁移                            |
-| **`history`** / **`word-list`** | `src/history/`, `src/wordList/`  | 学习历史记录、生词表                                  |
-| **`i18n`**                      | `src/i18n/`                      | 中英文语言包与多语言文案                              |
-| **`deps`**                      | `package.json`                   | 依赖升级/变更                                         |
-| **`release`**                   | `manifest.json`, `versions.json` | 版本发布                                              |
+| Scope                           | 对应目录 / 模块                                                                       | 说明                                                  |
+| :------------------------------ | :------------------------------------------------------------------------------------ | :---------------------------------------------------- |
+| **`ui`**                        | `src/core/ui/`                                                                        | React 界面组件、弹窗、交互面板                        |
+| **`styles`**                    | `src/core/styles/`                                                                    | CSS 样式表、主题与深浅色适配                          |
+| **`cards`** / **`parser`**      | `src/features/flashcards/domain/cards/`                                               | Markdown 闪卡解析规则、语法解析、格式化               |
+| **`identity`**                  | `src/features/flashcards/domain/identity/`                                            | 卡片 UUID 稳定性、来源变更对齐与迁移                  |
+| **`session`**                   | `src/features/flashcards/domain/sessions/`                                            | 学习/复习/练习/拼写流程、FSRS 算法调度器              |
+| **`pronunciation`**             | `src/features/flashcards/domain/pronunciation/`                                       | TTS 语音合成、本地语音、Azure/OpenAI 提供商、音频缓存 |
+| **`deck`**                      | `src/features/flashcards/domain/decks/`                                               | 牌组管理、PDF 导出功能                                |
+| **`obsidian`**                  | `src/core/host/`                                                                      | Obsidian View 生命周期、命令注册、设置选项面板        |
+| **`settings`**                  | `src/core/settings/`                                                                  | 设置 ViewModel、数据持久化设置                        |
+| **`storage`**                   | `src/core/storage/`                                                                   | `DataStore` 数据存储与迁移                            |
+| **`history`** / **`word-list`** | `src/features/flashcards/domain/history/`, `src/features/flashcards/domain/wordList/` | 学习历史记录、生词表                                  |
+| **`i18n`**                      | `src/core/i18n/`                                                                      | 中英文语言包与多语言文案                              |
+| **`deps`**                      | `package.json`                                                                        | 依赖升级/变更                                         |
+| **`release`**                   | `manifest.json`, `versions.json`                                                      | 版本发布                                              |
 
 > 若改动涉及全局或跨多模块，可省略 `(<scope>)`，如 `refactor: optimize error handling`。
 

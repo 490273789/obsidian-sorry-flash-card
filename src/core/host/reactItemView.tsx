@@ -1,0 +1,188 @@
+import React from "react";
+import { ItemView, WorkspaceLeaf, type App } from "obsidian";
+import { createRoot, type Root } from "react-dom/client";
+import type { FlashcardSettings, Language } from "../shared/types";
+import { createSharedTranslator, type Translator } from "../i18n";
+import { I18nProvider } from "../ui/context/I18nContext";
+import type { WorkbenchItemView } from "./workbench";
+
+/**
+ * Everything a workbench view's React tree may read. The seam owns the container,
+ * the React root, the committed settings, and the theme, so a view definition only
+ * describes what it renders.
+ */
+export interface ReactViewContext {
+	readonly app: App;
+	/** The committed settings document, read at render time. */
+	readonly settings: FlashcardSettings;
+	readonly language: Language;
+	readonly theme: "dark" | "light";
+	/** Host for imperative Obsidian modals that belong to this view. */
+	readonly rootEl: HTMLElement;
+}
+
+export interface ReactViewOptions {
+	/** Obsidian view type; must equal the type passed to `WorkbenchHost.registerView`. */
+	type: string;
+	icon: string;
+	title(language: Language): string;
+	/** The committed settings document. The seam renders from this, never from a snapshot. */
+	readSettings(): FlashcardSettings;
+	/** Localized message shown in place of the view when its render throws. */
+	renderErrorMessage(language: Language): string;
+	/**
+	 * The dictionary the view's React tree translates with. Defaults to the shared
+	 * workbench strings; a feature passes its own composed dictionary so its keys
+	 * resolve inside the same i18n context.
+	 */
+	translator?(language: Language): Translator;
+	render(context: ReactViewContext): React.ReactNode;
+	/** Extra class for Obsidian's content container. */
+	containerClass?: string;
+	/** Extra class for the React root element; `flashcard-root` is always applied. */
+	rootClass?: string;
+	/**
+	 * Re-render on Obsidian theme changes. Only views that render their own theme
+	 * state (such as the dictionary's sandbox document) need this.
+	 */
+	trackTheme?: boolean;
+	/** Runs after the first render of every open, with the view already mounted. */
+	onOpen?(context: ReactViewContext): void;
+	onClose?(): void;
+}
+
+/**
+ * Wraps the React tree so a render failure stays visible. Without a boundary React
+ * unmounts the whole root, the leaf silently goes blank, and the only evidence is a
+ * console error.
+ */
+export class ReactViewErrorBoundary extends React.Component<
+	{ children: React.ReactNode; message: string; viewType: string },
+	{ failed: boolean }
+> {
+	override state = { failed: false };
+
+	static getDerivedStateFromError() {
+		return { failed: true };
+	}
+
+	override componentDidCatch(error: unknown): void {
+		console.error(`The ${this.props.viewType} view failed to render:`, error);
+	}
+
+	override render(): React.ReactNode {
+		if (this.state.failed) return <p className="fc-kicker">{this.props.message}</p>;
+		return this.props.children;
+	}
+}
+
+/**
+ * Builds the Obsidian view factory for one React view.
+ *
+ * Every workbench view crosses the same seam: container setup, React root, i18n
+ * provider, committed settings, error boundary, settings-push re-render, theme
+ * tracking, and teardown. Features pass a definition instead of writing an
+ * `ItemView` subclass, and `WorkbenchHost.registerView` accepts the result directly.
+ */
+export function createReactItemView(
+	options: ReactViewOptions,
+): (leaf: WorkspaceLeaf) => WorkbenchItemView {
+	class ReactWorkbenchView extends ItemView implements WorkbenchItemView {
+		private root: Root | null = null;
+		private rootEl: HTMLElement | null = null;
+		private theme: "dark" | "light" = "light";
+
+		getViewType(): string {
+			return options.type;
+		}
+
+		getDisplayText(): string {
+			return options.title(options.readSettings().language);
+		}
+
+		getIcon(): string {
+			return options.icon;
+		}
+
+		async onOpen(): Promise<void> {
+			const container = this.containerEl.children[1];
+			if (!container) return;
+
+			container.empty();
+			if (options.containerClass) container.addClass(options.containerClass);
+
+			this.theme = this.currentTheme();
+			if (options.trackTheme) {
+				this.registerEvent(
+					this.app.workspace.on("css-change", () => {
+						const theme = this.currentTheme();
+						if (theme === this.theme) return;
+						this.theme = theme;
+						this.renderReact();
+					}),
+				);
+			}
+
+			const rootClass = ["flashcard-root", options.rootClass].filter(Boolean).join(" ");
+			this.rootEl = container.createDiv({ cls: rootClass });
+			this.root = createRoot(this.rootEl);
+			this.renderReact();
+			options.onOpen?.(this.context());
+		}
+
+		/** The host pushes a settings change; the seam always reads the committed document. */
+		updateSettings(): void {
+			this.renderReact();
+		}
+
+		async onClose(): Promise<void> {
+			if (this.root) {
+				this.root.unmount();
+				this.root = null;
+			}
+			this.rootEl = null;
+			options.onClose?.();
+		}
+
+		private currentTheme(): "dark" | "light" {
+			return this.app.isDarkMode() ? "dark" : "light";
+		}
+
+		private context(): ReactViewContext {
+			const settings = options.readSettings();
+			return {
+				app: this.app,
+				settings,
+				language: settings.language,
+				theme: this.theme,
+				rootEl: this.rootEl!,
+			};
+		}
+
+		private renderReact(): void {
+			const root = this.root;
+			if (!root || !this.rootEl) return;
+			const context = this.context();
+			root.render(
+				<React.StrictMode>
+					<I18nProvider
+						language={context.language}
+						translator={() =>
+							options.translator?.(context.language) ??
+							createSharedTranslator(context.language)
+						}
+					>
+						<ReactViewErrorBoundary
+							viewType={options.type}
+							message={options.renderErrorMessage(context.language)}
+						>
+							{options.render(context)}
+						</ReactViewErrorBoundary>
+					</I18nProvider>
+				</React.StrictMode>,
+			);
+		}
+	}
+
+	return (leaf) => new ReactWorkbenchView(leaf);
+}

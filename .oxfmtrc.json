@@ -13,6 +13,6 @@
 		"styles.css",
 		"*.map",
 		"pnpm-lock.yaml",
-		"src/dictionary/engine"
+		"src/features/dictionary/domain/engine"
 	]
 }

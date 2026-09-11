@@ -72,7 +72,7 @@ export default defineConfig(({ mode }) => {
 			assetsInlineLimit: 1_048_576,
 			copyPublicDir: false,
 			lib: {
-				entry: resolve(projectRoot, "src/obsidian/main.ts"),
+				entry: resolve(projectRoot, "src/core/host/main.ts"),
 				formats: ["cjs"],
 				cssFileName: "styles",
 				fileName: () => bundledFileName,

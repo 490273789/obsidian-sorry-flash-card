@@ -1,6 +1,6 @@
 # Dictionary Guide
 
-Read this guide before changing anything under `src/dictionary/**`, the dictionary views/settings, or the compiled-v2 package contract. This is a security- and data-boundary-sensitive area; read [the migration design](../design/dictionary-migration.md) and [ADR-0017](../adr/0017-dictionary-engine-and-sources.md) when the change touches packages, sources, or sandboxing.
+Read this guide before changing anything under `src/features/dictionary/domain/**`, the dictionary views/settings, or the compiled-v2 package contract. This is a security- and data-boundary-sensitive area; read [the migration design](../design/dictionary-migration.md) and [ADR-0017](../adr/0017-dictionary-engine-and-sources.md) when the change touches packages, sources, or sandboxing.
 
 ## Source and boundary invariants
 
@@ -15,7 +15,7 @@ Read this guide before changing anything under `src/dictionary/**`, the dictiona
 
 ## Compiled package architecture
 
-- `src/dictionary/compiled-package/` is the sole authority for compiled-v2 format/version, manifests, limits, checksums, safe paths, publication, compatibility, and verified reads. Compilers produce its required candidates; workers receive opaque plans and verified bytes; sources must not reimplement manifest parsing or package caches.
+- `src/features/dictionary/domain/compiled-package/` is the sole authority for compiled-v2 format/version, manifests, limits, checksums, safe paths, publication, compatibility, and verified reads. Compilers produce its required candidates; workers receive opaque plans and verified bytes; sources must not reimplement manifest parsing or package caches.
 - The local dictionary catalog is authoritative for source identity, membership, order, and whole-dictionary transactions, and must agree with package facts. Never silently repair conflicts from disk; import, cancellation, failure, and settings-save rollback must leave existing sources intact and clean staging output.
 - `formatVersion` is `2` and `engineVersion` must equal `2.0.6` exactly; older packages are incompatible and the catalog requests a re-import. Never downgrade or best-effort read an unknown format.
 - Sandbox storage is a bounded compatibility object (`sandbox-storage.json`, at most 128 keys, 16,384 characters per value, 256 KiB of JSON). It is adjacent to, but not part of, the deterministic package.
@@ -23,12 +23,12 @@ Read this guide before changing anything under `src/dictionary/**`, the dictiona
 
 ## Layering rules
 
-- Domain code under `src/dictionary/**` may depend on Obsidian APIs only where the boundary requires it. Pure parsing, normalization, and planning helpers must stay free of React and vault I/O.
-- The Obsidian boundary for this feature is `src/obsidian/features/dictionary.ts` (workbench registration, runtime, chrome, settings section) together with `DictionaryView.tsx`, `DictionaryFavoriteView.tsx`, `dictionaryModals.ts`, and `dictionarySettingsEditor.ts`. It owns views, commands, notices, secrets, and persistence ordering, and writes its settings slice only through `host.updateSettings({ dictionary })`. React renders snapshots and calls semantic actions; it must not coordinate persistence or reach into raw engine state.
-- Settings flow through `src/settings/dictionarySettingsViewModel.ts` and the `reorderableList` control; the domain reads a settings store interface instead of `DataStore`.
+- Domain code under `src/features/dictionary/domain/**` may depend on Obsidian APIs only where the boundary requires it. Pure parsing, normalization, and planning helpers must stay free of React and vault I/O.
+- The Obsidian boundary for this feature is `src/features/dictionary.ts` (workbench registration, runtime, chrome, settings section) together with `DictionaryView.tsx`, `DictionaryFavoriteView.tsx`, `dictionaryModals.ts`, and `dictionarySettingsEditor.ts`. It owns views, commands, notices, secrets, and persistence ordering, and writes its settings slice only through `host.updateSettings({ dictionary })`. React renders snapshots and calls semantic actions; it must not coordinate persistence or reach into raw engine state.
+- Settings flow through `src/features/dictionary/settings/viewModel.ts` and the `reorderableList` control; the domain reads a settings store interface instead of `DataStore`.
 - Secret values live only in Obsidian `SecretStorage`. Persist `appKeySecretId`/`appSecretSecretId` only; never put secret values in data, logs, notices, fixtures, or source.
-- UI copy comes from `src/i18n/dictionary.ts` (`dictionaryStrings(language)`, Chinese-first with English overrides). Add keys there, not as literals in components.
-- Dictionary styles are appended to `src/styles/index.scss` before the motion/responsive layers and use `flashcard-dictionary-*` classes plus `--fc-*` and Obsidian theme variables.
+- UI copy comes from `src/features/dictionary/strings/dictionary.ts` (`dictionaryStrings(language)`, Chinese-first with English overrides). Add keys there, not as literals in components.
+- Dictionary styles are appended to `src/core/styles/index.scss` before the motion/responsive layers and use `flashcard-dictionary-*` classes plus `--fc-*` and Obsidian theme variables.
 
 ## Validation
 
@@ -39,7 +39,7 @@ pnpm dictionary:engine   # only after changing crates/dictionary-engine/** or th
 ```
 
 - `pnpm run build` is the minimum validation after any code change.
-- Keep focused pure-logic tests beside the module under `src/dictionary/__tests__/`; the Vitest environment is `node`.
+- Keep focused pure-logic tests beside the module under `src/features/dictionary/domain/__tests__/`; the Vitest environment is `node`.
 - Worker, WASM, sandbox, network, and import behaviour is not covered by unit tests: verify it manually and report what was actually exercised.
-- After `pnpm dictionary:engine`, confirm the four committed artifacts under `src/dictionary/engine/` changed as expected; a stale artifact is only caught by rebuilding and comparing, because the build stays Node-only.
+- After `pnpm dictionary:engine`, confirm the four committed artifacts under `src/features/dictionary/domain/engine/` changed as expected; a stale artifact is only caught by rebuilding and comparing, because the build stays Node-only.
 - Read the migration design before changing formats, limits, source order, or the manual data-migration contract.

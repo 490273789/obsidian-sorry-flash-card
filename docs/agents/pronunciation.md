@@ -4,7 +4,7 @@ Read this guide before changing pronunciation settings, playback, spelling autop
 
 ## Runtime authority
 
-`src/pronunciation/pronunciationRuntime.ts` is a plugin-lifetime service owned by the 闪卡 feature (`src/obsidian/features/flashcards.ts`), which constructs and disposes it. It is shared with the view boundary by injection.
+`src/features/flashcards/domain/pronunciation/pronunciationRuntime.ts` is a plugin-lifetime service owned by the 闪卡 feature (`src/features/flashcards.ts`), which constructs and disposes it. It is shared with the view boundary by injection.
 
 - Its immutable snapshot is the in-process authority for committed pronunciation settings, management activity, cache usage, voice capability, and playback state.
 - Settings adapters call semantic methods such as `configure()`, `testOnlineProvider()`, and `clearCache()`; they must not mirror or directly mutate pronunciation settings/activity.
@@ -31,4 +31,4 @@ Pronunciation is offline-first in this order:
 - Dispose voice/connectivity listeners and timers on plugin unload.
 - Spelling autoplay reads the same runtime snapshot as manual playback and lets `AnswerPresentationTransition` own the presentation wait.
 
-Add focused tests under `src/pronunciation/__tests__/` and, for spelling integration, `src/sessions/__tests__/` or `src/ui/__tests__/`. Report which fallback path—local voice, cache, Azure, or OpenAI—was actually exercised manually.
+Add focused tests under `src/features/flashcards/domain/pronunciation/__tests__/` and, for spelling integration, `src/features/flashcards/domain/sessions/__tests__/` or `src/core/ui/__tests__/`. Report which fallback path—local voice, cache, Azure, or OpenAI—was actually exercised manually.

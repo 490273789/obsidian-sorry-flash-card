@@ -27,7 +27,7 @@ pnpm run setup-hooks
 
 ## Editing and generated files
 
-- Edit TypeScript/React under `src/` and CSS under `src/styles/`.
+- Edit TypeScript/React under `src/` and CSS under `src/core/styles/`.
 - Do not hand-edit generated root `main.js` or `styles.css`; regenerate them with `pnpm run build` when the task requires distributable artifacts.
 - Change `manifest.json` and `versions.json` only for an intentional release/version task. Use `pnpm release:patch|minor|major` as documented; do not invoke the lifecycle script with `pnpm run version` directly.
 - Preserve the local style: tabs in TypeScript, explicit interfaces/types, and named helpers where surrounding code uses them.
