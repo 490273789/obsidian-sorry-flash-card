@@ -79,43 +79,27 @@
 	--fc-surface-section: var(--fc-bg-panel);
 	--fc-surface-raised: color-mix(in srgb, var(--background-primary) 88%, var(--text-normal) 12%);
 	--fc-surface-control: var(--interactive-normal);
-	--fc-surface-header-status: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
+	--fc-surface-header-status: var(--background-modifier-hover);
 
 	/* ── 交互状态表面（hover / 选中）与禁用透明度 ───────────────── */
-	--fc-surface-hover: color-mix(
-		in srgb,
-		var(--interactive-accent) 12%,
-		var(--background-secondary) 88%
-	);
-	--fc-surface-selected: color-mix(
-		in srgb,
-		var(--interactive-accent) 22%,
-		var(--background-primary) 78%
-	);
+	--fc-surface-hover: var(--background-modifier-hover);
+	--fc-surface-selected: var(--background-modifier-active-hover);
 	--fc-surface-complete: rgba(var(--fc-lime-rgb), 0.1);
 	/* 禁用态统一用透明度表达，不再单独定义禁用表面色 */
 	--fc-opacity-disabled: 0.45;
 
 	/* ── 边框与分隔线 ────────────────────────────────────────── */
 	--fc-line: var(--background-modifier-border);
-	--fc-line-strong: color-mix(
-		in srgb,
-		var(--background-modifier-border-focus) 80%,
-		var(--interactive-accent) 20%
-	);
+	--fc-line-strong: var(--background-modifier-border-focus);
 	--fc-line-soft: color-mix(in srgb, var(--background-modifier-border) 60%, transparent);
 	--fc-line-faint: color-mix(in srgb, var(--background-modifier-border) 35%, transparent);
 
 	/* ── 控件表面与边框 ──────────────────────────────────────── */
 	--fc-control-bg: var(--fc-surface-control);
-	--fc-control-bg-hover: var(--fc-surface-hover);
+	--fc-control-bg-hover: var(--interactive-hover);
 	--fc-control-border: var(--background-modifier-border);
-	--fc-control-border-hover: color-mix(in srgb, var(--interactive-accent) 30%, var(--fc-line));
-	--fc-control-border-selected: color-mix(
-		in srgb,
-		var(--interactive-accent) 78%,
-		var(--text-normal) 22%
-	);
+	--fc-control-border-hover: var(--background-modifier-border-hover);
+	--fc-control-border-selected: var(--interactive-accent);
 	--fc-compact-control-border: var(--background-modifier-border);
 
 	/* ── 输入框 ─────────────────────────────────────────────── */
@@ -124,7 +108,7 @@
 		var(--background-primary) 96%,
 		var(--background-secondary) 4%
 	);
-	--fc-input-bg-hover: color-mix(in srgb, var(--interactive-accent) 5%, var(--fc-input-bg) 95%);
+	--fc-input-bg-hover: var(--background-modifier-hover);
 	--fc-input-border: var(--fc-control-border);
 	--fc-input-border-focus: var(--fc-control-border-selected);
 

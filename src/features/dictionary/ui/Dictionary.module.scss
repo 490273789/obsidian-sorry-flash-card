@@ -131,6 +131,7 @@
 	}
 
 	.savedItem {
+		@include fc-button-reset;
 		display: inline-flex;
 		align-items: center;
 		cursor: pointer;
