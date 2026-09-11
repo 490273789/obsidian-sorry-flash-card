@@ -1,5 +1,6 @@
 import { AiError } from "../ai";
 import { isRecord } from "../ai/configuration";
+import { settingsRecord, type SettingsSlice } from "../shared/settingsSlice";
 import type { TranslationSettings } from "./types";
 
 export const DEFAULT_TRANSLATION_PROMPT = `你是一名专业翻译。请将用户提供的内容从{source_language}翻译为{target_language}。
@@ -100,3 +101,21 @@ export function renderTranslationPrompt(
 		.replace(/\{source_language\}/g, direction === "zh-en" ? "中文" : "英文")
 		.replace(/\{target_language\}/g, direction === "zh-en" ? "英文" : "中文");
 }
+
+/** The AI 翻译 feature's own settings slice. */
+export const translationSettingsSlice: SettingsSlice<{ translation: TranslationSettings }> = {
+	id: "translation",
+	keys: ["translation"],
+
+	defaults: () => ({ translation: normalizeTranslationSettings(undefined) }),
+
+	normalize: (raw) => ({
+		translation: normalizeTranslationSettings(settingsRecord(raw).translation),
+	}),
+
+	// Committed translation settings are already normalized: normalizing again is
+	// the clone path this slice has always used, and it returns fresh objects.
+	clone: (document) => ({
+		translation: normalizeTranslationSettings(document.translation),
+	}),
+};

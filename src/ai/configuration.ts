@@ -1,3 +1,4 @@
+import { settingsRecord, type SettingsSlice } from "../shared/settingsSlice";
 import { AiError, type AiEngineConfig, type AiProvider, type AiSettings } from "./types";
 
 export const AI_PROVIDERS: readonly AiProvider[] = ["deepseek", "bailian", "youdao"];
@@ -70,3 +71,20 @@ export function cleanAiConfig(config: AiEngineConfig): AiEngineConfig {
 	if (!clean.name || !clean.model) throw new AiError("invalid-config");
 	return clean;
 }
+
+/**
+ * The AI engine configuration is shared by every feature that calls AI, so the
+ * workbench host owns its slice; features only read the engine ids they store.
+ */
+export const aiSettingsSlice: SettingsSlice<{ ai: AiSettings }> = {
+	id: "ai",
+	keys: ["ai"],
+
+	defaults: () => ({ ai: normalizeAiSettings(undefined) }),
+
+	normalize: (raw) => ({ ai: normalizeAiSettings(settingsRecord(raw).ai) }),
+
+	// Committed AI settings are already normalized: normalizing again is the
+	// clone path this slice has always used, and it returns fresh objects.
+	clone: (document) => ({ ai: normalizeAiSettings(document.ai) }),
+};

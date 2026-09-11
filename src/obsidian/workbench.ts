@@ -199,7 +199,10 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 				try {
 					view.updateSettings(settings);
 				} catch (error) {
-					console.error(`Failed to refresh the ${type} view after settings changed:`, error);
+					console.error(
+						`Failed to refresh the ${type} view after settings changed:`,
+						error,
+					);
 				}
 			}
 		}
@@ -222,8 +225,7 @@ export function createWorkbench(options: WorkbenchOptions): Workbench {
 			sectionsById.set(section.id, section);
 		},
 
-		settingsSections: () =>
-			[...sectionsById.values()].sort((a, b) => a.order - b.order),
+		settingsSections: () => [...sectionsById.values()].sort((a, b) => a.order - b.order),
 
 		setSettingsTab: (tab) => {
 			settingsTab = tab;

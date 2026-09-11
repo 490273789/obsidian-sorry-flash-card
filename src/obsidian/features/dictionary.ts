@@ -4,7 +4,10 @@ import { normalizeDictionarySettings } from "../../dictionary/configuration";
 import { DictionaryRuntime } from "../../dictionary/dictionaryRuntime";
 import { dictionaryStrings } from "../../i18n/dictionary";
 import type { WorkbenchFeature, WorkbenchHost, WorkbenchSettingsSection } from "../workbench";
-import { DictionaryFavoriteItemView, VIEW_TYPE_DICTIONARY_FAVORITE } from "../DictionaryFavoriteView";
+import {
+	DictionaryFavoriteItemView,
+	VIEW_TYPE_DICTIONARY_FAVORITE,
+} from "../DictionaryFavoriteView";
 import { DictionaryItemView, VIEW_TYPE_DICTIONARY } from "../DictionaryView";
 import { DictionaryLookupModal } from "../dictionaryModals";
 import { DictionarySettingsEditor } from "../dictionarySettingsEditor";
@@ -95,7 +98,10 @@ export function createDictionaryFeature(deps: DictionaryFeatureDeps): WorkbenchF
 		}
 	};
 
-	const section = (host: WorkbenchHost, dictionary: DictionaryRuntime): WorkbenchSettingsSection => {
+	const section = (
+		host: WorkbenchHost,
+		dictionary: DictionaryRuntime,
+	): WorkbenchSettingsSection => {
 		editor ??= new DictionarySettingsEditor(
 			dictionary,
 			deps.ai,

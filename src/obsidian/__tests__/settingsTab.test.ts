@@ -160,7 +160,11 @@ describe("FlashcardSettingTab", () => {
 			order: 0,
 			label: () => "闪卡设置",
 			definitions: () => [
-				{ type: "group", heading: "闪卡设置", items: [{ type: "setting", name: "每日新卡" }] },
+				{
+					type: "group",
+					heading: "闪卡设置",
+					items: [{ type: "setting", name: "每日新卡" }],
+				},
 			],
 			activate: vi.fn(),
 			hide: vi.fn(),

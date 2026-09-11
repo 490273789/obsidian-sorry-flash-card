@@ -1,10 +1,9 @@
-import { normalizeTranslationSettings } from "../translation/configuration";
 import type { TranslationSettings } from "../translation/types";
-import { DEFAULT_DICTIONARY_SETTINGS } from "../dictionary/configuration";
 import type { DictionarySettings } from "../dictionary/types";
 import type { AiSettings } from "../ai/types";
-import type { Card } from "ts-fsrs";
-import { DEFAULT_LANGUAGE, DEFAULT_PRACTICE_MESSAGES } from "../i18n";
+import type { FlashcardStudySettings } from "../settings/flashcardSettingsSlice";
+import type { HostSettings } from "../settings/hostSettingsSlice";
+import { Card } from "ts-fsrs";
 
 export type Language = "zh" | "en";
 
@@ -55,66 +54,24 @@ export interface StudySettings {
 }
 
 /**
- * Plugin settings interface
+ * Plugin settings.
+ *
+ * The document is flat on disk and composed of one slice per owner: the host
+ * (language), the 闪卡 feature (tags, deck order, study parameters, practice
+ * messages), pronunciation, AI engines, AI 翻译, and 词典. Each slice is the
+ * authority for its own defaults, normalization, and cloning in
+ * `src/settings/settingsSlices.ts`.
  */
-export interface FlashcardSettings extends StudySettings {
+export interface FlashcardSettings extends HostSettings, FlashcardStudySettings {
+	/** Offline-first word and phrase pronunciation preferences. */
+	pronunciation: PronunciationSettings;
 	ai: AiSettings;
 	translation: TranslationSettings;
 	/** Migrated English dictionary tool settings. */
 	dictionary: DictionarySettings;
-	/** Interface language */
-	language: Language;
-	/** Tags to scan for flashcards (each tag represents a deck) */
-	flashcardTags: string[];
-	/** Decks explicitly enabled for English-word spelling practice, keyed by deck ID */
-	wordLearningDecks: Record<string, boolean>;
-	/** User-defined deck display order, stored as stable deck IDs */
-	deckOrder: string[];
-	/** Practice completion messages when all correct */
-	practicePerfectMessages: string[];
-	/** Practice completion messages when there are errors */
-	practiceErrorMessages: string[];
-	/** User has edited practice completion messages */
-	practiceMessagesCustomized?: boolean;
-	/** Per-deck study setting overrides, keyed by deck ID */
-	deckStudySettings: Record<string, Partial<StudySettings>>;
-	/** Offline-first word and phrase pronunciation preferences. */
-	pronunciation: PronunciationSettings;
 }
 
-/**
- * Default plugin settings
- */
-export const DEFAULT_SETTINGS: FlashcardSettings = {
-	ai: { configs: [], defaultConfigId: null },
-	translation: normalizeTranslationSettings(undefined),
-	dictionary: structuredClone(DEFAULT_DICTIONARY_SETTINGS),
-	language: DEFAULT_LANGUAGE,
-	flashcardTags: ["#wordTag"],
-	wordLearningDecks: {},
-	deckOrder: [],
-	dailyNewCards: 20,
-	dailyReviewCards: 100,
-	studyOrder: "random",
-	fsrsParameters: {
-		requestRetention: 0.9,
-		maximumInterval: 365,
-	},
-	deckStudySettings: {},
-	pronunciation: {
-		spellingAutoPlay: false,
-		accent: "system",
-		rate: "normal",
-		onlineProvider: "none",
-		azureCloud: "china",
-		azureRegion: "chinaeast2",
-		azureSecretId: "",
-		openaiSecretId: "",
-	},
-	practicePerfectMessages: DEFAULT_PRACTICE_MESSAGES.zh.perfect,
-	practiceErrorMessages: DEFAULT_PRACTICE_MESSAGES.zh.error,
-	practiceMessagesCustomized: false,
-};
+export { DEFAULT_SETTINGS } from "../settings/settingsSlices";
 
 /**
  * Single flashcard data

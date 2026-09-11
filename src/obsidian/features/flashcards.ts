@@ -1,6 +1,11 @@
 import { Notice, Platform } from "obsidian";
 import { createTranslator } from "../../i18n";
-import type { FlashcardSettings, Language, PronunciationSettings, StudySettings } from "../../shared/types";
+import type {
+	FlashcardSettings,
+	Language,
+	PronunciationSettings,
+	StudySettings,
+} from "../../shared/types";
 import {
 	buildSettingsViewModel,
 	type SettingsViewModelActions,
@@ -22,7 +27,10 @@ import { createCardIdentity } from "../../identity/cardIdentity";
 import { describeSynchronizationOutcome } from "../../identity/synchronizationFeedback";
 import { createPronunciationRuntime, type PronunciationRuntime } from "../../pronunciation";
 import { createSessionLifecycle, type SessionLifecycle } from "../../sessions/sessionLifecycle";
-import { CardIdentityMigrationModal, CardIdentityRepairModal } from "../cardIdentityContinuityModals";
+import {
+	CardIdentityMigrationModal,
+	CardIdentityRepairModal,
+} from "../cardIdentityContinuityModals";
 import { createObsidianContinuitySourceStore } from "../cardIdentityContinuityAdapters";
 import { FlashcardView, VIEW_TYPE_FLASHCARD } from "../FlashcardView";
 import type { WorkbenchFeature, WorkbenchHost, WorkbenchSettingsSection } from "../workbench";
@@ -326,10 +334,7 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 	const runIdentitySynchronization = async (host: WorkbenchHost): Promise<void> => {
 		const { cardIdentityContinuity, deckHome } = ensureServices(host);
 		const outcome = await deckHome.act({ kind: "refresh" });
-		if (
-			outcome.kind === "applied" &&
-			cardIdentityContinuity.inspect().issues.length === 0
-		) {
+		if (outcome.kind === "applied" && cardIdentityContinuity.inspect().issues.length === 0) {
 			new Notice(t(host)("identity.syncCurrent"));
 		}
 	};
@@ -423,9 +428,8 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 	const testOnlinePronunciation = async (host: WorkbenchHost): Promise<void> => {
 		const strings = t(host);
 		try {
-			const outcome = await ensureServices(host).pronunciationRuntime.testOnlineProvider(
-				"hello",
-			);
+			const outcome =
+				await ensureServices(host).pronunciationRuntime.testOnlineProvider("hello");
 			if (outcome.status === "success") {
 				new Notice(strings("settings.pronunciationTestSuccess"));
 				return;
@@ -473,8 +477,7 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 			mutate(flashcardTags);
 			return writeSettings(host, { flashcardTags }, true);
 		};
-		const patchStudy = (patch: Partial<StudySettings>) =>
-			writeSettings(host, patch, false);
+		const patchStudy = (patch: Partial<StudySettings>) => writeSettings(host, patch, false);
 
 		return {
 			refreshTags: (options) => refreshAvailableTags(host, options),
@@ -571,12 +574,8 @@ export function createFlashcardFeature(deps: FlashcardFeatureDeps): WorkbenchFea
 		id: "flashcards",
 
 		render: (host) => {
-			const {
-				sessionLifecycle,
-				cardIdentityContinuity,
-				deckHome,
-				pronunciationRuntime,
-			} = ensureServices(host);
+			const { sessionLifecycle, cardIdentityContinuity, deckHome, pronunciationRuntime } =
+				ensureServices(host);
 
 			host.registerView(
 				VIEW_TYPE_FLASHCARD,

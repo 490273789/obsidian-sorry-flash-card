@@ -1,6 +1,3 @@
-import { normalizeTranslationSettings } from "../translation/configuration";
-import { normalizeDictionarySettings } from "../dictionary/configuration";
-import { normalizeAiSettings } from "../ai/configuration";
 import { Plugin } from "obsidian";
 import { Card, State } from "ts-fsrs";
 import {
@@ -15,7 +12,6 @@ import {
 	StudyRating,
 } from "../shared/types";
 import { FSRSScheduler, toFSRSRating } from "../sessions/scheduler";
-import { DEFAULT_PRACTICE_MESSAGES, getDefaultPracticeMessages, normalizeLanguage } from "../i18n";
 import type { StudyCardSchedule } from "../sessions/sessionEngine";
 import type {
 	CardIdentityContinuityState,
@@ -23,8 +19,8 @@ import type {
 	PersistedCardIdentityContinuityState,
 } from "../identity/cardIdentityContinuity";
 import type { SessionPersistenceTransition } from "../sessions/sessionLifecycle";
-import { normalizePronunciationSettings } from "../pronunciation/pronunciationSettings";
 import { appendStudyHistory, createWordListHistoryEntry } from "../history/studyHistory";
+import { cloneSettingsDocument, normalizeSettingsDocument } from "../settings/settingsSlices";
 
 /**
  * Stored data structure - unified storage for both settings and decks
@@ -125,7 +121,7 @@ export class DataStore {
 
 	constructor(plugin: Plugin, settings?: FlashcardSettings) {
 		this.plugin = plugin;
-		this.settings = cloneFlashcardSettings(settings ?? DEFAULT_SETTINGS);
+		this.settings = cloneSettingsDocument(settings ?? DEFAULT_SETTINGS);
 		this.scheduler = new FSRSScheduler(this.settings);
 	}
 
@@ -139,27 +135,15 @@ export class DataStore {
 			| null;
 
 		// ── Settings with legacy migration ──────────────────────────────────
+		// The document shape is storage's concern; each slice owns the legacy
+		// keys inside whichever raw document this picks.
+		let rawSettings: unknown = {};
 		if (data?.settings) {
-			const s = data.settings as FlashcardSettings & {
-				flashcardTag?: string;
-			};
-			if (s.flashcardTag && !s.flashcardTags?.length) {
-				s.flashcardTags = [s.flashcardTag];
-				delete s.flashcardTag;
-			}
-			this.settings = this.normalizeSettings(s);
+			rawSettings = data.settings;
 		} else if (data && ("flashcardTags" in data || "flashcardTag" in data)) {
-			const legacy = data as unknown as Partial<FlashcardSettings> & {
-				flashcardTag?: string;
-			};
-			if (legacy.flashcardTag && !legacy.flashcardTags?.length) {
-				legacy.flashcardTags = [legacy.flashcardTag];
-				delete legacy.flashcardTag;
-			}
-			this.settings = this.normalizeSettings(legacy);
-		} else {
-			this.settings = this.normalizeSettings({});
+			rawSettings = data;
 		}
+		this.settings = normalizeSettingsDocument(rawSettings);
 
 		// ── Decks ────────────────────────────────────────────────────────────
 		if (data?.decks) {
@@ -180,14 +164,14 @@ export class DataStore {
 		this.scheduler = new FSRSScheduler(this.settings);
 		this.dataLoaded = true;
 		this.publishRevision();
-		return cloneFlashcardSettings(this.settings);
+		return cloneSettingsDocument(this.settings);
 	}
 
 	/**
 	 * Save settings to disk
 	 */
 	async saveSettings(newSettings?: FlashcardSettings): Promise<void> {
-		const nextSettings = cloneFlashcardSettings(newSettings ?? this.settings);
+		const nextSettings = cloneSettingsDocument(newSettings ?? this.settings);
 		await this.plugin.saveData(
 			this.buildStoredData(
 				this.decks,
@@ -207,7 +191,7 @@ export class DataStore {
 	 * Get current settings
 	 */
 	getSettings(): FlashcardSettings {
-		return cloneFlashcardSettings(this.settings);
+		return cloneSettingsDocument(this.settings);
 	}
 
 	getRevision(): number {
@@ -217,67 +201,6 @@ export class DataStore {
 	subscribe(listener: () => void): () => void {
 		this.revisionListeners.add(listener);
 		return () => this.revisionListeners.delete(listener);
-	}
-
-	/**
-	 * Merge persisted settings with defaults while preserving old-data compatibility.
-	 */
-	private normalizeSettings(
-		settings: Partial<FlashcardSettings> & { flashcardTag?: string },
-	): FlashcardSettings {
-		const language = normalizeLanguage(settings.language);
-		const defaultMessages = getDefaultPracticeMessages(language);
-		const messagesCustomized =
-			settings.practiceMessagesCustomized ?? this.hasCustomPracticeMessages(settings);
-
-		return {
-			...DEFAULT_SETTINGS,
-			...settings,
-			language,
-			deckStudySettings: settings.deckStudySettings ?? {},
-			wordLearningDecks: settings.wordLearningDecks ?? {},
-			deckOrder: normalizeDeckOrder(settings.deckOrder),
-			fsrsParameters: {
-				...DEFAULT_SETTINGS.fsrsParameters,
-				...settings.fsrsParameters,
-			},
-			pronunciation: normalizePronunciationSettings(settings.pronunciation),
-			ai: normalizeAiSettings(settings.ai),
-			translation: normalizeTranslationSettings(settings.translation),
-			dictionary: normalizeDictionarySettings(settings.dictionary),
-			practiceMessagesCustomized: messagesCustomized,
-			practicePerfectMessages: messagesCustomized
-				? [...(settings.practicePerfectMessages ?? defaultMessages.perfect)]
-				: defaultMessages.perfect,
-			practiceErrorMessages: messagesCustomized
-				? [...(settings.practiceErrorMessages ?? defaultMessages.error)]
-				: defaultMessages.error,
-		};
-	}
-
-	private hasCustomPracticeMessages(settings: Partial<FlashcardSettings>): boolean {
-		if (
-			settings.practicePerfectMessages === undefined &&
-			settings.practiceErrorMessages === undefined
-		) {
-			return false;
-		}
-
-		const defaultZh = DEFAULT_PRACTICE_MESSAGES.zh;
-		return (
-			!this.areStringArraysEqual(
-				settings.practicePerfectMessages ?? defaultZh.perfect,
-				defaultZh.perfect,
-			) ||
-			!this.areStringArraysEqual(
-				settings.practiceErrorMessages ?? defaultZh.error,
-				defaultZh.error,
-			)
-		);
-	}
-
-	private areStringArraysEqual(left: string[], right: string[]): boolean {
-		return left.length === right.length && left.every((value, index) => value === right[index]);
 	}
 
 	/**
@@ -802,38 +725,6 @@ export class DataStore {
 			}
 		}
 	}
-}
-
-function cloneFlashcardSettings(settings: FlashcardSettings): FlashcardSettings {
-	return {
-		...settings,
-		flashcardTags: [...settings.flashcardTags],
-		wordLearningDecks: { ...settings.wordLearningDecks },
-		deckOrder: [...settings.deckOrder],
-		practicePerfectMessages: [...settings.practicePerfectMessages],
-		practiceErrorMessages: [...settings.practiceErrorMessages],
-		fsrsParameters: { ...settings.fsrsParameters },
-		deckStudySettings: Object.fromEntries(
-			Object.entries(settings.deckStudySettings).map(([deckId, overrides]) => [
-				deckId,
-				{
-					...overrides,
-					fsrsParameters: overrides.fsrsParameters && {
-						...overrides.fsrsParameters,
-					},
-				},
-			]),
-		),
-		pronunciation: { ...settings.pronunciation },
-		ai: normalizeAiSettings(settings.ai),
-		translation: normalizeTranslationSettings(settings.translation),
-		dictionary: structuredClone(settings.dictionary),
-	};
-}
-
-function normalizeDeckOrder(value: unknown): string[] {
-	if (!Array.isArray(value)) return [];
-	return [...new Set(value.filter((deckId): deckId is string => typeof deckId === "string"))];
 }
 
 function createEmptyContinuityState(): PersistedCardIdentityContinuityState {

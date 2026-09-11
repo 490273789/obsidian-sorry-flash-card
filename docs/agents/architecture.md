@@ -12,6 +12,9 @@ Read this guide for plugin lifecycle, dependency ownership, or changes spanning 
    `src/obsidian/features/index.ts`, adds the host-owned AI engine settings section, registers
    the settings tab, and calls `workbench.refresh()`.
 
+The settings document itself is composed from the feature-owned slices registered in
+`src/settings/settingsSlices.ts` (ADR-0019), so the composition root never enumerates a slice.
+
 `Workbench.refresh()` calls `render(host)` on every 工作台功能, then pushes committed settings
 into every open view the workbench registered. The composition root owns only the settings
 document, its write queue (`commitSettings(patch)`), the shared `AiService` and `DataStore`, and
@@ -27,27 +30,29 @@ own their runtimes the same way. Shared services reach a feature through its fac
 
 ## Module ownership
 
-| Area                | Primary modules                                  | Owns                                                                                                                                                                                                  |
-| ------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Workbench host      | `src/obsidian/workbench.ts`                      | Feature registration, view registration and settings push, chrome lifetime, view activation, settings-patch commits, the settings-section registry                                                       |
-| Workbench features  | `src/obsidian/features/`                         | Per-feature runtime construction and disposal, views, ribbon/commands, settings sections, and feature-owned settings patches                                                                          |
-| Obsidian boundary   | `src/obsidian/`                                  | Plugin/view lifecycle, vault adapters, notices, settings rendering, identity modals                                                                                                                   |
-| UI                  | `src/ui/`                                        | Navigation drafts, rendering, keyboard events, modals, presentation timing adapters                                                                                                                   |
-| Deck home           | `src/decks/deckHome.ts`                          | Shared home snapshot, deck readiness, settings draft, refresh/migration/save/export activity, navigation revalidation, reorder persistence, word list visit recording, and read facades for deck data |
-| Sessions            | `src/sessions/sessionLifecycle.ts`               | The single idle/active/result lifecycle and durable transitions for study/practice/spelling                                                                                                           |
-| Card continuity     | `src/identity/cardIdentityContinuity.ts`         | Synchronization, migration, repair, source changes, stable card identity continuity                                                                                                                   |
-| Persistence         | `src/storage/dataStore.ts`                       | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                                                                                  |
-| AI engines          | `src/ai/`                                        | Named provider/model configurations, model discovery, text/image requests, credentials through an injected reader, and per-request timeout/cancellation                                               |
-| Pronunciation       | `src/pronunciation/`                             | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                                                                                       |
-| Pure card logic     | `src/cards/`                                     | Parsing, formatting, source mutation, spelling extraction/comparison                                                                                                                                  |
-| Presentation models | `src/history/`, `src/wordList/`, `src/settings/` | Pure display definitions, derived presentation state, and history retention pruning                                                                                                                   |
-| Dictionary          | `src/dictionary/`                                | Dictionary lookup, local compiled dictionaries, sandbox rendering, and the compiled-v2 package authority                                                                                              |
+| Area                | Primary modules                                                 | Owns                                                                                                                                                                                                  |
+| ------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workbench host      | `src/obsidian/workbench.ts`                                     | Feature registration, view registration and settings push, chrome lifetime, view activation, settings-patch commits, the settings-section registry                                                    |
+| Workbench features  | `src/obsidian/features/`                                        | Per-feature runtime construction and disposal, views, ribbon/commands, settings sections, and feature-owned settings patches                                                                          |
+| Obsidian boundary   | `src/obsidian/`                                                 | Plugin/view lifecycle, vault adapters, notices, settings rendering, identity modals                                                                                                                   |
+| UI                  | `src/ui/`                                                       | Navigation drafts, rendering, keyboard events, modals, presentation timing adapters                                                                                                                   |
+| Deck home           | `src/decks/deckHome.ts`                                         | Shared home snapshot, deck readiness, settings draft, refresh/migration/save/export activity, navigation revalidation, reorder persistence, word list visit recording, and read facades for deck data |
+| Sessions            | `src/sessions/sessionLifecycle.ts`                              | The single idle/active/result lifecycle and durable transitions for study/practice/spelling                                                                                                           |
+| Card continuity     | `src/identity/cardIdentityContinuity.ts`                        | Synchronization, migration, repair, source changes, stable card identity continuity                                                                                                                   |
+| Persistence         | `src/storage/dataStore.ts`                                      | Unified plugin data, durable settings/session transitions, deck index state, revisions/subscriptions                                                                                                  |
+| Settings document   | `src/settings/settingsSlices.ts`, `src/shared/settingsSlice.ts` | The slice registry and the composed settings document: defaults, normalization, and cloning for every owner                                                                                           |
+| AI engines          | `src/ai/`                                                       | Named provider/model configurations, model discovery, text/image requests, credentials through an injected reader, and per-request timeout/cancellation                                               |
+| Pronunciation       | `src/pronunciation/`                                            | Shared configuration snapshot, playback, providers, cancellation, cache and management activity                                                                                                       |
+| Pure card logic     | `src/cards/`                                                    | Parsing, formatting, source mutation, spelling extraction/comparison                                                                                                                                  |
+| Presentation models | `src/history/`, `src/wordList/`, `src/settings/`                | Pure display definitions, derived presentation state, and history retention pruning                                                                                                                   |
+| Dictionary          | `src/dictionary/`                                               | Dictionary lookup, local compiled dictionaries, sandbox rendering, and the compiled-v2 package authority                                                                                              |
 
 ## Boundary rules
 
 - Register Obsidian-facing commands and services in `src/obsidian/main.ts`; keep feature behavior in its domain module.
 - 工作台功能 register through the workbench seam (`WorkbenchFeature.render(host)`) and reach Obsidian chrome only through `WorkbenchHost`. `main.ts` and `settingsTab.ts` must not name a feature's views, ribbon, commands, or settings slice: add a feature to `src/obsidian/features/index.ts` instead.
 - A feature writes settings only through `host.updateSettings(patch)`. The host applies the patch to the settings committed at write time, so a queued write never resurrects a stale slice.
+- A settings slice is the single authority for the keys it owns (ADR-0019). To add or change a slice, edit its owner's `SettingsSlice` descriptor and register it in `src/settings/settingsSlices.ts`; never add a branch to `DataStore`, and never read `DEFAULT_SETTINGS` from a normalizer. Slices must return exactly the keys they declare and must not overlap.
 - 工作台功能 must not import one another. A primitive shared by two features belongs in a feature-independent location, not inside one feature's directory.
 - React renders immutable snapshots and calls semantic actions. It must not coordinate persistence ordering or reach into raw engine state.
 - `DeckHome`, `SessionLifecycle`, `CardIdentityContinuity`, and `PronunciationRuntime` are deep shared interfaces. Extend their semantic actions/snapshots instead of adding parallel state managers or pass-through wrappers.
@@ -71,5 +76,6 @@ Use ADR status, not filename order, to decide what is current. Notable current d
 - ADR-0011: one answer-presentation transition per mounted React adapter.
 - ADR-0017: in-repo Rust/WASM dictionary engine, compiled-package authority, and dictionary source boundaries.
 - ADR-0018: one workbench seam registers every 工作台功能; features never import one another.
+- ADR-0019: the settings document is composed from feature-owned slices; each slice owns its defaults, normalization, and cloning.
 
 When implementation and an accepted ADR disagree, surface the conflict rather than silently introducing a third model.

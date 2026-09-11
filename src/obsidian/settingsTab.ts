@@ -76,9 +76,7 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 
 	/** The settings tab is a host-owned shell: it renders whatever sections are registered. */
 	private sections(): WorkbenchSettingsSection[] {
-		return (this.plugin.workbench?.settingsSections() ?? []).sort(
-			(a, b) => a.order - b.order,
-		);
+		return (this.plugin.workbench?.settingsSections() ?? []).sort((a, b) => a.order - b.order);
 	}
 
 	private activeSection(): WorkbenchSettingsSection | undefined {

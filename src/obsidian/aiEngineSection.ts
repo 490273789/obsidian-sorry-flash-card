@@ -20,7 +20,11 @@ export interface AiEngineSectionOptions {
  */
 export function createAiEngineSection(options: AiEngineSectionOptions): WorkbenchSettingsSection {
 	let language: Language = "zh";
-	const editor = new AiSettingsEditor(options.ai, () => language, () => options.refresh());
+	const editor = new AiSettingsEditor(
+		options.ai,
+		() => language,
+		() => options.refresh(),
+	);
 
 	return {
 		id: AI_ENGINE_SECTION_ID,

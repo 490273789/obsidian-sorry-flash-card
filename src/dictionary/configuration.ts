@@ -1,3 +1,4 @@
+import { settingsRecord, type SettingsSlice } from "../shared/settingsSlice";
 import {
 	type CompiledDictionarySettings,
 	type DictionarySettings,
@@ -362,3 +363,21 @@ export function toSourceConfigurations(
 ): DictionarySourceConfiguration[] {
 	return sources.map((source) => ({ enabled: source.enabled, id: source.id }));
 }
+
+/**
+ * The 词典 feature's own settings slice. Its clone is a structural deep copy
+ * because the slice holds the local dictionary catalog, which normalization
+ * would rewrite rather than copy.
+ */
+export const dictionarySettingsSlice: SettingsSlice<{ dictionary: DictionarySettings }> = {
+	id: "dictionary",
+	keys: ["dictionary"],
+
+	defaults: () => ({ dictionary: structuredClone(DEFAULT_DICTIONARY_SETTINGS) }),
+
+	normalize: (raw) => ({
+		dictionary: normalizeDictionarySettings(settingsRecord(raw).dictionary),
+	}),
+
+	clone: (document) => ({ dictionary: structuredClone(document.dictionary) }),
+};

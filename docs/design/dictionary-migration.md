@@ -38,10 +38,10 @@
 
 - 领域层 `src/dictionary/**`：类型、配置、文案、控制器、运行时、编译包、沙箱文档、在线来源、导入器、本地管理、worker、`engine/`。
 - 国际化 `src/i18n/dictionary.ts`：`dictionaryStrings(language)`，中文优先，英文覆盖缺失键时回退中文。
-- Obsidian 边界：`src/obsidian/DictionaryView.tsx`、`DictionaryFavoriteView.tsx`、`dictionaryModals.ts`、`dictionarySettingsEditor.ts` 与 `main.ts` 装配。
+- Obsidian 边界：`src/obsidian/features/dictionary.ts` 装配，加上 `DictionaryView.tsx`、`DictionaryFavoriteView.tsx`、`dictionaryModals.ts`、`dictionarySettingsEditor.ts`。
 - UI：`src/ui/views/Dictionary/**`，使用 `flashcard-dictionary-*` 类名；样式追加到 `src/styles/index.scss` 的 motion/responsive 之前。
 - 设置：`src/settings/dictionarySettingsViewModel.ts`，以及 `src/settings/settingsViewModel.ts` 新增的 `reorderableList` 控件变体。
-- 数据模式：`FlashcardSettings.dictionary`，手工接入 `src/shared/types.ts`、`src/storage/dataStore.ts` 的 `normalizeSettings` **和** `cloneFlashcardSettings`。
+- 数据模式：`FlashcardSettings.dictionary`，由 `src/dictionary/configuration.ts` 导出的 `dictionarySettingsSlice` 描述符提供 defaults / normalize / clone，并在 `src/settings/settingsSlices.ts` 注册一次（ADR-0019）。
 - 磁盘：`{vault}/{configDir}/plugins/wsr-flash-card/dictionaries/{id}/compiled-v2/**` 与 `{id}/sandbox-storage.json`（≤256 KiB）。Vault 内只写收藏 Markdown。
 
 AI 释义只保存所选 AI 引擎配置 ID；有道专用连接保存 SecretStorage 引用。共享 AI 服务的新能力保持既有调用兼容，词典的提示词与结果解析归词典模块所有。复用本项目 React 原语、`--fc-*` 与 Obsidian 主题变量、键盘焦点与响应式规范；原 Vue 实现不参与运行。

@@ -1,20 +1,39 @@
-import {
-	DEFAULT_SETTINGS,
-	type OnlinePronunciationProvider,
-	type PronunciationAccent,
-	type PronunciationRate,
-	type PronunciationSettings,
+import { settingsRecord, type SettingsSlice } from "../shared/settingsSlice";
+import type {
+	OnlinePronunciationProvider,
+	PronunciationAccent,
+	PronunciationRate,
+	PronunciationSettings,
 } from "../shared/types";
+
+/**
+ * Defaults live with the slice that owns them, not in the settings document
+ * aggregate: reading the aggregate from here would make the normalizer depend on
+ * the document it feeds.
+ */
+export const DEFAULT_PRONUNCIATION_SETTINGS: PronunciationSettings = {
+	spellingAutoPlay: false,
+	accent: "system",
+	rate: "normal",
+	onlineProvider: "none",
+	azureCloud: "china",
+	azureRegion: "chinaeast2",
+	azureSecretId: "",
+	openaiSecretId: "",
+};
 
 const PRONUNCIATION_ACCENTS = new Set<PronunciationAccent>(["system", "en-US", "en-GB"]);
 const PRONUNCIATION_RATES = new Set<PronunciationRate>(["normal", "slow"]);
 const ONLINE_PROVIDERS = new Set<OnlinePronunciationProvider>(["none", "azure", "openai"]);
 const AZURE_CHINA_REGIONS = new Set(["chinaeast2", "chinanorth2", "chinanorth3"]);
 
-export function normalizePronunciationSettings(
-	settings: Partial<PronunciationSettings> | null | undefined,
-): PronunciationSettings {
-	const defaults = DEFAULT_SETTINGS.pronunciation;
+/** Normalizes persisted pronunciation preferences; the argument is untrusted. */
+export function normalizePronunciationSettings(value: unknown): PronunciationSettings {
+	const settings: Partial<PronunciationSettings> =
+		typeof value === "object" && value !== null
+			? (value as Partial<PronunciationSettings>)
+			: {};
+	const defaults = DEFAULT_PRONUNCIATION_SETTINGS;
 	const accent = PRONUNCIATION_ACCENTS.has(settings?.accent as PronunciationAccent)
 		? (settings?.accent as PronunciationAccent)
 		: defaults.accent;
@@ -59,3 +78,17 @@ export function normalizePronunciationSettings(
 				: defaults.openaiSecretId,
 	};
 }
+
+/** The 闪卡 feature's pronunciation preferences slice. */
+export const pronunciationSettingsSlice: SettingsSlice<{ pronunciation: PronunciationSettings }> = {
+	id: "pronunciation",
+	keys: ["pronunciation"],
+
+	defaults: () => ({ pronunciation: { ...DEFAULT_PRONUNCIATION_SETTINGS } }),
+
+	normalize: (raw) => ({
+		pronunciation: normalizePronunciationSettings(settingsRecord(raw).pronunciation),
+	}),
+
+	clone: (document) => ({ pronunciation: { ...document.pronunciation } }),
+};

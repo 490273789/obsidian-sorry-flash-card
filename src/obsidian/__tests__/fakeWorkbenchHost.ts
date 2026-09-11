@@ -15,7 +15,11 @@ export interface FakeWorkbenchHost {
 	commands: WorkbenchCommand[];
 	activateView: ReturnType<typeof vi.fn>;
 	updateSettings: ReturnType<typeof vi.fn>;
-	settingsTab: { refresh: ReturnType<typeof vi.fn>; select: ReturnType<typeof vi.fn>; open: ReturnType<typeof vi.fn> };
+	settingsTab: {
+		refresh: ReturnType<typeof vi.fn>;
+		select: ReturnType<typeof vi.fn>;
+		open: ReturnType<typeof vi.fn>;
+	};
 }
 
 /**
