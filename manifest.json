@@ -1,9 +1,9 @@
 {
 	"id": "study-studio",
-	"name": "StudyStudio",
+	"name": "Study Studio",
 	"version": "4.9.0",
 	"minAppVersion": "1.13.0",
-	"description": "一个基于FSRS算法的闪卡学习插件，帮助你高效学习和复习知识点。支持自定义标签扫描、间隔重复学习。",
+	"description": "一个学习插件，帮助你高效学习和复习知识点。支持自定义标签扫描、间隔重复学习。",
 	"author": "WSR",
 	"authorUrl": "https://obsidian.md",
 	"isDesktopOnly": false

@@ -119,3 +119,14 @@
 		}
 	}
 }
+
+// =============================================================================
+// Dictionary Prompt Overrides
+// =============================================================================
+
+.study-studio-dictionary-prompt.prompt {
+	// Overrides transparent backgrounds on prompt modals (like Quick Switcher style)
+	background-color: var(--background-primary) !important;
+	backdrop-filter: none !important;
+	border: 1px solid var(--background-modifier-border);
+}

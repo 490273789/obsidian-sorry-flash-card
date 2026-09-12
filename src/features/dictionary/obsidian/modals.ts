@@ -21,39 +21,53 @@ export class DictionaryLookupModal extends Modal {
 	}
 
 	override onOpen(): void {
-		this.setTitle(this.strings.openPromptTitle);
-		let value = this.initialValue;
+		// Use Obsidian's built-in prompt classes to mimic the command palette style
+		this.modalEl.addClass("prompt");
+		// Add a custom class to override the transparent background on some themes
+		this.modalEl.addClass("study-studio-dictionary-prompt");
 
-		new Setting(this.contentEl).setName(this.strings.inputLabel).addText((text) => {
-			this.input = text.inputEl;
-			text.setPlaceholder(this.strings.inputPlaceholder).setValue(this.initialValue);
-			text.inputEl.type = "text";
-			text.inputEl.autocomplete = "off";
-			text.inputEl.spellcheck = false;
-			text.inputEl.maxLength = 128;
-			text.inputEl.setAttribute("aria-label", this.strings.inputLabel);
-			text.onChange((next) => {
-				value = next;
-			});
-			// Enter submits explicitly. No `<form>` is involved, and an Enter that
-			// only confirms an IME candidate must not submit.
-			text.inputEl.addEventListener("keydown", (event) => {
-				if (event.key !== "Enter" || event.isComposing) return;
-				event.preventDefault();
-				this.submit(value);
-			});
+		// Clean up default Modal DOM to mimic SuggestModal
+		if (this.titleEl) {
+			this.titleEl.remove();
+		}
+		if (this.contentEl) {
+			this.contentEl.hide();
+		}
+
+		// Create prompt input container directly inside modalEl so .prompt > .prompt-input-container CSS applies
+		const inputContainer = this.modalEl.createDiv("prompt-input-container");
+		this.input = inputContainer.createEl("input", {
+			cls: "prompt-input",
+			type: "text",
+			placeholder: this.strings.inputPlaceholder,
+			value: this.initialValue,
+		});
+		this.input.autocomplete = "off";
+		this.input.spellcheck = false;
+		this.input.maxLength = 128;
+		this.input.setAttribute("aria-label", this.strings.inputLabel);
+
+		let value = this.initialValue;
+		this.input.addEventListener("input", (e) => {
+			value = (e.target as HTMLInputElement).value;
 		});
 
-		new Setting(this.contentEl)
-			.addButton((button) =>
-				button.setButtonText(this.strings.cancel).onClick(() => this.close()),
-			)
-			.addButton((button) =>
-				button
-					.setButtonText(this.strings.query)
-					.setCta()
-					.onClick(() => this.submit(value)),
-			);
+		this.input.addEventListener("keydown", (event) => {
+			if (event.key !== "Enter" || event.isComposing) return;
+			event.preventDefault();
+			this.submit(value);
+		});
+
+		// Add instructions at the bottom directly inside modalEl
+		const instructions = this.modalEl.createDiv("prompt-instructions");
+
+		const enterInstruction = instructions.createDiv("prompt-instruction");
+		enterInstruction.createSpan({ cls: "prompt-instruction-command", text: "↵" });
+		enterInstruction.createSpan({ text: this.strings.query });
+
+		const escInstruction = instructions.createDiv("prompt-instruction");
+		escInstruction.createSpan({ cls: "prompt-instruction-command", text: "esc" });
+		escInstruction.createSpan({ text: this.strings.cancel });
 
 		requestAnimationFrame(() => {
 			this.input?.focus();
@@ -62,7 +76,7 @@ export class DictionaryLookupModal extends Modal {
 	}
 
 	override onClose(): void {
-		this.contentEl.empty();
+		if (this.contentEl) this.contentEl.empty();
 		this.input = null;
 	}
 
