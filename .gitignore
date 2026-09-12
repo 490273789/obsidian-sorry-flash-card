@@ -34,3 +34,4 @@ data.backup-v*.json
 .superdesign/tmp/
 
 docs/adr/
+CONTEXT.md
