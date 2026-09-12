@@ -24,9 +24,8 @@
 
 /* A page that centres a max-width column; the view decides its own scrolling. */
 .fc-page--column {
-	width: min(1280px, 100%);
 	min-height: 100%;
-	margin: 0 auto;
+
 	padding: var(--fc-space-3);
 }
 
@@ -45,6 +44,7 @@
 	display: flex;
 	flex: 1 1 auto;
 	flex-direction: column;
+	// margin: 0 auto;
 	gap: var(--fc-space-4);
 	min-height: 0;
 	overflow-y: auto;
@@ -54,8 +54,7 @@
 
 /* A narrower reading column for setup and result pages. */
 .fc-page__body--narrow {
-	width: min(850px, 100%);
-	margin: 0 auto;
+	// margin: 0 auto;
 	padding: var(--fc-space-2);
 }
 

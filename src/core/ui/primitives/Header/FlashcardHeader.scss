@@ -35,7 +35,6 @@
 	backdrop-filter: blur(12px);
 	-webkit-backdrop-filter: blur(12px);
 	min-height: var(--fc-control-touch);
-	padding-bottom: var(--fc-space-2);
 
 	.flashcard-header-left,
 	.flashcard-header-right {
@@ -97,7 +96,7 @@
 
 .flashcard-header-overview {
 	width: 100%;
-	border-top: 1px solid var(--fc-line-soft);
+	padding: var(--fc-space-1) 0;
 	border-radius: 0 0 var(--fc-radius-sm) var(--fc-radius-sm);
 	background: color-mix(in srgb, var(--background-secondary) 84%, var(--background-primary) 16%);
 	box-shadow: var(--fc-shadow-inset);

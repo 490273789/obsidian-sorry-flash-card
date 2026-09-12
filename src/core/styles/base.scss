@@ -43,7 +43,7 @@
 	--fc-control-md: 32px;
 	--fc-control-touch: 38px;
 	--fc-header-height: 44px;
-	--fc-home-header-max-width: 1280px;
+	--fc-layout-max-width: 960px;
 	--fc-mobile-bottom-padding: 46px;
 
 	/* ── 文本层级 ───────────────────────────────────────────── */
@@ -243,6 +243,8 @@
 	box-sizing: border-box;
 	height: 100%;
 	min-height: 100%;
+	width: min(var(--fc-layout-max-width), 100%);
+	margin: 0 auto;
 	overflow: hidden;
 	overscroll-behavior: contain;
 	display: flex;
@@ -257,6 +259,14 @@
 .flashcard-root > * {
 	position: relative;
 	z-index: 1;
+}
+
+/* Reset Obsidian default button shadow */
+.flashcard-root,
+.flashcard-settings-tab {
+	button:not(.clickable-icon) {
+		box-shadow: none;
+	}
 }
 
 /* Shared utilities */

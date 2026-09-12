@@ -50,7 +50,12 @@ export const PracticeSummary = React.memo(function PracticeSummary({
 		<div className={cls("flashcard-practice-summary fc-page fc-page--fill", styles.summary)}>
 			<FlashcardHeader icon={CircleCheck} title={t("practice.title")} onBack={onHome} />
 
-			<div className={cls("flashcard-practice-summary-scroll", styles.summaryScroll)}>
+			<div
+				className={cls(
+					"flashcard-practice-summary-scroll fc-page__body",
+					styles.summaryScroll,
+				)}
+			>
 				<div className={cls("flashcard-practice-summary-header", styles.summaryHeader)}>
 					<div className={styles.summaryTitle}>{completionMessage}</div>
 					<div className={styles.summaryDeck}>

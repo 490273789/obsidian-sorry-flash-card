@@ -185,8 +185,7 @@
 .actions {
 	display: grid;
 	grid-template-columns: minmax(130px, 1fr) minmax(180px, 2fr);
-	width: min(760px, 100%);
-	margin-inline: auto;
+	width: 100%;
 	gap: var(--fc-space-3);
 
 	:global(.flashcard-btn) {

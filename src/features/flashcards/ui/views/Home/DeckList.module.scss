@@ -2,9 +2,7 @@
 
 .workspace {
 	min-height: 0;
-	margin: 0 auto;
 	flex: 1;
-	width: min(960px, 100%);
 	display: flex;
 	gap: var(--fc-space-4);
 	flex-direction: column;
@@ -78,7 +76,6 @@
 		transform: translateY(-1px);
 		background: color-mix(in srgb, var(--fc-surface-card) 92%, var(--text-normal) 8%);
 		border-color: color-mix(in srgb, var(--interactive-accent) 35%, var(--fc-line-glow));
-		box-shadow: var(--fc-shadow-card-hover);
 	}
 
 	&.isDragging {
@@ -88,9 +85,10 @@
 		background:
 			linear-gradient(90deg, rgba(var(--fc-cyan-rgb), 0.09), transparent 38%),
 			rgba(var(--fc-bg-elevated-rgb), 0.84);
-		box-shadow:
-			0 0 0 1px rgba(var(--fc-cyan-rgb), 0.12),
-			0 10px 26px rgba(var(--fc-black-rgb), 0.24);
+	}
+
+	&.isActionsOpen {
+		z-index: 20;
 	}
 
 	&:last-child {
@@ -381,7 +379,7 @@
 	}
 }
 
-@container flashcard-page (max-width: 1100px) {
+@container flashcard-page (max-width: 960px) {
 	.workspace {
 		display: flex;
 		flex-direction: column;

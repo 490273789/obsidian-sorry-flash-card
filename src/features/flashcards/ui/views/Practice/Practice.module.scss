@@ -207,7 +207,7 @@
 .responseControls {
 	display: grid;
 	grid-template-columns: 44px minmax(0, 1fr);
-	width: min(760px, 100%);
+
 	margin-inline: auto;
 	gap: var(--fc-space-3);
 	align-items: center;
@@ -335,7 +335,6 @@
 }
 
 .summaryStats {
-	width: min(720px, 100%);
 	margin: 0 auto;
 	padding: 0;
 	border: 0;
@@ -423,7 +422,6 @@
 }
 
 .incorrectSection {
-	width: min(720px, 100%);
 	margin: 0 auto;
 	padding-top: var(--fc-space-4);
 	border-top: 1px solid var(--fc-line-soft);
@@ -515,7 +513,6 @@
 }
 
 .summaryActions {
-	width: min(560px, 100%);
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 	gap: var(--fc-space-2);
