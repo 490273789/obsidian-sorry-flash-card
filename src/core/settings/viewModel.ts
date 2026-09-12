@@ -17,6 +17,7 @@ export interface SettingsViewModelSetting {
 	help?: SettingsHelpModel;
 	controls?: SettingsViewModelControl[];
 	visible?: SettingsVisibleState;
+	cls?: string;
 }
 
 export type SettingsVisibleState = boolean | (() => boolean);
@@ -33,14 +34,15 @@ export type SettingsViewModelControl =
 	| SettingsTextControl
 	| SettingsSecretControl
 	| SettingsStatusControl
-	| SettingsReorderableListControl;
+	| SettingsReorderableListControl
+	| SettingsProfileCardsControl;
 
 export interface SettingsButtonControl {
 	type: "button";
 	label: string;
 	disabled: boolean;
 	onClick: () => SettingsActionResult;
-	variant?: "default" | "warning";
+	variant?: "default" | "warning" | "primary";
 }
 
 export interface SettingsEditableTextListControl {
@@ -145,6 +147,46 @@ export interface SettingsReorderableListControl {
 	onMove: (fromIndex: number, toIndex: number) => void;
 	onRemove?: (id: string) => void;
 	tooltips: { drag: string; moveDown: string; moveUp: string; remove?: string };
+}
+
+export interface SettingsProfileCardItem {
+	id: string;
+	index: number;
+	badge: string;
+	name: string;
+	enabled: boolean;
+	kind: "engine" | "youdao";
+	configId: string;
+	engineOptions: SettingsSelectOption[];
+	noEngineConfigsNotice?: string;
+	disabled: boolean;
+	canMoveUp: boolean;
+	canMoveDown: boolean;
+	canRemove: boolean;
+	onToggle: (enabled: boolean) => void;
+	onNameChange: (name: string) => void;
+	onKindChange: (kind: "engine" | "youdao") => void;
+	onConfigChange: (configId: string) => void;
+	onMoveUp: () => void;
+	onMoveDown: () => void;
+	onRemove: () => void;
+}
+
+export interface SettingsProfileCardsControl {
+	type: "profileCards";
+	items: SettingsProfileCardItem[];
+	emptyText?: string;
+	labels: {
+		namePlaceholder: string;
+		provider: string;
+		engine: string;
+		youdao: string;
+		engineConfig: string;
+		moveUp: string;
+		moveDown: string;
+		remove: string;
+		enabledDesc: string;
+	};
 }
 
 export interface SettingsHelpModel {

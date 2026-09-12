@@ -47,7 +47,7 @@ export class TranslationSettingsEditor {
 			this.draft = normalizeTranslationSettings(this.runtime.getSnapshot().settings);
 	}
 
-	definitions(): SettingsViewModelDefinition {
+	definitions(): SettingsViewModelDefinition[] {
 		const snapshot = this.runtime.getSnapshot();
 		return buildTranslationSettingsViewModel(
 			{

@@ -310,7 +310,10 @@
 	.flashcard-study .flashcard-question,
 	.flashcard-study .flashcard-answer,
 	.flashcard-study .flashcard-explanation {
-		padding: var(--fc-space-2);
+		padding: var(--fc-space-4) var(--fc-space-10) var(--fc-space-4) var(--fc-space-4);
+		.flashcard-label {
+			padding: var(--fc-space-1) var(--fc-space-3);
+		}
 	}
 
 	.flashcard-study .flashcard-markdown {

@@ -103,7 +103,7 @@ export function createTranslationFeature(deps: TranslationFeatureDeps): Translat
 			id: TRANSLATION_SECTION_ID,
 			order: 2,
 			label: (language) => translationSettingsStrings(language).heading,
-			definitions: () => [settingsEditor.definitions()],
+			definitions: () => settingsEditor.definitions(),
 			activate: () => settingsEditor.activate(),
 			hide: () => settingsEditor.hide(),
 		};

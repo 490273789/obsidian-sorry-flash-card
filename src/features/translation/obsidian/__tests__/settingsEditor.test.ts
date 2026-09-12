@@ -71,14 +71,13 @@ describe("TranslationSettingsEditor", () => {
 		const { runtime, configure, settings, setSettings } = createRuntime(initial);
 		const refresh = vi.fn();
 		const editor = new TranslationSettingsEditor(runtime, createAi(), () => "zh", refresh);
-		const definition = editor.definitions();
-		const enabled = definition.items.find((item) => item.name === "启用 AI 翻译")
-			?.controls?.[0];
+		const items = editor.definitions().flatMap((g) => g.items);
+		const enabled = items.find((item) => item.name === "启用 AI 翻译")?.controls?.[0];
 		if (enabled?.type !== "toggle") throw new Error("Missing enabled toggle");
 		void enabled.onChange(true);
 		expect(configure).not.toHaveBeenCalled();
 
-		const add = definition.items
+		const add = items
 			.find((item) => item.name === "翻译方案")
 			?.controls?.find((control) => control.type === "button");
 		if (add?.type !== "button") throw new Error("Missing add profile button");
@@ -87,7 +86,8 @@ describe("TranslationSettingsEditor", () => {
 
 		const save = editor
 			.definitions()
-			.items.find((item) => item.name === "AI 翻译")
+			.flatMap((g) => g.items)
+			.find((item) => item.name === "保存翻译设置")
 			?.controls?.find((control) => control.type === "button");
 		if (save?.type !== "button") throw new Error("Missing save button");
 		await save.onClick();
@@ -101,13 +101,12 @@ describe("TranslationSettingsEditor", () => {
 	it("does not let a profile be removed below one and tests the saved Youdao connection explicitly", async () => {
 		const { runtime, configure, testYoudao } = createRuntime(initial);
 		const editor = new TranslationSettingsEditor(runtime, createAi(), () => "en", vi.fn());
-		const definition = editor.definitions();
-		const remove = definition.items
-			.find((item) => item.name === "Order and removal")
-			?.controls?.find((control) => control.type === "button" && control.label === "Delete");
-		expect(remove).toMatchObject({ disabled: true });
-		const test = definition.items.find((item) => item.name === "Test Youdao connection")
+		const items = editor.definitions().flatMap((g) => g.items);
+		const profileCards = items.find((item) => item.controls?.[0]?.type === "profileCards")
 			?.controls?.[0];
+		if (profileCards?.type !== "profileCards") throw new Error("Missing profileCards");
+		expect(profileCards.items[0]?.canRemove).toBe(false);
+		const test = items.find((item) => item.name === "Test Youdao connection")?.controls?.[0];
 		if (test?.type !== "button") throw new Error("Missing test button");
 		await test.onClick();
 		expect(testYoudao).toHaveBeenCalledOnce();

@@ -4,6 +4,7 @@ import type { Language } from "../../../core/shared/types";
 import type { TranslationProfile, TranslationSnapshot } from "../domain/types";
 import type {
 	SettingsActionResult,
+	SettingsProfileCardItem,
 	SettingsViewModelControl,
 	SettingsViewModelDefinition,
 	SettingsViewModelSetting,
@@ -31,7 +32,7 @@ export function buildTranslationSettingsViewModel(
 	state: TranslationSettingsEditorState,
 	actions: TranslationSettingsEditorActions,
 	language: Language,
-): SettingsViewModelDefinition {
+): SettingsViewModelDefinition[] {
 	const t = translationSettingsStrings(language);
 	const { draft, saving, snapshot } = state;
 	const aiConfigs = state.aiSnapshot.settings.configs.filter(
@@ -41,202 +42,195 @@ export function buildTranslationSettingsViewModel(
 		name: string,
 		controls: SettingsViewModelControl[],
 		desc?: string,
-	): SettingsViewModelSetting => ({ type: "setting", name, controls, desc });
-	const button = (label: string, onClick: () => SettingsActionResult, disabled = saving) => ({
-		type: "button" as const,
+		cls?: string,
+	): SettingsViewModelSetting => ({ type: "setting", name, controls, desc, cls });
+	const button = (
+		label: string,
+		onClick: () => SettingsActionResult,
+		disabled = saving,
+		variant?: "default" | "warning" | "primary",
+	): SettingsViewModelControl => ({
+		type: "button",
 		label,
 		disabled,
 		onClick,
+		variant,
 	});
-	const profileRows = draft.profiles.flatMap((profile, index) =>
-		profileSettings(profile, index, draft.profiles.length, aiConfigs, actions, t, saving),
-	);
-	return {
-		type: "group",
-		heading: t.heading,
-		items: [
-			row(
-				t.enabled,
-				[
-					{
-						type: "toggle",
-						value: draft.enabled,
-						disabled: saving,
-						onChange: (enabled) => actions.patch({ enabled }),
-					},
-				],
-				t.enabledDesc,
-			),
-			row(
-				t.thinking,
-				[
-					{
-						type: "toggle",
-						value: draft.thinkingEnabled,
-						disabled: saving,
-						onChange: (thinkingEnabled) => actions.patch({ thinkingEnabled }),
-					},
-				],
-				t.thinkingDesc,
-			),
-			row(t.profiles, [button(t.addProfile, actions.addProfile)], t.profilesDesc),
-			...profileRows,
-			row(
-				t.prompt,
-				[
-					{
-						type: "textarea",
-						value: draft.promptTemplate,
-						placeholder: "",
-						disabled: saving,
-						onChange: (promptTemplate) => actions.patch({ promptTemplate }),
-					},
-					button(t.resetPrompt, actions.resetPrompt),
-				],
-				t.promptDesc,
-			),
-			row(t.youdaoHeading, [], t.youdaoEndpointDesc),
-			row(t.youdaoEndpoint, [
-				{
-					type: "text",
-					value: draft.youdao.baseUrl,
-					placeholder: t.youdaoEndpointPlaceholder,
-					disabled: saving,
-					onChange: (baseUrl) => actions.patch({ youdao: { ...draft.youdao, baseUrl } }),
-				},
-			]),
-			row(t.youdaoAppKey, [
-				{
-					type: "secret",
-					value: draft.youdao.appKeySecretId,
-					disabled: saving,
-					onChange: (appKeySecretId) =>
-						actions.patch({ youdao: { ...draft.youdao, appKeySecretId } }),
-				},
-			]),
-			row(t.youdaoAppSecret, [
-				{
-					type: "secret",
-					value: draft.youdao.appSecretSecretId,
-					disabled: saving,
-					onChange: (appSecretSecretId) =>
-						actions.patch({ youdao: { ...draft.youdao, appSecretSecretId } }),
-				},
-			]),
-			row(
-				t.testYoudao,
-				[
-					button(
-						snapshot.testing ? t.testing : t.testYoudao,
-						actions.testYoudao,
-						saving || snapshot.testing,
-					),
-				],
-				t.testYoudaoDesc,
-			),
-			row(t.heading, [button(t.save, actions.save)]),
-		],
-	};
-}
 
-function profileSettings(
-	profile: TranslationProfile,
-	index: number,
-	count: number,
-	aiConfigs: readonly AiEngineConfig[],
-	actions: TranslationSettingsEditorActions,
-	t: ReturnType<typeof translationSettingsStrings>,
-	saving: boolean,
-): SettingsViewModelSetting[] {
-	const actionButton = (
-		label: string,
-		onClick: () => SettingsActionResult,
-		disabled: boolean,
-	): SettingsViewModelControl => ({ type: "button", label, onClick, disabled });
-	const rows: SettingsViewModelSetting[] = [
+	const profileCardItems: SettingsProfileCardItem[] = draft.profiles.map((profile, index) => {
+		const engineOptions = [
+			{ value: "", label: t.selectEngine },
+			...(profile.configId && !aiConfigs.some((config) => config.id === profile.configId)
+				? [{ value: profile.configId, label: t.missingEngineConfig }]
+				: []),
+			...aiConfigs.map((config) => ({ value: config.id, label: config.name })),
+		];
+		return {
+			id: profile.id,
+			index,
+			badge: t.profile(index + 1),
+			name: profile.name,
+			enabled: profile.enabled,
+			kind: profile.kind,
+			configId: profile.configId,
+			engineOptions,
+			noEngineConfigsNotice: aiConfigs.length ? undefined : t.noEngineConfigs,
+			disabled: saving,
+			canMoveUp: index > 0,
+			canMoveDown: index < draft.profiles.length - 1,
+			canRemove: draft.profiles.length > 1,
+			onToggle: (enabled) => actions.patchProfile(profile.id, { enabled }),
+			onNameChange: (name) => actions.patchProfile(profile.id, { name }),
+			onKindChange: (kind) => {
+				if (kind === "engine" || kind === "youdao") {
+					actions.patchProfile(profile.id, { kind });
+				}
+			},
+			onConfigChange: (configId) => actions.patchProfile(profile.id, { configId }),
+			onMoveUp: () => actions.moveProfile(profile.id, -1),
+			onMoveDown: () => actions.moveProfile(profile.id, 1),
+			onRemove: () => actions.removeProfile(profile.id),
+		};
+	});
+
+	return [
 		{
-			type: "setting",
-			name: t.profile(index + 1),
-			desc: t.profileEnabled,
-			controls: [
-				{
-					type: "toggle",
-					value: profile.enabled,
-					disabled: saving,
-					onChange: (enabled) => actions.patchProfile(profile.id, { enabled }),
-				},
-				{
-					type: "text",
-					value: profile.name,
-					placeholder: t.profileNamePlaceholder,
-					disabled: saving,
-					onChange: (name) => actions.patchProfile(profile.id, { name }),
-				},
-			],
-		},
-		{
-			type: "setting",
-			name: t.provider,
-			controls: [
-				{
-					type: "select",
-					value: profile.kind,
-					disabled: saving,
-					options: [
-						{ value: "engine", label: t.engine },
-						{ value: "youdao", label: t.youdao },
+			type: "group",
+			heading: t.generalHeading,
+			items: [
+				row(
+					t.enabled,
+					[
+						{
+							type: "toggle",
+							value: draft.enabled,
+							disabled: saving,
+							onChange: (enabled) => actions.patch({ enabled }),
+						},
 					],
-					onChange: (kind) => {
-						if (kind === "engine" || kind === "youdao")
-							return actions.patchProfile(profile.id, { kind });
-					},
-				},
+					t.enabledDesc,
+				),
+				row(
+					t.thinking,
+					[
+						{
+							type: "toggle",
+							value: draft.thinkingEnabled,
+							disabled: saving,
+							onChange: (thinkingEnabled) => actions.patch({ thinkingEnabled }),
+						},
+					],
+					t.thinkingDesc,
+				),
 			],
 		},
 		{
-			type: "setting",
-			name: t.profileActions,
-			controls: [
-				actionButton(
-					t.moveUp,
-					() => actions.moveProfile(profile.id, -1),
-					saving || index === 0,
+			type: "group",
+			heading: t.profilesHeading,
+			items: [
+				row(
+					t.profiles,
+					[button(t.addProfile, actions.addProfile, saving, "primary")],
+					t.profilesDesc,
 				),
-				actionButton(
-					t.moveDown,
-					() => actions.moveProfile(profile.id, 1),
-					saving || index === count - 1,
-				),
-				actionButton(
-					t.remove,
-					() => actions.removeProfile(profile.id),
-					saving || count === 1,
+				row(
+					"",
+					[
+						{
+							type: "profileCards",
+							items: profileCardItems,
+							emptyText: t.profilesDesc,
+							labels: {
+								namePlaceholder: t.profileNamePlaceholder,
+								provider: t.provider,
+								engine: t.engine,
+								youdao: t.youdao,
+								engineConfig: t.engineConfig,
+								moveUp: t.moveUp,
+								moveDown: t.moveDown,
+								remove: t.remove,
+								enabledDesc: t.profileEnabled,
+							},
+						},
+					],
+					undefined,
+					"fc-profile-cards-setting",
 				),
 			],
+		},
+		{
+			type: "group",
+			heading: t.promptHeading,
+			items: [
+				row(
+					t.prompt,
+					[
+						{
+							type: "textarea",
+							value: draft.promptTemplate,
+							placeholder: "",
+							disabled: saving,
+							onChange: (promptTemplate) => actions.patch({ promptTemplate }),
+						},
+						button(t.resetPrompt, actions.resetPrompt),
+					],
+					t.promptDesc,
+				),
+			],
+		},
+		{
+			type: "group",
+			heading: t.youdaoHeading,
+			items: [
+				row(
+					t.youdaoEndpoint,
+					[
+						{
+							type: "text",
+							value: draft.youdao.baseUrl,
+							placeholder: t.youdaoEndpointPlaceholder,
+							disabled: saving,
+							onChange: (baseUrl) =>
+								actions.patch({ youdao: { ...draft.youdao, baseUrl } }),
+						},
+					],
+					t.youdaoEndpointDesc,
+				),
+				row(t.youdaoAppKey, [
+					{
+						type: "secret",
+						value: draft.youdao.appKeySecretId,
+						disabled: saving,
+						onChange: (appKeySecretId) =>
+							actions.patch({ youdao: { ...draft.youdao, appKeySecretId } }),
+					},
+				]),
+				row(t.youdaoAppSecret, [
+					{
+						type: "secret",
+						value: draft.youdao.appSecretSecretId,
+						disabled: saving,
+						onChange: (appSecretSecretId) =>
+							actions.patch({ youdao: { ...draft.youdao, appSecretSecretId } }),
+					},
+				]),
+				row(
+					t.testYoudao,
+					[
+						button(
+							snapshot.testing ? t.testing : t.testYoudao,
+							actions.testYoudao,
+							saving || snapshot.testing,
+						),
+					],
+					t.testYoudaoDesc,
+				),
+			],
+		},
+		{
+			type: "group",
+			heading: t.saveHeading,
+			items: [row(t.save, [button(t.save, actions.save, saving, "primary")], t.saveDesc)],
 		},
 	];
-	if (profile.kind === "engine") {
-		rows.push({
-			type: "setting",
-			name: t.engineConfig,
-			desc: aiConfigs.length ? undefined : t.noEngineConfigs,
-			controls: [
-				{
-					type: "select",
-					value: profile.configId,
-					disabled: saving || aiConfigs.length === 0,
-					options: [
-						{ value: "", label: t.selectEngine },
-						...(profile.configId &&
-						!aiConfigs.some((config) => config.id === profile.configId)
-							? [{ value: profile.configId, label: t.missingEngineConfig }]
-							: []),
-						...aiConfigs.map((config) => ({ value: config.id, label: config.name })),
-					],
-					onChange: (configId) => actions.patchProfile(profile.id, { configId }),
-				},
-			],
-		});
-	}
-	return rows;
 }

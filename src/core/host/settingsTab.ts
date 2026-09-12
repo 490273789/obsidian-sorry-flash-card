@@ -14,6 +14,7 @@ import {
 	type SettingsTextControl,
 	type SettingsToggleControl,
 	type SettingsReorderableListControl,
+	type SettingsProfileCardsControl,
 	type SettingsViewModelControl,
 	type SettingsViewModelDefinition,
 	type SettingsViewModelSetting,
@@ -24,6 +25,7 @@ type VisibleDefinition = { visible?: boolean | (() => boolean) };
 type FlashcardSettingDefinition = VisibleDefinition & {
 	name: string;
 	desc?: string | DocumentFragment;
+	cls?: string;
 	render?: (setting: Setting) => void | (() => void);
 };
 type FlashcardSettingGroup = VisibleDefinition & {
@@ -253,6 +255,7 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 			name: model.name,
 			desc: model.help ? this.createHelpDescription(model.help) : model.desc,
 			visible: model.visible,
+			cls: model.cls,
 			render:
 				model.controls && model.controls.length > 0
 					? (setting) => {
@@ -310,6 +313,9 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 			case "reorderableList":
 				this.renderReorderableListControl(setting, control);
 				break;
+			case "profileCards":
+				this.renderProfileCardsControl(setting, control);
+				break;
 		}
 	}
 
@@ -323,6 +329,8 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 				});
 			if (control.variant === "warning") {
 				button.setWarning();
+			} else if (control.variant === "primary") {
+				button.setCta();
 			}
 		});
 	}
@@ -559,6 +567,119 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 		});
 	}
 
+	private renderProfileCardsControl(
+		setting: Setting,
+		control: SettingsProfileCardsControl,
+	): void {
+		setting.setClass("fc-profile-cards-setting");
+		const container = setting.controlEl.createDiv({
+			cls: "fc-profile-cards-list",
+		});
+
+		if (control.items.length === 0) {
+			if (control.emptyText) {
+				container.createDiv({
+					text: control.emptyText,
+					cls: "fc-profile-cards-empty",
+				});
+			}
+			return;
+		}
+
+		for (const item of control.items) {
+			const card = container.createDiv({
+				cls: `fc-profile-card ${item.enabled ? "is-enabled" : "is-disabled"}`,
+			});
+
+			// 1. 卡片头部
+			const header = card.createDiv({ cls: "fc-profile-card-header" });
+			const titleGroup = header.createDiv({ cls: "fc-profile-card-title-group" });
+
+			titleGroup.createSpan({ text: item.badge, cls: "fc-profile-badge" });
+
+			const nameInput = titleGroup.createEl("input", {
+				type: "text",
+				value: item.name,
+				placeholder: control.labels.namePlaceholder,
+				cls: "fc-profile-name-input",
+			});
+			nameInput.disabled = item.disabled;
+			nameInput.addEventListener("change", () => {
+				item.onNameChange(nameInput.value);
+			});
+
+			const toggleSetting = new Setting(titleGroup);
+			toggleSetting.setClass("fc-profile-toggle-setting");
+			toggleSetting.addToggle((toggle) => {
+				toggle
+					.setValue(item.enabled)
+					.setDisabled(item.disabled)
+					.setTooltip(control.labels.enabledDesc)
+					.onChange((enabled) => {
+						item.onToggle(enabled);
+					});
+			});
+
+			const actionsEl = header.createDiv({ cls: "fc-profile-card-actions" });
+			const actionsSetting = new Setting(actionsEl);
+			actionsSetting.addExtraButton((btn) => {
+				btn.setIcon("arrow-up")
+					.setTooltip(control.labels.moveUp)
+					.setDisabled(!item.canMoveUp || item.disabled)
+					.onClick(() => item.onMoveUp());
+			});
+			actionsSetting.addExtraButton((btn) => {
+				btn.setIcon("arrow-down")
+					.setTooltip(control.labels.moveDown)
+					.setDisabled(!item.canMoveDown || item.disabled)
+					.onClick(() => item.onMoveDown());
+			});
+			actionsSetting.addExtraButton((btn) => {
+				btn.setIcon("trash-2")
+					.setTooltip(control.labels.remove)
+					.setDisabled(!item.canRemove || item.disabled)
+					.onClick(() => item.onRemove());
+			});
+
+			// 2. 卡片内部配置项
+			const body = card.createDiv({ cls: "fc-profile-card-body" });
+
+			const providerRow = new Setting(body);
+			providerRow.setClass("fc-profile-field-setting");
+			providerRow.setName(control.labels.provider);
+			providerRow.addDropdown((dropdown) => {
+				dropdown
+					.addOption("engine", control.labels.engine)
+					.addOption("youdao", control.labels.youdao)
+					.setValue(item.kind)
+					.setDisabled(item.disabled)
+					.onChange((val) => {
+						if (val === "engine" || val === "youdao") {
+							item.onKindChange(val);
+						}
+					});
+			});
+
+			if (item.kind === "engine") {
+				const engineRow = new Setting(body);
+				engineRow.setClass("fc-profile-field-setting");
+				engineRow.setName(control.labels.engineConfig);
+				if (item.noEngineConfigsNotice && item.engineOptions.length <= 1) {
+					engineRow.setDesc(item.noEngineConfigsNotice);
+				}
+				engineRow.addDropdown((dropdown) => {
+					for (const opt of item.engineOptions) {
+						dropdown.addOption(opt.value, opt.label);
+					}
+					dropdown
+						.setValue(item.configId)
+						.setDisabled(item.disabled || item.engineOptions.length === 0)
+						.onChange((val) => item.onConfigChange(val));
+				});
+			}
+		}
+	}
+
 	private isGroupDefinition(
 		definition: FlashcardSettingItem,
 	): definition is FlashcardSettingGroup {
@@ -575,6 +696,9 @@ export class FlashcardSettingTab extends PluginSettingTab implements WorkbenchSe
 		}
 
 		const setting = new Setting(parentEl);
+		if (definition.cls) {
+			setting.setClass(definition.cls);
+		}
 		setting.setName(definition.name);
 
 		if (definition.desc) {
