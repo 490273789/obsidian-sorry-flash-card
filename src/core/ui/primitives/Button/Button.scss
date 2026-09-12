@@ -117,6 +117,7 @@
 		&:focus-visible {
 			border-color: var(--fc-primary-hover);
 			background: var(--fc-primary-hover);
+			color: var(--fc-primary-text);
 		}
 	}
 
@@ -130,6 +131,7 @@
 		&:focus-visible {
 			background: color-mix(in srgb, var(--fc-primary) 10%, transparent);
 			border-color: var(--fc-primary);
+			color: var(--fc-primary);
 		}
 	}
 
@@ -160,10 +162,12 @@
 	.flashcard-btn {
 		background-color: var(--fc-control-bg);
 		color: var(--fc-text);
+		box-shadow: none;
 
 		&:hover:not(:disabled),
 		&:focus-visible {
 			background: var(--fc-control-bg-hover);
+			box-shadow: none;
 		}
 
 		&:focus-visible {
@@ -180,6 +184,7 @@
 			&:focus-visible {
 				border-color: var(--fc-primary-hover);
 				background: var(--fc-primary-hover);
+				color: var(--fc-primary-text);
 			}
 		}
 
@@ -192,6 +197,17 @@
 			&:focus-visible {
 				background: color-mix(in srgb, var(--fc-primary) 10%, transparent);
 				border-color: var(--fc-primary);
+				color: var(--fc-primary);
+			}
+		}
+
+		.theme-light &-secondary {
+			border-color: var(--fc-primary);
+
+			&:hover:not(:disabled),
+			&:focus-visible {
+				border-color: var(--fc-primary-hover);
+				color: var(--fc-primary-hover);
 			}
 		}
 

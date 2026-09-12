@@ -65,6 +65,12 @@
 	min-height: 0;
 	grid-template-rows: auto minmax(0, 1fr) auto;
 	overflow: hidden;
+	border: 1px solid var(--fc-line-strong) !important;
+	box-shadow: var(--fc-shadow-sm) !important;
+
+	&:focus-within {
+		border-color: var(--fc-line-strong) !important;
+	}
 
 	> header {
 		label,
@@ -82,18 +88,21 @@
 		min-height: 0;
 		height: 100%;
 		padding: var(--fc-space-4);
-		border: 0;
+		border: none !important;
 		border-radius: 0 0 var(--fc-radius-md) var(--fc-radius-md);
-		background: transparent;
+		background: var(--fc-input-bg) !important;
 		line-height: var(--fc-line-body);
 		resize: none;
+		outline: none !important;
+		box-shadow: none !important;
 
+		&:hover,
 		&:focus,
 		&:focus-visible {
-			box-shadow: none;
-			border-left: 0;
-			border-right: 0;
-			border-bottom: 0;
+			border: none !important;
+			background: var(--fc-input-bg) !important;
+			box-shadow: none !important;
+			outline: none !important;
 		}
 	}
 
@@ -113,6 +122,7 @@
 .resultTitle {
 	display: flex;
 	min-width: 0;
+	align-items: flex-end;
 	gap: var(--fc-space-1);
 
 	strong,

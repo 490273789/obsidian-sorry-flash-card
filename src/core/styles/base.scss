@@ -89,18 +89,34 @@
 	--fc-opacity-disabled: 0.45;
 
 	/* ── 边框与分隔线 ────────────────────────────────────────── */
-	--fc-line: var(--background-modifier-border);
-	--fc-line-strong: var(--background-modifier-border-focus);
-	--fc-line-soft: color-mix(in srgb, var(--background-modifier-border) 60%, transparent);
-	--fc-line-faint: color-mix(in srgb, var(--background-modifier-border) 35%, transparent);
+	/* 极弱边框 (faint)：直接使用主题默认边框色 */
+	--fc-line-faint: var(--background-modifier-border);
+	/* 弱边框 (soft)：混入 8% 正文色 */
+	--fc-line-soft: color-mix(
+		in srgb,
+		var(--background-modifier-border) 92%,
+		var(--text-normal) 8%
+	);
+	/* 基础边框 (line)：混入 16% 正文色，确保基础轮廓足够清晰 */
+	--fc-line: color-mix(in srgb, var(--background-modifier-border) 84%, var(--text-normal) 16%);
+	/* 强边框 (strong)：混入 28% 正文色，用于着重强调的面板或粗分割线 */
+	--fc-line-strong: color-mix(
+		in srgb,
+		var(--background-modifier-border) 72%,
+		var(--text-normal) 28%
+	);
 
 	/* ── 控件表面与边框 ──────────────────────────────────────── */
 	--fc-control-bg: var(--fc-surface-control);
 	--fc-control-bg-hover: var(--interactive-hover);
-	--fc-control-border: var(--background-modifier-border);
-	--fc-control-border-hover: var(--background-modifier-border-hover);
+	--fc-control-border: var(--fc-line);
+	--fc-control-border-hover: color-mix(
+		in srgb,
+		var(--background-modifier-border-hover) 75%,
+		var(--text-normal) 25%
+	);
 	--fc-control-border-selected: var(--interactive-accent);
-	--fc-compact-control-border: var(--background-modifier-border);
+	--fc-compact-control-border: var(--fc-line);
 
 	/* ── 输入框 ─────────────────────────────────────────────── */
 	--fc-input-bg: color-mix(
