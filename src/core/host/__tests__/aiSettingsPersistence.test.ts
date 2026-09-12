@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 import FlashcardPlugin from "../main";
 import { DEFAULT_SETTINGS } from "../settingsSlices";
-import { DataStore } from "../../storage/dataStore";
+import { WorkbenchStore } from "../../storage/workbenchStore";
 import type { AiSettings } from "../../ai";
 import type { TranslationSettings } from "../../../features/translation/domain/types";
 
@@ -46,8 +46,8 @@ async function createPlugin() {
 	};
 	const plugin = new FlashcardPlugin(app as never, {} as never);
 	plugin.app = app as never;
-	plugin.dataStore = new DataStore(host as never);
-	plugin.settings = await plugin.dataStore.loadSettings();
+	plugin.store = new WorkbenchStore(host as never);
+	plugin.settings = await plugin.store.loadSettings();
 	const commit: (patch: Partial<typeof plugin.settings>) => Promise<void> = Reflect.get(
 		plugin,
 		"commitSettings",
@@ -82,7 +82,7 @@ it("applies concurrent feature patches to the settings committed at write time",
 	expect(plugin.settings.ai).toEqual(ai);
 	expect(plugin.settings.dailyNewCards).toBe(42);
 	expect(plugin.settings.studyOrder).toBe("sequential");
-	const stored = plugin.dataStore.getSettings();
+	const stored = plugin.store.getSettings();
 	expect(stored.ai).toEqual(ai);
 	expect(stored.dailyNewCards).toBe(42);
 	expect(stored.studyOrder).toBe("sequential");
@@ -104,7 +104,7 @@ it("keeps feature slices independent of each other", async () => {
 	expect(plugin.settings.translation).toEqual(translation);
 	expect(plugin.settings.ai).toEqual(ai);
 	expect(plugin.settings.dailyReviewCards).toBe(7);
-	const stored = plugin.dataStore.getSettings();
+	const stored = plugin.store.getSettings();
 	expect(stored.translation).toEqual(translation);
 	expect(stored.dailyReviewCards).toBe(7);
 });

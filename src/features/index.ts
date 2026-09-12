@@ -1,6 +1,6 @@
 import type { Plugin } from "obsidian";
 import type { AiService } from "../core/ai";
-import type { DataStore } from "../core/storage/dataStore";
+import type { WorkbenchStore } from "../core/storage/workbenchStore";
 import type { WorkbenchModule } from "../core/host/workbench";
 import type { OutboundPort } from "../core/net";
 import { createDictionaryFeature } from "./dictionary/feature";
@@ -10,7 +10,7 @@ import { createSelectionHelperModule } from "../core/selectionHelper/module";
 
 export interface WorkbenchModuleDeps {
 	ai: AiService;
-	dataStore: DataStore;
+	store: WorkbenchStore;
 	plugin: Plugin;
 	net: OutboundPort;
 }
@@ -21,7 +21,11 @@ export interface WorkbenchModuleDeps {
  * imports only this module, so it never has to know a feature's name.
  */
 export function createWorkbenchModules(deps: WorkbenchModuleDeps): WorkbenchModule[] {
-	const flashcards = createFlashcardFeature({ dataStore: deps.dataStore, net: deps.net });
+	const flashcards = createFlashcardFeature({
+		store: deps.store,
+		net: deps.net,
+		plugin: deps.plugin,
+	});
 	const translation = createTranslationFeature({ ai: deps.ai, net: deps.net });
 	const dictionary = createDictionaryFeature({ ai: deps.ai, net: deps.net, plugin: deps.plugin });
 

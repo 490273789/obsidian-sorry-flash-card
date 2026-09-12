@@ -9,7 +9,7 @@ import { normalizeAiSettings } from "../ai/configuration";
 import type { AiService, AiSettings } from "../ai";
 import { FlashcardSettings } from "../shared/types";
 import { DEFAULT_SETTINGS } from "./settingsSlices";
-import { DataStore } from "../storage/dataStore";
+import { WorkbenchStore } from "../storage/workbenchStore";
 import { FlashcardSettingTab } from "./settingsTab";
 import { createOutboundPort, type OutboundPort } from "../net";
 
@@ -20,7 +20,7 @@ import { createOutboundPort, type OutboundPort } from "../net";
  */
 export default class StudyStudioPlugin extends Plugin {
 	settings: FlashcardSettings = DEFAULT_SETTINGS;
-	dataStore!: DataStore;
+	store!: WorkbenchStore;
 	aiService!: AiService;
 	net!: OutboundPort;
 	workbench!: Workbench;
@@ -28,10 +28,10 @@ export default class StudyStudioPlugin extends Plugin {
 	private settingsWriteQueue: Promise<void> = Promise.resolve();
 
 	async onload() {
-		this.dataStore = new DataStore(this);
-		// loadSettings() performs a single disk read: settings + decks + history.
+		this.store = new WorkbenchStore(this);
+		// loadSettings() performs a single disk read: settings + partitions.
 		// load() is a no-op when called right after (data already in memory).
-		this.settings = await this.dataStore.loadSettings();
+		this.settings = await this.store.loadSettings();
 		this.net = createOutboundPort({ app: this.app, defaultTimeoutMs: 0 });
 		this.aiService = createObsidianAiService(
 			this.app,
@@ -39,7 +39,7 @@ export default class StudyStudioPlugin extends Plugin {
 			this.persistAiSettings,
 			this.net,
 		);
-		await this.dataStore.load();
+		await this.store.load();
 
 		this.workbench = createWorkbench({
 			app: this.app,
@@ -49,7 +49,7 @@ export default class StudyStudioPlugin extends Plugin {
 			createModules: () =>
 				createWorkbenchModules({
 					ai: this.aiService,
-					dataStore: this.dataStore,
+					store: this.store,
 					net: this.net,
 					plugin: this,
 				}),
@@ -82,11 +82,11 @@ export default class StudyStudioPlugin extends Plugin {
 
 	/** Obsidian Sync changed data.json; reload the authoritative document as one transition. */
 	async onExternalSettingsChange(): Promise<void> {
-		if (!this.dataStore) return;
+		if (!this.store) return;
 		await this.settingsWriteQueue;
 		try {
-			await this.dataStore.reloadExternalSettings();
-			const settings = this.dataStore.getSettings();
+			await this.store.reloadExternalSettings();
+			const settings = this.store.getSettings();
 			this.aiService?.replaceSettings(settings.ai);
 			this.publishSettings(settings);
 		} catch (error) {
@@ -111,7 +111,7 @@ export default class StudyStudioPlugin extends Plugin {
 	): Promise<FlashcardSettings> {
 		const write = this.settingsWriteQueue.then(async () => {
 			const nextSettings = createNextSettings();
-			await this.dataStore.saveSettings(nextSettings);
+			await this.store.saveSettings(nextSettings);
 			this.publishSettings(nextSettings);
 			return nextSettings;
 		});

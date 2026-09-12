@@ -207,7 +207,7 @@ describe("FlashcardSettingTab", () => {
 		return {
 			manifest: { id: "obsidian-study-studio" },
 			settings: { ...DEFAULT_SETTINGS },
-			dataStore: {
+			store: {
 				hasAvailableTagsSnapshot: () => true,
 				getAvailableTags: () => ["#tag1", "#tag2"],
 			},

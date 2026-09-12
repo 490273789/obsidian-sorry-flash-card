@@ -95,7 +95,7 @@ vi.mock("../obsidian/continuityModals", () => ({
 	},
 }));
 
-function createDataStore() {
+function createRepository() {
 	return {
 		hasAvailableTagsSnapshot: () => true,
 		getAvailableTags: () => ["#wordTag"],
@@ -105,8 +105,13 @@ function createDataStore() {
 
 function renderFeature() {
 	const feature = createFlashcardFeature({
-		dataStore: createDataStore() as never,
+		store: {
+			load: vi.fn(),
+			getSettings: () => DEFAULT_SETTINGS,
+			subscribe: () => () => {},
+		} as never,
 		net: { request: vi.fn(), requestHostPinned: vi.fn(), readSecret: vi.fn() },
+		repository: createRepository() as never,
 	});
 	const fake = createFakeWorkbenchHost(DEFAULT_SETTINGS);
 	feature.render(fake.host);
