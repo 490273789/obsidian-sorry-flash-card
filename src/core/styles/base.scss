@@ -69,17 +69,30 @@
 	--fc-bg-elevated: var(--background-primary);
 	--fc-bg-panel: color-mix(
 		in srgb,
-		var(--background-secondary) 58%,
-		var(--background-primary) 42%
+		var(--background-secondary) 30%,
+		var(--background-primary) 70%
 	);
-	--fc-bg-panel-soft: var(--interactive-normal);
+	--fc-bg-panel-soft: color-mix(in srgb, var(--interactive-normal) 80%, var(--text-normal) 20%);
+
+	/* 画布保持纯粹的系统底层色 */
 	--fc-surface-canvas: var(--background-secondary);
-	/* 用 text-normal 混入 4% 以确保卡片在任何主题下都比纯底色更“凸显” */
-	--fc-surface-card: color-mix(in srgb, var(--background-primary) 96%, var(--text-normal) 4%);
-	--fc-surface-section: var(--fc-bg-panel);
-	--fc-surface-raised: color-mix(in srgb, var(--background-primary) 88%, var(--text-normal) 12%);
-	--fc-surface-control: var(--interactive-normal);
-	--fc-surface-header-status: var(--background-modifier-hover);
+
+	/* 显著提升卡片层级的 text-normal 混入度（原 4% -> 10%），让卡片在画布上更凸显 */
+	--fc-surface-card: color-mix(in srgb, var(--background-primary) 90%, var(--text-normal) 10%);
+
+	/* 区块容器，介于画布与卡片之间 */
+	--fc-surface-section: color-mix(in srgb, var(--fc-bg-panel) 94%, var(--text-normal) 6%);
+
+	/* 大幅增强悬浮/弹出表面的立体感（原 12% -> 18%） */
+	--fc-surface-raised: color-mix(in srgb, var(--background-primary) 82%, var(--text-normal) 18%);
+
+	/* 控件底色加深，增强轮廓识别度 */
+	--fc-surface-control: color-mix(in srgb, var(--interactive-normal) 85%, var(--text-normal) 15%);
+	--fc-surface-header-status: color-mix(
+		in srgb,
+		var(--background-modifier-hover) 80%,
+		var(--text-normal) 20%
+	);
 
 	/* ── 交互状态表面（hover / 选中）与禁用透明度 ───────────────── */
 	--fc-surface-hover: var(--background-modifier-hover);
@@ -89,21 +102,25 @@
 	--fc-opacity-disabled: 0.45;
 
 	/* ── 边框与分隔线 ────────────────────────────────────────── */
-	/* 极弱边框 (faint)：直接使用主题默认边框色 */
-	--fc-line-faint: var(--background-modifier-border);
-	/* 弱边框 (soft)：混入 8% 正文色 */
+	/* 极弱边框 (faint)：轻微混入正文色保证基础可见性 */
+	--fc-line-faint: color-mix(
+		in srgb,
+		var(--background-modifier-border) 95%,
+		var(--text-normal) 5%
+	);
+	/* 弱边框 (soft)：混入 12% 正文色（原 8%），适应加深的背景 */
 	--fc-line-soft: color-mix(
 		in srgb,
-		var(--background-modifier-border) 92%,
-		var(--text-normal) 8%
+		var(--background-modifier-border) 88%,
+		var(--text-normal) 12%
 	);
-	/* 基础边框 (line)：混入 16% 正文色，确保基础轮廓足够清晰 */
-	--fc-line: color-mix(in srgb, var(--background-modifier-border) 84%, var(--text-normal) 16%);
-	/* 强边框 (strong)：混入 28% 正文色，用于着重强调的面板或粗分割线 */
+	/* 基础边框 (line)：混入 22% 正文色（原 16%），确保基础轮廓足够清晰 */
+	--fc-line: color-mix(in srgb, var(--background-modifier-border) 78%, var(--text-normal) 22%);
+	/* 强边框 (strong)：混入 36% 正文色（原 28%），用于着重强调的面板或粗分割线 */
 	--fc-line-strong: color-mix(
 		in srgb,
-		var(--background-modifier-border) 72%,
-		var(--text-normal) 28%
+		var(--background-modifier-border) 64%,
+		var(--text-normal) 36%
 	);
 
 	/* ── 控件表面与边框 ──────────────────────────────────────── */
@@ -112,8 +129,8 @@
 	--fc-control-border: var(--fc-line);
 	--fc-control-border-hover: color-mix(
 		in srgb,
-		var(--background-modifier-border-hover) 75%,
-		var(--text-normal) 25%
+		var(--background-modifier-border-hover) 65%,
+		var(--text-normal) 35%
 	);
 	--fc-control-border-selected: var(--interactive-accent);
 	--fc-compact-control-border: var(--fc-line);
@@ -121,8 +138,8 @@
 	/* ── 输入框 ─────────────────────────────────────────────── */
 	--fc-input-bg: color-mix(
 		in srgb,
-		var(--background-primary) 96%,
-		var(--background-secondary) 4%
+		var(--background-primary) 85%,
+		var(--background-secondary) 15%
 	);
 	--fc-input-bg-hover: var(--background-modifier-hover);
 	--fc-input-border: var(--fc-control-border);
